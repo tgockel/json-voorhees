@@ -1,0 +1,10 @@
+syntax: glob
+*~
+*.swp
+*.orig
+*.kdev4
+
+syntax: regexp
+^build
+^\.kdev
+
