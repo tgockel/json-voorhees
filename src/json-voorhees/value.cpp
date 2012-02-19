@@ -79,40 +79,40 @@ static ostream_type& stream_escaped_string(ostream_type& stream, const string_ty
 // value_type                                                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static const char* value_type_desc(value_type type)
+static const char* kind_desc(kind type)
 {
     switch (type)
     {
-    case value_type::object:
+    case kind::object:
         return "object";
-    case value_type::array:
+    case kind::array:
         return "array";
-    case value_type::string:
+    case kind::string:
         return "string";
-    case value_type::integer:
+    case kind::integer:
         return "integer";
-    case value_type::decimal:
+    case kind::decimal:
         return "decimal";
-    case value_type::boolean:
+    case kind::boolean:
         return "boolean";
-    case value_type::null:
+    case kind::null:
         return "null";
     default:
         return "UNKNOWN";// should never happen
     }
 }
 
-static bool value_type_valid(value_type type)
+static bool kind_valid(kind k)
 {
-    switch (type)
+    switch (k)
     {
-    case value_type::object:
-    case value_type::array:
-    case value_type::string:
-    case value_type::integer:
-    case value_type::decimal:
-    case value_type::boolean:
-    case value_type::null:
+    case kind::object:
+    case kind::array:
+    case kind::string:
+    case kind::integer:
+    case kind::decimal:
+    case kind::boolean:
+    case kind::null:
         return true;
     default:
         return false;
@@ -120,24 +120,24 @@ static bool value_type_valid(value_type type)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// value_type_error                                                                                                   //
+// kind_error                                                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-value_type_error::value_type_error(const std::string& description) :
+kind_error::kind_error(const std::string& description) :
         std::logic_error(description)
 { }
 
-value_type_error::~value_type_error() throw()
+kind_error::~kind_error() throw()
 { }
 
-static void check_type(value_type expected, value_type actual)
+static void check_type(kind expected, kind actual)
 {
     if (expected != actual)
     {
         std::ostringstream stream;
-        stream << "Unexpected type: expected " << value_type_desc(expected)
-            << " but found " << value_type_desc(actual) << ".";
-        throw value_type_error(stream.str());
+        stream << "Unexpected type: expected " << kind_desc(expected)
+            << " but found " << kind_desc(actual) << ".";
+        throw kind_error(stream.str());
     }
 }
 
@@ -146,62 +146,62 @@ static void check_type(value_type expected, value_type actual)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 value::value() :
-        _type(value_type::null)
+        _kind(kind::null)
 {
     _data.object = 0;
 }
 
 value::value(const string_type& val) :
-        _type(value_type::null)
+        _kind(kind::null)
 {
     _data.string = new string_impl;
-    _type = value_type::string;
+    _kind = kind::string;
     _data.string->_string = val;
 }
 
 value::value(const char_type* val) :
-        _type(value_type::null)
+        _kind(kind::null)
 {
     _data.string = new string_impl;
-    _type = value_type::string;
+    _kind = kind::string;
     _data.string->_string = val;
 }
 
 value::value(int64_t val) :
-        _type(value_type::integer)
+        _kind(kind::integer)
 {
     _data.integer = val;
 }
 
 value::value(double val) :
-        _type(value_type::decimal)
+        _kind(kind::decimal)
 {
     _data.decimal = val;
 }
 
 value::value(bool val) :
-        _type(value_type::boolean)
+        _kind(kind::boolean)
 {
     _data.boolean = val;
 }
 
 value::value(const object_view& obj_view) :
-        _type(value_type::null)
+        _kind(kind::null)
 {
     _data.object = obj_view._source->clone();
-    _type = value_type::object;
+    _kind = kind::object;
 }
 
 value::value(const array_view& arr_view) :
-        _type(value_type::null)
+        _kind(kind::null)
 {
     _data.array = arr_view._source->clone();
-    _type = value_type::array;
+    _kind = kind::array;
 }
 
 #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR(type_)              \
     value::value(type_ val) :                                              \
-            _type(value_type::integer)                                     \
+            _kind(kind::integer)                                           \
     {                                                                      \
         _data.integer = val;                                               \
     }
@@ -216,38 +216,38 @@ value& value::operator=(const value& other)
 {
     clear();
     
-    switch (other.type())
+    switch (other.get_kind())
     {
-    case value_type::object:
+    case kind::object:
         _data.object = other._data.object->clone();
         break;
-    case value_type::array:
+    case kind::array:
         _data.array = other._data.array->clone();
         break;
-    case value_type::string:
+    case kind::string:
         _data.string = other._data.string->clone();
         break;
-    case value_type::integer:
+    case kind::integer:
         _data.integer = other._data.integer;
         break;
-    case value_type::decimal:
+    case kind::decimal:
         _data.decimal = other._data.decimal;
         break;
-    case value_type::boolean:
+    case kind::boolean:
         _data.boolean = other._data.boolean;
         break;
-    case value_type::null:
+    case kind::null:
         break;
     }
     
     // it is important that we set our type AFTER we copy the data so we're in a consistent state if the copy throws
-    _type = other._type;
+    _kind = other._kind;
     
     return *this;
 }
 
 value::value(const value& other) :
-        _type(value_type::null)
+        _kind(kind::null)
 {
     // just re-use assignment operator
     *this = other;
@@ -255,10 +255,10 @@ value::value(const value& other) :
 
 value::value(value&& other) :
         _data(other._data),
-        _type(other._type)
+        _kind(other._kind)
 {
     other._data.object = 0;
-    other._type = value_type::null;
+    other._kind = kind::null;
 }
 
 value& value::operator =(value&& source)
@@ -266,9 +266,9 @@ value& value::operator =(value&& source)
     clear();
     
     _data = source._data;
-    _type = source._type;
+    _kind = source._kind;
     source._data.object = 0;
-    source._type = value_type::null;
+    source._kind = kind::null;
     
     return *this;
 }
@@ -277,7 +277,7 @@ value value::make_object()
 {
     value val;
     val._data.object = new object_impl;
-    val._type = value_type::object;
+    val._kind = kind::object;
     
     return val;
 }
@@ -286,131 +286,131 @@ value value::make_array()
 {
     value val;
     val._data.array = new array_impl;
-    val._type = value_type::array;
+    val._kind = kind::array;
     
     return val;
 }
 
 void value::clear()
 {
-    switch (_type)
+    switch (_kind)
     {
-    case value_type::object:
+    case kind::object:
         delete _data.object;
         break;
-    case value_type::array:
+    case kind::array:
         delete _data.array;
         break;
-    case value_type::string:
+    case kind::string:
         delete _data.string;
         break;
-    case value_type::integer:
-    case value_type::decimal:
-    case value_type::boolean:
-    case value_type::null:
+    case kind::integer:
+    case kind::decimal:
+    case kind::boolean:
+    case kind::null:
         // do nothing
         break;
     }
     
-    _type = value_type::null;
+    _kind = kind::null;
     _data.object = 0;
 }
 
 object_view value::as_object()
 {
-    check_type(value_type::object, _type);
+    check_type(kind::object, _kind);
     return object_view(_data.object);
 }
 
 const object_view value::as_object() const
 {
-    check_type(value_type::object, _type);
+    check_type(kind::object, _kind);
     // const_cast is okay, since we're giving back something that won't modify us
     return object_view(const_cast<detail::object_impl*>(_data.object));
 }
 
 array_view value::as_array()
 {
-    check_type(value_type::array, _type);
+    check_type(kind::array, _kind);
     return array_view(_data.array);
 }
 
 const array_view value::as_array() const
 {
-    check_type(value_type::array, _type);
+    check_type(kind::array, _kind);
     return array_view(const_cast<detail::array_impl*>(_data.array));
 }
 
 string_type& value::as_string()
 {
-    check_type(value_type::string, _type);
+    check_type(kind::string, _kind);
     return _data.string->_string;
 }
 
 const string_type& value::as_string() const
 {
-    check_type(value_type::string, _type);
+    check_type(kind::string, _kind);
     return _data.string->_string;
 }
 
 int64_t& value::as_integer()
 {
-    check_type(value_type::integer, _type);
+    check_type(kind::integer, _kind);
     return _data.integer;
 }
 
 int64_t value::as_integer() const
 {
-    check_type(value_type::integer, _type);
+    check_type(kind::integer, _kind);
     return _data.integer;
 }
 
 double& value::as_decimal()
 {
-    check_type(value_type::decimal, _type);
+    check_type(kind::decimal, _kind);
     return _data.decimal;
 }
 
 double value::as_decimal() const
 {
-    check_type(value_type::decimal, _type);
+    check_type(kind::decimal, _kind);
     return _data.decimal;
 }
 
 bool& value::as_boolean()
 {
-    check_type(value_type::boolean, _type);
+    check_type(kind::boolean, _kind);
     return _data.boolean;
 }
 
 bool value::as_boolean() const
 {
-    check_type(value_type::boolean, _type);
+    check_type(kind::boolean, _kind);
     return _data.boolean;
 }
 
 bool value::operator ==(const value& other) const
 {
-    if (this == &other && value_type_valid(type()))
+    if (this == &other && kind_valid(kind()))
         return true;
-    if (type() != other.type())
+    if (get_kind() != other.get_kind())
         return false;
     
-    switch (type())
+    switch (kind())
     {
-    case value_type::object:
+    case kind::object:
         return as_object() == other.as_object();
-    case value_type::array:
+    case kind::array:
         return as_array() == other.as_array();
-    case value_type::string:
+    case kind::string:
         return as_string() == other.as_string();
-    case value_type::integer:
+    case kind::integer:
         return as_integer() == other.as_integer();
-    case value_type::decimal:
+    case kind::decimal:
         return as_decimal() == other.as_decimal();
-    case value_type::boolean:
+    case kind::boolean:
         return as_boolean() == other.as_boolean();
-    case value_type::null:
+    case kind::null:
         return true;
     default:
         return false;
@@ -420,29 +420,29 @@ bool value::operator ==(const value& other) const
 bool value::operator !=(const value& other) const
 {
     // must be first: an invalid type is not equal to itself
-    if (!value_type_valid(type()))
+    if (!kind_valid(get_kind()))
         return true;
     
     if (this == &other)
         return false;
-    if (type() != other.type())
+    if (get_kind() != other.get_kind())
         return true;
     
-    switch (type())
+    switch (get_kind())
     {
-    case value_type::object:
+    case kind::object:
         return as_object() != other.as_object();
-    case value_type::array:
+    case kind::array:
         return as_array() != other.as_array();
-    case value_type::string:
+    case kind::string:
         return as_string() != other.as_string();
-    case value_type::integer:
+    case kind::integer:
         return as_integer() != other.as_integer();
-    case value_type::decimal:
+    case kind::decimal:
         return as_decimal() != other.as_decimal();
-    case value_type::boolean:
+    case kind::boolean:
         return as_boolean() != other.as_boolean();
-    case value_type::null:
+    case kind::null:
         return false;
     default:
         return true;
@@ -451,21 +451,21 @@ bool value::operator !=(const value& other) const
 
 ostream_type& operator <<(ostream_type& stream, const value& val)
 {
-    switch (val.type())
+    switch (val.get_kind())
     {
-    case value_type::object:
+    case kind::object:
         return stream << val.as_object();
-    case value_type::array:
+    case kind::array:
         return stream << val.as_array();
-    case value_type::string:
+    case kind::string:
         return stream_escaped_string(stream, val.as_string());
-    case value_type::integer:
+    case kind::integer:
         return stream << val.as_integer();
-    case value_type::decimal:
+    case kind::decimal:
         return stream << val.as_decimal();
-    case value_type::boolean:
+    case kind::boolean:
         return stream << (val.as_boolean() ? "true" : "false");
-    case value_type::null:
+    case kind::null:
     default:
         return stream << "null";
     }

@@ -43,7 +43,7 @@ union value_storage
 
 }
 
-enum class value_type
+enum class kind
 {
     null,
     object,
@@ -54,13 +54,13 @@ enum class value_type
     boolean
 };
 
-class value_type_error :
+class kind_error :
         public std::logic_error
 {
 public:
-    explicit value_type_error(const std::string& description);
+    explicit kind_error(const std::string& description);
     
-    virtual ~value_type_error() throw();
+    virtual ~kind_error() throw();
 };
 
 class object_view;
@@ -113,9 +113,9 @@ public:
     /// Resets this value to null.
     void clear();
     
-    inline value_type type() const
+    inline kind get_kind() const
     {
-        return _type;
+        return _kind;
     }
     
     object_view as_object();
@@ -164,7 +164,7 @@ public:
     
 private:
     detail::value_storage _data;
-    value_type            _type;
+    kind                  _kind;
 };
 
 /** A "view" of a JSON \c value as a JSON object (obtain with \c value::as_object). This does not ensure the object you

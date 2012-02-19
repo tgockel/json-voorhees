@@ -19,21 +19,21 @@ TEST(array)
     jsonv::array_view arr = val.as_array();
     arr.push_back(8.9);
     ensure(arr.size() == 1);
-    ensure(arr[0].type() == jsonv::value_type::decimal);
+    ensure(arr[0].get_kind() == jsonv::kind::decimal);
     arr.push_back(true);
     ensure(arr.size() == 2);
-    ensure(arr[0].type() == jsonv::value_type::decimal);
-    ensure(arr[1].type() == jsonv::value_type::boolean);
+    ensure(arr[0].get_kind() == jsonv::kind::decimal);
+    ensure(arr[1].get_kind() == jsonv::kind::boolean);
     arr[0] = "Hi";
     ensure(arr.size() == 2);
-    ensure(arr[0].type() == jsonv::value_type::string);
-    ensure(arr[1].type() == jsonv::value_type::boolean);
+    ensure(arr[0].get_kind() == jsonv::kind::string);
+    ensure(arr[1].get_kind() == jsonv::kind::boolean);
 }
 
 TEST(make_array)
 {
     jsonv::value val = jsonv::make_array(2, 10, "Hello, world!");
-    ensure(val.type() == jsonv::value_type::array);
+    ensure(val.get_kind() == jsonv::kind::array);
     jsonv::array_view arr = val.as_array();
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
@@ -44,7 +44,7 @@ TEST(make_array)
 TEST(parse_array)
 {
     jsonv::value val = jsonv::parse("\t\n[2, 10, \"Hello, world!\"]   ");
-    ensure(val.type() == jsonv::value_type::array);
+    ensure(val.get_kind() == jsonv::kind::array);
     jsonv::array_view arr = val.as_array();
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
