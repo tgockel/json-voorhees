@@ -515,19 +515,37 @@ value make_array(T&&... values)
     return val;
 }
 
-/** Creates an object with the given \a pairs.
+namespace detail
+{
+
+inline void make_object_impl(jsonv::object_view&)
+{ }
+
+template <typename TKey, typename TValue, typename... TRest>
+void make_object_impl(jsonv::object_view& obj, TKey&& key, TValue&& value, TRest&&... rest)
+{
+    obj.insert(object_view::value_type(std::forward<TKey>(key), std::forward<TValue>(value)));
+    make_object_impl(obj, std::forward<TRest>(rest)...);
+}
+
+}
+
+/** Creates an object with the given \a entries.
  *  
  *  \example
  *  \code
- *  jsonv::value val = jsonv::make_object({"foo", 8}, {"bar", "wat"});
+ *  jsonv::value val = jsonv::make_object("foo", 8, "bar", "wat");
  *  // Creates: { "bar": "wat", "foo": 8 }
  *  \endcode
 **/
 template <typename... T>
-value make_object(T&&... pairs)
+value make_object(T&&... entries)
 {
+    static_assert(sizeof...(T) % 2 == 0, "Must have even number of entries: (key0, value0, key1, value1, ...)");
+    
     value val = value::make_object();
-    val.as_object().insert_many(std::forward<T>(pairs)...);
+    object_view obj = val.as_object();
+    detail::make_object_impl(obj, std::forward<T>(entries)...);
     return val;
 }
 
