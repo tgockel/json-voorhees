@@ -584,9 +584,27 @@ void object_view::basic_iterator<T>::copy_from(const char* other_storage)
     const_converter_union other_convert;
     other_convert.storage = other_storage;
     
-    *self_convert.iter == *other_convert.iter;
+    *self_convert.iter = *other_convert.iter;
 }
 JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(void, copy_from(const char*))
+
+template <typename T>
+template <typename U>
+object_view::basic_iterator<T>::basic_iterator(const basic_iterator<U>& source,
+                                               typename std::enable_if<std::is_convertible<U*, T*>::value>::type*
+                                              )
+{
+    typedef typename object_view_converter<T>::impl       converter_union;
+    typedef typename object_view_converter<U>::const_impl const_converter_union;
+    converter_union self_convert;
+    self_convert.storage = _storage;
+    const_converter_union other_convert;
+    other_convert.storage = source._storage;
+    
+    *self_convert.iter = *other_convert.iter;
+}
+template object_view::basic_iterator<const object_view::value_type>
+                    ::basic_iterator<object_view::value_type>(const basic_iterator<object_view::value_type>&, void*);
 
 object_view::object_view(object_impl* source) :
         _source(source)

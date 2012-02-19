@@ -18,6 +18,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 namespace jsonv
@@ -205,6 +206,13 @@ public:
         {
             copy_from(source._storage);
         }
+        
+        /** This allows assignment from an \c iterator to a \c const_iterator.
+        **/
+        template <typename U>
+        basic_iterator(const basic_iterator<U>& source,
+                       typename std::enable_if<std::is_convertible<U*, T*>::value>::type* = 0
+                      );
         
         basic_iterator& operator++()
         {

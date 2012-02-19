@@ -12,6 +12,7 @@
 #include <cassert>
 #include <deque>
 #include <iostream>
+#include <map>
 #include <string>
 
 #include <json-voorhees/value.hpp>
@@ -186,6 +187,22 @@ TEST(parse_unicode_invalid_surrogates)
     const char vals[] = "\xed\xba\xad\xeb\xbb\xaf";
     for (unsigned idx = 0; idx < sizeof vals; ++idx)
         ensure(s[idx] == vals[idx]);
+}
+
+TEST(object_view_iter_assign)
+{
+    using namespace jsonv;
+    
+    value val = make_object("foo", 5, "bar", "wat");
+    std::map<std::string, bool> found{ { "foo", false }, { "bar", false } };
+    object_view obj = val.as_object();
+    ensure(obj.size() == 2);
+    
+    for (object_view::const_iterator iter = obj.begin(); iter != obj.end(); ++iter)
+        found[iter->first] = true;
+    
+    for (auto iter = found.begin(); iter != found.end(); ++iter)
+        ensure(iter->second);
 }
 
 TEST(demo)
