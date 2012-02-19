@@ -205,6 +205,20 @@ TEST(object_view_iter_assign)
         ensure(iter->second);
 }
 
+TEST(array_view_iter_assign)
+{
+    using namespace jsonv;
+    
+    value val = make_array(0, 1, 2, 3, 4, 5);
+    array_view arr = val.as_array();
+    int64_t i = 0;
+    for (array_view::const_iterator iter = arr.begin(); iter != arr.end(); ++iter)
+    {
+        ensure(iter->as_integer() == i);
+        ++i;
+    }
+}
+
 TEST(demo)
 {
     std::string src = "{ \"blazing\": [ 3 \"\\\"\\n\" 4.5 5.123 4.10921e19 ] " // <- no need for commas
@@ -214,7 +228,7 @@ TEST(demo)
                       "  \"unicode\" :\"\\uface\""
                       "}";
     jsonv::value parsed = jsonv::parse(src);
-    std::cout << parsed << std::endl;
+    std::cout << parsed;
 }
 
 int main(int, char**)

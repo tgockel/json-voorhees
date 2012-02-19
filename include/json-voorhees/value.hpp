@@ -352,6 +352,14 @@ public:
                 _index(index)
         { }
         
+        template <typename U, typename UArrayView>
+        basic_iterator(const basic_iterator<U, UArrayView>& source,
+                       typename std::enable_if<std::is_convertible<U*, T*>::value>::type* = 0
+                      ) :
+                _owner(source._owner),
+                _index(source._index)
+        { }
+        
         basic_iterator& operator ++()
         {
             ++_index;
@@ -450,6 +458,9 @@ public:
         {
             return _owner->operator[](_index + n);
         }
+    private:
+        template <typename U, typename UArrayView>
+        friend struct basic_iterator;
         
     private:
         TArrayView* _owner;
