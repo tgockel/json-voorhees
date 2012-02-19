@@ -166,6 +166,21 @@ private:
     value_type            _type;
 };
 
+/** A "view" of a JSON \c value as a JSON object (obtain with \c value::as_object). This does not ensure the object you
+ *  are viewing stays alive, so you must do that yourself -- an \c object_view just has a pointer, so if that pointer
+ *  goes bad, the behavior is undefined. After the awkward lifetime management, this is pretty much an associative
+ *  container for mapping a string to a JSON \c value.
+ *  
+ *  @example
+ *  @code
+ *  jsonv::value val = something();
+ *  jsonv::object_view obj = val.as_object();
+ *  foo(obj["bar"]);
+ *  @endcode
+ *  
+ *  This is a pretty awkward way to do things, actually. The alternative is to roll indexing operator and iterators into
+ *  \c value, which leads to having a bunch of operators inside the class. I figured this is the lesser of two evils.
+**/
 class object_view
 {
 public:
@@ -301,8 +316,8 @@ private:
     detail::object_impl* _source;
 };
 
-/** This is a view of a \c value as if it was a JSON array. It is a sequence container which behaves a lot like an
- *  \c std::deque (probably because that is the type that backs it).
+/** This is a view of a \c value as a JSON array (with the same lack of lifetime management as \c object_view). It is a
+ *  sequence container which behaves a lot like an \c std::deque (probably because that is the type that backs it).
 **/
 class array_view
 {
@@ -484,7 +499,14 @@ private:
     detail::array_impl* _source;
 };
 
-
+/** Creates an array with the given \a values.
+ *  
+ *  \example
+ *  \code
+ *  jsonv::value val = jsonv::make_array(1, 2, 3, "foo");
+ *  // Creates: [1, 2, 3, "foo"]
+ *  \endcode
+**/
 template <typename... T>
 value make_array(T&&... values)
 {
@@ -493,6 +515,14 @@ value make_array(T&&... values)
     return val;
 }
 
+/** Creates an object with the given \a pairs.
+ *  
+ *  \example
+ *  \code
+ *  jsonv::value val = jsonv::make_object({"foo", 8}, {"bar", "wat"});
+ *  // Creates: { "bar": "wat", "foo": 8 }
+ *  \endcode
+**/
 template <typename... T>
 value make_object(T&&... pairs)
 {
