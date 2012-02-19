@@ -11,13 +11,11 @@
 #include <json-voorhees/value.hpp>
 
 #include "char_convert.hpp"
+#include "detail.hpp"
 
 #include <cstring>
-#include <deque>
-#include <map>
 #include <ostream>
 #include <sstream>
-#include <string>
 
 using namespace jsonv::detail;
 
@@ -28,95 +26,12 @@ namespace jsonv
 // Implementation Details                                                                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-namespace detail
-{
-
-template <typename T>
-struct cloneable
-{
-    T* clone() const
-    {
-        return new T(*static_cast<const T*>(this));
-    }
-};
-
-class object_impl :
-        public cloneable<object_impl>
-{
-public:
-    typedef std::map<string_type, jsonv::value> map_type;
-    
-    map_type _values;
-};
-
-class array_impl :
-        public cloneable<array_impl>
-{
-public:
-    typedef std::deque<jsonv::value> array_type;
-    
-    array_type _values;
-};
-
-class string_impl :
-        public cloneable<string_impl>
-{
-public:
-    string_type _string;
-};
-
 static ostream_type& stream_escaped_string(ostream_type& stream, const string_type& str)
 {
     stream << "\"";
     string_encode(stream, str);
     stream << "\"";
     return stream;
-}
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// value_type                                                                                                         //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static const char* kind_desc(kind type)
-{
-    switch (type)
-    {
-    case kind::object:
-        return "object";
-    case kind::array:
-        return "array";
-    case kind::string:
-        return "string";
-    case kind::integer:
-        return "integer";
-    case kind::decimal:
-        return "decimal";
-    case kind::boolean:
-        return "boolean";
-    case kind::null:
-        return "null";
-    default:
-        return "UNKNOWN";// should never happen
-    }
-}
-
-static bool kind_valid(kind k)
-{
-    switch (k)
-    {
-    case kind::object:
-    case kind::array:
-    case kind::string:
-    case kind::integer:
-    case kind::decimal:
-    case kind::boolean:
-    case kind::null:
-        return true;
-    default:
-        return false;
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -129,17 +44,6 @@ kind_error::kind_error(const std::string& description) :
 
 kind_error::~kind_error() throw()
 { }
-
-static void check_type(kind expected, kind actual)
-{
-    if (expected != actual)
-    {
-        std::ostringstream stream;
-        stream << "Unexpected type: expected " << kind_desc(expected)
-            << " but found " << kind_desc(actual) << ".";
-        throw kind_error(stream.str());
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // value                                                                                                              //
