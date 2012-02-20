@@ -64,7 +64,7 @@ public:
 };
 
 class object;
-class array_view;
+class array;
 
 /** \see http://json.org/
 **/
@@ -80,7 +80,7 @@ public:
     value(double val);
     value(bool val);
     value(const object& obj);
-    value(const array_view& array_view);
+    value(const array& array);
     
     #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR(type_)              \
         value(type_ val);
@@ -121,8 +121,8 @@ public:
     object& as_object();
     const object& as_object() const;
     
-    array_view as_array();
-    const array_view as_array() const;
+    array& as_array();
+    const array& as_array() const;
     
     string_type& as_string();
     const string_type& as_string() const;
@@ -166,216 +166,6 @@ protected:
     detail::value_storage _data;
     kind                  _kind;
 };
-
-/** This is a view of a \c value as a JSON array (with the same lack of lifetime management as \c object_view). It is a
- *  sequence container which behaves a lot like an \c std::deque (probably because that is the type that backs it).
-**/
-class array_view
-{
-public:
-    typedef size_t       size_type;
-    typedef value        value_type;
-    typedef value&       reference;
-    typedef const value& const_reference;
-    typedef value*       pointer;
-    typedef const value* const_pointer;
-    
-    template <typename T, typename TArrayView>
-    struct basic_iterator :
-            public std::iterator<std::random_access_iterator_tag, T>
-    {
-    public:
-        basic_iterator() :
-                _owner(0),
-                _index(0)
-        { }
-        
-        basic_iterator(TArrayView* owner, size_type index) :
-                _owner(owner),
-                _index(index)
-        { }
-        
-        template <typename U, typename UArrayView>
-        basic_iterator(const basic_iterator<U, UArrayView>& source,
-                       typename std::enable_if<std::is_convertible<U*, T*>::value>::type* = 0
-                      ) :
-                _owner(source._owner),
-                _index(source._index)
-        { }
-        
-        basic_iterator& operator ++()
-        {
-            ++_index;
-            return *this;
-        }
-        
-        basic_iterator operator ++(int) const
-        {
-            basic_iterator clone = *this;
-            ++clone;
-            return clone;
-        }
-        
-        basic_iterator& operator --()
-        {
-            --_index;
-            return *this;
-        }
-        
-        basic_iterator operator --(int) const
-        {
-            basic_iterator clone = *this;
-            --clone;
-            return clone;
-        }
-        
-        template <typename U, typename UArrayView>
-        bool operator ==(const basic_iterator<U, UArrayView>& other) const
-        {
-            return _owner == other._owner && _index == other._index;
-        }
-        
-        template <typename U, typename UArrayView>
-        bool operator !=(const basic_iterator<U, UArrayView>& other) const
-        {
-            return !operator==(other);
-        }
-        
-        T& operator *() const
-        {
-            return _owner->operator[](_index);
-        }
-        
-        T* operator ->() const
-        {
-            return &_owner->operator[](_index);
-        }
-        
-        basic_iterator& operator +=(size_type n)
-        {
-            _index += n;
-            return *this;
-        }
-        
-        basic_iterator operator +(size_type n) const
-        {
-            basic_iterator clone = *this;
-            clone += n;
-            return clone;
-        }
-        
-        basic_iterator& operator -=(size_type n)
-        {
-            _index -= n;
-            return *this;
-        }
-        
-        basic_iterator operator -(size_type n) const
-        {
-            basic_iterator clone = *this;
-            clone -= n;
-            return clone;
-        }
-        
-        bool operator <(const basic_iterator& rhs) const
-        {
-            return _index < rhs._index;
-        }
-        
-        bool operator <=(const basic_iterator& rhs) const
-        {
-            return _index <= rhs._index;
-        }
-        
-        bool operator >(const basic_iterator& rhs) const
-        {
-            return _index > rhs._index;
-        }
-        
-        bool operator >=(const basic_iterator& rhs) const
-        {
-            return _index >= rhs._index;
-        }
-        
-        T& operator[](size_type n) const
-        {
-            return _owner->operator[](_index + n);
-        }
-    private:
-        template <typename U, typename UArrayView>
-        friend struct basic_iterator;
-        
-    private:
-        TArrayView* _owner;
-        size_type   _index;
-    };
-    
-    typedef basic_iterator<value, array_view>             iterator;
-    typedef basic_iterator<const value, const array_view> const_iterator;
-    
-public:
-    size_type size() const;
-    bool empty() const;
-    
-    iterator begin();
-    const_iterator begin() const;
-    
-    iterator end();
-    const_iterator end() const;
-    
-    value& operator[](size_type idx);
-    const value& operator[](size_type idx) const;
-    
-    void push_back(const value& value);
-    void pop_back();
-    
-    void push_front(const value& value);
-    void pop_front();
-    
-    void clear();
-    void resize(size_type count, const value& val = value());
-    
-    /// \see value::operator==
-    bool operator==(const array_view& other) const;
-    
-    /// \see value::operator!=
-    bool operator!=(const array_view& other) const;
-    
-    void push_back_many()
-    { }
-    
-    template <typename T, typename... TRest>
-    void push_back_many(T&& val, TRest&&... rest)
-    {
-        push_back(std::forward<T>(val));
-        push_back_many(std::forward<TRest>(rest)...);
-    }
-    
-    friend ostream_type& operator <<(ostream_type& stream, const array_view& view);
-    
-private:
-    friend class value;
-    explicit array_view(detail::array_impl* source);
-    
-private:
-    detail::array_impl* _source;
-};
-
-/** Creates an array with the given \a values.
- *  
- *  \example
- *  \code
- *  jsonv::value val = jsonv::make_array(1, 2, 3, "foo");
- *  // Creates: [1, 2, 3, "foo"]
- *  \endcode
-**/
-template <typename... T>
-value make_array(T&&... values)
-{
-    value val = value::make_array();
-    val.as_array().push_back_many(std::forward<T>(values)...);
-    return val;
-}
 
 }
 

@@ -153,8 +153,8 @@ public:
     friend ostream_type& operator <<(ostream_type& stream, const object& obj);
     
     // delete all the non-object casts -- they're not valid
-    array_view as_array() = delete;
-    const array_view as_array() const = delete;
+    array& as_array() = delete;
+    const array& as_array() const = delete;
     string_type& as_string() = delete;
     const string_type& as_string() const = delete;
     int64_t& as_integer() = delete;

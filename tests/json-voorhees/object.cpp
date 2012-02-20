@@ -10,6 +10,7 @@
 **/
 #include "test.hpp"
 
+#include <json-voorhees/array.hpp>
 #include <json-voorhees/object.hpp>
 
 #include <map>

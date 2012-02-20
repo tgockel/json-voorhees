@@ -10,13 +10,12 @@
 **/
 #include "test.hpp"
 
-#include <json-voorhees/value.hpp>
+#include <json-voorhees/array.hpp>
 #include <json-voorhees/parse.hpp>
 
 TEST(array)
 {
-    jsonv::value val = jsonv::make_array();
-    jsonv::array_view arr = val.as_array();
+    jsonv::array arr;
     arr.push_back(8.9);
     ensure(arr.size() == 1);
     ensure(arr[0].get_kind() == jsonv::kind::decimal);
@@ -32,9 +31,9 @@ TEST(array)
 
 TEST(make_array)
 {
-    jsonv::value val = jsonv::make_array(2, 10, "Hello, world!");
+    jsonv::array val = jsonv::make_array(2, 10, "Hello, world!");
     ensure(val.get_kind() == jsonv::kind::array);
-    jsonv::array_view arr = val.as_array();
+    jsonv::array& arr = val.as_array();
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
     ensure(arr[1].as_integer() == 10);
@@ -45,7 +44,7 @@ TEST(parse_array)
 {
     jsonv::value val = jsonv::parse("\t\n[2, 10, \"Hello, world!\"]   ");
     ensure(val.get_kind() == jsonv::kind::array);
-    jsonv::array_view arr = val.as_array();
+    jsonv::array& arr = val.as_array();
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
     ensure(arr[1].as_integer() == 10);
@@ -58,9 +57,9 @@ TEST(array_view_iter_assign)
     using namespace jsonv;
     
     value val = make_array(0, 1, 2, 3, 4, 5);
-    array_view arr = val.as_array();
+    array& arr = val.as_array();
     int64_t i = 0;
-    for (array_view::const_iterator iter = arr.begin(); iter != arr.end(); ++iter)
+    for (array::const_iterator iter = arr.begin(); iter != arr.end(); ++iter)
     {
         ensure(iter->as_integer() == i);
         ++i;

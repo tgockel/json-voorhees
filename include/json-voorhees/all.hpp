@@ -12,6 +12,7 @@
 #ifndef __JSON_VOORHEES_ALL_HPP_INCLUDED__
 #define __JSON_VOORHEES_ALL_HPP_INCLUDED__
 
+#include "array.hpp"
 #include "forward.hpp"
 #include "object.hpp"
 #include "parse.hpp"

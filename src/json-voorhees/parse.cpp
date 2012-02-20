@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <json-voorhees/parse.hpp>
+#include <json-voorhees/array.hpp>
 #include <json-voorhees/object.hpp>
 
 #include "char_convert.hpp"
@@ -244,8 +245,7 @@ static value parse_array(parse_context& context)
 {
     assert(context.current == '[');
     
-    value self = value::make_array();
-    array_view arr = self.as_array();
+    array arr;
     
     while (true)
     {
@@ -271,7 +271,7 @@ static value parse_array(parse_context& context)
             }
         }
     }
-    return self;
+    return arr;
 }
 
 static value parse_object(parse_context& context)

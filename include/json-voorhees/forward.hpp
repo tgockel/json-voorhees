@@ -14,6 +14,8 @@
 namespace jsonv
 {
 
+class array;
+class object;
 class value;
 
 }

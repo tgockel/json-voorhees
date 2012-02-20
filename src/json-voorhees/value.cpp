@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <json-voorhees/value.hpp>
+#include <json-voorhees/array.hpp>
 #include <json-voorhees/object.hpp>
 
 #include "char_convert.hpp"
@@ -85,10 +86,10 @@ value::value(const object& obj) :
     _kind = kind::object;
 }
 
-value::value(const array_view& arr_view) :
+value::value(const array& arr) :
         _kind(kind::null)
 {
-    _data.array = arr_view._source->clone();
+    _data.array = arr._data.array->clone();
     _kind = kind::array;
 }
 
@@ -217,16 +218,16 @@ const object& value::as_object() const
     return *reinterpret_cast<const object*>(this);
 }
 
-array_view value::as_array()
+array& value::as_array()
 {
     check_type(kind::array, _kind);
-    return array_view(_data.array);
+    return *reinterpret_cast<array*>(this);
 }
 
-const array_view value::as_array() const
+const array& value::as_array() const
 {
     check_type(kind::array, _kind);
-    return array_view(const_cast<detail::array_impl*>(_data.array));
+    return *reinterpret_cast<const array*>(this);
 }
 
 string_type& value::as_string()
@@ -357,138 +358,6 @@ ostream_type& operator <<(ostream_type& stream, const value& val)
     default:
         return stream << "null";
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// array_view                                                                                                         //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-array_view::array_view(array_impl* source) :
-        _source(source)
-{ }
-
-array_view::size_type array_view::size() const
-{
-    return _source->_values.size();
-}
-
-bool array_view::empty() const
-{
-    return _source->_values.empty();
-}
-
-array_view::iterator array_view::begin()
-{
-    return iterator(this, 0);
-}
-
-array_view::const_iterator array_view::begin() const
-{
-    return const_iterator(this, 0);
-}
-
-array_view::iterator array_view::end()
-{
-    return iterator(this, size());
-}
-
-array_view::const_iterator array_view::end() const
-{
-    return const_iterator(this, size());
-}
-
-value& array_view::operator[](size_type idx)
-{
-    return _source->_values[idx];
-}
-
-const value& array_view::operator[](size_type idx) const
-{
-    return _source->_values[idx];
-}
-
-void array_view::push_back(const value& val)
-{
-    _source->_values.push_back(val);
-}
-
-void array_view::pop_back()
-{
-    _source->_values.pop_back();
-}
-
-void array_view::push_front(const value& val)
-{
-    _source->_values.push_front(val);
-}
-
-void array_view::pop_front()
-{
-    _source->_values.pop_front();
-}
-
-void array_view::clear()
-{
-    _source->_values.clear();
-}
-
-void array_view::resize(size_type count, const value& val)
-{
-    _source->_values.resize(count, val);
-}
-
-bool array_view::operator ==(const array_view& other) const
-{
-    if (this == &other)
-        return true;
-    if (size() != other.size())
-        return false;
-    
-    typedef array_impl::array_type::const_iterator const_iterator;
-    
-    const_iterator self_iter  = _source->_values.begin();
-    const_iterator other_iter = other._source->_values.begin();
-    
-    for (const const_iterator self_end = _source->_values.end();
-         self_iter != self_end;
-         ++self_iter, ++other_iter
-        )
-    {
-        if (*self_iter != *other_iter)
-            return false;
-    }
-    
-    return true;
-}
-
-bool array_view::operator !=(const array_view& other) const
-{
-    return !operator==(other);
-}
-
-ostream_type& operator <<(ostream_type& stream, const array_view& view)
-{
-    typedef array_impl::array_type::const_iterator const_iterator;
-    
-    const_iterator iter = view._source->_values.begin();
-    const_iterator end  = view._source->_values.end();
-    
-    stream << "[";
-    
-    if (iter != end)
-    {
-        stream << *iter;
-        ++iter;
-    }
-    
-    for ( ; iter != end; ++iter)
-    {
-        stream << ", " << *iter;
-    }
-    
-    stream << "]";
-    
-    return stream;
 }
 
 }
