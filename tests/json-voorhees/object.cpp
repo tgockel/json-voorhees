@@ -12,6 +12,7 @@
 
 #include <json-voorhees/array.hpp>
 #include <json-voorhees/object.hpp>
+#include <json-voorhees/parse.hpp>
 
 #include <map>
 
@@ -50,4 +51,12 @@ TEST(object_compare)
     
     // really just a test to see if this compiles:
     ensure(obj != i);
+}
+
+TEST(parse_empty)
+{
+    auto v = jsonv::parse("{}");
+    auto& obj = v.as_object();
+    
+    ensure(obj.size() == 0);
 }
