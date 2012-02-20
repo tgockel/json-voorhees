@@ -53,7 +53,7 @@ TEST(object_compare)
     ensure(obj != i);
 }
 
-TEST(parse_empty)
+TEST(parse_empty_object)
 {
     auto v = jsonv::parse("{}");
     auto& obj = v.as_object();

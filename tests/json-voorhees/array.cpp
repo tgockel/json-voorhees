@@ -65,3 +65,11 @@ TEST(array_view_iter_assign)
         ++i;
     }
 }
+
+TEST(parse_empty_array)
+{
+    auto v = jsonv::parse("[]");
+    auto& arr = v.as_array();
+    
+    ensure(arr.size() == 0);
+}
