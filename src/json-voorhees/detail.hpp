@@ -60,6 +60,7 @@ public:
 const char* kind_desc(kind type);
 bool kind_valid(kind k);
 void check_type(kind expected, kind actual);
+ostream_type& stream_escaped_string(ostream_type& stream, const string_type& str);
 
 }
 

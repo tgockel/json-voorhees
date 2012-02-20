@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <json-voorhees/parse.hpp>
+#include <json-voorhees/object.hpp>
 
 #include "char_convert.hpp"
 
@@ -277,8 +278,7 @@ static value parse_object(parse_context& context)
 {
     assert(context.current == '{');
     
-    value self = value::make_object();
-    object_view obj = self.as_object();
+    object obj;
     
     while (true)
     {
@@ -304,17 +304,17 @@ static value parse_object(parse_context& context)
             if (!parse_generic(context, val))
                 context.parse_error("Unexpected end: missing value for key '", key, "'");
             
-            object_view::iterator iter = obj.find(key);
+            object::iterator iter = obj.find(key);
             if (iter != obj.end())
                 context.parse_error("Duplicate key \"", key, "\"");
             obj[key] = val;
             break;
         }
         case '}':
-            return self;
+            return obj;
         default:
             context.parse_error("Invalid character '", context.current, "' expecting '}' or a key (string)");
-            return self;
+            return obj;
         }
     }
 }

@@ -63,7 +63,7 @@ public:
     virtual ~kind_error() throw();
 };
 
-class object_view;
+class object;
 class array_view;
 
 /** \see http://json.org/
@@ -79,7 +79,7 @@ public:
     value(int64_t val);
     value(double val);
     value(bool val);
-    value(const object_view& obj_view);
+    value(const object& obj);
     value(const array_view& array_view);
     
     #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR(type_)              \
@@ -107,7 +107,7 @@ public:
     **/
     value& operator=(value&& source);
     
-    static value make_object();
+    static object make_object();
     static value make_array();
     
     /// Resets this value to null.
@@ -118,8 +118,8 @@ public:
         return _kind;
     }
     
-    object_view as_object();
-    const object_view as_object() const;
+    object& as_object();
+    const object& as_object() const;
     
     array_view as_array();
     const array_view as_array() const;
@@ -162,166 +162,9 @@ public:
     
     friend ostream_type& operator <<(ostream_type& stream, const value& val);
     
-private:
+protected:
     detail::value_storage _data;
     kind                  _kind;
-};
-
-/** A "view" of a JSON \c value as a JSON object (obtain with \c value::as_object). This does not ensure the object you
- *  are viewing stays alive, so you must do that yourself -- an \c object_view just has a pointer, so if that pointer
- *  goes bad, the behavior is undefined. After the awkward lifetime management, this is pretty much an associative
- *  container for mapping a string to a JSON \c value.
- *  
- *  @example
- *  @code
- *  jsonv::value val = something();
- *  jsonv::object_view obj = val.as_object();
- *  foo(obj["bar"]);
- *  @endcode
- *  
- *  This is a pretty awkward way to do things, actually. The alternative is to roll indexing operator and iterators into
- *  \c value, which leads to having a bunch of operators inside the class. I figured this is the lesser of two evils.
-**/
-class object_view
-{
-public:
-    typedef size_t                              size_type;
-    typedef string_type                         key_type;
-    typedef value                               mapped_type;
-    typedef std::pair<const string_type, value> value_type;
-    typedef std::equal_to<string_type>          key_compare;
-    typedef value_type&                         reference;
-    typedef const value_type&                   const_reference;
-    typedef value_type*                         pointer;
-    typedef const value_type*                   const_pointer;
-    
-    template <typename T>
-    struct basic_iterator :
-            public std::iterator<std::bidirectional_iterator_tag, T>
-    {
-    public:
-        basic_iterator();
-        
-        basic_iterator(const basic_iterator& source)
-        {
-            copy_from(source._storage);
-        }
-        
-        /** This allows assignment from an \c iterator to a \c const_iterator.
-        **/
-        template <typename U>
-        basic_iterator(const basic_iterator<U>& source,
-                       typename std::enable_if<std::is_convertible<U*, T*>::value>::type* = 0
-                      );
-        
-        basic_iterator& operator++()
-        {
-            increment();
-            return *this;
-        }
-        
-        basic_iterator operator++(int) const
-        {
-            basic_iterator clone(*this);
-            clone.increment();
-            return clone;
-        }
-        
-        basic_iterator& operator--()
-        {
-            decrement();
-            return *this;
-        }
-        
-        basic_iterator operator--(int) const
-        {
-            basic_iterator clone(*this);
-            clone.decrement();
-            return clone;
-        }
-        
-        template <typename U>
-        bool operator ==(const basic_iterator<U>& other) const
-        {
-            return equals(other._storage);
-        }
-        
-        template <typename U>
-        bool operator !=(const basic_iterator<U>& other) const
-        {
-            return !equals(other._storage);
-        }
-        
-        T& operator *() const
-        {
-            return current();
-        }
-        
-        T* operator ->() const
-        {
-            return &current();
-        }
-        
-    private:
-        friend class object_view;
-        
-        template <typename U>
-        explicit basic_iterator(const U&);
-        
-        void increment();
-        void decrement();
-        T&   current() const;
-        bool equals(const char* other_storage) const;
-        void copy_from(const char* other_storage);
-        
-    private:
-        char _storage[sizeof(void*)];
-    };
-    
-    typedef basic_iterator<value_type>       iterator;
-    typedef basic_iterator<const value_type> const_iterator;
-    
-public:
-    size_type size() const;
-    
-    iterator begin();
-    const_iterator begin() const;
-    
-    iterator end();
-    const_iterator end() const;
-    
-    value& operator[](const string_type& key);
-    const value& operator[](const string_type& key) const;
-    
-    iterator find(const string_type& key);
-    const_iterator find(const string_type& key) const;
-    
-    void insert(const value_type& pair);
-    
-    void insert_many()
-    { }
-    
-    template <typename T, typename... TRest>
-    void insert_many(T&& pair, TRest&&... rest)
-    {
-        insert(std::forward<T>(pair));
-        insert_many(std::forward<TRest>(rest)...);
-    }
-    
-    /// \see value::operator==
-    bool operator==(const object_view& other) const;
-    
-    /// \see value::operator!=
-    bool operator!=(const object_view& other) const;
-    
-    friend ostream_type& operator <<(ostream_type& stream, const object_view& view);
-    
-private:
-    friend class value;
-    explicit object_view(detail::object_impl* source);
-    
-private:
-    detail::object_impl* _source;
 };
 
 /** This is a view of a \c value as a JSON array (with the same lack of lifetime management as \c object_view). It is a
@@ -531,40 +374,6 @@ value make_array(T&&... values)
 {
     value val = value::make_array();
     val.as_array().push_back_many(std::forward<T>(values)...);
-    return val;
-}
-
-namespace detail
-{
-
-inline void make_object_impl(jsonv::object_view&)
-{ }
-
-template <typename TKey, typename TValue, typename... TRest>
-void make_object_impl(jsonv::object_view& obj, TKey&& key, TValue&& value, TRest&&... rest)
-{
-    obj.insert(object_view::value_type(std::forward<TKey>(key), std::forward<TValue>(value)));
-    make_object_impl(obj, std::forward<TRest>(rest)...);
-}
-
-}
-
-/** Creates an object with the given \a entries.
- *  
- *  \example
- *  \code
- *  jsonv::value val = jsonv::make_object("foo", 8, "bar", "wat");
- *  // Creates: { "bar": "wat", "foo": 8 }
- *  \endcode
-**/
-template <typename... T>
-value make_object(T&&... entries)
-{
-    static_assert(sizeof...(T) % 2 == 0, "Must have even number of entries: (key0, value0, key1, value1, ...)");
-    
-    value val = value::make_object();
-    object_view obj = val.as_object();
-    detail::make_object_impl(obj, std::forward<T>(entries)...);
     return val;
 }
 

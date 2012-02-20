@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include "detail.hpp"
+#include "char_convert.hpp"
 
 #include <sstream>
 
@@ -68,6 +69,18 @@ void check_type(kind expected, kind actual)
             << " but found " << kind_desc(actual) << ".";
         throw kind_error(stream.str());
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Printing                                                                                                           //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ostream_type& stream_escaped_string(ostream_type& stream, const string_type& str)
+{
+    stream << "\"";
+    detail::string_encode(stream, str);
+    stream << "\"";
+    return stream;
 }
 
 }

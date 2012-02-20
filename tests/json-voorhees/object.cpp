@@ -10,22 +10,18 @@
 **/
 #include "test.hpp"
 
-#include <json-voorhees/value.hpp>
+#include <json-voorhees/object.hpp>
 
 #include <map>
 
 TEST(object)
 {
-    jsonv::value val = jsonv::make_object();
-    jsonv::object_view obj = val.as_object();
+    jsonv::object obj;
     obj["hi"] = false;
     ensure(obj["hi"].as_boolean() == false);
-    ensure(val.as_object()["hi"].as_boolean() == false);
     obj["yay"] = jsonv::make_array("Hello", "to", "the", "world");
     ensure(obj["hi"].as_boolean() == false);
-    ensure(val.as_object()["hi"].as_boolean() == false);
     ensure(obj["yay"].as_array().size() == 4);
-    ensure(val.as_object()["yay"].as_array().size() == 4);
 }
 
 TEST(object_view_iter_assign)
@@ -34,12 +30,23 @@ TEST(object_view_iter_assign)
     
     value val = make_object("foo", 5, "bar", "wat");
     std::map<std::string, bool> found{ { "foo", false }, { "bar", false } };
-    object_view obj = val.as_object();
+    object& obj = val.as_object();
     ensure(obj.size() == 2);
     
-    for (object_view::const_iterator iter = obj.begin(); iter != obj.end(); ++iter)
+    for (object::const_iterator iter = obj.begin(); iter != obj.end(); ++iter)
         found[iter->first] = true;
     
     for (auto iter = found.begin(); iter != found.end(); ++iter)
         ensure(iter->second);
+}
+
+TEST(object_compare)
+{
+    using namespace jsonv;
+    
+    object obj;
+    value i = 5;
+    
+    // really just a test to see if this compiles:
+    ensure(obj != i);
 }

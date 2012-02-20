@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <json-voorhees/value.hpp>
+#include <json-voorhees/object.hpp>
 
 #include "char_convert.hpp"
 #include "detail.hpp"
@@ -21,18 +22,6 @@ using namespace jsonv::detail;
 
 namespace jsonv
 {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Implementation Details                                                                                             //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static ostream_type& stream_escaped_string(ostream_type& stream, const string_type& str)
-{
-    stream << "\"";
-    string_encode(stream, str);
-    stream << "\"";
-    return stream;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // kind_error                                                                                                         //
@@ -89,10 +78,10 @@ value::value(bool val) :
     _data.boolean = val;
 }
 
-value::value(const object_view& obj_view) :
+value::value(const object& obj) :
         _kind(kind::null)
 {
-    _data.object = obj_view._source->clone();
+    _data.object = obj._data.object->clone();
     _kind = kind::object;
 }
 
@@ -177,13 +166,9 @@ value& value::operator =(value&& source)
     return *this;
 }
 
-value value::make_object()
+object value::make_object()
 {
-    value val;
-    val._data.object = new object_impl;
-    val._kind = kind::object;
-    
-    return val;
+    return object();
 }
 
 value value::make_array()
@@ -220,17 +205,16 @@ void value::clear()
     _data.object = 0;
 }
 
-object_view value::as_object()
+object& value::as_object()
 {
     check_type(kind::object, _kind);
-    return object_view(_data.object);
+    return *reinterpret_cast<object*>(this);
 }
 
-const object_view value::as_object() const
+const object& value::as_object() const
 {
     check_type(kind::object, _kind);
-    // const_cast is okay, since we're giving back something that won't modify us
-    return object_view(const_cast<detail::object_impl*>(_data.object));
+    return *reinterpret_cast<const object*>(this);
 }
 
 array_view value::as_array()
@@ -373,259 +357,6 @@ ostream_type& operator <<(ostream_type& stream, const value& val)
     default:
         return stream << "null";
     }
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// object_view                                                                                                        //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-struct object_view_converter;
-
-template <>
-struct object_view_converter<object_view::value_type>
-{
-    union impl
-    {
-        char* storage;
-        object_impl::map_type::iterator* iter;
-    };
-    
-    union const_impl
-    {
-        const char* storage;
-        const object_impl::map_type::iterator* iter;
-    };
-};
-
-template <>
-struct object_view_converter<const object_view::value_type>
-{
-    union impl
-    {
-        char* storage;
-        object_impl::map_type::const_iterator* iter;
-    };
-    
-    union const_impl
-    {
-        const char* storage;
-        const object_impl::map_type::const_iterator* iter;
-    };
-};
-
-#define JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(return_, ...)                                                    \
-    template return_ object_view::basic_iterator<object_view::value_type>::__VA_ARGS__;                                \
-    template return_ object_view::basic_iterator<const object_view::value_type>::__VA_ARGS__;
-
-template <typename T>
-object_view::basic_iterator<T>::basic_iterator()
-{
-    memset(_storage, 0, sizeof _storage);
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(, basic_iterator())
-
-template <typename T>
-template <typename U>
-object_view::basic_iterator<T>::basic_iterator(const U& source)
-{
-    static_assert(sizeof(U) == sizeof(_storage), "Input must be the same size of storage");
-    
-    memcpy(_storage, &source, sizeof _storage);
-}
-
-template <typename T>
-void object_view::basic_iterator<T>::increment()
-{
-    typedef typename object_view_converter<T>::impl converter_union;
-    converter_union convert;
-    convert.storage = _storage;
-    ++(*convert.iter);
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(void, increment())
-
-template <typename T>
-void object_view::basic_iterator<T>::decrement()
-{
-    typedef typename object_view_converter<T>::impl converter_union;
-    converter_union convert;
-    convert.storage = _storage;
-    --(*convert.iter);
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(void, decrement())
-
-template <typename T>
-T& object_view::basic_iterator<T>::current() const
-{
-    typedef typename object_view_converter<T>::const_impl converter_union;
-    converter_union convert;
-    convert.storage = _storage;
-    return **convert.iter;
-}
-template object_view::value_type& object_view::basic_iterator<object_view::value_type>::current() const;
-template const object_view::value_type& object_view::basic_iterator<const object_view::value_type>::current() const;
-
-template <typename T>
-bool object_view::basic_iterator<T>::equals(const char* other_storage) const
-{
-    typedef typename object_view_converter<T>::const_impl converter_union;
-    converter_union self_convert;
-    self_convert.storage = _storage;
-    converter_union other_convert;
-    other_convert.storage = other_storage;
-    
-    return *self_convert.iter == *other_convert.iter;
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(bool, equals(const char*) const)
-
-template <typename T>
-void object_view::basic_iterator<T>::copy_from(const char* other_storage)
-{
-    typedef typename object_view_converter<T>::impl       converter_union;
-    typedef typename object_view_converter<T>::const_impl const_converter_union;
-    converter_union self_convert;
-    self_convert.storage = _storage;
-    const_converter_union other_convert;
-    other_convert.storage = other_storage;
-    
-    *self_convert.iter = *other_convert.iter;
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(void, copy_from(const char*))
-
-template <typename T>
-template <typename U>
-object_view::basic_iterator<T>::basic_iterator(const basic_iterator<U>& source,
-                                               typename std::enable_if<std::is_convertible<U*, T*>::value>::type*
-                                              )
-{
-    typedef typename object_view_converter<T>::impl       converter_union;
-    typedef typename object_view_converter<U>::const_impl const_converter_union;
-    converter_union self_convert;
-    self_convert.storage = _storage;
-    const_converter_union other_convert;
-    other_convert.storage = source._storage;
-    
-    *self_convert.iter = *other_convert.iter;
-}
-template object_view::basic_iterator<const object_view::value_type>
-                    ::basic_iterator<object_view::value_type>(const basic_iterator<object_view::value_type>&, void*);
-
-object_view::object_view(object_impl* source) :
-        _source(source)
-{ }
-
-object_view::size_type object_view::size() const
-{
-    return _source->_values.size();
-}
-
-object_view::iterator object_view::begin()
-{
-    return iterator(_source->_values.begin());
-}
-
-object_view::const_iterator object_view::begin() const
-{
-    return const_iterator(_source->_values.begin());
-}
-
-object_view::iterator object_view::end()
-{
-    return iterator(_source->_values.end());
-}
-
-object_view::const_iterator object_view::end() const
-{
-    return const_iterator(_source->_values.end());
-}
-
-value& object_view::operator[](const string_type& key)
-{
-    return _source->_values[key];
-}
-
-const value& object_view::operator[](const string_type& key) const
-{
-    return _source->_values[key];
-}
-
-object_view::iterator object_view::find(const string_type& key)
-{
-    return iterator(_source->_values.find(key));
-}
-
-object_view::const_iterator object_view::find(const string_type& key) const
-{
-    return const_iterator(_source->_values.find(key));
-}
-
-void object_view::insert(const value_type& pair)
-{
-    _source->_values.insert(pair);
-}
-
-bool object_view::operator ==(const object_view& other) const
-{
-    if (this == &other)
-        return true;
-    if (_source->_values.size() != other._source->_values.size())
-        return false;
-    
-    typedef object_impl::map_type::const_iterator const_iterator;
-    const_iterator self_iter  = _source->_values.begin();
-    const_iterator other_iter = other._source->_values.begin();
-    
-    for (const const_iterator self_end = _source->_values.end();
-         self_iter != self_end;
-         ++self_iter, ++other_iter
-        )
-    {
-        if (self_iter->first != other_iter->first)
-            return false;
-        if (self_iter->second != other_iter->second)
-            return false;
-    }
-    
-    return true;
-}
-
-bool object_view::operator !=(const object_view& other) const
-{
-    return !operator==(other);
-}
-
-static void stream_single(ostream_type& stream, const object_impl::map_type::value_type& pair)
-{
-    stream_escaped_string(stream, pair.first)
-        << ":"
-        << pair.second;
-}
-    
-ostream_type& operator <<(ostream_type& stream, const object_view& view)
-{
-    typedef object_impl::map_type::const_iterator const_iterator;
-    typedef object_impl::map_type::value_type     value_type;
-    
-    const_iterator iter = view._source->_values.begin();
-    const_iterator end  = view._source->_values.end();
-    
-    stream << "{";
-    
-    if (iter != end)
-    {
-        stream_single(stream, *iter);
-        ++iter;
-    }
-    
-    for ( ; iter != end; ++iter)
-    {
-        stream << ", ";
-        stream_single(stream, *iter);
-    }
-    
-    stream << "}";
-    
-    return stream;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
