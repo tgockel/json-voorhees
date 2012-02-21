@@ -214,14 +214,18 @@ static string_type parse_string(parse_context& context)
     {
         if (!context.next())
         {
-            context.parse_error("Unterminated string constant \"", characters);
+            context.parse_error("Unterminated string \"", characters);
             break;
         }
         
         if (context.current == '\"')
         {
-            if (characters.size() > 0 && characters[characters.size()-1] == '\\')
-                characters += context.current;
+            if (characters.size() > 0 && characters[characters.size()-1] == '\\'
+                && !(characters.size() > 1 && characters[characters.size()-2] == '\\') //already escaped
+               )
+            {
+                    characters += context.current;
+            }
             else
                 break;
         }
