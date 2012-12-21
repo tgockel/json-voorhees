@@ -66,10 +66,59 @@ TEST(array_view_iter_assign)
     }
 }
 
+TEST(array_erase_single)
+{
+    using namespace jsonv;
+    
+    array arr = make_array(0, 1, 2, 3, 4, 5);
+    ensure_eq(arr.size(), 6);
+    auto iter = arr.erase(arr.begin() + 2);
+    ensure_eq(iter->as_integer(), 3);
+    ensure_eq(arr.size(), 5);
+    ensure_eq(arr, make_array(0, 1, 3, 4, 5));
+}
+
+TEST(array_erase_multi)
+{
+    using namespace jsonv;
+    
+    array arr = make_array(0, 1, 2, 3, 4, 5);
+    ensure_eq(arr.size(), 6);
+    auto iter = arr.erase(arr.begin() + 2, arr.begin() + 4);
+    ensure_eq(iter->as_integer(), 4);
+    ensure_eq(arr.size(), 4);
+    ensure_eq(arr, make_array(0, 1, 4, 5));
+}
+
+TEST(array_erase_multi_to_end)
+{
+    using namespace jsonv;
+    
+    array arr = make_array(0, 1, 2, 3, 4, 5);
+    ensure_eq(arr.size(), 6);
+    auto iter = arr.erase(arr.begin() + 3, arr.end());
+    ensure(iter == arr.end());
+    ensure_eq(arr.size(), 3);
+    ensure_eq(arr, make_array(0, 1, 2));
+}
+
+TEST(array_erase_multi_from_begin)
+{
+    using namespace jsonv;
+    
+    array arr = make_array(0, 1, 2, 3, 4, 5);
+    ensure_eq(arr.size(), 6);
+    auto iter = arr.erase(arr.begin(), arr.end() - 3);
+    ensure(iter == arr.begin());
+    ensure_eq(iter->as_integer(), 3);
+    ensure_eq(arr.size(), 3);
+    ensure_eq(arr, make_array(3, 4, 5));
+}
+
 TEST(parse_empty_array)
 {
     auto v = jsonv::parse("[]");
     auto& arr = v.as_array();
     
-    ensure(arr.size() == 0);
+    ensure_eq(arr.size(), 0);
 }

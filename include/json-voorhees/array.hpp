@@ -20,12 +20,13 @@ class array :
         public value
 {
 public:
-    typedef size_t       size_type;
-    typedef value        value_type;
-    typedef value&       reference;
-    typedef const value& const_reference;
-    typedef value*       pointer;
-    typedef const value* const_pointer;
+    typedef std::size_t    size_type;
+    typedef std::ptrdiff_t difference_type;
+    typedef value          value_type;
+    typedef value&         reference;
+    typedef const value&   const_reference;
+    typedef value*         pointer;
+    typedef const value*   const_pointer;
     
     template <typename T, typename TArrayView>
     struct basic_iterator :
@@ -124,6 +125,11 @@ public:
             return clone;
         }
         
+        difference_type operator -(const basic_iterator& other) const
+        {
+            return difference_type(_index) - difference_type(other._index);
+        }
+        
         bool operator <(const basic_iterator& rhs) const
         {
             return _index < rhs._index;
@@ -190,6 +196,8 @@ public:
     void clear();
     void resize(size_type count, const value& val = value());
     
+    iterator erase(const_iterator position);
+    iterator erase(const_iterator first, const_iterator last);
     
     void push_back_many()
     { }

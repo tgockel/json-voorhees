@@ -119,6 +119,21 @@ void array::resize(size_type count, const value& val)
     ARR.resize(count, val);
 }
 
+array::iterator array::erase(const_iterator iter)
+{
+    size_type dist(iter - begin());
+    ARR.erase(ARR.begin() + dist);
+    return iterator(this, dist);
+}
+
+array::iterator array::erase(const_iterator first, const_iterator last)
+{
+    size_type fdist(first - begin());
+    size_type ldist(last  - begin());
+    ARR.erase(ARR.begin() + fdist, ARR.begin() + ldist);
+    return iterator(this, fdist);
+}
+
 bool array::operator ==(const array& other) const
 {
     if (this == &other)

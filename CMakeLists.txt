@@ -10,7 +10,7 @@ include_directories(
 
 # Build voorhees
 
-file(GLOB_RECURSE voorhees_cpps RELATIVE_PATH "." "src/*.cpp")
+file(GLOB_RECURSE voorhees_cpps RELATIVE_PATH "." "src/json-voorhees/*.cpp")
 add_library(json-voorhees STATIC ${voorhees_cpps})
 
 # Build the tests

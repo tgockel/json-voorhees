@@ -12,6 +12,7 @@
 #define __TEST_JSON_VOORHEES_TEST_HPP_INCLUDED__
 
 #include <deque>
+#include <sstream>
 #include <string>
 
 namespace jsonv_test
@@ -37,6 +38,32 @@ unit_test_list_type& get_unit_tests();
             }                               \
         } while (0)
 #endif
+
+#if ASSERT_ON_TEST_FAILURE
+#   define ensure_op(a_, op_, b_) assert((a_) op_ (b_))
+#else
+#   define ensure_op(a_, op_, b_)                         \
+        do                                                \
+        {                                                 \
+            if (!((a_) op_ (b_)))                         \
+            {                                             \
+                this->_success = false;                   \
+                std::ostringstream ss;                    \
+                ss << "!(" << #a_ << " {" << (a_) << "}"; \
+                ss << " " << #op_ << " ";                 \
+                ss << #b_ << " {" << (b_) << "})";        \
+                this->_failstring = ss.str();             \
+                return;                                   \
+            }                                             \
+        } while (0)
+#endif
+
+#define ensure_eq(a_, b_) ensure_op(a_, ==, b_)
+#define ensure_ne(a_, b_) ensure_op(a_, !=, b_)
+#define ensure_lt(a_, b_) ensure_op(a_, < , b_)
+#define ensure_le(a_, b_) ensure_op(a_, <=, b_)
+#define ensure_gt(a_, b_) ensure_op(a_, > , b_)
+#define ensure_ge(a_, b_) ensure_op(a_, >=, b_)
 
 class unit_test
 {
