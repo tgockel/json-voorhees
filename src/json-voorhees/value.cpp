@@ -15,6 +15,7 @@
 #include "char_convert.hpp"
 #include "detail.hpp"
 
+#include <algorithm>
 #include <cstring>
 #include <ostream>
 #include <sstream>
@@ -256,12 +257,16 @@ int64_t value::as_integer() const
 
 double& value::as_decimal()
 {
+    if (_kind == kind::integer)
+        *this = double(as_integer());
     check_type(kind::decimal, _kind);
     return _data.decimal;
 }
 
 double value::as_decimal() const
 {
+    if (_kind == kind::integer)
+        return double(as_integer());
     check_type(kind::decimal, _kind);
     return _data.decimal;
 }
@@ -336,6 +341,108 @@ bool value::operator !=(const value& other) const
     default:
         return true;
     }
+}
+
+static int kindval(kind k)
+{
+    switch (k)
+    {
+    case kind::null:
+        return 0;
+    case kind::boolean:
+        return 1;
+    case kind::integer:
+    case kind::decimal:
+        return 2;
+    case kind::string:
+        return 3;
+    case kind::array:
+        return 4;
+    case kind::object:
+        return 5;
+    default:
+        return -1;
+    }
+}
+
+static int compare_kinds(kind a, kind b)
+{
+    int va = kindval(a);
+    int vb = kindval(b);
+    return va == vb ? 0 : va < vb ? -1 : 1;
+}
+
+int value::compare(const value& other) const
+{
+    if (this == &other)
+        return 0;
+    
+    if (int kindcmp = compare_kinds(get_kind(), other.get_kind()))
+        return kindcmp;
+    
+    switch (get_kind())
+    {
+    case kind::null:
+        return 0;
+    case kind::boolean:
+        return as_boolean() == other.as_boolean() ? 0 : as_boolean() ? 1 : -1;
+    case kind::integer:
+        // other might be a decimal type, but if they are both integers, compare directly
+        if (other.get_kind() == kind::integer)
+            return as_integer() == other.as_integer() ? 0 : as_integer() < other.as_integer() ? -1 : 1;
+    case kind::decimal:
+        return as_decimal() == other.as_decimal() ? 0 : as_decimal() < other.as_decimal() ? -1 : 1;
+    case kind::string:
+        return as_string().compare(other.as_string());
+    case kind::array:
+    {
+        const array& self = as_array();
+        const array& oarr = other.as_array();
+        array::const_iterator self_iter = self.begin();
+        array::const_iterator othr_iter = oarr.begin();
+        for (; self_iter != self.end() && othr_iter != oarr.end(); ++self_iter, ++othr_iter)
+            if (int cmp = self_iter->compare(*othr_iter))
+                return cmp;
+        return self_iter == self.end() ? othr_iter == oarr.end() ? 0 : -1 : 1;
+    }
+    case kind::object:
+    {
+        const object& self = as_object();
+        const object& oobj = other.as_object();
+        object::const_iterator self_iter = self.begin();
+        object::const_iterator othr_iter = oobj.begin();
+        for (; self_iter != self.end() && othr_iter != oobj.end(); ++self_iter, ++othr_iter)
+        {
+            if (int cmp = self_iter->first.compare(othr_iter->first))
+                return cmp;
+            if (int cmp = self_iter->second.compare(othr_iter->second))
+                return cmp;
+        }
+        return self_iter == self.end() ? othr_iter == oobj.end() ? 0 : -1 : 1;
+    }
+    default:
+        return -1;
+    }
+}
+
+bool value::operator< (const value& other) const
+{
+    return compare(other) == -1;
+}
+
+bool value::operator<=(const value& other) const
+{
+    return compare(other) != 1;
+}
+
+bool value::operator> (const value& other) const
+{
+    return compare(other) == 1;
+}
+
+bool value::operator>=(const value& other) const
+{
+    return compare(other) != -1;
 }
 
 ostream_type& operator <<(ostream_type& stream, const value& val)

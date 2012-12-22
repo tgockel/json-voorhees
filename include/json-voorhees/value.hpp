@@ -130,6 +130,10 @@ public:
     int64_t& as_integer();
     int64_t  as_integer() const;
     
+    /** Get this object as a decimal. There is interesting behavior if the object's underlying kind is actually an
+     *  integer type. The non-const version of this function will alter the kind to \c kind::decimal before returning a
+     *  reference. The const version does not alter the kind, but casts the integer to double.
+    **/
     double& as_decimal();
     double  as_decimal() const;
     
@@ -155,10 +159,29 @@ public:
     
     /** Compares two JSON values for inequality. The rules for inequality are the exact opposite of equality.
     **/
-    bool operator !=(const value& other) const;
+    bool operator!=(const value& other) const;
     
-    // FUTURE: I guess do it just like Python?
-    // bool operator <(const value& other) const;
+    /** Used to build a strict-ordering of JSON values. When comparing values of the same kind, the ordering should
+     *  align with your intuition. When comparing values of different kinds, some arbitrary rules were created based on
+     *  how "complicated" the author thought the type to be.
+     *  
+     *  null - less than everything but null, which it is equal to.
+     *  boolean - false is less than true.
+     *  integer, decimal - compared by their numeric value. Comparisons between two integers do not cast, but comparison
+     *    between an integer and a decimal will coerce to decimal.
+     *  string - compared lexicographically by character code (with basic char strings and non-ASCII encoding, this
+     *    might lead to surprising results)
+     *  array - compared lexicographically by elements (recursively following this same technique)
+     *  object - entries in the object are sorted and compared lexicographically, first by key then by value
+     *  
+     *  \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; -1 if otherwise.
+    **/
+    int compare(const value& other) const;
+    
+    bool operator< (const value& other) const;
+    bool operator> (const value& other) const;
+    bool operator<=(const value& other) const;
+    bool operator>=(const value& other) const;
     
     friend ostream_type& operator <<(ostream_type& stream, const value& val);
     

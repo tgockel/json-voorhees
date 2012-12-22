@@ -13,6 +13,8 @@
 #include <json-voorhees/array.hpp>
 #include <json-voorhees/parse.hpp>
 
+#include <algorithm>
+
 TEST(array)
 {
     jsonv::array arr;
@@ -113,6 +115,16 @@ TEST(array_erase_multi_from_begin)
     ensure_eq(iter->as_integer(), 3);
     ensure_eq(arr.size(), 3);
     ensure_eq(arr, make_array(3, 4, 5));
+}
+
+TEST(array_algo_sort)
+{
+    using namespace jsonv;
+    
+    array arr = make_array(9, 1, 3, 4, 2, 8, 6, 7, 0, 5);
+    ensure_eq(arr.size(), 10);
+    std::sort(std::begin(arr), std::end(arr));
+    ensure_eq(arr, make_array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
 }
 
 TEST(parse_empty_array)
