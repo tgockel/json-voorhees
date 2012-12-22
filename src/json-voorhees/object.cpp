@@ -98,6 +98,12 @@ const value& object::operator[](const string_type& key) const
     return OBJ[key];
 }
 
+object::size_type object::count(const key_type& key) const
+{
+    ensure_object();
+    return OBJ.count(key);
+}
+
 object::iterator object::find(const string_type& key)
 {
     ensure_object();
@@ -113,6 +119,12 @@ object::const_iterator object::find(const string_type& key) const
 void object::insert(const value_type& pair)
 {
     OBJ.insert(pair);
+}
+
+object::size_type object::erase(const key_type& key)
+{
+    ensure_object();
+    return OBJ.erase(key);
 }
 
 bool object::operator ==(const object& other) const
@@ -219,8 +231,8 @@ struct object_iter_converter<const object::value_type>
 };
 
 #define JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(return_, ...)                                                    \
-    template return_ object::basic_iterator<object::value_type>::__VA_ARGS__;                                \
-    template return_ object::basic_iterator<const object::value_type>::__VA_ARGS__;
+    template return_ object::basic_iterator<object::value_type>::__VA_ARGS__;                                          \
+    template return_ object::basic_iterator<const object::value_type>::__VA_ARGS__;                                    \
 
 template <typename T>
 object::basic_iterator<T>::basic_iterator()
@@ -314,5 +326,26 @@ object::basic_iterator<T>::basic_iterator(const basic_iterator<U>& source,
 }
 template object::basic_iterator<const object::value_type>
                ::basic_iterator<object::value_type>(const basic_iterator<object::value_type>&, void*);
+
+
+object::iterator object::erase(const_iterator position)
+{
+    ensure_object();
+    typedef typename object_iter_converter<const object::value_type>::const_impl const_converter_union;
+    const_converter_union pos_convert;
+    pos_convert.storage = position._storage;
+    return iterator(OBJ.erase(*pos_convert.iter));
+}
+
+object::iterator object::erase(const_iterator first, const_iterator last)
+{
+    ensure_object();
+    typedef typename object_iter_converter<const object::value_type>::const_impl const_converter_union;
+    const_converter_union first_convert;
+    first_convert.storage = first._storage;
+    const_converter_union last_convert;
+    last_convert.storage = last._storage;
+    return iterator(OBJ.erase(*first_convert.iter, *last_convert.iter));
+}
 
 }

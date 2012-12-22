@@ -53,6 +53,50 @@ TEST(object_compare)
     ensure(obj != i);
 }
 
+TEST(object_erase_key)
+{
+    jsonv::object obj = jsonv::make_object("foo", 5, "bar", "wat");
+    ensure_eq(obj.size(), 2);
+    ensure_eq(obj.count("bar"), 1);
+    ensure_eq(obj.count("foo"), 1);
+    ensure_eq(obj.erase("foo"), 1);
+    ensure_eq(obj.count("bar"), 1);
+    ensure_eq(obj.count("foo"), 0);
+    ensure_eq(obj.erase("foo"), 0);
+}
+
+TEST(object_erase_iter)
+{
+    jsonv::object obj = jsonv::make_object("foo", 5, "bar", "wat");
+    ensure_eq(obj.size(), 2);
+    ensure_eq(obj.count("bar"), 1);
+    ensure_eq(obj.count("foo"), 1);
+    auto iter = obj.find("bar");
+    ensure_eq(iter->first, "bar");
+    iter = obj.erase(iter);
+    ensure_eq(obj.count("bar"), 0);
+    ensure_eq(obj.count("foo"), 1);
+    ensure_eq(obj.erase("bar"), 0);
+    ensure_eq(iter->first, "foo");
+}
+
+TEST(object_erase_whole)
+{
+    jsonv::object obj = jsonv::make_object("foo", 5, "bar", "wat");
+    ensure_eq(obj.size(), 2);
+    ensure_eq(obj.count("bar"), 1);
+    ensure_eq(obj.count("foo"), 1);
+    auto iter = obj.begin();
+    ensure_eq(iter->first, "bar");
+    iter = obj.erase(iter, obj.end());
+    ensure_eq(obj.size(), 0);
+    ensure_eq(obj.count("bar"), 0);
+    ensure_eq(obj.count("foo"), 0);
+    ensure_eq(obj.erase("bar"), 0);
+    ensure(iter == obj.end());
+    ensure(iter == obj.begin());
+}
+
 TEST(parse_empty_object)
 {
     auto v = jsonv::parse("{}");

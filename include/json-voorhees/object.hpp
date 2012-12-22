@@ -137,10 +137,16 @@ public:
     value& operator[](const string_type& key);
     const value& operator[](const string_type& key) const;
     
+    size_type count(const key_type& key) const;
+    
     iterator find(const string_type& key);
     const_iterator find(const string_type& key) const;
     
     void insert(const value_type& pair);
+    
+    size_type erase(const key_type& key);
+    iterator erase(const_iterator position);
+    iterator erase(const_iterator first, const_iterator last);
     
     /// \see value::operator==
     bool operator==(const object& other) const;
