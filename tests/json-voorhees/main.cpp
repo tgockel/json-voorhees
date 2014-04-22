@@ -32,12 +32,18 @@ TEST(demo)
     std::cout << parsed;
 }
 
-int main(int, char**)
+int main(int argc, char** argv)
 {
+    std::string filter;
+    if (argc == 2)
+        filter = argv[1];
+    
     int fail_count = 0;
-    for (auto iter = jsonv_test::get_unit_tests().begin(); iter != jsonv_test::get_unit_tests().end(); ++iter)
+    for (auto test : jsonv_test::get_unit_tests())
     {
-        if (!(*iter)->run())
+        bool shouldrun = filter.empty()
+                      || test->name().find(filter) != std::string::npos;
+        if (shouldrun && !test->run())
             ++fail_count;
     }
     
