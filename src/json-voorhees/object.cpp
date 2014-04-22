@@ -167,7 +167,6 @@ static void stream_single(ostream_type& stream, const object_impl::map_type::val
 ostream_type& operator <<(ostream_type& stream, const object& view)
 {
     typedef object_impl::map_type::const_iterator const_iterator;
-    typedef object_impl::map_type::value_type     value_type;
     
     const_iterator iter = view.OBJ.begin();
     const_iterator end  = view.OBJ.end();
