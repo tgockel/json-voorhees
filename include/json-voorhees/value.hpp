@@ -13,6 +13,7 @@
 
 #include "standard.hpp"
 
+#include <cstddef>
 #include <cstdint>
 #include <iterator>
 #include <ostream>
@@ -73,6 +74,7 @@ class value
 public:
     /// Default-construct this to null.
     value();
+    value(std::nullptr_t);
     value(const value& source);
     value(const string_type& val);
     value(const char_type* val);
@@ -108,7 +110,7 @@ public:
     value& operator=(value&& source);
     
     static object make_object();
-    static value make_array();
+    static array make_array();
     
     /// Resets this value to null.
     void clear();

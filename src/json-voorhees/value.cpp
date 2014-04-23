@@ -43,8 +43,12 @@ kind_error::~kind_error() throw()
 value::value() :
         _kind(kind::null)
 {
-    _data.object = 0;
+    _data.object = nullptr;
 }
+
+value::value(std::nullptr_t) :
+        value()
+{ }
 
 value::value(const string_type& val) :
         _kind(kind::null)
@@ -173,13 +177,9 @@ object value::make_object()
     return object();
 }
 
-value value::make_array()
+array value::make_array()
 {
-    value val;
-    val._data.array = new array_impl;
-    val._kind = kind::array;
-    
-    return val;
+    return array();
 }
 
 void value::clear()
