@@ -1,6 +1,6 @@
 /** \file json-voorhees/standard.hpp
  *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -18,7 +18,7 @@
 namespace jsonv
 {
 
-#define JSON_VOORHEES_VERSION 1
+#define JSON_VOORHEES_VERSION 20140422
 
 extern const unsigned long version_number;
 
