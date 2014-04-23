@@ -60,12 +60,14 @@ struct parse_context
     unsigned      character;
     istream_type& input;
     char_type     current;
+    bool          backed_off;
     
     explicit parse_context(istream_type& input) :
             line(0),
             column(0),
             character(0),
-            input(input)
+            input(input),
+            backed_off(false)
     { }
     
     parse_context(const parse_context&) = delete;
@@ -73,6 +75,12 @@ struct parse_context
     
     bool next()
     {
+        if (backed_off)
+        {
+            backed_off = false;
+            return true;
+        }
+        
         input.get(current);
         if (input.gcount() > 0)
         {
@@ -91,12 +99,20 @@ struct parse_context
             return false;
     }
     
+    void previous()
+    {
+        if (backed_off)
+            parse_error("Internal parser error");
+        backed_off = true;
+    }
+    
     template <typename... T>
     void parse_error(T&&... message) const
     {
         std::ostringstream stream;
         parse_error_impl(stream, std::forward<T>(message)...);
     }
+    
 private:
     void parse_error_impl(std::ostringstream& stream) const
     {
@@ -180,7 +196,10 @@ static value parse_number(parse_context& context)
             break;
         
         if (!allowed_chars.count(context.current))
+        {
+            context.previous();
             break;
+        }
         else
         {
             if (context.current == '.')
@@ -194,8 +213,10 @@ static value parse_number(parse_context& context)
     {
         if (is_double)
             return boost::lexical_cast<double>(characters);
-        else
+        else if (characters[0] == '-')
             return boost::lexical_cast<int64_t>(characters);
+        else
+            return static_cast<int64_t>(boost::lexical_cast<uint64_t>(characters));
     }
     catch (boost::bad_lexical_cast&)
     {
@@ -260,14 +281,18 @@ static value parse_array(parse_context& context)
         }
         
         if (context.current == ']')
+        {
             break;
+        }
         else if (context.current == ',')
             continue;
         else
         {
             value val;
             if (parse_generic(context, val, false))
+            {
                 arr.push_back(val);
+            }
             else
             {
                 context.parse_error("Unexpected end: unmatched '['");
@@ -314,6 +339,7 @@ static value parse_object(parse_context& context)
             break;
         }
         case '}':
+            context.previous();
             return obj;
         default:
             context.parse_error("Invalid character '", context.current, "' expecting '}' or a key (string)");

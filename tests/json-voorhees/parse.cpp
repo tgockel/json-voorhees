@@ -79,3 +79,28 @@ TEST(parse_object_simple_general_havoc)
     )");
     ensure_eq(simple_obj, result);
 }
+
+TEST(parse_object_nested_single)
+{
+    value result = parse(R"({"a": {"b": 10}, "c":25})");
+    value expected = make_object("a", make_object("b", 10),
+                                 "c", 25
+                                );
+    ensure_eq(expected, result);
+}
+
+TEST(parse_object_empties_in_array)
+{
+    value result = parse(R"({"a": {"b": 10}, "c": 23.9, "d": [{"e": {}, "f": 41.4, "g": null, "h": 5}, {"i":null}]})");
+    value expected = make_object("a", make_object("b", 10),
+                                 "c", 23.9,
+                                 "d", make_array(make_object("e", make_object(),
+                                                             "f", 41.4,
+                                                             "g", nullptr,
+                                                             "h", 5
+                                                            ),
+                                                 make_object("i", nullptr)
+                                                )
+                                );
+    ensure_eq(expected, result);
+}
