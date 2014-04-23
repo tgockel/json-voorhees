@@ -10,7 +10,9 @@
 **/
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <deque>
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
@@ -19,6 +21,30 @@
 #include <json-voorhees/parse.hpp>
 
 #include "test.hpp"
+
+int benchmark(const std::string& filename)
+{
+    std::ifstream inputfile(filename.c_str());
+    std::string to_parse;
+    const int ntimes = 1000;
+
+    inputfile.seekg(0, std::ios::end);
+    to_parse.reserve(inputfile.tellg());
+    inputfile.seekg(0, std::ios::beg);
+
+    to_parse.assign((std::istreambuf_iterator<char>(inputfile)),
+                     std::istreambuf_iterator<char>());
+    
+    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+    for (int i = 0; i < ntimes; ++i) {
+        jsonv::value x = jsonv::parse(to_parse);
+    }
+    std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
+    std::chrono::microseconds us = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    std::cout << "[+] Finished successfully with an average of: " << (us.count() / ntimes) << " us\n";
+    
+    return 0;
+}
 
 TEST(demo)
 {
@@ -37,6 +63,8 @@ int main(int argc, char** argv)
     std::string filter;
     if (argc == 2)
         filter = argv[1];
+    else if (argc == 3 && std::string("benchmark") == argv[1])
+        return benchmark(argv[2]);
     
     int fail_count = 0;
     for (auto test : jsonv_test::get_unit_tests())
