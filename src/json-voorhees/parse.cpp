@@ -245,13 +245,15 @@ static string_type parse_string(parse_context& context)
                 && !(characters.size() > 1 && characters[characters.size()-2] == '\\') //already escaped
                )
             {
-                    characters += context.current;
+                characters += context.current;
             }
             else
                 break;
         }
         else
+        {
             characters += context.current;
+        }
     }
     
     try
@@ -332,9 +334,9 @@ static value parse_object(parse_context& context)
             if (!parse_generic(context, val))
                 context.parse_error("Unexpected end: missing value for key '", key, "'");
             
-            object::iterator iter = obj.find(key);
-            if (iter != obj.end())
-                context.parse_error("Duplicate key \"", key, "\"");
+            //object::iterator iter = obj.find(key);
+            //if (iter != obj.end())
+            //    context.parse_error("Duplicate key \"", key, "\"");
             obj[key] = val;
             break;
         }
