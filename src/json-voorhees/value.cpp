@@ -16,6 +16,7 @@
 #include "detail.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <ostream>
 #include <sstream>
@@ -458,7 +459,11 @@ ostream_type& operator <<(ostream_type& stream, const value& val)
     case kind::integer:
         return stream << val.as_integer();
     case kind::decimal:
-        return stream << val.as_decimal();
+        if (std::isnormal(val.as_decimal()))
+            return stream << val.as_decimal();
+        // not a number isn't a valid JSON value, so put it as null
+        else
+            return stream << "null";
     case kind::boolean:
         return stream << (val.as_boolean() ? "true" : "false");
     case kind::null:
