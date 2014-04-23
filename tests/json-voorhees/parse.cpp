@@ -14,21 +14,24 @@
 #include <json-voorhees/parse.hpp>
 #include <json-voorhees/object.hpp>
 
+#include <iostream>
+
 using namespace jsonv;
 
 static const object simple_obj = make_object("foo", 4,
-                                             "bar", make_array(2, 3, 4, "5")
+                                             "bar", make_array(2, 3, 4, "5"),
+                                             "raz", make_object()
                                             );
 
 TEST(parse_object_simple_no_spaces)
 {
-    value result = parse("{\"foo\":4,\"bar\":[2,3,4,\"5\"]}");
+    value result = parse("{\"foo\":4,\"bar\":[2,3,4,\"5\"],\"raz\":{}}");
     ensure_eq(simple_obj, result);
 }
 
 TEST(parse_object_simple_no_newlines)
 {
-    value result = parse("{\"foo\": 4, \"bar\": [ 2, 3, 4, \"5\"]}");
+    value result = parse("{\"foo\": 4, \"raz\": {   }, \"bar\": [ 2, 3, 4, \"5\"]}");
     ensure_eq(simple_obj, result);
 }
 
@@ -37,6 +40,7 @@ TEST(parse_object_simple_spaces_and_tabs)
     value result = parse("           {    \t       \"foo\" :                 \t            4  , "
                          " \"bar\"                                :               [          \t         2\t,"
                          " 3\t\t\t,\t4                ,                    \"5\"             ]"
+                         "         \t\"raz\"      \t: {                                                   }"
                          " \t\t}            \t");
     ensure_eq(simple_obj, result);
 }
@@ -45,7 +49,8 @@ TEST(parse_object_simple_newlines)
 {
     value result = parse(R"({
     "foo":4,
-    "bar":[2,3,4,"5"]
+    "bar":[2,3,4,"5"],
+    "raz":{}
 })");
     ensure_eq(simple_obj, result);
 }
@@ -56,8 +61,14 @@ TEST(parse_object_simple_general_havoc)
         {
                                 "foo"
 :
-                4,
-    "bar"       :
+                4,"raz"
+                                                                        :
+{
+    
+    
+    
+    
+        },"bar"       :
               [
                2,
                          3,4,

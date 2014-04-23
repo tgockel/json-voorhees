@@ -292,8 +292,7 @@ static value parse_object(parse_context& context)
         switch (context.current)
         {
         case ',':
-            // This allows switching
-            context.next();
+            // Jump over all commas in a row.
             break;
         case '\"':
         {
