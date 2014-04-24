@@ -58,18 +58,20 @@ struct parse_context
 {
     typedef shared_buffer::size_type size_type;
     
-    size_type     line;
-    size_type     column;
-    size_type     character;
-    shared_buffer input;
-    char_type     current;
-    bool          backed_off;
+    size_type        line;
+    size_type        column;
+    size_type        character;
+    const char_type* input;
+    size_type        input_size;
+    char_type        current;
+    bool             backed_off;
     
-    explicit parse_context(shared_buffer input) :
+    explicit parse_context(const char_type* input, size_type length) :
             line(0),
             column(0),
             character(0),
-            input(std::move(input)),
+            input(input),
+            input_size(length),
             backed_off(false)
     { }
     
@@ -84,9 +86,9 @@ struct parse_context
             return true;
         }
         
-        if (character < input.size())
+        if (character < input_size)
         {
-            current = *input.get(character, 1);
+            current = input[character];
             ++character;
             if (current == '\n' || current == '\r')
             {
@@ -400,9 +402,9 @@ static bool parse_generic(parse_context& context, value& out, bool eat_whitespac
 
 }
 
-static value parse(detail::shared_buffer buffer)
+value parse(const char_type* input, std::size_t length)
 {
-    detail::parse_context context(std::move(buffer));
+    detail::parse_context context(input, length);
     value out;
     if (detail::parse_generic(context, out))
     {
@@ -413,11 +415,6 @@ static value parse(detail::shared_buffer buffer)
         context.parse_error("No input");
         return out;
     }
-}
-
-value parse(const char_type* input, std::size_t length)
-{
-    return parse(detail::shared_buffer(input, length));
 }
 
 value parse(istream_type& input)
@@ -431,7 +428,7 @@ value parse(istream_type& input)
               buffer.get_mutable(0, len)
              );
     
-    return parse(std::move(buffer));
+    return parse(buffer.cbegin(), buffer.size());
 }
 
 value parse(const string_type& source)

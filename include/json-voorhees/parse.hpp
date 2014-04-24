@@ -68,9 +68,7 @@ private:
     std::string _message;
 };
 
-value parse(const char_type* input, std::size_t length);
-
-/** Reads a JSON value from the input stream.
+/** Construct a JSON value from the given input.
  *  
  *  \note
  *  This function is \e not intended for verifying if the input is valid JSON, as it will intentionally correctly parse
@@ -82,11 +80,17 @@ value parse(const char_type* input, std::size_t length);
  *   can check the state flags or set the exception mask of the stream (exceptions thrown by \a input while processing
  *   will be propagated out).
 **/
+value parse(const char_type* input, std::size_t length);
+
+/** Reads a JSON value from the input stream.
+ *  
+ *  \see parse(const char_type*, std::size_t length)
+**/
 value parse(istream_type& input);
 
 /** Reads a JSON value from a string.
  *  
- *  \see parse(istream_type&)
+ *  \see parse(const char_type*, std::size_t length)
 **/
 value parse(const string_type& input);
 
