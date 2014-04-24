@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(json-voorhees)
 
-set(CMAKE_CXX_FLAGS "--std=c++0x -fshow-column -pedantic -Werror -Wall -Wextra -Wconversion -Wlogical-op -g -O2")
+set(CMAKE_CXX_FLAGS "--std=c++11 -fshow-column -pedantic -Werror -Wall -Wextra -Wconversion -Wlogical-op -g -O2")
 
 include_directories(
         "${CMAKE_SOURCE_DIR}/include"
