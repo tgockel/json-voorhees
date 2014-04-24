@@ -27,7 +27,10 @@ class parse_error :
         public std::runtime_error
 {
 public:
-    parse_error(unsigned line, unsigned column, unsigned character, const std::string& message);
+    typedef std::size_t size_type;
+    
+public:
+    parse_error(size_type line, size_type column, size_type character, const std::string& message);
     
     virtual ~parse_error() throw();
     
@@ -35,19 +38,19 @@ public:
      *  you are in Windows and line breaks are two characters, the line number of the error will appear to be twice as
      *  high as you would think.
     **/
-    unsigned line() const
+    size_type line() const
     {
         return _line;
     }
     
     /// The character index on the current line this error was encountered on.
-    unsigned column() const
+    size_type column() const
     {
         return _column;
     }
     
     /// The character index into the entire input this error was encountered on.
-    unsigned character() const
+    size_type character() const
     {
         return _character;
     }
@@ -59,11 +62,13 @@ public:
     }
     
 private:
-    unsigned    _line;
-    unsigned    _column;
-    unsigned    _character;
+    size_type   _line;
+    size_type   _column;
+    size_type   _character;
     std::string _message;
 };
+
+value parse(const char_type* input, std::size_t length);
 
 /** Reads a JSON value from the input stream.
  *  

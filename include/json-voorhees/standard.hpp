@@ -18,7 +18,7 @@
 namespace jsonv
 {
 
-#define JSON_VOORHEES_VERSION 20140422
+#define JSON_VOORHEES_VERSION 20140423
 
 extern const unsigned long version_number;
 

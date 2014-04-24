@@ -11,6 +11,7 @@
 #include <json-voorhees/parse.hpp>
 #include <json-voorhees/array.hpp>
 #include <json-voorhees/object.hpp>
+#include <json-voorhees/detail/shared_buffer.hpp>
 
 #include "char_convert.hpp"
 
@@ -28,14 +29,14 @@ namespace jsonv
 // parse_error                                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string parse_error_what(unsigned line, unsigned column, unsigned character, const std::string& message)
+static std::string parse_error_what(std::size_t line, std::size_t column, std::size_t character, const std::string& message)
 {
     std::ostringstream stream;
     stream << "On line " << line << " column " << column << " (char " << character << "): " << message;
     return stream.str();
 }
 
-parse_error::parse_error(unsigned line_, unsigned column_, unsigned character_, const std::string& message_) :
+parse_error::parse_error(size_type line_, size_type column_, size_type character_, const std::string& message_) :
         std::runtime_error(parse_error_what(line_, column_, character_, message_)),
         _line(line_),
         _column(column_),
@@ -55,18 +56,20 @@ namespace detail
 
 struct parse_context
 {
-    unsigned      line;
-    unsigned      column;
-    unsigned      character;
-    istream_type& input;
+    typedef shared_buffer::size_type size_type;
+    
+    size_type     line;
+    size_type     column;
+    size_type     character;
+    shared_buffer input;
     char_type     current;
     bool          backed_off;
     
-    explicit parse_context(istream_type& input) :
+    explicit parse_context(shared_buffer input) :
             line(0),
             column(0),
             character(0),
-            input(input),
+            input(std::move(input)),
             backed_off(false)
     { }
     
@@ -81,9 +84,9 @@ struct parse_context
             return true;
         }
         
-        input.get(current);
-        if (input.gcount() > 0)
+        if (character < input.size())
         {
+            current = *input.get(character, 1);
             ++character;
             if (current == '\n' || current == '\r')
             {
@@ -397,12 +400,14 @@ static bool parse_generic(parse_context& context, value& out, bool eat_whitespac
 
 }
 
-value parse(istream_type& input)
+static value parse(detail::shared_buffer buffer)
 {
-    detail::parse_context context(input);
+    detail::parse_context context(std::move(buffer));
     value out;
     if (detail::parse_generic(context, out))
+    {
         return out;
+    }
     else
     {
         context.parse_error("No input");
@@ -410,10 +415,28 @@ value parse(istream_type& input)
     }
 }
 
+value parse(const char_type* input, std::size_t length)
+{
+    return parse(detail::shared_buffer(input, length));
+}
+
+value parse(istream_type& input)
+{
+    // Copy the input into a buffer
+    input.seekg(0, std::ios::end);
+    std::size_t len = input.tellg();
+    detail::shared_buffer buffer(len);
+    input.seekg(0, std::ios::beg);
+    std::copy(std::istreambuf_iterator<char_type>(input), std::istreambuf_iterator<char_type>(),
+              buffer.get_mutable(0, len)
+             );
+    
+    return parse(std::move(buffer));
+}
+
 value parse(const string_type& source)
 {
-    std::basic_istringstream<char_type> input(source);
-    return parse(input);
+    return parse(source.c_str(), source.size());
 }
 
 }

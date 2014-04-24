@@ -56,6 +56,9 @@ public:
     **/
     explicit shared_buffer(size_type size);
     
+    /** \brief Create an instance from given \a src and \a size. **/
+    shared_buffer(const_pointer src, size_type size);
+    
     /** \brief Copies this buffer from another.
      *
      *  This is actually quite a cheap operation -- since the backing data is the same, no copying is needed to create

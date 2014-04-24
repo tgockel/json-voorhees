@@ -36,6 +36,13 @@ shared_buffer::shared_buffer(size_type size) :
         _length(size)
 { }
 
+shared_buffer::shared_buffer(const_pointer src, size_type size) :
+        _data(allocate_block(size)),
+        _length(size)
+{
+    std::memcpy(_data.get(), src, size);
+}
+
 shared_buffer::shared_buffer(const shared_buffer& other, bool copy_now) :
         _data(other._data),
         _length(other._length)
