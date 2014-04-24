@@ -25,8 +25,8 @@
 
 #if 0
 #   include <iostream>
-#   define JSONV_DBG_NEXT(x) std::cout << x
-#   define JSONV_DBG(x)      std::cout << "\033[0;32m" << x << "\033[m"
+#   define JSONV_DBG_NEXT(x)   std::cout << x
+#   define JSONV_DBG_STRUCT(x) std::cout << "\033[0;32m" << x << "\033[m"
 #else
 #   define JSONV_DBG_NEXT(x)
 #   define JSONV_DBG_STRUCT(x)
@@ -248,42 +248,43 @@ static string_type parse_string(parse_context& context)
 {
     assert(context.current == '\"');
     
-    string_type characters;
+    const char_type* characters_start = context.input + context.character;
+    std::size_t      characters_count = 0;
     
     while (true)
     {
         if (!context.next())
         {
-            context.parse_error("Unterminated string \"", characters);
+            context.parse_error("Unterminated string \"", string_type(characters_start, characters_count));
             break;
         }
         
         if (context.current == '\"')
         {
-            if (characters.size() > 0 && characters[characters.size()-1] == '\\'
-                && !(characters.size() > 1 && characters[characters.size()-2] == '\\') //already escaped
+            if (characters_count > 0 && characters_start[characters_count-1] == '\\'
+                && !(characters_count > 1 && characters_start[characters_count-2] == '\\') //already escaped
                )
             {
-                characters += context.current;
+                ++characters_count;
             }
             else
                 break;
         }
         else
         {
-            characters += context.current;
+            ++characters_count;
         }
     }
     
     try
     {
-        return string_decode(characters.c_str(), characters.size());
+        return string_decode(characters_start, characters_count);
     }
     catch (const detail::decode_error& err)
     {
         context.parse_error("Error decoding string:", err.what());
         // return it un-decoded
-        return characters;
+        return string_type(characters_start, characters_count);
     }
 }
 

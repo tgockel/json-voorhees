@@ -50,7 +50,7 @@ TEST(parse_array)
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
     ensure(arr[1].as_integer() == 10);
-    ensure(arr[2].as_string() == "Hello, world!");
+    ensure_eq(arr[2].as_string(), "Hello, world!");
     ensure(val == jsonv::make_array(2, 10, "Hello, world!"));
 }
 
