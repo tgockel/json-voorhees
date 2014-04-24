@@ -321,12 +321,15 @@ string_type string_decode(const char_type* source, string_type::size_type source
     typedef string_type::size_type size_type;
     
     string_type output;
+    const char_type* last_pushed_src = source;
     
     for (size_type idx = 0; idx < source_size; /* incremented inline */)
     {
         const char_type& current = source[idx];
         if (current == '\\')
         {
+            output.append(last_pushed_src, source+idx);
+            
             const char_type& next = source[idx + 1];
             if (const char_type* replacement = find_decoding(next))
             {
@@ -348,14 +351,16 @@ string_type string_decode(const char_type* source, string_type::size_type source
                 //output += '?'; Maybe better solution if we don't want to throw
                 //++idx;
             }
+            
+            last_pushed_src = source + idx;
         }
         else
         {
-            output += current;
             ++idx;
         }
     }
     
+    output.append(last_pushed_src, source+source_size);
     return output;
 }
 
