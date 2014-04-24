@@ -286,12 +286,12 @@ bool value::as_boolean() const
 
 bool value::operator ==(const value& other) const
 {
-    if (this == &other && kind_valid(kind()))
+    if (this == &other && kind_valid(get_kind()))
         return true;
     if (get_kind() != other.get_kind())
         return false;
     
-    switch (kind())
+    switch (get_kind())
     {
     case kind::object:
         return as_object() == other.as_object();
