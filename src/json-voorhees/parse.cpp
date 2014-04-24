@@ -277,7 +277,7 @@ static string_type parse_string(parse_context& context)
     
     try
     {
-        return string_decode(characters);
+        return string_decode(characters.c_str(), characters.size());
     }
     catch (const detail::decode_error& err)
     {

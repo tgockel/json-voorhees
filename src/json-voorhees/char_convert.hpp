@@ -43,9 +43,8 @@ private:
 **/
 ostream_type& string_encode(ostream_type& stream, const string_type& source);
 
-/** Decodes over the wire string \c source into a C++ string.
-**/
-string_type string_decode(const string_type& source);
+/** Decodes over the wire character sequence \c source into a C++ string. **/
+string_type string_decode(const char_type* source, string_type::size_type source_size);
 
 }
 }

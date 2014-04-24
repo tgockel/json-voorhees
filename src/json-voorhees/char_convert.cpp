@@ -316,13 +316,13 @@ static void utf8_append_code(string_type& str, uint16_t val)
     }
 }
 
-string_type string_decode(const string_type& source)
+string_type string_decode(const char_type* source, string_type::size_type source_size)
 {
     typedef string_type::size_type size_type;
     
     string_type output;
     
-    for (size_type idx = 0, source_size = source.size(); idx < source_size; /* incremented inline */)
+    for (size_type idx = 0; idx < source_size; /* incremented inline */)
     {
         const char_type& current = source[idx];
         if (current == '\\')
