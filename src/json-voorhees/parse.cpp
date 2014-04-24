@@ -20,10 +20,21 @@
 #include <set>
 #include <sstream>
 
+
 #include <boost/lexical_cast.hpp>
+
+#if 0
+#   include <iostream>
+#   define JSONV_DBG_NEXT(x) std::cout << x
+#   define JSONV_DBG(x)      std::cout << "\033[0;32m" << x << "\033[m"
+#else
+#   define JSONV_DBG_NEXT(x)
+#   define JSONV_DBG_STRUCT(x)
+#endif
 
 namespace jsonv
 {
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parse_error                                                                                                        //
@@ -89,6 +100,8 @@ struct parse_context
         if (character < input_size)
         {
             current = input[character];
+            JSONV_DBG_NEXT(current);
+            
             ++character;
             if (current == '\n' || current == '\r')
             {
@@ -153,10 +166,11 @@ static value parse_literal(parse_context& context, const value& outval, const ch
         if (context.current != *ptr)
             context.parse_error("Unexpected character '", context.current, "' while trying to match ", literal);
         
-        if (!context.next())
+        if (!context.next() && ptr[1])
             context.parse_error("Unexpected end while trying to match ", literal);
     }
     
+    context.previous();
     return outval;
 }
 
@@ -276,6 +290,7 @@ static string_type parse_string(parse_context& context)
 static value parse_array(parse_context& context)
 {
     assert(context.current == '[');
+    JSONV_DBG_STRUCT('[');
     
     array arr;
     
@@ -307,12 +322,14 @@ static value parse_array(parse_context& context)
             }
         }
     }
+    JSONV_DBG_STRUCT(']');
     return arr;
 }
 
 static value parse_object(parse_context& context)
 {
     assert(context.current == '{');
+    JSONV_DBG_STRUCT('{');
     
     object obj;
     
@@ -328,6 +345,7 @@ static value parse_object(parse_context& context)
             break;
         case '\"':
         {
+            JSONV_DBG_STRUCT('(');
             string_type key = parse_string(context);
             if (!eat_whitespace(context))
                 context.parse_error("Unexpected end: missing ':' for key '", key, "'");
@@ -343,10 +361,11 @@ static value parse_object(parse_context& context)
             //if (iter != obj.end())
             //    context.parse_error("Duplicate key \"", key, "\"");
             obj[key] = val;
+            JSONV_DBG_STRUCT(')');
             break;
         }
         case '}':
-            context.previous();
+            JSONV_DBG_STRUCT('}');
             return obj;
         default:
             context.parse_error("Invalid character '", context.current, "' expecting '}' or a key (string)");

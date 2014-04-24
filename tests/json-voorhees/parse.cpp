@@ -104,3 +104,54 @@ TEST(parse_object_empties_in_array)
                                 );
     ensure_eq(expected, result);
 }
+
+TEST(parse_null)
+{
+    value result = parse("null");
+    value expected = value(nullptr);
+    ensure_eq(expected, result);
+}
+
+TEST(parse_null_in_arr)
+{
+    value result = parse("[null,4]");
+    value expected = make_array(nullptr, 4);
+    ensure_eq(expected, result);
+}
+
+TEST(parse_null_in_obj)
+{
+    value result = parse(R"({"a": null})");
+    value expected = make_object("a", nullptr);
+    ensure_eq(expected, result);
+}
+
+TEST(parse_object_in_array)
+{
+    value result = parse(R"({"a": null, "b": {"c": 1, "d": "e", "f": null, "g": 2, )"
+                         R"("h": [{"i": 3, "j": null, "k": "l", "m": 4, "n": "o", "p": "q", "r": 5}, )"
+                         R"({"s": 6, "t": 7, "u": null}, {"v": "w"}]}})"
+                        );
+    value expected = make_object("a", nullptr,
+                                 "b", make_object("c", 1,
+                                                  "d", "e",
+                                                  "f", nullptr,
+                                                  "g", 2,
+                                                  "h", make_array(make_object("i", 3,
+                                                                              "j", nullptr,
+                                                                              "k", "l",
+                                                                              "m", 4,
+                                                                              "n", "o",
+                                                                              "p", "q",
+                                                                              "r", 5
+                                                                             ),
+                                                                  make_object("s", 6,
+                                                                              "t", 7,
+                                                                              "u", nullptr
+                                                                             ),
+                                                                  make_object("v", "w")
+                                                                 )
+                                                 )
+                                );
+    ensure_eq(expected, result);
+}
