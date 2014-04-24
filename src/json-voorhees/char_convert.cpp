@@ -342,19 +342,6 @@ string_type string_decode(const char_type* source, string_type::size_type source
                 
                 idx += 6;
             }
-            /* TODO: 8-character Unicode escape support...not technically part of the standard, but I don't see why it
-             *       isn't...embrace extend extinguish?
-             * 
-             * else if (next == 'U')
-             * {
-             *     if (idx + 10 > source_size)
-             *         throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
-             *      uint32_t hexval = from_hex(&source[idx + 2], 8);
-             *      utf8_append_code(output, hexval);
-             *   
-             *      idx += 10;
-             * }
-             */
             else
             {
                 throw decode_error(idx, std::string("Unknown escape character: ") + next);
