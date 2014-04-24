@@ -10,6 +10,8 @@
 **/
 #include "char_convert.hpp"
 
+#include "detail/fixed_map.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -30,17 +32,18 @@ decode_error::decode_error(size_type offset, const std::string& message):
 decode_error::~decode_error() throw()
 { }
 
-typedef std::map<char_type, char_type> converter_map;
-
 #define ESCAPES_LIST(item) \
-    item('\b', 'b'),  \
-    item('\f', 'f'),  \
-    item('\n', 'n'),  \
-    item('\r', 'r'),  \
-    item('\t', 't'),  \
-    item('\\', '\\'), \
-    item('/', '/'),   \
-    item('\"', '\"')
+    item('\b', 'b')  \
+    item('\f', 'f')  \
+    item('\n', 'n')  \
+    item('\r', 'r')  \
+    item('\t', 't')  \
+    item('\\', '\\') \
+    item('/',  '/')  \
+    item('\"', '\"') \
+
+#define TUPLE_PLUS_1_GEN(a, b) +1
+typedef detail::fixed_map<char_type, char_type, ESCAPES_LIST(TUPLE_PLUS_1_GEN)> converter_map;
 
 /** These entries are sorted by the numeric value of the ASCII character (\c less_entry_cpp).
  *  
@@ -48,12 +51,12 @@ typedef std::map<char_type, char_type> converter_map;
  *  The encode and decode map must be in a different order (even though they contain the same data) because the ASCII
  *  representations of escape sequences are not in the same order as the characters they are escaping.
 **/
-#define TUPLE_FIRST_SECOND(a, b) { a, b }
+#define TUPLE_FIRST_SECOND(a, b) { a, b },
 const converter_map encode_map = { ESCAPES_LIST(TUPLE_FIRST_SECOND) };
 
 /** These entries are sorted by the character value of the escape sequence (\c less_entry_json).
 **/
-#define TUPLE_SECOND_FIRST(a, b) { b, a }
+#define TUPLE_SECOND_FIRST(a, b) { b, a },
 const converter_map decode_map = { ESCAPES_LIST(TUPLE_SECOND_FIRST) };
 
 const char_type* find(const converter_map& source, char_type key)
