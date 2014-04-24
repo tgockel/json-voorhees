@@ -17,8 +17,6 @@
 #include <map>
 #include <stdexcept>
 
-#include <boost/lexical_cast.hpp>
-
 namespace jsonv
 {
 namespace detail
