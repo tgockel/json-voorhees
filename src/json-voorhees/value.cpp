@@ -60,12 +60,8 @@ value::value(const std::string& val) :
 }
 
 value::value(const char* val) :
-        _kind(kind::null)
-{
-    _data.string = new string_impl;
-    _kind = kind::string;
-    _data.string->_string = val;
-}
+        value(std::string(val))
+{ }
 
 value::value(int64_t val) :
         _kind(kind::integer)
