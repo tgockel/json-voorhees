@@ -18,9 +18,46 @@
 namespace jsonv
 {
 
-#define JSON_VOORHEES_VERSION 20140423
+#define JSONV_VERSION_MAJOR    0
+#define JSONV_VERSION_MINOR    1
+#define JSONV_VERSION_REVISION 1
 
-extern const unsigned long version_number;
+/** A basic structure for describing a version of the library. **/
+struct library_version
+{
+    int major;
+    int minor;
+    int revision;
+    
+    constexpr library_version(int major, int minor, int revision) :
+            major{major},
+            minor{minor},
+            revision{revision}
+    { }
+    
+    constexpr bool operator==(const library_version& other) const
+    {
+        return major    == other.major
+            && minor    == other.minor
+            && revision == other.revision;
+    }
+    
+    constexpr bool operator!=(const library_version& other) const
+    {
+        return major    != other.major
+            || minor    != other.minor
+            || revision != other.revision;
+    }
+};
+
+/** The version of the library you have included from your source. **/
+constexpr library_version    included_version = library_version(JSONV_VERSION_MAJOR,
+                                                                JSONV_VERSION_MINOR,
+                                                                JSONV_VERSION_REVISION
+                                                               );
+
+/** The version of the library which you are linking against. Hopefully, this is the same as \c included_version. **/
+extern const library_version compiled_version;
 
 /** \def JSON_VOORHEES_CHAR_TYPE
  *  Sets the type of char used for keys in JSON objects and in JSON string values. By default, this will be \c char.
@@ -64,7 +101,7 @@ extern const unsigned long char_type_size;
 **/
 inline bool is_consistent()
 {
-    return version_number == JSON_VOORHEES_VERSION
+    return included_version == compiled_version
         && char_type_size == sizeof(char_type);
 }
 
