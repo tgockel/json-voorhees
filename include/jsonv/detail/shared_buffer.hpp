@@ -11,7 +11,7 @@
 #ifndef __JSON_VOORHEES_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
 #define __JSON_VOORHEES_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
 
-#include <json-voorhees/config.hpp>
+#include <jsonv/config.hpp>
 
 #include <cstddef>
 #include <memory>

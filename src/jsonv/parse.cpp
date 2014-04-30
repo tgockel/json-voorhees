@@ -8,10 +8,10 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#include <json-voorhees/parse.hpp>
-#include <json-voorhees/array.hpp>
-#include <json-voorhees/object.hpp>
-#include <json-voorhees/detail/shared_buffer.hpp>
+#include <jsonv/parse.hpp>
+#include <jsonv/array.hpp>
+#include <jsonv/object.hpp>
+#include <jsonv/detail/shared_buffer.hpp>
 
 #include "char_convert.hpp"
 

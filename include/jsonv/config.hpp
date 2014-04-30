@@ -25,12 +25,12 @@
 #   define JSONV_SO 1
 #endif
 
-/** \def JSON_VOORHEES_COMPILING
+/** \def JSONV_COMPILING
  *  \brief Is JsonVoorhees currently compiling?
  *  You probably do not want to set this by hand. It is set by the Makefile when the library is compiled.
 **/
-#ifndef JSON_VOORHEES_COMPILING
-#   define JSON_VOORHEES_COMPILING 0
+#ifndef JSONV_COMPILING
+#   define JSONV_COMPILING 0
 #endif
 
 /** \def JSONV_EXPORT
@@ -71,7 +71,7 @@
  *  \brief This function or class is internal-use only.
  *  \see JSONV_HIDDEN
 **/
-#if JSON_VOORHEES_COMPILING
+#if JSONV_COMPILING
 #   define JSONV_PUBLIC JSONV_EXPORT
 #   define JSONV_LOCAL  JSONV_HIDDEN
 #else

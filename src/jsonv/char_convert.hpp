@@ -11,7 +11,7 @@
 #ifndef __JSON_VOORHEES_CHAR_CONVERT_HPP_INCLUDED__
 #define __JSON_VOORHEES_CHAR_CONVERT_HPP_INCLUDED__
 
-#include <json-voorhees/standard.hpp>
+#include <jsonv/standard.hpp>
 
 #include <stdexcept>
 

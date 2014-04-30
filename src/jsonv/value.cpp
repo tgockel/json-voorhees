@@ -8,9 +8,9 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#include <json-voorhees/value.hpp>
-#include <json-voorhees/array.hpp>
-#include <json-voorhees/object.hpp>
+#include <jsonv/value.hpp>
+#include <jsonv/array.hpp>
+#include <jsonv/object.hpp>
 
 #include "char_convert.hpp"
 #include "detail.hpp"

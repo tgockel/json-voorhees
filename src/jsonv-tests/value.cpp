@@ -10,7 +10,7 @@
 **/
 #include "test.hpp"
 
-#include <json-voorhees/all.hpp>
+#include <jsonv/all.hpp>
 
 TEST(compare_bools)
 {

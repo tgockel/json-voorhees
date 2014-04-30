@@ -8,7 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#include <json-voorhees/array.hpp>
+#include <jsonv/array.hpp>
 
 #include "detail.hpp"
 

@@ -55,7 +55,7 @@ $(foreach extension,$(MAKEFILE_EXTENSIONS),$(eval $(call MAKEFILE_EXTENSION_TEMP
 JSONV_VERSION = 0.2.-1
 
 ifeq ($(.DEFAULT_GOAL),)
-  .DEFAULT_GOAL := json-voorhees
+  .DEFAULT_GOAL := jsonv
 endif
 
 CONF        ?= release
@@ -120,7 +120,7 @@ SO_LIBRARIES ?=
 
 CXX_FLAGS_release = -O3
 
-json-voorhees-tests_LIBS = json-voorhees
+jsonv-tests_LIBS = jsonv
 
 $(OBJ_DIR)/%.cpp.o : $(SRC_DIR)/%.cpp
 	$(QQ)echo " CXX   $*.cpp"

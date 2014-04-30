@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#include <json-voorhees/value.hpp>
-#include <json-voorhees/parse.hpp>
+#include <jsonv/value.hpp>
+#include <jsonv/parse.hpp>
 
 #include "test.hpp"
 

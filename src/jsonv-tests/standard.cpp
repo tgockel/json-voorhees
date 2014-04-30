@@ -10,7 +10,7 @@
 **/
 #include "test.hpp"
 
-#include <json-voorhees/standard.hpp>
+#include <jsonv/standard.hpp>
 
 TEST(standard_is_consistent)
 {

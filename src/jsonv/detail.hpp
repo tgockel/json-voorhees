@@ -11,7 +11,7 @@
 #ifndef __JSON_VOORHEES_DETAIL_HPP_INCLUDED__
 #define __JSON_VOORHEES_DETAIL_HPP_INCLUDED__
 
-#include <json-voorhees/value.hpp>
+#include <jsonv/value.hpp>
 
 #include <deque>
 #include <map>

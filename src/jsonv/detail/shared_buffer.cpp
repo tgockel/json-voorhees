@@ -8,7 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#include <json-voorhees/detail/shared_buffer.hpp>
+#include <jsonv/detail/shared_buffer.hpp>
 
 #include <cstdlib>
 #include <cstring>

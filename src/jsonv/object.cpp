@@ -8,7 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#include <json-voorhees/object.hpp>
+#include <jsonv/object.hpp>
 
 #include "detail.hpp"
 
