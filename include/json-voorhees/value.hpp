@@ -15,8 +15,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iosfwd>
 #include <iterator>
-#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -76,8 +76,8 @@ public:
     value();
     value(std::nullptr_t);
     value(const value& source);
-    value(const string_type& val);
-    value(const char_type* val);
+    value(const std::string& val);
+    value(const char* val);
     value(int64_t val);
     value(double val);
     value(bool val);
@@ -126,8 +126,8 @@ public:
     array& as_array();
     const array& as_array() const;
     
-    string_type& as_string();
-    const string_type& as_string() const;
+    std::string& as_string();
+    const std::string& as_string() const;
     
     int64_t& as_integer();
     int64_t  as_integer() const;
@@ -185,7 +185,7 @@ public:
     bool operator<=(const value& other) const;
     bool operator>=(const value& other) const;
     
-    friend ostream_type& operator <<(ostream_type& stream, const value& val);
+    friend std::ostream& operator <<(std::ostream& stream, const value& val);
     
 protected:
     detail::value_storage _data;

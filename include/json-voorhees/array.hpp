@@ -209,7 +209,7 @@ public:
         push_back_many(std::forward<TRest>(rest)...);
     }
     
-    friend ostream_type& operator <<(ostream_type& stream, const array& arr);
+    friend std::ostream& operator <<(std::ostream& stream, const array& arr);
     
     /// \see value::operator==
     bool operator==(const array& other) const;
@@ -222,8 +222,8 @@ public:
     // delete all the non-array casts -- they're not valid
     object& as_object() = delete;
     const object& as_object() const = delete;
-    string_type& as_string() = delete;
-    const string_type& as_string() const = delete;
+    std::string& as_string() = delete;
+    const std::string& as_string() const = delete;
     int64_t& as_integer() = delete;
     int64_t  as_integer() const = delete;
     double& as_decimal() = delete;

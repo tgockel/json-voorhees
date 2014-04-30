@@ -24,7 +24,7 @@ class decode_error :
         public std::runtime_error
 {
 public:
-    typedef string_type::size_type size_type;
+    typedef std::string::size_type size_type;
 public:
     decode_error(size_type offset, const std::string& message);
     
@@ -41,10 +41,10 @@ private:
 
 /** Encodes C++ string \a source into a fully-escaped JSON string into \a stream ready for sending over the wire.
 **/
-ostream_type& string_encode(ostream_type& stream, const string_type& source);
+std::ostream& string_encode(std::ostream& stream, const std::string& source);
 
 /** Decodes over the wire character sequence \c source into a C++ string. **/
-string_type string_decode(const char_type* source, string_type::size_type source_size);
+std::string string_decode(const char* source, std::string::size_type source_size);
 
 }
 }

@@ -75,7 +75,7 @@ void check_type(kind expected, kind actual)
 // Printing                                                                                                           //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-ostream_type& stream_escaped_string(ostream_type& stream, const string_type& str)
+std::ostream& stream_escaped_string(std::ostream& stream, const std::string& str)
 {
     stream << "\"";
     detail::string_encode(stream, str);

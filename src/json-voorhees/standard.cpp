@@ -18,6 +18,4 @@ const library_version compiled_version = library_version(JSONV_VERSION_MAJOR,
                                                          JSONV_VERSION_REVISION
                                                         );
 
-const unsigned long char_type_size = sizeof(char_type);
-
 }

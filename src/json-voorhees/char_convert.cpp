@@ -17,6 +17,7 @@
 #include <cctype>
 #include <cstdint>
 #include <map>
+#include <ostream>
 #include <stdexcept>
 
 namespace jsonv
@@ -43,7 +44,7 @@ decode_error::~decode_error() throw()
     item('\"', '\"') \
 
 #define TUPLE_PLUS_1_GEN(a, b) +1
-typedef detail::fixed_map<char_type, char_type, ESCAPES_LIST(TUPLE_PLUS_1_GEN)> converter_map;
+typedef detail::fixed_map<char, char, ESCAPES_LIST(TUPLE_PLUS_1_GEN)> converter_map;
 
 /** These entries are sorted by the numeric value of the ASCII character (\c less_entry_cpp).
  *  
@@ -59,7 +60,7 @@ const converter_map encode_map = { ESCAPES_LIST(TUPLE_FIRST_SECOND) };
 #define TUPLE_SECOND_FIRST(a, b) { b, a },
 const converter_map decode_map = { ESCAPES_LIST(TUPLE_SECOND_FIRST) };
 
-const char_type* find(const converter_map& source, char_type key)
+const char* find(const converter_map& source, char key)
 {
     converter_map::const_iterator iter = source.find(key);
     if (iter != source.end())
@@ -68,12 +69,12 @@ const char_type* find(const converter_map& source, char_type key)
         return NULL;
 }
 
-static const char_type* find_encoding(char_type native_character)
+static const char* find_encoding(char native_character)
 {
     return find(encode_map, native_character);
 }
 
-static const char_type* find_decoding(char_type char_after_backslash)
+static const char* find_decoding(char char_after_backslash)
 {
     return find(decode_map, char_after_backslash);
 }
@@ -159,7 +160,7 @@ static uint16_t utf8_extract_code(const char* c, unsigned length, char bitmask)
 
 static const char hex_codes[] = "0123456789abcdef";
 
-static void to_hex(ostream_type& stream, uint16_t code)
+static void to_hex(std::ostream& stream, uint16_t code)
 {
     for (int pos = 3; pos >= 0; --pos)
     {
@@ -168,14 +169,14 @@ static void to_hex(ostream_type& stream, uint16_t code)
     }
 }
 
-ostream_type& string_encode(ostream_type& stream, const string_type& source)
+std::ostream& string_encode(std::ostream& stream, const std::string& source)
 {
-    typedef string_type::size_type size_type;
+    typedef std::string::size_type size_type;
     
     for (size_type idx = 0, source_size = source.size(); idx < source_size; /* incremented inline */)
     {
-        const char_type& current = source[idx];
-        if (const char_type* replacement = find_encoding(current))
+        const char& current = source[idx];
+        if (const char* replacement = find_encoding(current))
         {
             stream << "\\" << *replacement;
             ++idx;
@@ -299,7 +300,7 @@ static void utf8_sequence_info(uint16_t val, unsigned& length, char& first)
     */
 }
 
-static void utf8_append_code(string_type& str, uint16_t val)
+static void utf8_append_code(std::string& str, uint16_t val)
 {
     char c;
     unsigned length;
@@ -316,22 +317,22 @@ static void utf8_append_code(string_type& str, uint16_t val)
     }
 }
 
-string_type string_decode(const char_type* source, string_type::size_type source_size)
+std::string string_decode(const char* source, std::string::size_type source_size)
 {
-    typedef string_type::size_type size_type;
+    typedef std::string::size_type size_type;
     
-    string_type output;
-    const char_type* last_pushed_src = source;
+    std::string output;
+    const char* last_pushed_src = source;
     
     for (size_type idx = 0; idx < source_size; /* incremented inline */)
     {
-        const char_type& current = source[idx];
+        const char& current = source[idx];
         if (current == '\\')
         {
             output.append(last_pushed_src, source+idx);
             
-            const char_type& next = source[idx + 1];
-            if (const char_type* replacement = find_decoding(next))
+            const char& next = source[idx + 1];
+            if (const char* replacement = find_decoding(next))
             {
                 output += *replacement;
                 idx += 2;

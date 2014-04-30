@@ -34,7 +34,7 @@ class object_impl :
         public cloneable<object_impl>
 {
 public:
-    typedef std::map<string_type, jsonv::value> map_type;
+    typedef std::map<std::string, jsonv::value> map_type;
     
     map_type _values;
 };
@@ -52,7 +52,7 @@ class string_impl :
         public cloneable<string_impl>
 {
 public:
-    string_type _string;
+    std::string _string;
 };
 
 }
@@ -60,7 +60,7 @@ public:
 const char* kind_desc(kind type);
 bool kind_valid(kind k);
 void check_type(kind expected, kind actual);
-ostream_type& stream_escaped_string(ostream_type& stream, const string_type& str);
+std::ostream& stream_escaped_string(std::ostream& stream, const std::string& str);
 
 }
 

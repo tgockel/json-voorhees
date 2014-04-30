@@ -17,9 +17,9 @@
 
 #include <cassert>
 #include <cctype>
+#include <istream>
 #include <set>
 #include <sstream>
-
 
 #include <boost/lexical_cast.hpp>
 
@@ -40,7 +40,11 @@ namespace jsonv
 // parse_error                                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string parse_error_what(std::size_t line, std::size_t column, std::size_t character, const std::string& message)
+static std::string parse_error_what(std::size_t line,
+                                    std::size_t column,
+                                    std::size_t character,
+                                    const std::string& message
+                                   )
 {
     std::ostringstream stream;
     stream << "On line " << line << " column " << column << " (char " << character << "): " << message;
@@ -72,12 +76,12 @@ struct parse_context
     size_type        line;
     size_type        column;
     size_type        character;
-    const char_type* input;
+    const char*      input;
     size_type        input_size;
-    char_type        current;
+    char             current;
     bool             backed_off;
     
-    explicit parse_context(const char_type* input, size_type length) :
+    explicit parse_context(const char* input, size_type length) :
             line(0),
             column(0),
             character(0),
@@ -157,11 +161,11 @@ static bool eat_whitespace(parse_context& context)
     return false;
 }
 
-static value parse_literal(parse_context& context, const value& outval, const char_type* const literal)
+static value parse_literal(parse_context& context, const value& outval, const char* const literal)
 {
     assert(context.current == *literal);
     
-    for (const char_type* ptr = literal; *ptr; ++ptr)
+    for (const char* ptr = literal; *ptr; ++ptr)
     {
         if (context.current != *ptr)
             context.parse_error("Unexpected character '", context.current, "' while trying to match ", literal);
@@ -189,24 +193,24 @@ static value parse_false(parse_context& context)
     return parse_literal(context, false, "false");
 }
 
-static std::set<char_type> get_allowed_number_chars()
+static std::set<char> get_allowed_number_chars()
 {
-    const string_type allowed_chars_src("-0123456789+-eE.");
-    return std::set<char_type>(allowed_chars_src.begin(), allowed_chars_src.end());
+    const std::string allowed_chars_src("-0123456789+-eE.");
+    return std::set<char>(allowed_chars_src.begin(), allowed_chars_src.end());
 }
 
 static value parse_number(parse_context& context)
 {
     // Regex is probably the more "right" way to get a number, but lexical_cast is faster and easier.
-    //typedef std::basic_regex<char_type> regex;
+    //typedef std::regex regex;
     //static const regex number_pattern("^(-)?(0|[1-9][0-9]*)(?:(\\.)([0-9]+))?(?:([eE])([+-])?([0-9]+))?$");
                                      // 0   |1                |2   |3           |4    |5     |6
                                      // sign|whole            |dot |decimal     |ise  |esign |exp
                                      // re.compile("^(-)?(0|[1-9][0-9]*)(?:(\\.)([0-9]+))?(?:([eE])([+-])?([0-9]+))?$") \.
                                      //   .match('-123.45e+67').groups()
                                      // ('-', '123', '.', '45', 'e', '+', '67')
-    static std::set<char_type> allowed_chars = get_allowed_number_chars();
-    string_type characters(1, context.current);
+    static std::set<char> allowed_chars = get_allowed_number_chars();
+    std::string characters(1, context.current);
     bool is_double = false;
     while (true)
     {
@@ -244,18 +248,18 @@ static value parse_number(parse_context& context)
     }
 }
 
-static string_type parse_string(parse_context& context)
+static std::string parse_string(parse_context& context)
 {
     assert(context.current == '\"');
     
-    const char_type* characters_start = context.input + context.character;
-    std::size_t      characters_count = 0;
+    const char* characters_start = context.input + context.character;
+    std::size_t characters_count = 0;
     
     while (true)
     {
         if (!context.next())
         {
-            context.parse_error("Unterminated string \"", string_type(characters_start, characters_count));
+            context.parse_error("Unterminated string \"", std::string(characters_start, characters_count));
             break;
         }
         
@@ -284,7 +288,7 @@ static string_type parse_string(parse_context& context)
     {
         context.parse_error("Error decoding string:", err.what());
         // return it un-decoded
-        return string_type(characters_start, characters_count);
+        return std::string(characters_start, characters_count);
     }
 }
 
@@ -347,7 +351,7 @@ static value parse_object(parse_context& context)
         case '\"':
         {
             JSONV_DBG_STRUCT('(');
-            string_type key = parse_string(context);
+            std::string key = parse_string(context);
             if (!eat_whitespace(context))
                 context.parse_error("Unexpected end: missing ':' for key '", key, "'");
             
@@ -422,7 +426,7 @@ static bool parse_generic(parse_context& context, value& out, bool eat_whitespac
 
 }
 
-value parse(const char_type* input, std::size_t length)
+value parse(const char* input, std::size_t length)
 {
     detail::parse_context context(input, length);
     value out;
@@ -437,21 +441,21 @@ value parse(const char_type* input, std::size_t length)
     }
 }
 
-value parse(istream_type& input)
+value parse(std::istream& input)
 {
     // Copy the input into a buffer
     input.seekg(0, std::ios::end);
     std::size_t len = input.tellg();
     detail::shared_buffer buffer(len);
     input.seekg(0, std::ios::beg);
-    std::copy(std::istreambuf_iterator<char_type>(input), std::istreambuf_iterator<char_type>(),
+    std::copy(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>(),
               buffer.get_mutable(0, len)
              );
     
     return parse(buffer.cbegin(), buffer.size());
 }
 
-value parse(const string_type& source)
+value parse(const std::string& source)
 {
     return parse(source.c_str(), source.size());
 }

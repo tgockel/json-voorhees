@@ -12,6 +12,8 @@
 
 #include "detail.hpp"
 
+#include <ostream>
+
 namespace jsonv
 {
 
@@ -163,7 +165,7 @@ bool array::operator !=(const array& other) const
     return !operator==(other);
 }
 
-ostream_type& operator <<(ostream_type& stream, const array& arr)
+std::ostream& operator <<(std::ostream& stream, const array& arr)
 {
     typedef array_impl::array_type::const_iterator const_iterator;
     

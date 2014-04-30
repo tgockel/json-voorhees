@@ -86,13 +86,13 @@ object::const_iterator object::end() const
     return const_iterator(OBJ.end());
 }
 
-value& object::operator[](const string_type& key)
+value& object::operator[](const std::string& key)
 {
     ensure_object();
     return OBJ[key];
 }
 
-const value& object::operator[](const string_type& key) const
+const value& object::operator[](const std::string& key) const
 {
     ensure_object();
     return OBJ[key];
@@ -104,13 +104,13 @@ object::size_type object::count(const key_type& key) const
     return OBJ.count(key);
 }
 
-object::iterator object::find(const string_type& key)
+object::iterator object::find(const std::string& key)
 {
     ensure_object();
     return iterator(OBJ.find(key));
 }
 
-object::const_iterator object::find(const string_type& key) const
+object::const_iterator object::find(const std::string& key) const
 {
     ensure_object();
     return const_iterator(OBJ.find(key));
@@ -157,14 +157,14 @@ bool object::operator !=(const object& other) const
     return !operator==(other);
 }
 
-static void stream_single(ostream_type& stream, const object_impl::map_type::value_type& pair)
+static void stream_single(std::ostream& stream, const object_impl::map_type::value_type& pair)
 {
     stream_escaped_string(stream, pair.first)
         << ":"
         << pair.second;
 }
-    
-ostream_type& operator <<(ostream_type& stream, const object& view)
+
+std::ostream& operator <<(std::ostream& stream, const object& view)
 {
     typedef object_impl::map_type::const_iterator const_iterator;
     

@@ -80,19 +80,19 @@ private:
  *   can check the state flags or set the exception mask of the stream (exceptions thrown by \a input while processing
  *   will be propagated out).
 **/
-value parse(const char_type* input, std::size_t length);
+value parse(const char* input, std::size_t length);
 
 /** Reads a JSON value from the input stream.
  *  
- *  \see parse(const char_type*, std::size_t length)
+ *  \see parse(const char*, std::size_t length)
 **/
-value parse(istream_type& input);
+value parse(std::istream& input);
 
 /** Reads a JSON value from a string.
  *  
- *  \see parse(const char_type*, std::size_t length)
+ *  \see parse(const char*, std::size_t length)
 **/
-value parse(const string_type& input);
+value parse(const std::string& input);
 
 }
 

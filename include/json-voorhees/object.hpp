@@ -22,10 +22,10 @@ class object :
 {
 public:
     typedef size_t                              size_type;
-    typedef string_type                         key_type;
+    typedef std::string                         key_type;
     typedef value                               mapped_type;
-    typedef std::pair<const string_type, value> value_type;
-    typedef std::equal_to<string_type>          key_compare;
+    typedef std::pair<const std::string, value> value_type;
+    typedef std::equal_to<std::string>          key_compare;
     typedef value_type&                         reference;
     typedef const value_type&                   const_reference;
     typedef value_type*                         pointer;
@@ -134,13 +134,13 @@ public:
     iterator end();
     const_iterator end() const;
     
-    value& operator[](const string_type& key);
-    const value& operator[](const string_type& key) const;
+    value& operator[](const key_type& key);
+    const value& operator[](const key_type& key) const;
     
     size_type count(const key_type& key) const;
     
-    iterator find(const string_type& key);
-    const_iterator find(const string_type& key) const;
+    iterator find(const key_type& key);
+    const_iterator find(const key_type& key) const;
     
     void insert(const value_type& pair);
     
@@ -156,13 +156,13 @@ public:
     bool operator!=(const object& other) const;
     using value::operator !=;
     
-    friend ostream_type& operator <<(ostream_type& stream, const object& obj);
+    friend std::ostream& operator <<(std::ostream& stream, const object& obj);
     
     // delete all the non-object casts -- they're not valid
     array& as_array() = delete;
     const array& as_array() const = delete;
-    string_type& as_string() = delete;
-    const string_type& as_string() const = delete;
+    std::string& as_string() = delete;
+    const std::string& as_string() const = delete;
     int64_t& as_integer() = delete;
     int64_t  as_integer() const = delete;
     double& as_decimal() = delete;

@@ -51,7 +51,7 @@ value::value(std::nullptr_t) :
         value()
 { }
 
-value::value(const string_type& val) :
+value::value(const std::string& val) :
         _kind(kind::null)
 {
     _data.string = new string_impl;
@@ -59,7 +59,7 @@ value::value(const string_type& val) :
     _data.string->_string = val;
 }
 
-value::value(const char_type* val) :
+value::value(const char* val) :
         _kind(kind::null)
 {
     _data.string = new string_impl;
@@ -232,13 +232,13 @@ const array& value::as_array() const
     return *reinterpret_cast<const array*>(this);
 }
 
-string_type& value::as_string()
+std::string& value::as_string()
 {
     check_type(kind::string, _kind);
     return _data.string->_string;
 }
 
-const string_type& value::as_string() const
+const std::string& value::as_string() const
 {
     check_type(kind::string, _kind);
     return _data.string->_string;
@@ -446,7 +446,7 @@ bool value::operator>=(const value& other) const
     return compare(other) != -1;
 }
 
-ostream_type& operator <<(ostream_type& stream, const value& val)
+std::ostream& operator <<(std::ostream& stream, const value& val)
 {
     switch (val.get_kind())
     {
