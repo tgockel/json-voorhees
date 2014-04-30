@@ -23,8 +23,27 @@ Future planned features can be found on the [issue tracker][future-features], bu
  - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
  - [A visitor system with JSON Path support](https://bitbucket.org/tgockel/json-voorhees/issue/15/generic-visitor-system-for-a-json-tree)
  - Compiler support
-   - [Clang++](https://bitbucket.org/tgockel/json-voorhees/issue/20/clang-support)
-   - [MSVC](https://bitbucket.org/tgockel/json-voorhees/issue/18/msvc-support)
+     - [Clang++](https://bitbucket.org/tgockel/json-voorhees/issue/20/clang-support)
+     - [MSVC](https://bitbucket.org/tgockel/json-voorhees/issue/18/msvc-support)
+
+Versioning
+----------
+
+Like every software system ever, JsonVoorhees describes versions in 3 parts: `${major}.${minor}.${revision}`.
+Unlike most software, it actually means something when the versions change.
+
+ - `${major}`: There are no guarantees whatsoever across major releases.
+ - `${minor}`: For a given minor release, all code is forward-compatible source-code compliant.
+               That means code written against version 1.1 can be recompiled against version 1.4 and continue to work.
+               No guarantees are made for going backwards (version 1.4 might have added new functions).
+ - `${revision}`: Code is ABI-compatible across revision.
+                  Library *A* built against JsonVoorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
+                   built against JsonVoorhees 1.2.9.
+                  Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
+                   minor version.
+
+The preceding statements are not true if any of the version components has a negative value.
+Negatives are "pre-release" and are allowed to do whatever they feel like before a release.
 
 License
 -------
