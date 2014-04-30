@@ -210,7 +210,9 @@ static value parse_number(parse_context& context)
                                      //   .match('-123.45e+67').groups()
                                      // ('-', '123', '.', '45', 'e', '+', '67')
     static std::set<char> allowed_chars = get_allowed_number_chars();
-    std::string characters(1, context.current);
+    const char* characters_start = context.input + context.character - 1;
+    std::size_t characters_count = 1;
+    
     bool is_double = false;
     while (true)
     {
@@ -228,12 +230,17 @@ static value parse_number(parse_context& context)
             if (context.current == '.')
                 is_double = true;
             
-            characters += context.current;
+            ++characters_count;
         }
     }
     
+    // TODO(performance): Creating a heap-allocated string here for the sole purpose of lexical_cast and an error
+    //                    message is rather pointless...
+    std::string characters(characters_start, characters_count);
+    
     try
     {
+        
         if (is_double)
             return boost::lexical_cast<double>(characters);
         else if (characters[0] == '-')
