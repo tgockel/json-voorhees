@@ -16,7 +16,7 @@
 namespace jsonv
 {
 
-class array :
+class JSONV_PUBLIC array :
         public value
 {
 public:

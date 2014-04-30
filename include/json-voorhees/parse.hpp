@@ -23,7 +23,7 @@ namespace jsonv
  *  
  *  \see parse
 **/
-class parse_error :
+class JSONV_PUBLIC parse_error :
         public std::runtime_error
 {
 public:
@@ -80,19 +80,19 @@ private:
  *   can check the state flags or set the exception mask of the stream (exceptions thrown by \a input while processing
  *   will be propagated out).
 **/
-value parse(const char* input, std::size_t length);
+value JSONV_PUBLIC parse(const char* input, std::size_t length);
 
 /** Reads a JSON value from the input stream.
  *  
  *  \see parse(const char*, std::size_t length)
 **/
-value parse(std::istream& input);
+value JSONV_PUBLIC parse(std::istream& input);
 
 /** Reads a JSON value from a string.
  *  
  *  \see parse(const char*, std::size_t length)
 **/
-value parse(const std::string& input);
+value JSONV_PUBLIC parse(const std::string& input);
 
 }
 

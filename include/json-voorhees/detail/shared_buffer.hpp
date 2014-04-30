@@ -11,6 +11,8 @@
 #ifndef __JSON_VOORHEES_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
 #define __JSON_VOORHEES_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
 
+#include <json-voorhees/config.hpp>
+
 #include <cstddef>
 #include <memory>
 #include <stdexcept>
@@ -27,7 +29,7 @@ namespace detail
  *  buffer is not unique, the data will be copied to a new location in memory before writing occurs.  If you think this
  *  could be dangerous, check \c is_unique before performing write operations.
 **/
-class shared_buffer
+class JSONV_PUBLIC shared_buffer
 {
 public:
     typedef std::size_t    size_type;

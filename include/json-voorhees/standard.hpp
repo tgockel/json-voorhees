@@ -11,6 +11,8 @@
 #ifndef __JSON_VOORHEES_STANDARD_HPP_INCLUDED__
 #define __JSON_VOORHEES_STANDARD_HPP_INCLUDED__
 
+#include <json-voorhees/config.hpp>
+
 namespace jsonv
 {
 

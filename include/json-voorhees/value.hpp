@@ -55,7 +55,7 @@ enum class kind
     boolean
 };
 
-class kind_error :
+class JSONV_PUBLIC kind_error :
         public std::logic_error
 {
 public:
@@ -69,7 +69,7 @@ class array;
 
 /** \see http://json.org/
 **/
-class value
+class JSONV_PUBLIC value
 {
 public:
     /// Default-construct this to null.

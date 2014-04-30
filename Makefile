@@ -52,6 +52,8 @@ define MAKEFILE_EXTENSION_TEMPLATE
 endef
 $(foreach extension,$(MAKEFILE_EXTENSIONS),$(eval $(call MAKEFILE_EXTENSION_TEMPLATE,$(extension))))
 
+JSONV_VERSION = 0.1.1
+
 ifeq ($(.DEFAULT_GOAL),)
   .DEFAULT_GOAL := json-voorhees
 endif
@@ -91,25 +93,30 @@ LIBRARIES = $(patsubst $(SRC_DIR)/%,%,$(wildcard $(SRC_DIR)/*))
 TESTS     = $(filter %-tests,$(LIBRARIES))
 
 define LIBRARY_TEMPLATE
+  $1_SYMBOL        = $$(subst -,_,$$(shell echo $1 | tr '[:lower:]' '[:upper:]'))
   $1_OBJS          = $$(filter $$(OBJ_DIR)/$1/%,$$(OBJ_FILES))
-  $1_LIB_FILES     = $$(patsubst %,$$(LIB_DIR)/lib%.a,$$($1_LIBS))
+  $1_LIB_FILES     = $$(patsubst %,$$(LIB_DIR)/lib%.so,$$($1_LIBS))
   $1_LD_LIBRARIES  = $$(patsubst %,-l%,$$($1_LIBS)) $$(LD_LIBRARIES)
 
-  $1 : $$(LIB_DIR)/lib$1.a
+  $1 : $$(LIB_DIR)/lib$1.a $$(LIB_DIR)/lib$1.so.$$(JSONV_VERSION) $$(LIB_DIR)/lib$1.so
 endef
 
 $(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_TEMPLATE,$(lib))))
 
 CXX           = $(CXX_COMPILER) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
 CXX_COMPILER ?= c++
-CXX_FLAGS    ?= $(CXX_STANDARD) -c -Werror -Wall -Wextra -ggdb $(CXX_FLAGS_$(CONF))
+CXX_FLAGS    ?= $(CXX_STANDARD) -c -Werror -Wall -Wextra -ggdb -fPIC $(CXX_FLAGS_$(CONF))
 CXX_INCLUDES ?= -I$(SRC_DIR) -I$(HEADER_DIR)
 CXX_STANDARD ?= --std=c++11
 CXX_DEFINES  ?= 
 LD            = $(CXX_COMPILER) $(LD_PATHS) $(LD_FLAGS)
 LD_FLAGS     ?= 
 LD_PATHS     ?= 
-LD_LIBRARIES ?=
+LD_LIBRARIES ?= 
+SO            = $(CXX_COMPILER) $(SO_PATHS) $(SO_FLAGS)
+SO_FLAGS     ?= 
+SO_PATHS     ?= 
+SO_LIBRARIES ?= 
 
 CXX_FLAGS_release = -O3
 
@@ -119,7 +126,7 @@ $(OBJ_DIR)/%.cpp.o : $(SRC_DIR)/%.cpp
 	$(QQ)echo " CXX   $*.cpp"
 	$(QQ)mkdir -p $(@D)
 	$(QQ)mkdir -p $(dir $(patsubst $(SRC_DIR)/%,$(DEP_DIR)/%,$<))
-	$Q$(CXX) $< -o $@                         \
+	$Q$(CXX) $< -o $@ -D$($(shell echo $* | grep -Po '^[^/]+')_SYMBOL)_COMPILING=1                                 \
 	        -MF $(patsubst $(SRC_DIR)/%.cpp,$(DEP_DIR)/%.cpp.dep,$<) -MMD
 
 .SECONDEXPANSION:
@@ -128,11 +135,22 @@ $(LIB_DIR)/lib%.a : $$($$*_OBJS)
 	$(QQ)mkdir -p $(@D)
 	$Q$(AR) cr $@ $^
 
+.SECONDEXPANSION:
+$(LIB_DIR)/lib%.so.$(JSONV_VERSION) : $$($$*_OBJS)
+	$(QQ)echo " SO    lib$*.so.$(JSONV_VERSION)"
+	$(QQ)mkdir -p $(@D)
+	$Q$(SO) -shared -Wl,-soname,lib$*.so.$(JSONV_VERSION) $^ -o $@
+
+$(LIB_DIR)/lib%.so : $(LIB_DIR)/lib%.so.$(JSONV_VERSION)
+	$(QQ)echo " LN    $< -> $@"
+	$(QQ)rm -f $@
+	$Qln -s lib$*.so.$(JSONV_VERSION) $@
+
 define TEST_TEMPLATE
   $$(BIN_DIR)/$1 : $$($1_OBJS) $$($1_LIB_FILES)
 	$$(QQ)echo " LD    $1"
 	$$(QQ)mkdir -p $$(@D)
-	$$Q$$(LD) $$($1_OBJS) -L $$(LIB_DIR) $$($1_LD_LIBRARIES) -o $$@
+	$$Q$$(LD) $$($1_OBJS) -L $$(LIB_DIR) $$($1_LD_LIBRARIES) -Wl,--rpath,$$(LIB_DIR) -o $$@
 
   $1 : $$(BIN_DIR)/$1
 	$$(QQ)echo " TEST  $1 $$(ARGS)"
