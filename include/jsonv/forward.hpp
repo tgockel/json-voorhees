@@ -1,4 +1,4 @@
-/** \file json-voorhees/forward.hpp
+/** \file jsonv/forward.hpp
  *  
  *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_FORWARD_HPP_INCLUDED__
-#define __JSON_VOORHEES_FORWARD_HPP_INCLUDED__
+#ifndef __JSONV_FORWARD_HPP_INCLUDED__
+#define __JSONV_FORWARD_HPP_INCLUDED__
 
 namespace jsonv
 {
@@ -20,4 +20,4 @@ class value;
 
 }
 
-#endif/*__JSON_VOORHEES_FORWARD_HPP_INCLUDED__*/
+#endif/*__JSONV_FORWARD_HPP_INCLUDED__*/

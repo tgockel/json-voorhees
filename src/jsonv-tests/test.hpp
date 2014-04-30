@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __TEST_JSON_VOORHEES_TEST_HPP_INCLUDED__
-#define __TEST_JSON_VOORHEES_TEST_HPP_INCLUDED__
+#ifndef __TEST_JSONV_TEST_HPP_INCLUDED__
+#define __TEST_JSONV_TEST_HPP_INCLUDED__
 
 #include <deque>
 #include <sstream>
@@ -102,4 +102,4 @@ protected:
 
 }
 
-#endif/*__TEST_JSON_VOORHEES_TEST_HPP_INCLUDED__*/
+#endif/*__TEST_JSONV_TEST_HPP_INCLUDED__*/

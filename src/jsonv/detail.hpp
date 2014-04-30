@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_DETAIL_HPP_INCLUDED__
-#define __JSON_VOORHEES_DETAIL_HPP_INCLUDED__
+#ifndef __JSONV_DETAIL_HPP_INCLUDED__
+#define __JSONV_DETAIL_HPP_INCLUDED__
 
 #include <jsonv/value.hpp>
 
@@ -64,4 +64,4 @@ std::ostream& stream_escaped_string(std::ostream& stream, const std::string& str
 
 }
 
-#endif/*__JSON_VOORHEES_DETAIL_HPP_INCLUDED__*/
+#endif/*__JSONV_DETAIL_HPP_INCLUDED__*/

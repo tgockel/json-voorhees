@@ -1,4 +1,4 @@
-/** \file json-voorhees/value.hpp
+/** \file jsonv/value.hpp
  *  
  *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_VALUE_HPP_INCLUDED__
-#define __JSON_VOORHEES_VALUE_HPP_INCLUDED__
+#ifndef __JSONV_VALUE_HPP_INCLUDED__
+#define __JSONV_VALUE_HPP_INCLUDED__
 
 #include "standard.hpp"
 
@@ -86,7 +86,7 @@ public:
     
     #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR(type_)              \
         value(type_ val);
-    JSON_VOORHEES_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR)
+    JSONV_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR)
     
     // Don't allow any implicit conversions that we have not specified.
     template <typename T>
@@ -194,4 +194,4 @@ protected:
 
 }
 
-#endif/*__JSON_VOORHEES_VALUE_HPP_INCLUDED__*/
+#endif/*__JSONV_VALUE_HPP_INCLUDED__*/

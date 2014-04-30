@@ -1,4 +1,4 @@
-/** \file json-voorhees/detail/fixed_map.hpp
+/** \file jsonv/detail/fixed_map.hpp
  *  
  *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEED_DETAIL_FIXED_MAP_HPP_INCLUDED__
-#define __JSON_VOORHEED_DETAIL_FIXED_MAP_HPP_INCLUDED__
+#ifndef __JSONV_DETAIL_FIXED_MAP_HPP_INCLUDED__
+#define __JSONV_DETAIL_FIXED_MAP_HPP_INCLUDED__
 
 #include <algorithm>
 #include <array>
@@ -84,4 +84,4 @@ private:
 }
 }
 
-#endif/*__JSON_VOORHEED_DETAIL_FIXED_MAP_HPP_INCLUDED__*/
+#endif/*__JSONV_DETAIL_FIXED_MAP_HPP_INCLUDED__*/

@@ -1,4 +1,4 @@
-/** \file json-voorhees/array.hpp
+/** \file jsonv/array.hpp
  *  
  *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_ARRAY_HPP_INCLUDED__
-#define __JSON_VOORHEES_ARRAY_HPP_INCLUDED__
+#ifndef __JSONV_ARRAY_HPP_INCLUDED__
+#define __JSONV_ARRAY_HPP_INCLUDED__
 
 #include "value.hpp"
 
@@ -253,4 +253,4 @@ array make_array(T&&... values)
 
 }
 
-#endif/*__JSON_VOORHEES_ARRAY_HPP_INCLUDED__*/
+#endif/*__JSONV_ARRAY_HPP_INCLUDED__*/

@@ -1,4 +1,4 @@
-/** \file json-voorhees/parse.hpp
+/** \file jsonv/parse.hpp
  *  
  *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_PARSE_HPP_INCLUDED__
-#define __JSON_VOORHEES_PARSE_HPP_INCLUDED__
+#ifndef __JSONV_PARSE_HPP_INCLUDED__
+#define __JSONV_PARSE_HPP_INCLUDED__
 
 #include "standard.hpp"
 #include "value.hpp"
@@ -96,4 +96,4 @@ value JSONV_PUBLIC parse(const std::string& input);
 
 }
 
-#endif/*__JSON_VOORHEES_PARSE_HPP_INCLUDED__*/
+#endif/*__JSONV_PARSE_HPP_INCLUDED__*/

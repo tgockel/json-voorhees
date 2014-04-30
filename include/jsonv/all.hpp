@@ -1,4 +1,4 @@
-/** \file json-voorhees/all.hpp
+/** \file jsonv/all.hpp
  *  A head which includes all other JSON Voorhees headers.
  *  
  *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
@@ -9,8 +9,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_ALL_HPP_INCLUDED__
-#define __JSON_VOORHEES_ALL_HPP_INCLUDED__
+#ifndef __JSONV_ALL_HPP_INCLUDED__
+#define __JSONV_ALL_HPP_INCLUDED__
 
 #include "array.hpp"
 #include "forward.hpp"
@@ -19,4 +19,4 @@
 #include "standard.hpp"
 #include "value.hpp"
 
-#endif/*__JSON_VOORHEES_ALL_HPP_INCLUDED__*/
+#endif/*__JSONV_ALL_HPP_INCLUDED__*/

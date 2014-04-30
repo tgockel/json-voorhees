@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_CHAR_CONVERT_HPP_INCLUDED__
-#define __JSON_VOORHEES_CHAR_CONVERT_HPP_INCLUDED__
+#ifndef __JSONV_CHAR_CONVERT_HPP_INCLUDED__
+#define __JSONV_CHAR_CONVERT_HPP_INCLUDED__
 
 #include <jsonv/standard.hpp>
 
@@ -49,4 +49,4 @@ std::string string_decode(const char* source, std::string::size_type source_size
 }
 }
 
-#endif/*__JSON_VOORHEES_CHAR_CONVERT_HPP_INCLUDED__*/
+#endif/*__JSONV_CHAR_CONVERT_HPP_INCLUDED__*/

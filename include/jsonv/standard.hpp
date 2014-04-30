@@ -1,4 +1,4 @@
-/** \file json-voorhees/standard.hpp
+/** \file jsonv/standard.hpp
  *  
  *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_STANDARD_HPP_INCLUDED__
-#define __JSON_VOORHEES_STANDARD_HPP_INCLUDED__
+#ifndef __JSONV_STANDARD_HPP_INCLUDED__
+#define __JSONV_STANDARD_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
 
@@ -57,8 +57,8 @@ constexpr library_version    included_version = library_version(JSONV_VERSION_MA
 /** The version of the library which you are linking against. Hopefully, this is the same as \c included_version. **/
 extern const library_version compiled_version;
 
-#ifndef JSON_VOORHEES_INTEGER_ALTERNATES_LIST
-#   define JSON_VOORHEES_INTEGER_ALTERNATES_LIST(item) \
+#ifndef JSONV_INTEGER_ALTERNATES_LIST
+#   define JSONV_INTEGER_ALTERNATES_LIST(item) \
         item(int)          \
         item(unsigned int)
 #endif
@@ -74,4 +74,4 @@ inline bool is_consistent()
 
 }
 
-#endif/*__JSON_VOORHEES_STANDARD_HPP_INCLUDED__*/
+#endif/*__JSONV_STANDARD_HPP_INCLUDED__*/

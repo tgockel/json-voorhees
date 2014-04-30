@@ -1,4 +1,4 @@
-/** \file json-voorhees/object.hpp
+/** \file jsonv/object.hpp
  *  
  *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_OBJECT_HPP_INCLUDED__
-#define __JSON_VOORHEES_OBJECT_HPP_INCLUDED__
+#ifndef __JSONV_OBJECT_HPP_INCLUDED__
+#define __JSONV_OBJECT_HPP_INCLUDED__
 
 #include "standard.hpp"
 #include "value.hpp"
@@ -213,4 +213,4 @@ object make_object(T&&... entries)
 
 }
 
-#endif/*__JSON_VOORHEES_OBJECT_HPP_INCLUDED__*/
+#endif/*__JSONV_OBJECT_HPP_INCLUDED__*/

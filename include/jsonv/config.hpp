@@ -1,4 +1,4 @@
-/** \file json-voorhees/config.hpp
+/** \file jsonv/config.hpp
  *  
  *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_CONFIG_HPP_INCLUDED__
-#define __JSON_VOORHEES_CONFIG_HPP_INCLUDED__
+#ifndef __JSONV_CONFIG_HPP_INCLUDED__
+#define __JSONV_CONFIG_HPP_INCLUDED__
 
 /** \def JSONV_USER_CONFIG
  *  \brief A user-defined configuration file to be included before all other JsonVoorhees content.
@@ -79,4 +79,4 @@
 #   define JSONV_LOCAL  JSONV_HIDDEN
 #endif
 
-#endif/*__JSON_VOORHEES_CONFIG_HPP_INCLUDED__*/
+#endif/*__JSONV_CONFIG_HPP_INCLUDED__*/

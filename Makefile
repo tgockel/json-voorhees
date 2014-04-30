@@ -5,7 +5,7 @@
 # 
 #  $> make
 #
-# This will create a library file in the build directory called libjson-voorhees.a, which you can link to whatever
+# This will create library files in the build directory: libjsonv.a and libjsonv.so, which you can link to whatever
 # project you please.
 #
 # Most configuration is overridable by appending arguments after make. For example, to use the C++14 standard instead
@@ -14,9 +14,9 @@
 #  $> make CXX_STANDARD="--std=c++14"
 #
 # If typing these extra arguments is inconvenient, you can set up defaults in either ./Makefile.user or in
-#  ~/.config/json-voorhees/Makefile.ex, which will be included if either exists (or both). This is a full-featured
-# extension to the Makefile, so feel free to add custom targets or whatever else you might need for your build. The
-# locations for this can also be overridden on the command line with MAKEFILE_EXTENSIONS.
+#  ~/.config/jsonv/Makefile.ex, which will be included if either exists (or both). This is a full-featured extension to
+# the Makefile, so feel free to add custom targets or whatever else you might need for your build. The locations for
+# this can also be overridden on the command line with MAKEFILE_EXTENSIONS.
 #
 # Having trouble building? Is the pretty echo CXX bothering you? It might be helpful to see the actual command line
 # getting passed to your compiler/archiver/linker/whatever.
@@ -44,7 +44,7 @@
 # specific language governing permissions and limitations under the License.
 
 # Support extending the contents of the Makefile with custom configurations
-MAKEFILE_EXTENSIONS ?= Makefile.user ${HOME}/.config/json-voorhees/Makefile.ex
+MAKEFILE_EXTENSIONS ?= Makefile.user ${HOME}/.config/jsonv/Makefile.ex
 define MAKEFILE_EXTENSION_TEMPLATE
   ifneq ($$(wildcard $1),)
     -include $1

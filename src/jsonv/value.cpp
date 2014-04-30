@@ -101,7 +101,7 @@ value::value(const array& arr) :
     {                                                                      \
         _data.integer = val;                                               \
     }
-JSON_VOORHEES_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR)
+JSONV_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR)
 
 value::~value()
 {

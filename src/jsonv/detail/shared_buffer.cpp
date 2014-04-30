@@ -1,4 +1,4 @@
-/** \file json-voorhees/detail/shared_buffer.cpp
+/** \file jsonv/detail/shared_buffer.cpp
  *  
  *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
  *

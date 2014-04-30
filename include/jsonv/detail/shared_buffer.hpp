@@ -1,4 +1,4 @@
-/** \file json-voorhees/detail/shared_buffer.hpp
+/** \file jsonv/detail/shared_buffer.hpp
  *  
  *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
  *
@@ -8,8 +8,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_VOORHEES_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
-#define __JSON_VOORHEES_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
+#ifndef __JSONV_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
+#define __JSONV_DETAIL_SHARED_BUFFER_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
 
@@ -228,4 +228,4 @@ inline void swap(shared_buffer& a, shared_buffer& b) throw()
 }
 }
 
-#endif/*__JSON_VOORHEES_DETAIL_SHARED_BUFFER_HPP_INCLUDED__*/
+#endif/*__JSONV_DETAIL_SHARED_BUFFER_HPP_INCLUDED__*/
