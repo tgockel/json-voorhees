@@ -32,18 +32,30 @@ Versioning
 Like every software system ever, JsonVoorhees describes versions in 3 parts: `${major}.${minor}.${revision}`.
 Unlike most software, it actually means something when the versions change.
 
- - `${major}`: There are no guarantees whatsoever across major releases.
- - `${minor}`: For a given minor release, all code is forward-compatible source-code compliant.
-               That means code written against version 1.1 can be recompiled against version 1.4 and continue to work.
-               No guarantees are made for going backwards (version 1.4 might have added new functions).
- - `${revision}`: Code is ABI-compatible across revision.
-                  Library *A* built against JsonVoorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
-                   built against JsonVoorhees 1.2.9.
-                  Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
-                   minor version.
+ - `major`: There are no guarantees whatsoever across major releases.
+ - `minor`: For a given minor release, all code is forward-compatible source-code compliant.
+            That means code written against version 1.1 can be recompiled against version 1.4 and continue to work.
+            No guarantees are made for going backwards (version 1.4 might have added new functions).
+ - `revision`: Code is ABI-compatible across revision.
+               Library *A* built against JsonVoorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
+                built against JsonVoorhees 1.2.9.
+               Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
+                minor version.
 
 The preceding statements are not true if any of the version components has a negative value.
 Negatives are "pre-release" and are allowed to do whatever they feel like before a release.
+
+When developing code, follow this simple workflow to determine which version components need to change:
+
+ 1. *Will this change force users to change their source code?*
+    If yes, bump the `major` version.
+ 2. *Will this change force users to recompile to continue to work?*
+    If yes, bump the `minor` version.
+ 3. *Can a consumer of the previous version of the library talk directly with this version of the library without any
+    changes?*
+    If yes, bump the `revision` version.
+ 4. *Did I miss something?*
+    Yes. Go back to #1 and try again.
 
 License
 -------
