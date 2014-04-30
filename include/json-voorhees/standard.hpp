@@ -16,9 +16,9 @@
 namespace jsonv
 {
 
-#define JSONV_VERSION_MAJOR    0
-#define JSONV_VERSION_MINOR    1
-#define JSONV_VERSION_REVISION 1
+#define JSONV_VERSION_MAJOR     0
+#define JSONV_VERSION_MINOR     2
+#define JSONV_VERSION_REVISION -1
 
 /** A basic structure for describing a version of the library. **/
 struct library_version

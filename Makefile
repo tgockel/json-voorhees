@@ -52,7 +52,7 @@ define MAKEFILE_EXTENSION_TEMPLATE
 endef
 $(foreach extension,$(MAKEFILE_EXTENSIONS),$(eval $(call MAKEFILE_EXTENSION_TEMPLATE,$(extension))))
 
-JSONV_VERSION = 0.1.1
+JSONV_VERSION = 0.2.-1
 
 ifeq ($(.DEFAULT_GOAL),)
   .DEFAULT_GOAL := json-voorhees
