@@ -134,25 +134,18 @@ static void utf8_extract_info(char c, unsigned& length, char& bitmask)
     }
 }
 
-/** All these code extraction algorithms are probably wrong...the UTF8 encoding standard allows for 6-byte sequences,
- *  which allows for all 2^31 UCS codes. However, Unicode ends at 0x10ffff with the PUA-B plane (which people shouldn't
- *  be sending around in JSON in the first place). JSON's escape sequence for unicode is 4 hexidecimal digits, which is
- *  only a \c uint16_t. This means that JSON is only capable of encoding the basic multilingual plane, which means no
- *  alchemical symbols ಠಠ.
-**/
-static uint16_t utf8_extract_code(const char* c, unsigned length, char bitmask)
+static char32_t utf8_extract_code(const char* c, unsigned length, char bitmask)
 {
     const char submask = '\x3f';
     
-    assert(length <= 4);
-    uint16_t num(*c & bitmask);
+    char32_t num(*c & bitmask);
     ++c;
     
     for (unsigned i = 1; i < length; ++i, ++c)
     {
         assert(char_bitmatch(*c, '\x80', '\x40'));
-        num = uint16_t(num << 6);
-        num = uint16_t(num | (*c & submask));
+        num = char32_t(num << 6);
+        num = char32_t(num | (*c & submask));
     }
     
     return num;
@@ -167,6 +160,19 @@ static void to_hex(std::ostream& stream, uint16_t code)
         uint16_t local_code = (code >> (4 * pos)) & uint16_t(0x000f);
         stream << hex_codes[local_code];
     }
+}
+
+static void utf16_create_surrogates(char32_t codepoint, uint16_t* high, uint16_t* low)
+{
+    // surrogate pair generation is slightly insane
+    //   0000 0000 0000 nnnn  nnnn nnnn nnnn nnnn
+    // - 0000 0000 0000 0001  0000 0000 0000 0000
+    // ==========================================
+    //   1101 10aa aaaa aaaa  1101 11bb bbbb bbbb
+    // | high               | low                |
+    uint32_t val = codepoint - 0x10000;
+    *high = uint16_t(val >> 10)    | 0xd800;
+    *low  = uint16_t(val & 0x03ff) | 0xdc00;
 }
 
 std::ostream& string_encode(std::ostream& stream, const std::string& source)
@@ -189,12 +195,27 @@ std::ostream& string_encode(std::ostream& stream, const std::string& source)
             assert(idx + length <= source_size);
             
             if (!needs_unicode_escaping(current))
+            {
                 stream << current;
+            }
             else
             {
-                uint16_t code = utf8_extract_code(&current, length, bitmask);
-                stream << "\\u";
-                to_hex(stream, code);
+                char32_t code = utf8_extract_code(&current, length, bitmask);
+                if (code < 0x10000)
+                {
+                    stream << "\\u";
+                    to_hex(stream, uint16_t(code));
+                }
+                // Codepoints not in the basic multilingual plane must be encoded as surrogate pairs
+                else
+                {
+                    uint16_t high, low;
+                    utf16_create_surrogates(code, &high, &low);
+                    stream << "\\u";
+                    to_hex(stream, high);
+                    stream << "\\u";
+                    to_hex(stream, low);
+                }
             }
             
             idx += length;
