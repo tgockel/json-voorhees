@@ -85,7 +85,7 @@ static bool needs_unicode_escaping(char c)
         || (c & '\x80');
 }
 
-static bool char_bitmatch(char c, char pos, char neg)
+static constexpr bool char_bitmatch(char c, char pos, char neg)
 {
     return (c & pos) == pos
         && !(c & neg);
