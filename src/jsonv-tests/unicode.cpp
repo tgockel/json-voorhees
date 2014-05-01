@@ -46,15 +46,13 @@ TEST(parse_unicode_insanity)
         ensure(s[idx] == vals[idx]);
 }
 
-TEST(parse_unicode_invalid_surrogates)
+// TODO: This test should be re-enabled when parsing options are supported.
+/*TEST(parse_unicode_invalid_surrogates)
 {
-    // This is technically an invalid Unicode because of some unpaired surrogate...apparently 0xd800 - 0xdfff is a magic
-    // range for something I don't understand. Anyway, this library will parse and translate it to UTF8 (perhaps not in
-    // a valid way). My shell doesn't seem to have a problem printing a ? for this.
     std::string s = jsonv::parse("\"\\udead\\ubeef\"").as_string();
     ensure(s.size() == 6);
     // The right answer according to Python: u'\udead\ubeef'.encode('utf-8')
     const char vals[] = "\xed\xba\xad\xeb\xbb\xaf";
     for (unsigned idx = 0; idx < sizeof vals; ++idx)
         ensure(s[idx] == vals[idx]);
-}
+}*/

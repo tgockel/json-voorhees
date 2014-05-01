@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -264,7 +264,7 @@ static uint16_t from_hex(const char* s)
     return x;
 }
 
-static void utf8_sequence_info(uint16_t val, unsigned& length, char& first)
+static void utf8_sequence_info(char32_t val, unsigned& length, char& first)
 {
     if (val < 0x00000080U)
     {
@@ -276,12 +276,11 @@ static void utf8_sequence_info(uint16_t val, unsigned& length, char& first)
         length = 2;
         first = char('\xc0' | ('\x1f' & (val >> 6)));
     }
-    else// if (val < 0x00010000U)
+    else if (val < 0x00010000U)
     {
         length = 3;
         first = char('\xe0' | ('\x0f' & (val >> 12)));
     }
-    /*
     else if (val < 0x00200000U)
     {
         length = 4;
@@ -297,10 +296,9 @@ static void utf8_sequence_info(uint16_t val, unsigned& length, char& first)
         length = 6;
         first = char('\xfc' | char('\x01' & (val >> 30)));
     }
-    */
 }
 
-static void utf8_append_code(std::string& str, uint16_t val)
+static void utf8_append_code(std::string& str, char32_t val)
 {
     char c;
     unsigned length;
@@ -314,6 +312,27 @@ static void utf8_append_code(std::string& str, uint16_t val)
         c = char('\x80' | ('\x3f' & (val >> shift)));
         str += c;
         shift -= 6;
+    }
+}
+
+static bool utf16_combine_surrogates(uint16_t high, uint16_t low, char32_t* out)
+{
+    if ((high & 0xfc00U) != 0xd800 || (low & 0xfc00U) != 0xdc00)
+    {
+        // invalid surrogate pair
+        return false;
+    }
+    else
+    {
+        // surrogate pairs take the form:
+        // | high               | low                |
+        //  1101 10aa aaaa aaaa  1101 11bb bbbb bbbb
+        // result:
+        //   0000 0000 0000 aaaa  aaaa aabb bbbb bbbb
+        // + 0000 0000 0000 0001  0000 0000 0000 0000
+        *out = 0x10000
+             + (((char32_t(high) & 0x03ff) << 10) | (char32_t(low)  & 0x03ff));
+        return true;
     }
 }
 
@@ -342,9 +361,32 @@ std::string string_decode(const char* source, std::string::size_type source_size
                 if (idx + 6 > source_size)
                     throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
                 uint16_t hexval = from_hex(&source[idx + 2]);
-                utf8_append_code(output, hexval);
                 
-                idx += 6;
+                if (hexval < 0xd800U || hexval > 0xdfffU)
+                {
+                    utf8_append_code(output, hexval);
+                    
+                    idx += 6;
+                }
+                // numeric encoding is in U+d800 - U+dfff, so deal with surrogate pairing...
+                else
+                {
+                    auto surrogateString = [&] () { return std::string(source+idx, 6); };
+                    if (  idx + 12 > source_size
+                       || idx +  8 > source_size
+                       || source[idx + 6] != '\\'
+                       || source[idx + 7] != 'u'
+                       )
+                        throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
+                    uint16_t hexlowval = from_hex(&source[idx + 8]);
+                    char32_t codepoint;
+                    if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
+                        throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
+                    
+                    utf8_append_code(output, codepoint);
+                    
+                    idx += 12;
+                }
             }
             else
             {

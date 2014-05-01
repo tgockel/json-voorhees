@@ -65,6 +65,18 @@ unit_test_list_type& get_unit_tests();
 #define ensure_gt(a_, b_) ensure_op(a_, > , b_)
 #define ensure_ge(a_, b_) ensure_op(a_, >=, b_)
 
+#define ensure_throws(extype_, action_)                              \
+    do                                                               \
+    {                                                                \
+        try                                                          \
+        {                                                            \
+            action_;                                                 \
+            ensure(! #extype_ " was not thrown");                    \
+        }                                                            \
+        catch (const extype_&)                                       \
+        { }                                                          \
+    } while (false)                                                  \
+
 class unit_test
 {
 public:
