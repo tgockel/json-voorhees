@@ -26,6 +26,21 @@ Future planned features can be found on the [issue tracker][future-features], bu
      - [Clang++](https://bitbucket.org/tgockel/json-voorhees/issue/20/clang-support)
      - [MSVC](https://bitbucket.org/tgockel/json-voorhees/issue/18/msvc-support)
 
+License
+-------
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+ 
+  [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+Miscellaneous
+=============
+
 Versioning
 ----------
 
@@ -51,26 +66,12 @@ When developing code, follow this simple workflow to determine which version com
     If yes, bump the `major` version.
  2. *Will this change force users to recompile to continue to work?*
     If yes, bump the `minor` version.
- 3. *Can a consumer of the previous version of the library talk directly with this version of the library without any
-    changes?*
+ 3. *Will this change the behavior in any way?*
     If yes, bump the `revision` version.
- 4. *Did I miss something?*
+ 4. *Did I only change comments or rearrange code positioning (indentation, etc)?*
+    If yes, you do not need to update any part of the version.
+ 5. *Did I miss something?*
     Yes. Go back to #1 and try again.
-
-License
--------
-
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
-the License. You may obtain a copy of the License at
- 
-  [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-specific language governing permissions and limitations under the License.
-
-Details
-=======
 
 Character Encoding
 ------------------
