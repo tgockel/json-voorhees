@@ -264,55 +264,59 @@ static uint16_t from_hex(const char* s)
     return x;
 }
 
-static void utf8_sequence_info(char32_t val, unsigned& length, char& first)
+static void utf8_sequence_info(char32_t val, std::size_t* length, char* first)
 {
     if (val < 0x00000080U)
     {
-        length = 1;
-        first = char(val);
+        *length = 1;
+        *first = char(val);
     }
     else if (val < 0x00000800U)
     {
-        length = 2;
-        first = char('\xc0' | ('\x1f' & (val >> 6)));
+        *length = 2;
+        *first = char('\xc0' | ('\x1f' & (val >> 6)));
     }
     else if (val < 0x00010000U)
     {
-        length = 3;
-        first = char('\xe0' | ('\x0f' & (val >> 12)));
+        *length = 3;
+        *first = char('\xe0' | ('\x0f' & (val >> 12)));
     }
     else if (val < 0x00200000U)
     {
-        length = 4;
-        first = char('\xf0' | ('\x07' & (val >> 18)));
+        *length = 4;
+        *first = char('\xf0' | ('\x07' & (val >> 18)));
     }
     else if (val < 0x04000000U)
     {
-        length = 5;
-        first = char('\xf8' | ('\x03' & (val >> 24)));
+        *length = 5;
+        *first = char('\xf8' | ('\x03' & (val >> 24)));
     }
     else
     {
-        length = 6;
-        first = char('\xfc' | char('\x01' & (val >> 30)));
+        *length = 6;
+        *first = char('\xfc' | char('\x01' & (val >> 30)));
     }
 }
 
 static void utf8_append_code(std::string& str, char32_t val)
 {
     char c;
-    unsigned length;
-    utf8_sequence_info(val, length, c);
+    std::size_t length;
+    utf8_sequence_info(val, &length, &c);
     
-    // HACK: This function is crap.
-    str += c;
+    char buffer[8];
+    char* bufferOut = buffer;
+    *bufferOut++ = c;
+    
     int shift = (length - 2) * 6;
-    for (unsigned idx = 1; idx < length; ++idx)
+    for (std::size_t idx = 1; idx < length; ++idx)
     {
         c = char('\x80' | ('\x3f' & (val >> shift)));
-        str += c;
+        *bufferOut++ = c;
         shift -= 6;
     }
+    
+    str.append(buffer, bufferOut);
 }
 
 static bool utf16_combine_surrogates(uint16_t high, uint16_t low, char32_t* out)
