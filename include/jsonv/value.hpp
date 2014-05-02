@@ -109,9 +109,6 @@ public:
     **/
     value& operator=(value&& source);
     
-    static object make_object();
-    static array make_array();
-    
     /// Resets this value to null.
     void clear();
     

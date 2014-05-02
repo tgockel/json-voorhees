@@ -169,16 +169,6 @@ value& value::operator =(value&& source)
     return *this;
 }
 
-object value::make_object()
-{
-    return object();
-}
-
-array value::make_array()
-{
-    return array();
-}
-
 void value::clear()
 {
     switch (_kind)
