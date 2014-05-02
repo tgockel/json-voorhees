@@ -97,6 +97,11 @@ const value& array::operator[](size_type idx) const
     return ARR[idx];
 }
 
+void array::push_back(value&& value)
+{
+    ARR.push_back(std::move(value));
+}
+
 void array::push_back(const value& val)
 {
    ARR.push_back(val);
@@ -105,6 +110,11 @@ void array::push_back(const value& val)
 void array::pop_back()
 {
     ARR.pop_back();
+}
+
+void array::push_front(value&& value)
+{
+    ARR.push_front(std::move(value));
 }
 
 void array::push_front(const value& val)

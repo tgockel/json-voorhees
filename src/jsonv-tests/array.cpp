@@ -130,6 +130,14 @@ TEST(array_erase_multi_from_begin)
     ensure_eq(arr, make_array(3, 4, 5));
 }
 
+TEST(array_push_move)
+{
+    jsonv::array arr;
+    jsonv::value val = "contents";
+    arr.push_back(std::move(val));
+    ensure(val.get_kind() == jsonv::kind::null);
+}
+
 TEST(array_algo_sort)
 {
     using namespace jsonv;

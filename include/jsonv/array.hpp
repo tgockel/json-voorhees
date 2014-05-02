@@ -190,9 +190,11 @@ public:
     value& operator[](size_type idx);
     const value& operator[](size_type idx) const;
     
+    void push_back(value&& value);
     void push_back(const value& value);
     void pop_back();
     
+    void push_front(value&& value);
     void push_front(const value& value);
     void pop_front();
     
@@ -225,14 +227,10 @@ public:
     // delete all the non-array casts -- they're not valid
     object& as_object() = delete;
     const object& as_object() const = delete;
-    std::string& as_string() = delete;
     const std::string& as_string() const = delete;
-    int64_t& as_integer() = delete;
-    int64_t  as_integer() const = delete;
-    double& as_decimal() = delete;
-    double  as_decimal() const = delete;
-    bool& as_boolean() = delete;
-    bool  as_boolean() const = delete;
+    int64_t as_integer() const = delete;
+    double as_decimal() const = delete;
+    bool as_boolean() const = delete;
     
 private:
     // NO ADDED MEMBERS
