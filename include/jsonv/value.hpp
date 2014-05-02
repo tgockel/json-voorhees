@@ -126,21 +126,16 @@ public:
     array& as_array();
     const array& as_array() const;
     
-    std::string& as_string();
     const std::string& as_string() const;
     
-    int64_t& as_integer();
-    int64_t  as_integer() const;
+    int64_t as_integer() const;
     
-    /** Get this object as a decimal. There is interesting behavior if the object's underlying kind is actually an
-     *  integer type. The non-const version of this function will alter the kind to \c kind::decimal before returning a
-     *  reference. The const version does not alter the kind, but casts the integer to double.
+    /** Get this value as a decimal. If the value's underlying kind is actually an integer type, cast the integer to a
+     *  double before returning. This ignores the potential loss of precision.
     **/
-    double& as_decimal();
-    double  as_decimal() const;
+    double as_decimal() const;
     
-    bool& as_boolean();
-    bool  as_boolean() const;
+    bool as_boolean() const;
     
     /** Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions
      *  apply:

@@ -228,22 +228,10 @@ const array& value::as_array() const
     return *reinterpret_cast<const array*>(this);
 }
 
-std::string& value::as_string()
-{
-    check_type(kind::string, _kind);
-    return _data.string->_string;
-}
-
 const std::string& value::as_string() const
 {
     check_type(kind::string, _kind);
     return _data.string->_string;
-}
-
-int64_t& value::as_integer()
-{
-    check_type(kind::integer, _kind);
-    return _data.integer;
 }
 
 int64_t value::as_integer() const
@@ -252,26 +240,12 @@ int64_t value::as_integer() const
     return _data.integer;
 }
 
-double& value::as_decimal()
-{
-    if (_kind == kind::integer)
-        *this = double(as_integer());
-    check_type(kind::decimal, _kind);
-    return _data.decimal;
-}
-
 double value::as_decimal() const
 {
     if (_kind == kind::integer)
         return double(as_integer());
     check_type(kind::decimal, _kind);
     return _data.decimal;
-}
-
-bool& value::as_boolean()
-{
-    check_type(kind::boolean, _kind);
-    return _data.boolean;
 }
 
 bool value::as_boolean() const
