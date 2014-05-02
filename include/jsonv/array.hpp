@@ -13,6 +13,8 @@
 
 #include "value.hpp"
 
+#include <initializer_list>
+
 namespace jsonv
 {
 
@@ -170,6 +172,7 @@ public:
     array();
     array(const array& source);
     array(array&& source);
+    array(std::initializer_list<value> source);
     
     array& operator=(const array& source);
     array& operator=(array&& source);

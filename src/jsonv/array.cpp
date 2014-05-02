@@ -39,6 +39,12 @@ array::array(array&& source) :
         value(std::move(source))
 { }
 
+array::array(std::initializer_list<value> source) :
+        array()
+{
+    ARR = std::move(source);
+}
+
 array& array::operator=(const array& source)
 {
     value::operator=(source);

@@ -31,6 +31,19 @@ TEST(array)
     ensure(arr[1].get_kind() == jsonv::kind::boolean);
 }
 
+TEST(array_init_list)
+{
+    jsonv::array arr1 = { 1, 2, "pie" };
+    jsonv::array arr2;
+    {
+        arr2.push_back(1);
+        arr2.push_back(2);
+        arr2.push_back("pie");
+    }
+    
+    ensure_eq(arr1, arr2);
+}
+
 TEST(make_array)
 {
     jsonv::array val = jsonv::make_array(2, 10, "Hello, world!");
