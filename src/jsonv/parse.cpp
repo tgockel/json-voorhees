@@ -234,22 +234,19 @@ static value parse_number(parse_context& context)
         }
     }
     
-    // TODO(performance): Creating a heap-allocated string here for the sole purpose of lexical_cast and an error
-    //                    message is rather pointless...
-    std::string characters(characters_start, characters_count);
-    
     try
     {
         
         if (is_double)
-            return boost::lexical_cast<double>(characters);
-        else if (characters[0] == '-')
-            return boost::lexical_cast<int64_t>(characters);
+            return boost::lexical_cast<double>(characters_start, characters_count);
+        else if (characters_start[0] == '-')
+            return boost::lexical_cast<int64_t>(characters_start, characters_count);
         else
-            return static_cast<int64_t>(boost::lexical_cast<uint64_t>(characters));
+            return static_cast<int64_t>(boost::lexical_cast<uint64_t>(characters_start, characters_count));
     }
     catch (boost::bad_lexical_cast&)
     {
+        std::string characters(characters_start, characters_count);
         context.parse_error("Could not extract ", is_double ? "real" : "integer", " from \"", characters, "\"");
         return value();
     }
