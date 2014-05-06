@@ -13,9 +13,6 @@
 
 #include <jsonv/value.hpp>
 
-#include <deque>
-#include <map>
-
 namespace jsonv
 {
 namespace detail
@@ -28,24 +25,6 @@ struct cloneable
     {
         return new T(*static_cast<const T*>(this));
     }
-};
-
-class object_impl :
-        public cloneable<object_impl>
-{
-public:
-    typedef std::map<std::string, jsonv::value> map_type;
-    
-    map_type _values;
-};
-
-class array_impl :
-        public cloneable<array_impl>
-{
-public:
-    typedef std::deque<jsonv::value> array_type;
-    
-    array_type _values;
 };
 
 class string_impl :

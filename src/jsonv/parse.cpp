@@ -301,7 +301,7 @@ static value parse_array(parse_context& context)
     assert(context.current == '[');
     JSONV_DBG_STRUCT('[');
     
-    array arr;
+    value arr = array();
     
     while (true)
     {
@@ -340,7 +340,7 @@ static value parse_object(parse_context& context)
     assert(context.current == '{');
     JSONV_DBG_STRUCT('{');
     
-    object obj;
+    value obj = object();
     
     while (true)
     {

@@ -25,146 +25,167 @@ using namespace jsonv::detail;
 
 #define ARR _data.array->_values
 
-array::array()
+value array()
 {
-    _data.array = new detail::array_impl;
-    _kind = kind::array;
+    value x;
+    x._data.array = new detail::array_impl;
+    x._kind = kind::array;
+    return x;
 }
 
-array::array(const array& source) :
-        value(source)
-{ }
-
-array::array(array&& source) :
-        value(std::move(source))
-{ }
-
-array::array(std::initializer_list<value> source) :
-        array()
+value array(std::initializer_list<value> source)
 {
-    ARR = std::move(source);
+    value x = array();
+    x.assign(source);
+    return x;
 }
 
-array& array::operator=(const array& source)
+value::size_type array_impl::size() const
 {
-    value::operator=(source);
-    return *this;
+    return _values.size();
 }
 
-array& array::operator=(array&& source)
+bool array_impl::empty() const
 {
-    value::operator=(std::move(source));
-    return *this;
+    return _values.empty();
 }
 
-array::size_type array::size() const
+value::array_iterator value::begin_array()
 {
-    return ARR.size();
+    check_type(kind::array, get_kind());
+    return array_iterator(this, 0);
 }
 
-bool array::empty() const
+value::const_array_iterator value::begin_array() const
 {
-    return ARR.empty();
+    check_type(kind::array, get_kind());
+    return const_array_iterator(this, 0);
 }
 
-array::iterator array::begin()
+value::array_iterator value::end_array()
 {
-    return iterator(this, 0);
+    check_type(kind::array, get_kind());
+    return array_iterator(this, ARR.size());
 }
 
-array::const_iterator array::begin() const
+value::const_array_iterator value::end_array() const
 {
-    return const_iterator(this, 0);
+    check_type(kind::array, get_kind());
+    return const_array_iterator(this, ARR.size());
 }
 
-array::iterator array::end()
+value& value::operator[](size_type idx)
 {
-    return iterator(this, size());
-}
-
-array::const_iterator array::end() const
-{
-    return const_iterator(this, size());
-}
-
-value& array::operator[](size_type idx)
-{
+    check_type(kind::array, get_kind());
     return ARR[idx];
 }
 
-const value& array::operator[](size_type idx) const
+const value& value::operator[](size_type idx) const
 {
+    check_type(kind::array, get_kind());
     return ARR[idx];
 }
 
-void array::push_back(value&& value)
+value& value::at(size_type idx)
 {
-    ARR.push_back(std::move(value));
+    check_type(kind::array, get_kind());
+    return ARR.at(idx);
 }
 
-void array::push_back(const value& val)
+const value& value::at(size_type idx) const
 {
-   ARR.push_back(val);
+    check_type(kind::array, get_kind());
+    return ARR.at(idx);
 }
 
-void array::pop_back()
+void value::push_back(value item)
 {
+    check_type(kind::array, get_kind());
+    ARR.emplace_back(std::move(item));
+}
+
+void value::pop_back()
+{
+    check_type(kind::array, get_kind());
+    if (ARR.empty())
+        throw std::logic_error("Cannot pop from empty array");
     ARR.pop_back();
 }
 
-void array::push_front(value&& value)
+void value::push_front(value item)
 {
-    ARR.push_front(std::move(value));
+    check_type(kind::array, get_kind());
+    ARR.emplace_front(std::move(item));
 }
 
-void array::push_front(const value& val)
+void value::pop_front()
 {
-    ARR.push_front(val);
-}
-
-void array::pop_front()
-{
+    check_type(kind::array, get_kind());
+    if (ARR.empty())
+        throw std::logic_error("Cannot pop from empty array");
     ARR.pop_front();
 }
 
-void array::clear()
+void value::assign(size_type count, const value& val)
 {
-    ARR.clear();
+    check_type(kind::array, get_kind());
+    ARR.assign(count, val);
 }
 
-void array::resize(size_type count, const value& val)
+void value::assign(std::initializer_list<value> items)
 {
+    check_type(kind::array, get_kind());
+    ARR.assign(std::move(items));
+}
+
+void value::resize(size_type count, const value& val)
+{
+    check_type(kind::array, get_kind());
     ARR.resize(count, val);
 }
 
-array::iterator array::erase(const_iterator iter)
+value::array_iterator value::erase(const_array_iterator position)
 {
-    difference_type dist(iter - begin());
+    check_type(kind::array, get_kind());
+    difference_type dist(position - begin_array());
     ARR.erase(ARR.begin() + dist);
-    return iterator(this, static_cast<size_type>(dist));
+    return array_iterator(this, static_cast<size_type>(dist));
 }
 
-array::iterator array::erase(const_iterator first, const_iterator last)
+value::array_iterator value::erase(const_array_iterator first, const_array_iterator last)
 {
-    difference_type fdist(first - begin());
-    difference_type ldist(last  - begin());
+    difference_type fdist(first - begin_array());
+    difference_type ldist(last  - begin_array());
     ARR.erase(ARR.begin() + fdist, ARR.begin() + ldist);
-    return iterator(this, static_cast<size_type>(fdist));
+    return array_iterator(this, static_cast<size_type>(fdist));
 }
 
-bool array::operator ==(const array& other) const
+namespace detail
+{
+
+int array_impl::compare(const array_impl& other) const
+{
+    auto self_iter = _values.begin();
+    auto othr_iter = other._values.begin();
+    for (; self_iter != _values.end() && othr_iter != other._values.end(); ++self_iter, ++othr_iter)
+        if (int cmp = self_iter->compare(*othr_iter))
+            return cmp;
+    return self_iter == _values.end() ? othr_iter == other._values.end() ? 0 : -1 : 1;
+}
+
+bool array_impl::operator==(const array_impl& other) const
 {
     if (this == &other)
         return true;
-    if (size() != other.size())
+    if (_values.size() != other._values.size())
         return false;
     
     typedef array_impl::array_type::const_iterator const_iterator;
     
-    const_iterator self_iter  = ARR.begin();
-    const_iterator other_iter = other.ARR.begin();
+    const_iterator self_iter  = _values.begin();
+    const_iterator other_iter = other._values.begin();
     
-    for (const const_iterator self_end = ARR.end();
+    for (const const_iterator self_end = _values.end();
          self_iter != self_end;
          ++self_iter, ++other_iter
         )
@@ -176,17 +197,17 @@ bool array::operator ==(const array& other) const
     return true;
 }
 
-bool array::operator !=(const array& other) const
+bool array_impl::operator!=(const array_impl& other) const
 {
     return !operator==(other);
 }
 
-std::ostream& operator <<(std::ostream& stream, const array& arr)
+std::ostream& operator<<(std::ostream& stream, const array_impl& arr)
 {
     typedef array_impl::array_type::const_iterator const_iterator;
     
-    const_iterator iter = arr.ARR.begin();
-    const_iterator end  = arr.ARR.end();
+    const_iterator iter = arr._values.begin();
+    const_iterator end  = arr._values.end();
     
     stream << "[";
     
@@ -206,4 +227,5 @@ std::ostream& operator <<(std::ostream& stream, const array& arr)
     return stream;
 }
 
+}
 }

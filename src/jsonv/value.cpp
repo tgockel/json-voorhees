@@ -81,20 +81,6 @@ value::value(bool val) :
     _data.boolean = val;
 }
 
-value::value(const object& obj) :
-        _kind(kind::null)
-{
-    _data.object = obj._data.object->clone();
-    _kind = kind::object;
-}
-
-value::value(const array& arr) :
-        _kind(kind::null)
-{
-    _data.array = arr._data.array->clone();
-    _kind = kind::array;
-}
-
 #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR(type_)              \
     value::value(type_ val) :                                              \
             _kind(kind::integer)                                           \
@@ -103,7 +89,7 @@ value::value(const array& arr) :
     }
 JSONV_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR)
 
-value::~value()
+value::~value() throw()
 {
     clear();
 }
@@ -149,7 +135,7 @@ value::value(const value& other) :
     *this = other;
 }
 
-value::value(value&& other) :
+value::value(value&& other) throw() :
         _data(other._data),
         _kind(other._kind)
 {
@@ -157,7 +143,7 @@ value::value(value&& other) :
     other._kind = kind::null;
 }
 
-value& value::operator =(value&& source)
+value& value::operator =(value&& source) throw()
 {
     clear();
     
@@ -194,30 +180,6 @@ void value::clear()
     _data.object = 0;
 }
 
-object& value::as_object()
-{
-    check_type(kind::object, _kind);
-    return *reinterpret_cast<object*>(this);
-}
-
-const object& value::as_object() const
-{
-    check_type(kind::object, _kind);
-    return *reinterpret_cast<const object*>(this);
-}
-
-array& value::as_array()
-{
-    check_type(kind::array, _kind);
-    return *reinterpret_cast<array*>(this);
-}
-
-const array& value::as_array() const
-{
-    check_type(kind::array, _kind);
-    return *reinterpret_cast<const array*>(this);
-}
-
 const std::string& value::as_string() const
 {
     check_type(kind::string, _kind);
@@ -244,7 +206,7 @@ bool value::as_boolean() const
     return _data.boolean;
 }
 
-bool value::operator ==(const value& other) const
+bool value::operator==(const value& other) const
 {
     if (this == &other && kind_valid(get_kind()))
         return true;
@@ -254,9 +216,9 @@ bool value::operator ==(const value& other) const
     switch (get_kind())
     {
     case kind::object:
-        return as_object() == other.as_object();
+        return *_data.object == *_data.object;
     case kind::array:
-        return as_array() == other.as_array();
+        return *_data.array == *_data.array;
     case kind::string:
         return as_string() == other.as_string();
     case kind::integer:
@@ -286,9 +248,9 @@ bool value::operator !=(const value& other) const
     switch (get_kind())
     {
     case kind::object:
-        return as_object() != other.as_object();
+        return *_data.object != *_data.object;
     case kind::array:
-        return as_array() != other.as_array();
+        return *_data.array != *_data.array;
     case kind::string:
         return as_string() != other.as_string();
     case kind::integer:
@@ -351,36 +313,15 @@ int value::compare(const value& other) const
         // other might be a decimal type, but if they are both integers, compare directly
         if (other.get_kind() == kind::integer)
             return as_integer() == other.as_integer() ? 0 : as_integer() < other.as_integer() ? -1 : 1;
+        // fall through
     case kind::decimal:
         return as_decimal() == other.as_decimal() ? 0 : as_decimal() < other.as_decimal() ? -1 : 1;
     case kind::string:
         return as_string().compare(other.as_string());
     case kind::array:
-    {
-        const array& self = as_array();
-        const array& oarr = other.as_array();
-        array::const_iterator self_iter = self.begin();
-        array::const_iterator othr_iter = oarr.begin();
-        for (; self_iter != self.end() && othr_iter != oarr.end(); ++self_iter, ++othr_iter)
-            if (int cmp = self_iter->compare(*othr_iter))
-                return cmp;
-        return self_iter == self.end() ? othr_iter == oarr.end() ? 0 : -1 : 1;
-    }
+        return _data.array->compare(*other._data.array);
     case kind::object:
-    {
-        const object& self = as_object();
-        const object& oobj = other.as_object();
-        object::const_iterator self_iter = self.begin();
-        object::const_iterator othr_iter = oobj.begin();
-        for (; self_iter != self.end() && othr_iter != oobj.end(); ++self_iter, ++othr_iter)
-        {
-            if (int cmp = self_iter->first.compare(othr_iter->first))
-                return cmp;
-            if (int cmp = self_iter->second.compare(othr_iter->second))
-                return cmp;
-        }
-        return self_iter == self.end() ? othr_iter == oobj.end() ? 0 : -1 : 1;
-    }
+        return _data.object->compare(*other._data.object);
     default:
         return -1;
     }
@@ -411,9 +352,9 @@ std::ostream& operator <<(std::ostream& stream, const value& val)
     switch (val.get_kind())
     {
     case kind::object:
-        return stream << val.as_object();
+        return stream << *val._data.object;
     case kind::array:
-        return stream << val.as_array();
+        return stream << *val._data.array;
     case kind::string:
         return stream_escaped_string(stream, val.as_string());
     case kind::integer:

@@ -66,7 +66,7 @@ void check_type(kind expected, kind actual)
     {
         std::ostringstream stream;
         stream << "Unexpected type: expected " << kind_desc(expected)
-            << " but found " << kind_desc(actual) << ".";
+               << " but found " << kind_desc(actual) << ".";
         throw kind_error(stream.str());
     }
 }
