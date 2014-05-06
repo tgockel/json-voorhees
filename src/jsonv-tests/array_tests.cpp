@@ -17,7 +17,7 @@
 
 TEST(array)
 {
-    jsonv::array arr;
+    jsonv::value arr = jsonv::array();
     arr.push_back(8.9);
     ensure(arr.size() == 1);
     ensure(arr[0].get_kind() == jsonv::kind::decimal);
@@ -33,8 +33,8 @@ TEST(array)
 
 TEST(array_init_list)
 {
-    jsonv::array arr1 = { 1, 2, "pie" };
-    jsonv::array arr2;
+    jsonv::value arr1 = jsonv::array({ 1, 2, "pie" });
+    jsonv::value arr2 = jsonv::array();
     {
         arr2.push_back(1);
         arr2.push_back(2);
@@ -46,9 +46,8 @@ TEST(array_init_list)
 
 TEST(make_array)
 {
-    jsonv::array val = jsonv::make_array(2, 10, "Hello, world!");
-    ensure(val.get_kind() == jsonv::kind::array);
-    jsonv::array& arr = val.as_array();
+    jsonv::value arr = jsonv::array({ 2, 10, "Hello, world!" });
+    ensure(arr.get_kind() == jsonv::kind::array);
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
     ensure(arr[1].as_integer() == 10);
@@ -57,24 +56,23 @@ TEST(make_array)
 
 TEST(parse_array)
 {
-    jsonv::value val = jsonv::parse("\t\n[2, 10, \"Hello, world!\"]   ");
-    ensure(val.get_kind() == jsonv::kind::array);
-    jsonv::array& arr = val.as_array();
+    jsonv::value arr = jsonv::parse("\t\n[2, 10, \"Hello, world!\"]   ");
+    ensure(arr.get_kind() == jsonv::kind::array);
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
     ensure(arr[1].as_integer() == 10);
     ensure_eq(arr[2].as_string(), "Hello, world!");
-    ensure(val == jsonv::make_array(2, 10, "Hello, world!"));
+    ensure(arr == jsonv::array({ 2, 10, "Hello, world!" }));
 }
 
 TEST(array_view_iter_assign)
 {
     using namespace jsonv;
     
-    value val = make_array(0, 1, 2, 3, 4, 5);
-    array& arr = val.as_array();
+    value val = array({ 0, 1, 2, 3, 4, 5 });
+    const value& arr = val;
     int64_t i = 0;
-    for (array::const_iterator iter = arr.begin(); iter != arr.end(); ++iter)
+    for (value::const_array_iterator iter = arr.begin_array(); iter != arr.end_array(); ++iter)
     {
         ensure(iter->as_integer() == i);
         ++i;
@@ -85,54 +83,54 @@ TEST(array_erase_single)
 {
     using namespace jsonv;
     
-    array arr = make_array(0, 1, 2, 3, 4, 5);
+    value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
-    auto iter = arr.erase(arr.begin() + 2);
+    auto iter = arr.erase(arr.begin_array() + 2);
     ensure_eq(iter->as_integer(), 3);
     ensure_eq(arr.size(), 5);
-    ensure_eq(arr, make_array(0, 1, 3, 4, 5));
+    ensure_eq(arr, array({ 0, 1, 3, 4, 5 }));
 }
 
 TEST(array_erase_multi)
 {
     using namespace jsonv;
     
-    array arr = make_array(0, 1, 2, 3, 4, 5);
+    value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
-    auto iter = arr.erase(arr.begin() + 2, arr.begin() + 4);
+    auto iter = arr.erase(arr.begin_array() + 2, arr.begin_array() + 4);
     ensure_eq(iter->as_integer(), 4);
     ensure_eq(arr.size(), 4);
-    ensure_eq(arr, make_array(0, 1, 4, 5));
+    ensure_eq(arr, array({ 0, 1, 4, 5 }));
 }
 
 TEST(array_erase_multi_to_end)
 {
     using namespace jsonv;
     
-    array arr = make_array(0, 1, 2, 3, 4, 5);
+    value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
-    auto iter = arr.erase(arr.begin() + 3, arr.end());
-    ensure(iter == arr.end());
+    auto iter = arr.erase(arr.begin_array() + 3, arr.end_array());
+    ensure(iter == arr.end_array());
     ensure_eq(arr.size(), 3);
-    ensure_eq(arr, make_array(0, 1, 2));
+    ensure_eq(arr, array({ 0, 1, 2 }));
 }
 
 TEST(array_erase_multi_from_begin)
 {
     using namespace jsonv;
     
-    array arr = make_array(0, 1, 2, 3, 4, 5);
+    value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
-    auto iter = arr.erase(arr.begin(), arr.end() - 3);
-    ensure(iter == arr.begin());
+    auto iter = arr.erase(arr.begin_array(), arr.end_array() - 3);
+    ensure(iter == arr.begin_array());
     ensure_eq(iter->as_integer(), 3);
     ensure_eq(arr.size(), 3);
-    ensure_eq(arr, make_array(3, 4, 5));
+    ensure_eq(arr, array({ 3, 4, 5 }));
 }
 
 TEST(array_push_move)
 {
-    jsonv::array arr;
+    jsonv::value arr = jsonv::array();
     jsonv::value val = "contents";
     arr.push_back(std::move(val));
     ensure(val.get_kind() == jsonv::kind::null);
@@ -142,16 +140,15 @@ TEST(array_algo_sort)
 {
     using namespace jsonv;
     
-    array arr = make_array(9, 1, 3, 4, 2, 8, 6, 7, 0, 5);
+    value arr = array({ 9, 1, 3, 4, 2, 8, 6, 7, 0, 5 });
     ensure_eq(arr.size(), 10);
-    std::sort(std::begin(arr), std::end(arr));
-    ensure_eq(arr, make_array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
+    std::sort(arr.begin_array(), arr.end_array());
+    ensure_eq(arr, array({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
 }
 
 TEST(parse_empty_array)
 {
-    auto v = jsonv::parse("[]");
-    auto& arr = v.as_array();
+    auto arr = jsonv::parse("[]");
     
     ensure_eq(arr.size(), 0);
 }

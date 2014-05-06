@@ -18,10 +18,10 @@
 
 using namespace jsonv;
 
-static const object simple_obj = make_object("foo", 4,
-                                             "bar", make_array(2, 3, 4, "5"),
-                                             "raz", make_object()
-                                            );
+static const value simple_obj = object({ { "foo", 4 },
+                                         { "bar", array({ 2, 3, 4, "5" }) },
+                                         { "raz", object() }
+                                       });
 
 TEST(parse_object_simple_no_spaces)
 {
@@ -83,25 +83,26 @@ TEST(parse_object_simple_general_havoc)
 TEST(parse_object_nested_single)
 {
     value result = parse(R"({"a": {"b": 10}, "c":25})");
-    value expected = make_object("a", make_object("b", 10),
-                                 "c", 25
-                                );
+    value expected = object({ { "a", object({ { "b", 10 } }) },
+                              { "c", 25 }
+                           });
     ensure_eq(expected, result);
 }
 
 TEST(parse_object_empties_in_array)
 {
     value result = parse(R"({"a": {"b": 10}, "c": 23.9, "d": [{"e": {}, "f": 41.4, "g": null, "h": 5}, {"i":null}]})");
-    value expected = make_object("a", make_object("b", 10),
-                                 "c", 23.9,
-                                 "d", make_array(make_object("e", make_object(),
-                                                             "f", 41.4,
-                                                             "g", nullptr,
-                                                             "h", 5
-                                                            ),
-                                                 make_object("i", nullptr)
-                                                )
-                                );
+    value expected = object({ { "a", object({ { "b", 10 } }) },
+                              { "c", 23.9 },
+                              { "d", array({ object({ { "e", object() },
+                                                      { "f", 41.4 },
+                                                      { "g", nullptr },
+                                                      { "h", 5 },
+                                                   }),
+                                             object({ { "i", nullptr } })
+                                          })
+                              }
+                           });
     ensure_eq(expected, result);
 }
 
@@ -115,14 +116,14 @@ TEST(parse_null)
 TEST(parse_null_in_arr)
 {
     value result = parse("[null,4]");
-    value expected = make_array(nullptr, 4);
+    value expected = array({ nullptr, 4 });
     ensure_eq(expected, result);
 }
 
 TEST(parse_null_in_obj)
 {
     value result = parse(R"({"a": null})");
-    value expected = make_object("a", nullptr);
+    value expected = object({ { "a", nullptr } });
     ensure_eq(expected, result);
 }
 
@@ -132,26 +133,28 @@ TEST(parse_object_in_array)
                          R"("h": [{"i": 3, "j": null, "k": "l", "m": 4, "n": "o", "p": "q", "r": 5}, )"
                          R"({"s": 6, "t": 7, "u": null}, {"v": "w"}]}})"
                         );
-    value expected = make_object("a", nullptr,
-                                 "b", make_object("c", 1,
-                                                  "d", "e",
-                                                  "f", nullptr,
-                                                  "g", 2,
-                                                  "h", make_array(make_object("i", 3,
-                                                                              "j", nullptr,
-                                                                              "k", "l",
-                                                                              "m", 4,
-                                                                              "n", "o",
-                                                                              "p", "q",
-                                                                              "r", 5
-                                                                             ),
-                                                                  make_object("s", 6,
-                                                                              "t", 7,
-                                                                              "u", nullptr
-                                                                             ),
-                                                                  make_object("v", "w")
-                                                                 )
-                                                 )
-                                );
+    value expected = object({ { "a", nullptr },
+                              { "b", object({ { "c", 1 },
+                                              { "d", "e" },
+                                              { "f", nullptr },
+                                              { "g", 2 },
+                                              { "h", array({ object({ { "i", 3 },
+                                                                      { "j", nullptr },
+                                                                      { "k", "l" },
+                                                                      { "m", 4 },
+                                                                      { "n", "o" },
+                                                                      { "p", "q" },
+                                                                      { "r", 5 },
+                                                                   }),
+                                                             object({ { "s", 6 },
+                                                                      { "t", 7 },
+                                                                      { "u", nullptr },
+                                                                   }),
+                                                             object({ { "v", "w" } })
+                                                          })
+                                              },
+                                           })
+                              }
+                           });
     ensure_eq(expected, result);
 }

@@ -39,6 +39,7 @@ public:
 const char* kind_desc(kind type);
 bool kind_valid(kind k);
 void check_type(kind expected, kind actual);
+void check_type(std::initializer_list<kind> expected, kind actual);
 std::ostream& stream_escaped_string(std::ostream& stream, const std::string& str);
 
 }

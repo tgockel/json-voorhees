@@ -18,24 +18,24 @@
 
 TEST(object)
 {
-    jsonv::object obj;
+    jsonv::value obj = jsonv::object();
     obj["hi"] = false;
     ensure(obj["hi"].as_boolean() == false);
-    obj["yay"] = jsonv::make_array("Hello", "to", "the", "world");
+    obj["yay"] = jsonv::array({ "Hello", "to", "the", "world" });
     ensure(obj["hi"].as_boolean() == false);
-    ensure(obj["yay"].as_array().size() == 4);
+    ensure(obj["yay"].size() == 4);
+    ensure(obj.size() == 2);
 }
 
 TEST(object_view_iter_assign)
 {
     using namespace jsonv;
     
-    value val = make_object("foo", 5, "bar", "wat");
+    value obj = object({ { "foo", 5 }, { "bar", "wat" } });
     std::map<std::string, bool> found{ { "foo", false }, { "bar", false } };
-    object& obj = val.as_object();
     ensure(obj.size() == 2);
     
-    for (object::const_iterator iter = obj.begin(); iter != obj.end(); ++iter)
+    for (auto iter = obj.begin_object(); iter != obj.end_object(); ++iter)
         found[iter->first] = true;
     
     for (auto iter = found.begin(); iter != found.end(); ++iter)
@@ -46,7 +46,7 @@ TEST(object_compare)
 {
     using namespace jsonv;
     
-    object obj;
+    value obj = object();
     value i = 5;
     
     // really just a test to see if this compiles:
@@ -55,7 +55,7 @@ TEST(object_compare)
 
 TEST(object_erase_key)
 {
-    jsonv::object obj = jsonv::make_object("foo", 5, "bar", "wat");
+    jsonv::value obj = jsonv::object({ { "foo", 5 }, { "bar", "wat" } });
     ensure_eq(obj.size(), 2);
     ensure_eq(obj.count("bar"), 1);
     ensure_eq(obj.count("foo"), 1);
@@ -67,7 +67,7 @@ TEST(object_erase_key)
 
 TEST(object_erase_iter)
 {
-    jsonv::object obj = jsonv::make_object("foo", 5, "bar", "wat");
+    jsonv::value obj = jsonv::object({ { "foo", 5 }, { "bar", "wat" } });
     ensure_eq(obj.size(), 2);
     ensure_eq(obj.count("bar"), 1);
     ensure_eq(obj.count("foo"), 1);
@@ -82,25 +82,24 @@ TEST(object_erase_iter)
 
 TEST(object_erase_whole)
 {
-    jsonv::object obj = jsonv::make_object("foo", 5, "bar", "wat");
+    jsonv::value obj = jsonv::object({ { "foo", 5 }, { "bar", "wat" } });
     ensure_eq(obj.size(), 2);
     ensure_eq(obj.count("bar"), 1);
     ensure_eq(obj.count("foo"), 1);
-    auto iter = obj.begin();
+    auto iter = obj.begin_object();
     ensure_eq(iter->first, "bar");
-    iter = obj.erase(iter, obj.end());
+    iter = obj.erase(iter, obj.end_object());
     ensure_eq(obj.size(), 0);
     ensure_eq(obj.count("bar"), 0);
     ensure_eq(obj.count("foo"), 0);
     ensure_eq(obj.erase("bar"), 0);
-    ensure(iter == obj.end());
-    ensure(iter == obj.begin());
+    ensure(iter == obj.end_object());
+    ensure(iter == obj.begin_object());
 }
 
 TEST(parse_empty_object)
 {
-    auto v = jsonv::parse("{}");
-    auto& obj = v.as_object();
+    auto obj = jsonv::parse("{}");
     
     ensure(obj.size() == 0);
 }

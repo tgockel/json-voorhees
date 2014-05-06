@@ -12,9 +12,7 @@
 #ifndef __JSONV_ALL_HPP_INCLUDED__
 #define __JSONV_ALL_HPP_INCLUDED__
 
-#include "array.hpp"
 #include "forward.hpp"
-#include "object.hpp"
 #include "parse.hpp"
 #include "standard.hpp"
 #include "value.hpp"

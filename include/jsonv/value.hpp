@@ -494,12 +494,15 @@ public:
     array_iterator       end_array();
     const_array_iterator end_array() const;
     
-    /** Get the value in this array at the given \a idx.
+    /** Get the value in this array at the given \a idx. The overloads which accept an \c int are required to resolve
+     *  the type ambiguity of the literal \c 0 between a size_type and a char*.
      *  
      *  \throws kind_error if the kind is not an array.
     **/
     value& operator[](size_type idx);
     const value& operator[](size_type idx) const;
+    inline value&       operator[](int idx)       { return operator[](size_type(idx)); }
+    inline const value& operator[](int idx) const { return operator[](size_type(idx)); }
     
     /** Get the value in this array at the given \a idx.
      *  
@@ -629,7 +632,7 @@ public:
      *  \throws kind_error if the kind is not an object.
     **/
     size_type count(const std::string& key) const;
-    size_type count(char* key) const;
+    size_type count(const char* key) const;
     
     /** Attempt to locate a key-value pair with the provided \a key in this object.
      *  
@@ -758,7 +761,6 @@ JSONV_PUBLIC value object();
 
 /** Create an object with key-value pairs from the given \a source. **/
 JSONV_PUBLIC value object(std::initializer_list<std::pair<const std::string, value>> source);
-JSONV_PUBLIC value object(std::initializer_list<std::pair<const char*, value>> source);
 
 /** Create an object whose contents are defined by range [\a first, \a last). **/
 template <typename TForwardIterator>

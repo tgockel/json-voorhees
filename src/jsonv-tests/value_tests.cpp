@@ -29,9 +29,9 @@ TEST(compare_bools)
 
 TEST(compare_arrs)
 {
-    jsonv::value a123 = jsonv::make_array(1, 2, 3),
-                 a1234 = jsonv::make_array(1, 2, 3, 4),
-                 b1234 = jsonv::make_array(1, 2, 3, 4);
+    jsonv::value a123  = jsonv::array({ 1, 2, 3 }),
+                 a1234 = jsonv::array({ 1, 2, 3, 4 }),
+                 b1234 = jsonv::array({ 1, 2, 3, 4 });
     
     ensure_eq(a1234.compare(b1234), 0);
     ensure_eq(a123.compare(a1234), -1);

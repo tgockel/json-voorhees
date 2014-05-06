@@ -155,6 +155,17 @@ value& value::operator =(value&& source) throw()
     return *this;
 }
 
+void value::swap(value& other) throw()
+{
+    using std::swap;
+    
+    // We swap the objects here because all types of the union a trivially swappable and swap needs to work on a type,
+    // not a union.
+    static_assert(sizeof _data == sizeof _data.object, "!!");
+    swap(_data.object, other._data.object);
+    swap(_kind, other._kind);
+}
+
 void value::clear()
 {
     switch (_kind)
@@ -371,6 +382,55 @@ std::ostream& operator <<(std::ostream& stream, const value& val)
     default:
         return stream << "null";
     }
+}
+
+bool value::empty() const
+{
+    check_type({ kind::object, kind::array, kind::string }, get_kind());
+    
+    switch (get_kind())
+    {
+    case kind::object:
+        return _data.object->empty();
+    case kind::array:
+        return _data.array->empty();
+    case kind::string:
+        return _data.string->_string.empty();
+    case kind::integer:
+    case kind::decimal:
+    case kind::boolean:
+    case kind::null:
+    default:
+        // Should never hit this...
+        return false;
+    }
+}
+
+value::size_type value::size() const
+{
+    check_type({ kind::object, kind::array, kind::string }, get_kind());
+    
+    switch (get_kind())
+    {
+    case kind::object:
+        return _data.object->size();
+    case kind::array:
+        return _data.array->size();
+    case kind::string:
+        return _data.string->_string.size();
+    case kind::integer:
+    case kind::decimal:
+    case kind::boolean:
+    case kind::null:
+    default:
+        // Should never hit this...
+        return false;
+    }
+}
+
+void swap(value& a, value& b) throw()
+{
+    a.swap(b);
 }
 
 }

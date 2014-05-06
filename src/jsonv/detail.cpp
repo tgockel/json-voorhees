@@ -11,6 +11,7 @@
 #include "detail.hpp"
 #include "char_convert.hpp"
 
+#include <algorithm>
 #include <sstream>
 
 namespace jsonv
@@ -67,6 +68,26 @@ void check_type(kind expected, kind actual)
         std::ostringstream stream;
         stream << "Unexpected type: expected " << kind_desc(expected)
                << " but found " << kind_desc(actual) << ".";
+        throw kind_error(stream.str());
+    }
+}
+
+void check_type(std::initializer_list<kind> expected, kind actual)
+{
+    if (std::none_of(expected.begin(), expected.end(), [actual] (kind x) { return x == actual; }))
+    {
+        std::ostringstream stream;
+        stream << "Unexpected type: expected ";
+        std::size_t num = 1;
+        for (kind k : expected)
+        {
+            stream << kind_desc(k);
+            if (num + 1 < expected.size())
+                stream << ", ";
+            else if (num < expected.size())
+                stream << " or ";
+            ++num;
+        }
         throw kind_error(stream.str());
     }
 }

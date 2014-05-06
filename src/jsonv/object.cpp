@@ -176,13 +176,6 @@ value object(std::initializer_list<std::pair<const std::string, value>> source)
     return x;
 }
 
-value object(std::initializer_list<std::pair<const char*, value>> source)
-{
-    value x = object();
-    x.insert(std::move(source));
-    return x;
-}
-
 value::object_iterator value::begin_object()
 {
     check_type(kind::object, get_kind());
@@ -261,7 +254,7 @@ value::size_type value::count(const std::string& key) const
     return OBJ.count(key);
 }
 
-value::size_type value::count(char* key) const
+value::size_type value::count(const char* key) const
 {
     check_type(kind::object, get_kind());
     return OBJ.count(key);
@@ -369,6 +362,16 @@ value::object_iterator value::erase(const_object_iterator first, const_object_it
 
 namespace detail
 {
+
+bool object_impl::empty() const
+{
+    return _values.empty();
+}
+
+value::size_type object_impl::size() const
+{
+    return _values.size();
+}
 
 int object_impl::compare(const object_impl& other) const
 {

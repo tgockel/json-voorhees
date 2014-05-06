@@ -29,6 +29,10 @@ public:
     typedef std::map<std::string, jsonv::value> map_type;
     
 public:
+    bool empty() const;
+    
+    value::size_type size() const;
+    
     int compare(const object_impl& other) const;
     
     bool operator==(const object_impl& other) const;
