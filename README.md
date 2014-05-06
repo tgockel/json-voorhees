@@ -7,11 +7,15 @@ This one touts new C++11 features for developer-friendliness, an extremely high-
 
 Features include (but are not necessarily limited to):
 
- - An awesome type heirarchy for the representation of JSON values
+ - A simple system for the representation of JSON values
  - Documentation consumable by human beings that answers questions you might actually ask
- - Read a JSON value with `jsonv::parse`
+ - Simple JSON parsing with `jsonv::parse`
  - Write a JSON value with `operator<<`
  - Reasonable error messages when parsing fails
+ - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
+ - Safe: in the best case, illegal code should fail to compile; in the worst case, an illegal action should throw an
+   exception
+ - Stable: worry less about upgrading -- the API and ABI will not change out from under you
 
 Future
 ------
@@ -20,7 +24,6 @@ This library is still in a "working prototype" stage, so there are a number of t
 Future planned features can be found on the [issue tracker][future-features], but here is a list of things that matter
  most to me:
 
- - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
  - [A visitor system with JSON Path support](https://bitbucket.org/tgockel/json-voorhees/issue/15/generic-visitor-system-for-a-json-tree)
  - Compiler support
      - [Clang++](https://bitbucket.org/tgockel/json-voorhees/issue/20/clang-support)
@@ -44,18 +47,18 @@ Miscellaneous
 Versioning
 ----------
 
-Like every software system ever, JsonVoorhees describes versions in 3 parts: `${major}.${minor}.${revision}`.
+Like every software system ever, JsonVoorhees describes versions in 3 parts: `${major}.${minor}.${maintenance}`.
 Unlike most software, it actually means something when the versions change.
 
  - `major`: There are no guarantees whatsoever across major releases.
  - `minor`: For a given minor release, all code is forward-compatible source-code compliant.
             That means code written against version 1.1 can be recompiled against version 1.4 and continue to work.
             No guarantees are made for going backwards (version 1.4 might have added new functions).
- - `revision`: Code is ABI-compatible across revision.
-               Library *A* built against JsonVoorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
-                built against JsonVoorhees 1.2.9.
-               Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
-                minor version.
+ - `maintenance`: Code is ABI-compatible across maintenance.
+                  Library *A* built against JsonVoorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
+                   built against JsonVoorhees 1.2.9.
+                  Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
+                   minor version.
 
 The preceding statements are not true if any of the version components has a negative value.
 Negatives are "pre-release" and are allowed to do whatever they feel like before a release.
@@ -67,7 +70,7 @@ When developing code, follow this simple workflow to determine which version com
  2. *Will this change force users to recompile to continue to work?*
     If yes, bump the `minor` version.
  3. *Will this change the behavior in any way?*
-    If yes, bump the `revision` version.
+    If yes, bump the `maintenance` version.
  4. *Did I only change comments or rearrange code positioning (indentation, etc)?*
     If yes, you do not need to update any part of the version.
  5. *Did I miss something?*
