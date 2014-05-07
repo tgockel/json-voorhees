@@ -94,10 +94,9 @@ value::~value() throw()
     clear();
 }
 
-value& value::operator=(const value& other)
+value::value(const value& other) :
+        _kind(other._kind)
 {
-    clear();
-    
     switch (other.get_kind())
     {
     case kind::object:
@@ -121,18 +120,13 @@ value& value::operator=(const value& other)
     case kind::null:
         break;
     }
-    
-    // it is important that we set our type AFTER we copy the data so we're in a consistent state if the copy throws
-    _kind = other._kind;
-    
-    return *this;
 }
 
-value::value(const value& other) :
-        _kind(kind::null)
+value& value::operator=(const value& other)
 {
-    // just re-use assignment operator
-    *this = other;
+    value copy(other);
+    swap(copy);
+    return *this;
 }
 
 value::value(value&& other) throw() :
@@ -143,7 +137,7 @@ value::value(value&& other) throw() :
     other._kind = kind::null;
 }
 
-value& value::operator =(value&& source) throw()
+value& value::operator=(value&& source) throw()
 {
     clear();
     
