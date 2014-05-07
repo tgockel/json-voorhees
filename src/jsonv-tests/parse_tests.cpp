@@ -158,3 +158,23 @@ TEST(parse_object_in_array)
                            });
     ensure_eq(expected, result);
 }
+
+TEST(parse_malformed_decimal)
+{
+    ensure_throws(jsonv::parse_error, parse("123.456.789"));
+}
+
+TEST(parse_malformed_decimal_collect_all)
+{
+    auto options = jsonv::parse_options()
+                       .failure_mode(jsonv::parse_options::on_error::collect_all);
+    ensure_throws(jsonv::parse_error, parse("123.456.789", options));
+}
+
+TEST(parse_malformed_decimal_ignore)
+{
+    auto options = jsonv::parse_options()
+                       .failure_mode(jsonv::parse_options::on_error::ignore);
+    // Could potentially check that the result is still a decimal, but the result is undefined.
+    parse("123.456.789", options);
+}

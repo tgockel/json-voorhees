@@ -35,32 +35,89 @@
 namespace jsonv
 {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// parse_error::problem                                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+parse_error::problem::problem(size_type line, size_type column, size_type character, std::string message) :
+        _line(line),
+        _column(column),
+        _character(character),
+        _message(std::move(message))
+{ }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parse_error                                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string parse_error_what(std::size_t line,
-                                    std::size_t column,
-                                    std::size_t character,
-                                    const std::string& message
-                                   )
+static std::string parse_error_what(const parse_error::problem_list& problems)
 {
     std::ostringstream stream;
-    stream << "On line " << line << " column " << column << " (char " << character << "): " << message;
+    bool first = true;
+    for (const parse_error::problem& p : problems)
+    {
+        if (first)
+            first = false;
+        else
+            stream << std::endl;
+        
+        stream << "On line " << p.line()
+               << " column " << p.column()
+               << " (char " << p.character() << "): "
+               << p.message();
+    }
     return stream.str();
 }
 
-parse_error::parse_error(size_type line_, size_type column_, size_type character_, const std::string& message_) :
-        std::runtime_error(parse_error_what(line_, column_, character_, message_)),
-        _line(line_),
-        _column(column_),
-        _character(character_),
-        _message(message_)
+parse_error::parse_error(problem_list problems, value partial_result) :
+        std::runtime_error(parse_error_what(problems)),
+        _problems(std::move(problems)),
+        _partial_result(std::move(partial_result))
 { }
 
 parse_error::~parse_error() throw()
 { }
+
+const parse_error::problem_list& parse_error::problems() const
+{
+    return _problems;
+}
+
+const value& parse_error::partial_result() const
+{
+    return _partial_result;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// parse_options                                                                                                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+parse_options::parse_options() :
+        _failure_mode(on_error::fail_immediately),
+        _max_failures(10)
+{ }
+
+parse_options::on_error parse_options::failure_mode() const
+{
+    return _failure_mode;
+}
+
+parse_options& parse_options::failure_mode(on_error mode)
+{
+    _failure_mode = mode;
+    return *this;
+}
+
+std::size_t parse_options::max_failures() const
+{
+    return _max_failures;
+}
+
+parse_options& parse_options::max_failures(std::size_t limit)
+{
+    _max_failures = limit;
+    return *this;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parse                                                                                                              //
@@ -69,10 +126,11 @@ parse_error::~parse_error() throw()
 namespace detail
 {
 
-struct parse_context
+struct JSONV_LOCAL parse_context
 {
     typedef shared_buffer::size_type size_type;
     
+    parse_options    options;
     size_type        line;
     size_type        column;
     size_type        character;
@@ -81,13 +139,18 @@ struct parse_context
     char             current;
     bool             backed_off;
     
-    explicit parse_context(const char* input, size_type length) :
+    bool                             successful;
+    jsonv::parse_error::problem_list problems;
+    
+    explicit parse_context(const parse_options& options, const char* input, size_type length) :
+            options(options),
             line(0),
             column(0),
             character(0),
             input(input),
             input_size(length),
-            backed_off(false)
+            backed_off(false),
+            successful(true)
     { }
     
     parse_context(const parse_context&) = delete;
@@ -113,7 +176,9 @@ struct parse_context
                 column = 0;
             }
             else
+            {
                 ++column;
+            }
             
             return true;
         }
@@ -129,20 +194,30 @@ struct parse_context
     }
     
     template <typename... T>
-    void parse_error(T&&... message) const
+    void parse_error(T&&... message)
     {
         std::ostringstream stream;
         parse_error_impl(stream, std::forward<T>(message)...);
     }
     
 private:
-    void parse_error_impl(std::ostringstream& stream) const
+    void parse_error_impl(std::ostringstream& stream)
     {
-        throw jsonv::parse_error(line, column, character, stream.str());
+        jsonv::parse_error::problem problem(line, column, character, stream.str());
+        if (options.failure_mode() == parse_options::on_error::fail_immediately)
+        {
+            throw jsonv::parse_error({ problem }, value(nullptr));
+        }
+        else
+        {
+            successful = false;
+            if (problems.size() < options.max_failures())
+                problems.emplace_back(std::move(problem));
+        }
     }
     
     template <typename T, typename... TRest>
-    void parse_error_impl(std::ostringstream& stream, T&& current, TRest&&... rest) const
+    void parse_error_impl(std::ostringstream& stream, T&& current, TRest&&... rest)
     {
         stream << std::forward<T>(current);
         parse_error_impl(stream, std::forward<TRest>(rest)...);
@@ -247,7 +322,8 @@ static value parse_number(parse_context& context)
     catch (boost::bad_lexical_cast&)
     {
         std::string characters(characters_start, characters_count);
-        context.parse_error("Could not extract ", is_double ? "real" : "integer", " from \"", characters, "\"");
+        context.parse_error("Could not extract ", kind_desc(is_double ? kind::decimal : kind::integer),
+                            " from \"", characters, "\"");
         return value();
     }
 }
@@ -430,22 +506,20 @@ static bool parse_generic(parse_context& context, value& out, bool eat_whitespac
 
 }
 
-value parse(const char* input, std::size_t length)
+value parse(const char* input, std::size_t length, const parse_options& options)
 {
-    detail::parse_context context(input, length);
+    detail::parse_context context(options, input, length);
     value out;
-    if (detail::parse_generic(context, out))
-    {
-        return out;
-    }
-    else
-    {
+    if (!detail::parse_generic(context, out))
         context.parse_error("No input");
+    
+    if (context.successful || context.options.failure_mode() == parse_options::on_error::ignore)
         return out;
-    }
+    else
+        throw parse_error(context.problems, out);
 }
 
-value parse(std::istream& input)
+value parse(std::istream& input, const parse_options& options)
 {
     // Copy the input into a buffer
     input.seekg(0, std::ios::end);
@@ -456,12 +530,12 @@ value parse(std::istream& input)
               buffer.get_mutable(0, len)
              );
     
-    return parse(buffer.cbegin(), buffer.size());
+    return parse(buffer.cbegin(), buffer.size(), options);
 }
 
-value parse(const std::string& source)
+value parse(const std::string& source, const parse_options& options)
 {
-    return parse(source.c_str(), source.size());
+    return parse(source.c_str(), source.size(), options);
 }
 
 }

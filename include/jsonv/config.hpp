@@ -79,4 +79,27 @@
 #   define JSONV_LOCAL  JSONV_HIDDEN
 #endif
 
+/** \def JSONV_NO_RETURN
+ *  \brief Mark that a given function will never return control to the caller, either by exiting or throwing an
+ *  exception.
+**/
+#ifndef JSONV_NO_RETURN
+#   if defined(__GNUC__)
+#       define JSONV_NO_RETURN __attribute__((noreturn))
+#   else
+#       define JSONV_NO_RETURN
+#   endif
+#endif
+
+/** \def JSONV_ALWAYS_INLINE
+ *  \brief Always inline the function this decorates, no matter what the compiler might think is best.
+**/
+#ifndef JSONV_ALWAYS_INLINE
+#   if defined(__GNUC__)
+#       define JSONV_ALWAYS_INLINE __attribute__((always_inline))
+#   else
+#       define JSONV_ALWAYS_INLINE
+#   endif
+#endif
+
 #endif/*__JSONV_CONFIG_HPP_INCLUDED__*/
