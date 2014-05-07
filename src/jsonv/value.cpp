@@ -229,7 +229,7 @@ bool value::operator==(const value& other) const
     case kind::integer:
         return as_integer() == other.as_integer();
     case kind::decimal:
-        return as_decimal() == other.as_decimal();
+        return std::abs(as_decimal() - other.as_decimal()) < (std::numeric_limits<double>::denorm_min() * 10.0);
     case kind::boolean:
         return as_boolean() == other.as_boolean();
     case kind::null:
