@@ -17,6 +17,8 @@ Features include (but are not necessarily limited to):
    exception
  - Stable: worry less about upgrading -- the API and ABI will not change out from under you
 
+[![Build Status](https://drone.io/bitbucket.org/tgockel/json-voorhees/status.png)](https://drone.io/bitbucket.org/tgockel/json-voorhees/latest)
+
 Future
 ------
 
