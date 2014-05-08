@@ -11,7 +11,7 @@
 #ifndef __JSONV_CHAR_CONVERT_HPP_INCLUDED__
 #define __JSONV_CHAR_CONVERT_HPP_INCLUDED__
 
-#include <jsonv/standard.hpp>
+#include <jsonv/config.hpp>
 #include <jsonv/parse.hpp>
 
 #include <stdexcept>

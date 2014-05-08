@@ -11,8 +11,8 @@
 #ifndef __JSONV_PARSE_HPP_INCLUDED__
 #define __JSONV_PARSE_HPP_INCLUDED__
 
-#include "standard.hpp"
-#include "value.hpp"
+#include <jsonv/config.hpp>
+#include <jsonv/value.hpp>
 
 #include <cstddef>
 #include <deque>

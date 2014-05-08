@@ -11,7 +11,7 @@
 #ifndef __JSONV_VALUE_HPP_INCLUDED__
 #define __JSONV_VALUE_HPP_INCLUDED__
 
-#include "standard.hpp"
+#include <jsonv/config.hpp>
 
 #include <cstddef>
 #include <cstdint>

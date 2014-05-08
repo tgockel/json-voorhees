@@ -102,4 +102,15 @@
 #   endif
 #endif
 
+/** \def JSONV_INTEGER_ALTERNATES_LIST
+ *  \brief An item list of types to also consider as an integer.
+ *  This mostly exists to help resolve the C-induced type ambiguity for the literal \c 0. It most prefers to be an
+ *  \c int, but might also become a \c long or a pointer type.
+**/
+#ifndef JSONV_INTEGER_ALTERNATES_LIST
+#   define JSONV_INTEGER_ALTERNATES_LIST(item) \
+        item(int)                              \
+        item(unsigned int)
+#endif
+
 #endif/*__JSONV_CONFIG_HPP_INCLUDED__*/
