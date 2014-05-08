@@ -152,8 +152,7 @@ value::basic_object_iterator<T>::basic_object_iterator(const basic_object_iterat
     *self_convert.iter = *other_convert.iter;
 }
 template value::basic_object_iterator<const value::object_value_type>
-              ::basic_object_iterator<value::object_value_type>
-                  (const basic_object_iterator<value::object_value_type>&, void*);
+              ::basic_object_iterator(const basic_object_iterator<value::object_value_type>&, void*);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // object                                                                                                             //
