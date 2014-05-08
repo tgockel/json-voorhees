@@ -330,6 +330,9 @@ static value parse_number(parse_context& context)
         else if (characters_start[0] == '-')
             return boost::lexical_cast<int64_t>(characters_start, characters_count);
         else
+            // For non-negative integer types, use lexical_cast of a uint64_t then static_cast to an int64_t. This is
+            // done to deal with the values 2^63..2^64-1 -- do not consider it an exception, as we can store the bits
+            // properly, but the onus is on the user to know the particular key was in the overflow range.
             return static_cast<int64_t>(boost::lexical_cast<uint64_t>(characters_start, characters_count));
     }
     catch (boost::bad_lexical_cast&)
