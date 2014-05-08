@@ -92,10 +92,9 @@ const value& parse_error::partial_result() const
 // parse_options                                                                                                      //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-parse_options::parse_options() :
-        _failure_mode(on_error::fail_immediately),
-        _max_failures(10)
-{ }
+parse_options::parse_options() = default;
+
+parse_options::~parse_options() throw() = default;
 
 parse_options::on_error parse_options::failure_mode() const
 {
@@ -119,6 +118,17 @@ parse_options& parse_options::max_failures(std::size_t limit)
     return *this;
 }
 
+parse_options::encoding parse_options::string_encoding() const
+{
+    return _string_encoding;
+}
+
+parse_options& parse_options::string_encoding(encoding encoding_)
+{
+    _string_encoding = encoding_;
+    return *this;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parse                                                                                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,6 +141,8 @@ struct JSONV_LOCAL parse_context
     typedef shared_buffer::size_type size_type;
     
     parse_options    options;
+    string_decode_fn string_decode;
+    
     size_type        line;
     size_type        column;
     size_type        character;
@@ -144,6 +156,7 @@ struct JSONV_LOCAL parse_context
     
     explicit parse_context(const parse_options& options, const char* input, size_type length) :
             options(options),
+            string_decode(get_string_decoder(options.string_encoding())),
             line(0),
             column(0),
             character(0),
@@ -362,7 +375,7 @@ static std::string parse_string(parse_context& context)
     
     try
     {
-        return string_decode(characters_start, characters_count);
+        return context.string_decode(characters_start, characters_count);
     }
     catch (const detail::decode_error& err)
     {

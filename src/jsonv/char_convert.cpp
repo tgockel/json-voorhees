@@ -361,6 +361,7 @@ static bool utf16_combine_surrogates(uint16_t high, uint16_t low, char32_t* out)
     }
 }
 
+template <parse_options::encoding encoding>
 std::string string_decode(const char* source, std::string::size_type source_size)
 {
     typedef std::string::size_type size_type;
@@ -387,13 +388,13 @@ std::string string_decode(const char* source, std::string::size_type source_size
                     throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
                 uint16_t hexval = from_hex(&source[idx + 2]);
                 
-                if (hexval < 0xd800U || hexval > 0xdfffU)
+                if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
                 {
                     utf8_append_code(output, hexval);
                     
                     idx += 6;
                 }
-                // numeric encoding is in U+d800 - U+dfff, so deal with surrogate pairing...
+                // numeric encoding is in U+d800 - U+dfff with UTF-8 output, so deal with surrogate pairing...
                 else
                 {
                     auto surrogateString = [&] () { return std::string(source+idx, 6); };
@@ -430,6 +431,18 @@ std::string string_decode(const char* source, std::string::size_type source_size
     
     output.append(last_pushed_src, source+source_size);
     return output;
+}
+
+string_decode_fn get_string_decoder(parse_options::encoding encoding)
+{
+    switch (encoding)
+    {
+    case parse_options::encoding::cesu8:
+        return string_decode<parse_options::encoding::cesu8>;
+    case parse_options::encoding::utf8:
+    default:
+        return string_decode<parse_options::encoding::utf8>;
+    };
 }
 
 }

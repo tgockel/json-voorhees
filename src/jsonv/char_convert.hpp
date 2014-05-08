@@ -12,6 +12,7 @@
 #define __JSONV_CHAR_CONVERT_HPP_INCLUDED__
 
 #include <jsonv/standard.hpp>
+#include <jsonv/parse.hpp>
 
 #include <stdexcept>
 
@@ -43,8 +44,11 @@ private:
 **/
 std::ostream& string_encode(std::ostream& stream, const std::string& source);
 
-/** Decodes over the wire character sequence \c source into a C++ string. **/
-std::string string_decode(const char* source, std::string::size_type source_size);
+/** A function that decodes an over the wire character sequence \c source into a C++ string. **/
+typedef std::string (*string_decode_fn)(const char* source, std::size_t source_size);
+
+/** Get a string decoding function for the given output \a encoding. **/
+string_decode_fn get_string_decoder(parse_options::encoding encoding);
 
 }
 }

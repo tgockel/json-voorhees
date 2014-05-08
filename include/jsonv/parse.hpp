@@ -110,9 +110,28 @@ public:
         ignore,
     };
     
+    /** The encoding format for strings. **/
+    enum class encoding
+    {
+        /** Use UTF-8 like a sane library should.
+         *  
+         *  \see http://www.unicode.org/versions/Unicode6.2.0/ch03.pdf#G7404
+        **/
+        utf8,
+        /** Use the CESU-8 Compatibility Encoding Scheme for UTF-16? It is generally not recommended unless your
+         *  processing environment requires binary collation with UTF-16. If you do not know you need this, you probably
+         *  do not.
+         *  
+         *  \see http://www.unicode.org/reports/tr26/
+        **/
+        cesu8
+    };
+    
 public:
     /** Create an instance with the default options. **/
     parse_options();
+    
+    ~parse_options() throw();
     
     /** See \c on_error. The default failure mode is \c fail_immediately. **/
     on_error failure_mode() const;
@@ -127,11 +146,19 @@ public:
     std::size_t max_failures() const;
     parse_options& max_failures(std::size_t limit);
     
+    /** The output encoding for multi-byte characters in strings. The default value is UTF-8 because UTF-8 is best. Keep
+     *  in mind this changes the output encoding for \e all decoded strings. If you need mixed encodings, you must
+     *  handle that in your application.
+    **/
+    encoding string_encoding() const;
+    parse_options& string_encoding(encoding);
+    
 private:
     // For the purposes of ABI compliance, most modifications to the variables in this class should bump the minor
     // version number.
-    on_error    _failure_mode;
-    std::size_t _max_failures;
+    on_error    _failure_mode     = on_error::fail_immediately;
+    std::size_t _max_failures     = 10;
+    encoding    _string_encoding  = encoding::utf8;
 };
 
 /** Construct a JSON value from the given input.
