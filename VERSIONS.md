@@ -11,11 +11,19 @@
 
 The main focus of this release is access and modification of the low-level parsing and encoding system.
 
-[0.2 (future)](https://bitbucket.org/tgockel/json-voorhees/issues?version=0.2)
-------------------------------------------------------------------------------
+[0.2](https://bitbucket.org/tgockel/json-voorhees/issues?version=0.2)
+---------------------------------------------------------------------
 
-The main focus of this release is full support for parsing and emitting Unicode strings.
-With `0.2.0`, the parsing API should be fairly close to the `1.0` version.
+The main focus of this release was the unification of the JSON type into `jsonv::value`.
+Another major addition is full support for parsing and emitting strings into a proper encoding.
+
+ - [0.2.0](https://bitbucket.org/tgockel/json-voorhees/src/4deea753304bab6c0949d174ec676448337d40de/?at=v0.2.0)
+   2014 May 7
+    - Elimination of `array` and `object` types in preference of just `value`
+    - Added the ability to specify parsing options
+    - Use `JSONV_` as the macro prefix everywhere
+    - Full support for decoding JSON numeric encodings (`\uNNNN`) as UTF-8 or CESU-8
+    - Various fixes for comparison and assignment
 
 [0.1](https://bitbucket.org/tgockel/json-voorhees/issues?version=0.1)
 ---------------------------------------------------------------------
