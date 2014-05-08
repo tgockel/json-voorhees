@@ -17,8 +17,7 @@ The main focus of this release is access and modification of the low-level parsi
 The main focus of this release was the unification of the JSON type into `jsonv::value`.
 Another major addition is full support for parsing and emitting strings into a proper encoding.
 
- - [0.2.0](https://bitbucket.org/tgockel/json-voorhees/src/4deea753304bab6c0949d174ec676448337d40de/?at=v0.2.0)
-   2014 May 7
+ - 0.2.0: 2014 May 7
     - Elimination of `array` and `object` types in preference of just `value`
     - Added the ability to specify parsing options
     - Use `JSONV_` as the macro prefix everywhere
@@ -31,9 +30,7 @@ Another major addition is full support for parsing and emitting strings into a p
 The original prototype, which allows for parsing input to the JSON AST, manipulation of said AST and eventually encoding
  it as a string.
 
- - [0.1.1](https://bitbucket.org/tgockel/json-voorhees/src/3446343a4b591d7e1ecf0d6499450829ae5809c6/?at=v0.1.1)
-   2014 April 30
+ - 0.1.1: 2014 April 30
     - Minor parsing performance improvements by batching the string read for `parse_number`
     - Move to GNU Make as the build system
- - [0.1.0](https://bitbucket.org/tgockel/json-voorhees/src/97e5e8efa76f4eacc4cf2a9e25351e6aad01bf4d/?at=v0.1.0)
-   2014 April 24
+ - 0.1.0: 2014 April 24
