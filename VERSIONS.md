@@ -17,6 +17,9 @@ The main focus of this release is access and modification of the low-level parsi
 The main focus of this release was the unification of the JSON type into `jsonv::value`.
 Another major addition is full support for parsing and emitting strings into a proper encoding.
 
+ - 0.2.1: 2014 May 9
+    - Adds support for building with Clang (version 3.3 and beyond)
+
  - 0.2.0: 2014 May 7
     - Elimination of `array` and `object` types in preference of just `value`
     - Added the ability to specify parsing options

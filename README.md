@@ -16,6 +16,9 @@ Features include (but are not necessarily limited to):
  - Safe: in the best case, illegal code should fail to compile; in the worst case, an illegal action should throw an
    exception
  - Stable: worry less about upgrading -- the API and ABI will not change out from under you
+ - Compiler support
+     - GCC (4.8+)
+     - Clang++ (3.3+)
 
 [![Build Status](https://drone.io/bitbucket.org/tgockel/json-voorhees/status.png)](https://drone.io/bitbucket.org/tgockel/json-voorhees/latest)
 
@@ -28,7 +31,6 @@ Future planned features can be found on the [issue tracker][future-features], bu
 
  - [A visitor system with JSON Path support](https://bitbucket.org/tgockel/json-voorhees/issue/15/generic-visitor-system-for-a-json-tree)
  - Compiler support
-     - [Clang++](https://bitbucket.org/tgockel/json-voorhees/issue/20/clang-support)
      - [MSVC](https://bitbucket.org/tgockel/json-voorhees/issue/18/msvc-support)
 
 License
