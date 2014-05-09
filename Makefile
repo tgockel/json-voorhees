@@ -154,7 +154,7 @@ define TEST_TEMPLATE
 
   $1 : $$(BIN_DIR)/$1
 	$$(QQ)echo " TEST  $1 $$(ARGS)"
-	$$Q$$(shell echo ./$$< | sed 's|^\.//|/|') $$(ARGS)
+	$$Q./$$< $$(ARGS)
 endef
 
 $(foreach test,$(TESTS),$(eval $(call TEST_TEMPLATE,$(test))))
