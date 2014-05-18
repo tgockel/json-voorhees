@@ -775,4 +775,22 @@ value object(TForwardIterator first, TForwardIterator last)
 
 }
 
+namespace std
+{
+
+/** Explicit specialization of \c std::hash for \c jsonv::value types so you can store a \c value in an unordered
+ *  container. Hashing results depend on the \c kind for the provided value -- most kinds directly use the hasher for
+ *  their kind (hashing a \c jsonv::value for integer \c 5 should have the same hash value as directly hashing the same
+ *  integer). For aggregate kinds \c array and \c object, hashing visits every sub-element recursively. This might be
+ *  expensive, but is required when storing multiple values with similar layouts in the a set (which is the most common
+ *  use case).
+**/
+template <>
+struct JSONV_PUBLIC hash<jsonv::value>
+{
+    std::size_t operator()(const jsonv::value& val) const throw();
+};
+
+}
+
 #endif/*__JSONV_VALUE_HPP_INCLUDED__*/

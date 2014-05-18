@@ -17,6 +17,9 @@ The main focus of this release is access and modification of the low-level parsi
 The main focus of this release was the unification of the JSON type into `jsonv::value`.
 Another major addition is full support for parsing and emitting strings into a proper encoding.
 
+ - 0.2.2: 2014 May 18
+    - Adds `std::hash<jsonv::value>`
+
  - 0.2.1: 2014 May 9
     - Adds support for building with Clang (version 3.3 and beyond)
 

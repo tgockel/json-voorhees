@@ -428,3 +428,48 @@ void swap(value& a, value& b) throw()
 }
 
 }
+
+namespace std
+{
+
+template <typename TForwardIterator, typename FHasher>
+static std::size_t hash_range(TForwardIterator first, TForwardIterator last, const FHasher& hasher)
+{
+    std::size_t x = 0;
+    for ( ; first != last; ++first)
+        x = (x << 1) ^ hasher(*first);
+    
+    return x;
+}
+
+size_t hash<jsonv::value>::operator()(const jsonv::value& val) const throw()
+{
+    using namespace jsonv;
+    
+    switch (val.get_kind())
+    {
+    case kind::object:
+        return hash_range(val.begin_object(), val.end_object(),
+                          [] (const value::object_value_type& x) { return std::hash<std::string>()(x.first)
+                                                                        ^ std::hash<value>()(x.second);
+                                                                 }
+                         );
+    case kind::array:
+        return hash_range(val.begin_array(), val.end_array(), hash<jsonv::value>());
+    case kind::string:
+        return std::hash<std::string>()(val.as_string());
+    case kind::integer:
+        return std::hash<std::int64_t>()(val.as_integer());
+    case kind::decimal:
+        return std::hash<double>()(val.as_decimal());
+    case kind::boolean:
+        return std::hash<bool>()(val.as_boolean());
+    case kind::null:
+        return 0x51afb2fe9467d0f7ULL;
+    default:
+        // Should never hit this...
+        return 0ULL;
+    }
+}
+
+}

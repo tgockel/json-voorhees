@@ -12,6 +12,9 @@
 
 #include <jsonv/all.hpp>
 
+#include <tuple>
+#include <unordered_map>
+
 TEST(compare_bools)
 {
     jsonv::value t1(true),
@@ -36,4 +39,16 @@ TEST(compare_arrs)
     ensure_eq(a1234.compare(b1234), 0);
     ensure_eq(a123.compare(a1234), -1);
     ensure_eq(a1234.compare(a123),  1);
+}
+
+TEST(value_store_unordered_map)
+{
+    std::unordered_map<jsonv::value, std::int64_t> m;
+    for (std::int64_t x = 0L; x < 1000; ++x)
+    {
+        auto ret = m.insert({ x, x });
+        ensure(ret.second);
+    }
+    
+    ensure_lt(1, m.bucket_count());
 }
