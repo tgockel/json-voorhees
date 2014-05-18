@@ -105,10 +105,11 @@ $(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_TEMPLATE,$(lib))))
 
 CXX           = $(CXX_COMPILER) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
 CXX_COMPILER ?= c++
-CXX_FLAGS    ?= $(CXX_STANDARD) -c -Werror -Wall -Wextra -ggdb -fPIC $(CXX_FLAGS_$(CONF))
+CXX_FLAGS    ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
 CXX_INCLUDES ?= -I$(SRC_DIR) -I$(HEADER_DIR)
 CXX_STANDARD ?= --std=c++11
 CXX_DEFINES  ?= 
+CXX_WARNINGS ?= -Werror -Wall -Wextra
 LD            = $(CXX_COMPILER) $(LD_PATHS) $(LD_FLAGS)
 LD_FLAGS     ?= 
 LD_PATHS     ?= 
