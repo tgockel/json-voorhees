@@ -45,7 +45,7 @@ union value_storage
 
 }
 
-enum class kind
+enum class kind : std::uint8_t
 {
     null,
     object,
