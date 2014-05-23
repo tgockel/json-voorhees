@@ -11,7 +11,6 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/array.hpp>
 #include <jsonv/object.hpp>
-#include <jsonv/detail/shared_buffer.hpp>
 
 #include "char_convert.hpp"
 
@@ -20,6 +19,7 @@
 #include <istream>
 #include <set>
 #include <sstream>
+#include <vector>
 
 #include <boost/lexical_cast.hpp>
 
@@ -138,7 +138,7 @@ namespace detail
 
 struct JSONV_LOCAL parse_context
 {
-    typedef shared_buffer::size_type size_type;
+    typedef std::size_t size_type;
     
     parse_options    options;
     string_decode_fn string_decode;
@@ -540,13 +540,11 @@ value parse(std::istream& input, const parse_options& options)
     // Copy the input into a buffer
     input.seekg(0, std::ios::end);
     std::size_t len = input.tellg();
-    detail::shared_buffer buffer(len);
+    std::vector<char> buffer(len);
     input.seekg(0, std::ios::beg);
-    std::copy(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>(),
-              buffer.get_mutable(0, len)
-             );
+    std::copy(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>(), buffer.data());
     
-    return parse(buffer.cbegin(), buffer.size(), options);
+    return parse(buffer.data(), buffer.size(), options);
 }
 
 value parse(const std::string& source, const parse_options& options)
