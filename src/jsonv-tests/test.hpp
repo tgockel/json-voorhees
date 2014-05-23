@@ -98,7 +98,7 @@ protected:
     std::string _failstring;
 };
 
-#define TEST(name_) \
+#define TEST(name_)                          \
     class name_ ## _test :                   \
             public ::jsonv_test::unit_test   \
     {                                        \
