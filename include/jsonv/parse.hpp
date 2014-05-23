@@ -76,7 +76,7 @@ public:
 public:
     parse_error(problem_list, value partial_result);
     
-    virtual ~parse_error() throw();
+    virtual ~parse_error() noexcept;
     
     /** The list of problems which ultimately contributed to this \c parse_error. There will always be at least one
      *  \c problem in this list.
@@ -131,7 +131,7 @@ public:
     /** Create an instance with the default options. **/
     parse_options();
     
-    ~parse_options() throw();
+    ~parse_options() noexcept;
     
     /** See \c on_error. The default failure mode is \c fail_immediately. **/
     on_error failure_mode() const;

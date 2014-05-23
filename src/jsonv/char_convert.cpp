@@ -30,7 +30,7 @@ decode_error::decode_error(size_type offset, const std::string& message):
         _offset(offset)
 { }
 
-decode_error::~decode_error() throw()
+decode_error::~decode_error() noexcept
 { }
 
 #define ESCAPES_LIST(item) \

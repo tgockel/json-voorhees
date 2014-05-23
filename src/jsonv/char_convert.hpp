@@ -29,7 +29,7 @@ public:
 public:
     decode_error(size_type offset, const std::string& message);
     
-    virtual ~decode_error() throw();
+    virtual ~decode_error() noexcept;
     
     inline size_type offset() const
     {

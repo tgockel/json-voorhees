@@ -75,7 +75,7 @@ parse_error::parse_error(problem_list problems, value partial_result) :
         _partial_result(std::move(partial_result))
 { }
 
-parse_error::~parse_error() throw()
+parse_error::~parse_error() noexcept
 { }
 
 const parse_error::problem_list& parse_error::problems() const
@@ -94,7 +94,7 @@ const value& parse_error::partial_result() const
 
 parse_options::parse_options() = default;
 
-parse_options::~parse_options() throw() = default;
+parse_options::~parse_options() noexcept = default;
 
 parse_options::on_error parse_options::failure_mode() const
 {

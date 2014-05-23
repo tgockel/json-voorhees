@@ -34,7 +34,7 @@ kind_error::kind_error(const std::string& description) :
         std::logic_error(description)
 { }
 
-kind_error::~kind_error() throw()
+kind_error::~kind_error() noexcept
 { }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ value::value(bool val) :
     }
 JSONV_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR)
 
-value::~value() throw()
+value::~value() noexcept
 {
     clear();
 }
@@ -129,7 +129,7 @@ value& value::operator=(const value& other)
     return *this;
 }
 
-value::value(value&& other) throw() :
+value::value(value&& other) noexcept :
         _data(other._data),
         _kind(other._kind)
 {
@@ -137,7 +137,7 @@ value::value(value&& other) throw() :
     other._kind = kind::null;
 }
 
-value& value::operator=(value&& source) throw()
+value& value::operator=(value&& source) noexcept
 {
     clear();
     
@@ -149,7 +149,7 @@ value& value::operator=(value&& source) throw()
     return *this;
 }
 
-void value::swap(value& other) throw()
+void value::swap(value& other) noexcept
 {
     using std::swap;
     
@@ -422,7 +422,7 @@ value::size_type value::size() const
     }
 }
 
-void swap(value& a, value& b) throw()
+void swap(value& a, value& b) noexcept
 {
     a.swap(b);
 }
@@ -442,7 +442,7 @@ static std::size_t hash_range(TForwardIterator first, TForwardIterator last, con
     return x;
 }
 
-size_t hash<jsonv::value>::operator()(const jsonv::value& val) const throw()
+size_t hash<jsonv::value>::operator()(const jsonv::value& val) const noexcept
 {
     using namespace jsonv;
     

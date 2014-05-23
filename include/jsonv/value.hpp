@@ -62,7 +62,7 @@ class JSONV_PUBLIC kind_error :
 public:
     explicit kind_error(const std::string& description);
     
-    virtual ~kind_error() throw();
+    virtual ~kind_error() noexcept;
 };
 
 /** Represents a single JSON value, which can be any one of a potential \c kind, each behaving slightly differently.
@@ -361,7 +361,7 @@ public:
     value(T) = delete;
     
     /** Destruction will never throw. **/
-    ~value() throw();
+    ~value() noexcept;
     
     /** Copy-assigns \c source to this.
      *  
@@ -371,13 +371,13 @@ public:
     value& operator=(const value& source);
     
     /** Move-construct this instance, leaving \a source as a null value. **/
-    value(value&& source) throw();
+    value(value&& source) noexcept;
     
     /** Move-assigns \c source to this, leaving \a source as a null value.
      *  
      *  Unlike a copy, this will never throw.
     **/
-    value& operator=(value&& source) throw();
+    value& operator=(value&& source) noexcept;
     
     /** \addtogroup Conversions
      *  These functions are used for accessing specific kinds of values.
@@ -426,7 +426,7 @@ public:
     }
     
     /** Swap the value this instance represents with \a other. **/
-    void swap(value& other) throw();
+    void swap(value& other) noexcept;
     
     /** Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions
      *  apply:
@@ -734,7 +734,7 @@ private:
 };
 
 /** Swap the values \a a and \a b. **/
-JSONV_PUBLIC void swap(value& a, value& b) throw();
+JSONV_PUBLIC void swap(value& a, value& b) noexcept;
 
 /** \addtogroup Creation
  *  Free functions meant for easily creating \c value instances.
@@ -788,7 +788,7 @@ namespace std
 template <>
 struct JSONV_PUBLIC hash<jsonv::value>
 {
-    std::size_t operator()(const jsonv::value& val) const throw();
+    std::size_t operator()(const jsonv::value& val) const noexcept;
 };
 
 }
