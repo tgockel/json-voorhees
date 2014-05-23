@@ -11,7 +11,7 @@
 #ifndef __JSONV_TESTS_PULL_PARSER_TESTS_HPP_INCLUDED__
 #define __JSONV_TESTS_PULL_PARSER_TESTS_HPP_INCLUDED__
 
-#include <jsonv/pull_parser.hpp>
+#include <jsonv/parse.hpp>
 
 namespace jsonv_test
 {
