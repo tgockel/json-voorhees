@@ -113,4 +113,17 @@
         item(unsigned int)
 #endif
 
+/** \def JSONV_STRING_REF_TYPE
+ *  The type to use for \c jsonv::string_ref. By default, this is \c boost::string_ref (by version 0.3.0, this will be
+ *  replaced with a local implementation so there is no dependency on Boost).
+ *  
+ *  \def JSONV_STRING_REF_INCLUDE
+ *  The file to include to get the implementation for \c string_ref. If you define \c JSONV_STRING_REF_TYPE, you should
+ *  also define this.
+**/
+#ifndef JSONV_STRING_REF_TYPE
+#   define JSONV_STRING_REF_TYPE    boost::string_ref
+#   define JSONV_STRING_REF_INCLUDE <boost/utility/string_ref.hpp>
+#endif
+
 #endif/*__JSONV_CONFIG_HPP_INCLUDED__*/
