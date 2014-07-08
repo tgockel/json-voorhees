@@ -68,6 +68,12 @@ public:
     string_ref(const string_ref&) noexcept = default;
     string_ref& operator=(const string_ref&) noexcept = default;
     
+    template <typename UAllocator>
+    explicit operator std::basic_string<value_type, std::char_traits<value_type>, UAllocator>() const
+    {
+        return std::basic_string<value_type, std::char_traits<value_type>, UAllocator>(_data, _length);
+    }
+    
     constexpr size_type size()     const noexcept { return _length; }
     constexpr size_type max_size() const noexcept { return _length; }
     constexpr size_type length()   const noexcept { return _length; }
