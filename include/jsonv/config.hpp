@@ -122,8 +122,13 @@
  *  also define this.
 **/
 #ifndef JSONV_STRING_REF_TYPE
-#   define JSONV_STRING_REF_TYPE    boost::string_ref
-#   define JSONV_STRING_REF_INCLUDE <boost/utility/string_ref.hpp>
+#   if defined(JSONV_STRING_REF_USE_BOOST) && JSONV_STRING_REF_USE_BOOST
+#       define JSONV_STRING_REF_TYPE    boost::string_ref
+#       define JSONV_STRING_REF_INCLUDE <boost/utility/string_ref.hpp>
+#   else
+#       define JSONV_STRING_REF_TYPE    jsonv::detail::string_ref
+#       define JSONV_STRING_REF_INCLUDE <jsonv/detail/string_ref.hpp>
+#   endif
 #endif
 
 #endif/*__JSONV_CONFIG_HPP_INCLUDED__*/
