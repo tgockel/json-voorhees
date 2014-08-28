@@ -74,6 +74,16 @@ value::const_array_iterator value::end_array() const
     return const_array_iterator(this, ARR.size());
 }
 
+value::array_view value::as_array()
+{
+    return array_view(begin_array(), end_array());
+}
+
+value::const_array_view value::as_array() const
+{
+    return const_array_view(begin_array(), end_array());
+}
+
 value& value::operator[](size_type idx)
 {
     check_type(kind::array, get_kind());

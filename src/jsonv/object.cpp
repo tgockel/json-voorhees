@@ -199,6 +199,16 @@ value::const_object_iterator value::end_object() const
     return const_object_iterator(OBJ.end());
 }
 
+value::object_view value::as_object()
+{
+    return object_view(begin_object(), end_object());
+}
+
+value::const_object_view value::as_object() const
+{
+    return const_object_view(begin_object(), end_object());
+}
+
 value& value::operator[](const std::string& key)
 {
     check_type(kind::object, get_kind());

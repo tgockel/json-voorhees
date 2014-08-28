@@ -97,6 +97,15 @@ TEST(object_erase_whole)
     ensure(iter == obj.begin_object());
 }
 
+TEST(object_view)
+{
+    const jsonv::value obj1 = jsonv::object({ { "foo", 5 }, { "bar", "wat" } });
+    jsonv::value obj2 = jsonv::object();
+    for (const std::pair<const std::string, const jsonv::value>& entry : obj1.as_object())
+        obj2.insert(entry);
+    ensure_eq(obj1, obj2);
+}
+
 TEST(parse_empty_object)
 {
     auto obj = jsonv::parse("{}");

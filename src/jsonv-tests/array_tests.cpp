@@ -146,6 +146,18 @@ TEST(array_algo_sort)
     ensure_eq(arr, array({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 }));
 }
 
+TEST(array_view)
+{
+    using namespace jsonv;
+    
+    const value arr1 = array({ "pie", 5, nullptr, 0 });
+    value arr2 = array();
+    for (const value& val : arr1.as_array())
+        arr2.push_back(val);
+    
+    ensure_eq(arr1, arr2);
+}
+
 TEST(parse_empty_array)
 {
     auto arr = jsonv::parse("[]");
