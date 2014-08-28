@@ -250,7 +250,7 @@ public:
     
     /** \} **/
     
-    /** \addtogroup
+    /** \addtogroup Object
      *  \{
      *  The base iterator type for iterating over object types. It is a bidirectional iterator similar to a
      *  \c std::map<std::string, jsonv::value>.
