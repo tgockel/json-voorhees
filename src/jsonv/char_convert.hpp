@@ -13,6 +13,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/string_ref.hpp>
 
 #include <stdexcept>
 
@@ -42,7 +43,7 @@ private:
 
 /** Encodes C++ string \a source into a fully-escaped JSON string into \a stream ready for sending over the wire.
 **/
-std::ostream& string_encode(std::ostream& stream, const std::string& source);
+std::ostream& string_encode(std::ostream& stream, string_ref source);
 
 /** A function that decodes an over the wire character sequence \c source into a C++ string. **/
 typedef std::string (*string_decode_fn)(const char* source, std::size_t source_size);

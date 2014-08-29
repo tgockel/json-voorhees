@@ -96,7 +96,7 @@ void check_type(std::initializer_list<kind> expected, kind actual)
 // Printing                                                                                                           //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::ostream& stream_escaped_string(std::ostream& stream, const std::string& str)
+std::ostream& stream_escaped_string(std::ostream& stream, string_ref str)
 {
     stream << "\"";
     detail::string_encode(stream, str);

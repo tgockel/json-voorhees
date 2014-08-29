@@ -175,9 +175,9 @@ static void utf16_create_surrogates(char32_t codepoint, uint16_t* high, uint16_t
     *low  = uint16_t(val & 0x03ff) | 0xdc00;
 }
 
-std::ostream& string_encode(std::ostream& stream, const std::string& source)
+std::ostream& string_encode(std::ostream& stream, string_ref source)
 {
-    typedef std::string::size_type size_type;
+    typedef string_ref::size_type size_type;
     
     for (size_type idx = 0, source_size = source.size(); idx < source_size; /* incremented inline */)
     {

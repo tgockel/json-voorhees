@@ -12,6 +12,7 @@
 #define __JSONV_DETAIL_HPP_INCLUDED__
 
 #include <jsonv/value.hpp>
+#include <jsonv/string_ref.hpp>
 
 namespace jsonv
 {
@@ -40,7 +41,7 @@ const char* kind_desc(kind type);
 bool kind_valid(kind k);
 void check_type(kind expected, kind actual);
 void check_type(std::initializer_list<kind> expected, kind actual);
-std::ostream& stream_escaped_string(std::ostream& stream, const std::string& str);
+std::ostream& stream_escaped_string(std::ostream& stream, string_ref str);
 
 }
 
