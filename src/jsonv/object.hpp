@@ -38,8 +38,6 @@ public:
     bool operator==(const object_impl& other) const;
     bool operator!=(const object_impl& other) const;
     
-    friend std::ostream& operator<<(std::ostream&, const object_impl&);
-    
 public:
     map_type _values;
 };

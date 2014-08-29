@@ -13,6 +13,7 @@
 #define __JSONV_ALL_HPP_INCLUDED__
 
 #include "config.hpp"
+#include "encode.hpp"
 #include "forward.hpp"
 #include "parse.hpp"
 #include "value.hpp"

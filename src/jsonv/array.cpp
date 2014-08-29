@@ -212,30 +212,5 @@ bool array_impl::operator!=(const array_impl& other) const
     return !operator==(other);
 }
 
-std::ostream& operator<<(std::ostream& stream, const array_impl& arr)
-{
-    typedef array_impl::array_type::const_iterator const_iterator;
-    
-    const_iterator iter = arr._values.begin();
-    const_iterator end  = arr._values.end();
-    
-    stream << "[";
-    
-    if (iter != end)
-    {
-        stream << *iter;
-        ++iter;
-    }
-    
-    for ( ; iter != end; ++iter)
-    {
-        stream << ", " << *iter;
-    }
-    
-    stream << "]";
-    
-    return stream;
-}
-
 }
 }

@@ -38,8 +38,6 @@ public:
     bool operator==(const array_impl& other) const;
     bool operator!=(const array_impl& other) const;
     
-    friend std::ostream& operator<<(std::ostream&, const array_impl&);
-    
 public:
     array_type _values;
 };

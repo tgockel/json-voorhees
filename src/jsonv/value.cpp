@@ -9,11 +9,12 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/value.hpp>
-#include <jsonv/array.hpp>
-#include <jsonv/object.hpp>
+#include <jsonv/encode.hpp>
 
+#include "array.hpp"
 #include "char_convert.hpp"
 #include "detail.hpp"
+#include "object.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -352,30 +353,11 @@ bool value::operator>=(const value& other) const
     return compare(other) != -1;
 }
 
-std::ostream& operator <<(std::ostream& stream, const value& val)
+std::ostream& operator<<(std::ostream& stream, const value& val)
 {
-    switch (val.get_kind())
-    {
-    case kind::object:
-        return stream << *val._data.object;
-    case kind::array:
-        return stream << *val._data.array;
-    case kind::string:
-        return stream_escaped_string(stream, val.as_string());
-    case kind::integer:
-        return stream << val.as_integer();
-    case kind::decimal:
-        if (std::isnormal(val.as_decimal()))
-            return stream << val.as_decimal();
-        // not a number isn't a valid JSON value, so put it as null
-        else
-            return stream << "null";
-    case kind::boolean:
-        return stream << (val.as_boolean() ? "true" : "false");
-    case kind::null:
-    default:
-        return stream << "null";
-    }
+    ostream_encoder encoder(stream);
+    encoder.encode(val);
+    return stream;
 }
 
 bool value::empty() const

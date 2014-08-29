@@ -14,6 +14,7 @@
 namespace jsonv
 {
 
+class encoder;
 class value;
 
 }

@@ -426,38 +426,5 @@ bool object_impl::operator!=(const object_impl& other) const
     return !operator==(other);
 }
 
-static void stream_single(std::ostream& stream, const object_impl::map_type::value_type& pair)
-{
-    stream_escaped_string(stream, pair.first)
-        << ":"
-        << pair.second;
-}
-
-std::ostream& operator<<(std::ostream& stream, const object_impl& view)
-{
-    typedef object_impl::map_type::const_iterator const_iterator;
-    
-    const_iterator iter = view._values.begin();
-    const_iterator end  = view._values.end();
-    
-    stream << "{";
-    
-    if (iter != end)
-    {
-        stream_single(stream, *iter);
-        ++iter;
-    }
-    
-    for ( ; iter != end; ++iter)
-    {
-        stream << ", ";
-        stream_single(stream, *iter);
-    }
-    
-    stream << "}";
-    
-    return stream;
-}
-
 }
 }
