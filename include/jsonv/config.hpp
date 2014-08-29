@@ -114,15 +114,23 @@
 #endif
 
 /** \def JSONV_STRING_REF_TYPE
- *  The type to use for \c jsonv::string_ref. By default, this is \c boost::string_ref (by version 0.3.0, this will be
- *  replaced with a local implementation so there is no dependency on Boost).
+ *  The type to use for \c jsonv::string_ref. By default, this is \c jsonv::detail::string_ref.
  *  
  *  \def JSONV_STRING_REF_INCLUDE
  *  The file to include to get the implementation for \c string_ref. If you define \c JSONV_STRING_REF_TYPE, you should
  *  also define this.
+ *  
+ *  \def JSONV_STRING_REF_USE_STD
+ *  Set this to 1 to use \c std::string_ref as the backing type for \c jsonv::string_ref.
+ *  
+ *  \def JSONV_STRING_REF_USE_BOOST
+ *  Set this to 1 to use \c boost::string_ref as the backing type for \c jsonv::string_ref.
 **/
 #ifndef JSONV_STRING_REF_TYPE
-#   if defined(JSONV_STRING_REF_USE_BOOST) && JSONV_STRING_REF_USE_BOOST
+#   if defined(JSONV_STRING_REF_USE_STD) && JSONV_STRING_REF_USE_STD
+#       define JSONV_STRING_REF_TYPE    std::string_ref
+#       define JSONV_STRING_REF_INCLUDE <string_ref>
+#   elif defined(JSONV_STRING_REF_USE_BOOST) && JSONV_STRING_REF_USE_BOOST
 #       define JSONV_STRING_REF_TYPE    boost::string_ref
 #       define JSONV_STRING_REF_INCLUDE <boost/utility/string_ref.hpp>
 #   else
