@@ -71,7 +71,7 @@ public:
     template <typename UAllocator>
     explicit operator std::basic_string<value_type, std::char_traits<value_type>, UAllocator>() const
     {
-        return std::basic_string<value_type, std::char_traits<value_type>, UAllocator>(_data, _length);
+        return std::basic_string<value_type, std::char_traits<value_type>, UAllocator>(_base, _length);
     }
     
     constexpr size_type size()     const noexcept { return _length; }
@@ -207,7 +207,12 @@ public:
     
     size_type find_first_not_of(const string_ref& chars) const
     {
-        auto iter = std::find_first_not_of(begin(), end(), chars.begin(), chars.end());
+        auto iter = std::find_if(begin(), end(),
+                                 [&chars] (value_type x)
+                                 {
+                                     return chars.find(x) == npos;
+                                 }
+                                );
         return iter == end() ? npos : std::distance(begin(), iter);
     }
     
@@ -225,12 +230,17 @@ public:
     size_type find_last_not_of(value_type val) const
     {
         auto iter = std::find_if(rbegin(), rend(), [val] (value_type x) { return val != x; });
-        return iter == end() ? npos : std::distance(iter, rend());
+        return iter == rend() ? npos : std::distance(iter, rend());
     }
     
     size_type find_last_not_of(const string_ref& chars) const
     {
-        auto iter = std::find_first_not_of(rbegin(), rend(), chars.begin(), chars.end());
+        auto iter = std::find_if(rbegin(), rend(),
+                                 [&chars] (value_type x)
+                                 {
+                                     return chars.find(x) == npos;
+                                 }
+                                );
         return iter == rend() ? npos : std::distance(iter, rend());
     }
     
@@ -243,7 +253,7 @@ public:
     bool operator!=(const string_ref& other) const
     {
         return _length != other._length
-            || (_base != other._base && std::mismatch(begin(), end(), other.begin()) == end());
+            || (_base != other._base && std::mismatch(begin(), end(), other.begin()).first == end());
     }
     
     bool operator<(const string_ref& other) const
