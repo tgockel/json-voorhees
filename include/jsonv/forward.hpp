@@ -15,7 +15,11 @@ namespace jsonv
 {
 
 class encoder;
+enum class kind : unsigned char;
+class kind_error;
 class value;
+class parse_error;
+class parse_options;
 
 }
 
