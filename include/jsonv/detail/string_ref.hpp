@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstring>
 #include <iterator>
+#include <ostream>
 #include <stdexcept>
 
 namespace jsonv
@@ -274,6 +275,12 @@ public:
     bool operator>=(const string_ref& other) const
     {
         return !(*this < other);
+    }
+    
+    friend std::ostream& operator<<(std::ostream& os, const string_ref& self)
+    {
+        os.write(self.begin(), self.size());
+        return os;
     }
     
 private:
