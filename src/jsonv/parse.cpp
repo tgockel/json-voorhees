@@ -461,7 +461,7 @@ static value parse_object(parse_context& context)
             //object::iterator iter = obj.find(key);
             //if (iter != obj.end())
             //    context.parse_error("Duplicate key \"", key, "\"");
-            obj[key] = val;
+            obj[key] = std::move(val);
             JSONV_DBG_STRUCT(')');
             break;
         }
