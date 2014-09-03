@@ -414,7 +414,7 @@ static value parse_array(parse_context& context)
             value val;
             if (parse_generic(context, val, false))
             {
-                arr.push_back(val);
+                arr.push_back(std::move(val));
             }
             else
             {
