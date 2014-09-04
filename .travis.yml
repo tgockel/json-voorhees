@@ -1,0 +1,14 @@
+language: cpp
+complier:
+  - gcc
+install:
+  # Install GCC 4.8, Clang 3.3 and Boost 1.55...
+  - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+  - sudo apt-add-repository --yes ppa:boost-latest/ppa
+  - sudo sh -c 'echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" >> /etc/apt/sources.list'
+  - sudo apt-get update
+  - sudo apt-get install --yes g++-4.8 clang-3.3 libboost1.55-all-dev
+  - sudo update-alternatives --set gcc /usr/bin/gcc-4.8
+script:
+  - make CONF=debug BUILD_DIR=debug-gcc   VERBOSE=1 CXX_COMPILER=g++     test
+  - make CONF=debug BUILD_DIR=debug-clang VERBOSE=1 CXX_COMPILER=clang++ test CXX_WARNINGS=''
