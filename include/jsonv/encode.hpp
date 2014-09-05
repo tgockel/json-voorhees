@@ -174,8 +174,57 @@ protected:
     
     virtual void write_boolean(bool value) override;
     
+protected:
+    std::ostream& output();
+    
 private:
     std::ostream& _output;
+};
+
+/** Like \c ostream_encoder, but pretty prints output to an \c std::ostream. **/
+class JSONV_PUBLIC ostream_pretty_encoder :
+        public ostream_encoder
+{
+public:
+    /** Create an instance which places text into \a output. **/
+    explicit ostream_pretty_encoder(std::ostream& output, std::size_t indent_size = 2);
+    
+    virtual ~ostream_pretty_encoder() noexcept;
+    
+protected:
+    virtual void write_null() override;
+    
+    virtual void write_object_begin() override;
+    
+    virtual void write_object_end() override;
+    
+    virtual void write_object_key(string_ref key) override;
+    
+    virtual void write_object_delimiter() override;
+    
+    virtual void write_array_begin() override;
+    
+    virtual void write_array_end() override;
+    
+    virtual void write_array_delimiter() override;
+    
+    virtual void write_string(string_ref value) override;
+    
+    virtual void write_integer(std::int64_t value) override;
+    
+    virtual void write_decimal(double value) override;
+    
+    virtual void write_boolean(bool value) override;
+    
+private:
+    void write_prefix();
+    
+    void write_eol();
+    
+private:
+    std::size_t   _indent;
+    std::size_t   _indent_size;
+    bool          _defer_indent;
 };
 
 }

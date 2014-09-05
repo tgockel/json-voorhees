@@ -152,4 +152,126 @@ void ostream_encoder::write_string(string_ref value)
     stream_escaped_string(_output, value);
 }
 
+std::ostream& ostream_encoder::output()
+{
+    return _output;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ostream_pretty_encoder                                                                                             //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ostream_pretty_encoder::ostream_pretty_encoder(std::ostream& output, std::size_t indent_size) :
+        ostream_encoder(output),
+        _indent(0),
+        _indent_size(indent_size),
+        _defer_indent(false)
+{ }
+
+ostream_pretty_encoder::~ostream_pretty_encoder() noexcept = default;
+
+void ostream_pretty_encoder::write_prefix()
+{
+    if (_defer_indent)
+    {
+        write_eol();
+        _defer_indent = false;
+    }
+}
+
+void ostream_pretty_encoder::write_eol()
+{
+    output() << std::endl;
+    for (std::size_t x = 0; x < _indent; ++x)
+        output() << ' ';
+}
+
+void ostream_pretty_encoder::write_array_begin()
+{
+    write_prefix();
+    ostream_encoder::write_array_begin();
+    _indent += _indent_size;
+    _defer_indent = true;
+}
+
+void ostream_pretty_encoder::write_array_end()
+{
+    _indent -= _indent_size;
+    if (!_defer_indent)
+    {
+        write_eol();
+    }
+    _defer_indent = false;
+    ostream_encoder::write_array_end();
+}
+
+void ostream_pretty_encoder::write_array_delimiter()
+{
+    write_prefix();
+    ostream_encoder::write_array_delimiter();
+    write_eol();
+}
+
+void ostream_pretty_encoder::write_boolean(bool value)
+{
+    write_prefix();
+    ostream_encoder::write_boolean(value);
+}
+
+void ostream_pretty_encoder::write_decimal(double value)
+{
+    write_prefix();
+    ostream_encoder::write_decimal(value);
+}
+
+void ostream_pretty_encoder::write_integer(int64_t value)
+{
+    write_prefix();
+    ostream_encoder::write_integer(value);
+}
+
+void ostream_pretty_encoder::write_null()
+{
+    write_prefix();
+    ostream_encoder::write_null();
+}
+
+void ostream_pretty_encoder::write_object_begin()
+{
+    write_prefix();
+    ostream_encoder::write_object_begin();
+    _indent += _indent_size;
+    _defer_indent = true;
+}
+
+void ostream_pretty_encoder::write_object_end()
+{
+    _indent -= _indent_size;
+    if (!_defer_indent)
+    {
+        write_eol();
+    }
+    _defer_indent = false;
+    ostream_encoder::write_object_end();
+}
+
+void ostream_pretty_encoder::write_object_delimiter()
+{
+    ostream_encoder::write_object_delimiter();
+    _defer_indent = true;
+}
+
+void ostream_pretty_encoder::write_object_key(string_ref key)
+{
+    write_prefix();
+    ostream_encoder::write_object_key(key);
+    output() << ' ';
+}
+
+void ostream_pretty_encoder::write_string(string_ref value)
+{
+    write_prefix();
+    ostream_encoder::write_string(value);
+}
+
 }
