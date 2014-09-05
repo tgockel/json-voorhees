@@ -20,7 +20,7 @@ Features include (but are not necessarily limited to):
      - GCC (4.8+)
      - Clang++ (3.3+)
 
-[![Build Status](https://drone.io/bitbucket.org/tgockel/json-voorhees/status.png)](https://drone.io/bitbucket.org/tgockel/json-voorhees/latest)
+[![Build Status](https://travis-ci.org/tgockel/json-voorhees.svg?branch=master)](https://travis-ci.org/tgockel/json-voorhees)
 
 Future
 ------
@@ -29,9 +29,9 @@ This library is still in a "working prototype" stage, so there are a number of t
 Future planned features can be found on the [issue tracker][future-features], but here is a list of things that matter
  most to me:
 
- - [A visitor system with JSON Path support](https://bitbucket.org/tgockel/json-voorhees/issue/15/generic-visitor-system-for-a-json-tree)
+ - [A visitor system with JSON Path support](https://github.com/tgockel/json-voorhees/issues/3)
  - Compiler support
-     - [MSVC](https://bitbucket.org/tgockel/json-voorhees/issue/18/msvc-support)
+     - [MSVC](https://github.com/tgockel/json-voorhees/issues/7)
 
 License
 -------
@@ -101,9 +101,9 @@ The drawback to this route is a needlessly lengthened resultant encoding if all 
  deal with UTF-8.
 There is an [outstanding issue][encode-utf8] to address this shortcoming.
 
- [decode-non-utf8]: https://bitbucket.org/tgockel/json-voorhees/issue/24/decode-numeric-encodings-into-arbitrarily
+ [decode-non-utf8]: https://github.com/tgockel/json-voorhees/issues/10
     "Decode numeric encodings into arbitrarily encoded std::string"
- [encode-utf8]: https://bitbucket.org/tgockel/json-voorhees/issue/21/string-encoding-should-allow-utf-8-output
+ [encode-utf8]: https://github.com/tgockel/json-voorhees/issues/11
     "Issue 21: String encoding should allow UTF-8 output"
- [future-features]: https://bitbucket.org/tgockel/json-voorhees/issues?kind=enhancement&kind=proposal&status=new&status=open
+ [future-features]: https://github.com/tgockel/json-voorhees/issues?q=is%3Aopen+is%3Aissue+no%3Amilestone
     "Future features"
