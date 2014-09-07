@@ -1,14 +1,20 @@
 language: cpp
-complier:
-  - gcc
+before_install:
+  - openssl aes-256-cbc
+    -K $encrypted_da53dd2710a4_key
+    -iv $encrypted_da53dd2710a4_iv
+    -in  config/travisci_rsa.enc
+    -out config/travisci_rsa
+    -d
 install:
-  # Install GCC 4.8, Clang 3.3 and Boost 1.55...
   - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
   - sudo apt-add-repository --yes ppa:boost-latest/ppa
   - sudo sh -c 'echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" >> /etc/apt/sources.list'
   - sudo apt-get update
-  - sudo apt-get install --yes g++-4.8 clang-3.3 libboost1.55-all-dev
+  - sudo apt-get install --yes g++-4.8 clang-3.3 libboost1.55-all-dev doxygen graphviz
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 script:
   - make CONF=debug BUILD_DIR=debug-gcc   VERBOSE=1 CXX_COMPILER=g++     test
   - make CONF=debug BUILD_DIR=debug-clang VERBOSE=1 CXX_COMPILER=clang++ test CXX_WARNINGS=''
+after_success:
+  - ./config/publish-doxygen
