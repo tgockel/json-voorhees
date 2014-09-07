@@ -174,4 +174,5 @@ clean-src :
 
 doxygen :
 	$(QQ)echo " DOXY  $(DOC_DIR)"
+	$(QQ)mkdir -p $(DOC_DIR)
 	$Qdoxygen config/Doxyfile
