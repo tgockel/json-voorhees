@@ -1,36 +1,30 @@
 var annotated =
 [
-    [ "jsonv", null, [
-      [ "detail", null, [
-        [ "array_impl", "classjsonv_1_1detail_1_1array__impl.html", "classjsonv_1_1detail_1_1array__impl" ],
-        [ "decode_error", "classjsonv_1_1detail_1_1decode__error.html", "classjsonv_1_1detail_1_1decode__error" ],
-        [ "fixed_map", "classjsonv_1_1detail_1_1fixed__map.html", "classjsonv_1_1detail_1_1fixed__map" ],
-        [ "cloneable", "structjsonv_1_1detail_1_1cloneable.html", "structjsonv_1_1detail_1_1cloneable" ],
-        [ "string_impl", "classjsonv_1_1detail_1_1string__impl.html", "classjsonv_1_1detail_1_1string__impl" ],
-        [ "object_impl", "classjsonv_1_1detail_1_1object__impl.html", "classjsonv_1_1detail_1_1object__impl" ],
-        [ "parse_context", "structjsonv_1_1detail_1_1parse__context.html", "structjsonv_1_1detail_1_1parse__context" ],
-        [ "basic_view", "classjsonv_1_1detail_1_1basic__view.html", "classjsonv_1_1detail_1_1basic__view" ],
-        [ "string_ref", "classjsonv_1_1detail_1_1string__ref.html", "classjsonv_1_1detail_1_1string__ref" ],
-        [ "value_storage", "unionjsonv_1_1detail_1_1value__storage.html", "unionjsonv_1_1detail_1_1value__storage" ]
-      ] ],
-      [ "object_iter_converter", "structjsonv_1_1object__iter__converter.html", null ],
-      [ "object_iter_converter< value::object_value_type >", "structjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4.html", [
-        [ "const_impl", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1const__impl.html", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1const__impl" ],
-        [ "impl", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1impl.html", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1impl" ]
-      ] ],
-      [ "object_iter_converter< const value::object_value_type >", "structjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4.html", [
-        [ "const_impl", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1const__impl.html", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1const__impl" ],
-        [ "impl", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1impl.html", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1impl" ]
-      ] ],
-      [ "encoder", "classjsonv_1_1encoder.html", "classjsonv_1_1encoder" ],
-      [ "ostream_encoder", "classjsonv_1_1ostream__encoder.html", "classjsonv_1_1ostream__encoder" ],
-      [ "ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", "classjsonv_1_1ostream__pretty__encoder" ],
-      [ "parse_error", "classjsonv_1_1parse__error.html", "classjsonv_1_1parse__error" ],
-      [ "parse_options", "classjsonv_1_1parse__options.html", "classjsonv_1_1parse__options" ],
-      [ "kind_error", "classjsonv_1_1kind__error.html", "classjsonv_1_1kind__error" ],
-      [ "value", "classjsonv_1_1value.html", "classjsonv_1_1value" ]
-    ] ],
-    [ "std", null, [
-      [ "hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", "structstd_1_1hash_3_01jsonv_1_1value_01_4" ]
-    ] ]
+    [ "jsonv::detail::array_impl", "classjsonv_1_1detail_1_1array__impl.html", "classjsonv_1_1detail_1_1array__impl" ],
+    [ "jsonv::value::basic_array_iterator< T, TArrayView >", "structjsonv_1_1value_1_1basic__array__iterator.html", "structjsonv_1_1value_1_1basic__array__iterator" ],
+    [ "jsonv::value::basic_object_iterator< T >", "structjsonv_1_1value_1_1basic__object__iterator.html", "structjsonv_1_1value_1_1basic__object__iterator" ],
+    [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", "classjsonv_1_1detail_1_1basic__view" ],
+    [ "jsonv::detail::cloneable< T >", "structjsonv_1_1detail_1_1cloneable.html", "structjsonv_1_1detail_1_1cloneable" ],
+    [ "jsonv::object_iter_converter< value::object_value_type >::const_impl", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1const__impl.html", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1const__impl" ],
+    [ "jsonv::object_iter_converter< const value::object_value_type >::const_impl", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1const__impl.html", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1const__impl" ],
+    [ "jsonv::detail::decode_error", "classjsonv_1_1detail_1_1decode__error.html", "classjsonv_1_1detail_1_1decode__error" ],
+    [ "jsonv::encoder", "classjsonv_1_1encoder.html", "classjsonv_1_1encoder" ],
+    [ "jsonv::detail::fixed_map< TKey, TValue, KCount, FCompare >", "classjsonv_1_1detail_1_1fixed__map.html", "classjsonv_1_1detail_1_1fixed__map" ],
+    [ "std::hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", "structstd_1_1hash_3_01jsonv_1_1value_01_4" ],
+    [ "jsonv::object_iter_converter< value::object_value_type >::impl", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1impl.html", "unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1impl" ],
+    [ "jsonv::object_iter_converter< const value::object_value_type >::impl", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1impl.html", "unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1impl" ],
+    [ "jsonv::kind_error", "classjsonv_1_1kind__error.html", "classjsonv_1_1kind__error" ],
+    [ "jsonv::detail::object_impl", "classjsonv_1_1detail_1_1object__impl.html", "classjsonv_1_1detail_1_1object__impl" ],
+    [ "jsonv::object_iter_converter< const value::object_value_type >", "structjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4.html", null ],
+    [ "jsonv::object_iter_converter< value::object_value_type >", "structjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4.html", null ],
+    [ "jsonv::ostream_encoder", "classjsonv_1_1ostream__encoder.html", "classjsonv_1_1ostream__encoder" ],
+    [ "jsonv::ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", "classjsonv_1_1ostream__pretty__encoder" ],
+    [ "jsonv::detail::parse_context", "structjsonv_1_1detail_1_1parse__context.html", "structjsonv_1_1detail_1_1parse__context" ],
+    [ "jsonv::parse_error", "classjsonv_1_1parse__error.html", "classjsonv_1_1parse__error" ],
+    [ "jsonv::parse_options", "classjsonv_1_1parse__options.html", "classjsonv_1_1parse__options" ],
+    [ "jsonv::parse_error::problem", "structjsonv_1_1parse__error_1_1problem.html", "structjsonv_1_1parse__error_1_1problem" ],
+    [ "jsonv::detail::string_impl", "classjsonv_1_1detail_1_1string__impl.html", "classjsonv_1_1detail_1_1string__impl" ],
+    [ "jsonv::detail::string_ref", "classjsonv_1_1detail_1_1string__ref.html", "classjsonv_1_1detail_1_1string__ref" ],
+    [ "jsonv::value", "classjsonv_1_1value.html", "classjsonv_1_1value" ],
+    [ "jsonv::detail::value_storage", "unionjsonv_1_1detail_1_1value__storage.html", "unionjsonv_1_1detail_1_1value__storage" ]
 ];

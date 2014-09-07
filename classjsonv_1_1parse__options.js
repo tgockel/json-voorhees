@@ -1,14 +1,7 @@
 var classjsonv_1_1parse__options =
 [
-    [ "encoding", "classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593", [
-      [ "utf8", "classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593a30df7f629fcf6b940bcaef5faf2490bb", null ],
-      [ "cesu8", "classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593a159a360043681b5483450ff467a249c9", null ]
-    ] ],
-    [ "on_error", "classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46", [
-      [ "fail_immediately", "classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a7f3f1b58c7258329fb2c00f4c650f234", null ],
-      [ "collect_all", "classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46aa4fe11e30184295390723e94c1484fc3", null ],
-      [ "ignore", "classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a567bc1d268f135496de3d5b946b691f3", null ]
-    ] ],
+    [ "encoding", "classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593", null ],
+    [ "on_error", "classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46", null ],
     [ "parse_options", "classjsonv_1_1parse__options.html#a64ef230fb92f599ead9937bb95c168d4", null ],
     [ "~parse_options", "classjsonv_1_1parse__options.html#aa54c494b2ac06f9d9c8ab58ab448e9a5", null ],
     [ "failure_mode", "classjsonv_1_1parse__options.html#a75a888abc837bf83556f2b144a400eeb", null ],
