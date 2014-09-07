@@ -6,6 +6,8 @@ before_install:
     -in  config/travisci_rsa.enc
     -out config/travisci_rsa
     -d
+  - chmod 0600 config/travisci_rsa
+  - cp config/travisci_rsa ~/.ssh/id_rsa
 install:
   - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
   - sudo apt-add-repository --yes ppa:boost-latest/ppa
