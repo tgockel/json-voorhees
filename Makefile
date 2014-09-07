@@ -62,6 +62,7 @@ CONF        ?= release
 HEADER_DIR  ?= include
 SRC_DIR     ?= src
 BUILD_ROOT  ?= build
+DOC_DIR     ?= $(BUILD_ROOT)/doc
 BUILD_DIR   ?= $(BUILD_ROOT)/$(CONF)
 OBJ_DIR     ?= $(BUILD_DIR)/obj
 DEP_DIR     ?= $(BUILD_DIR)/dep
@@ -170,3 +171,7 @@ clean-src :
 	$(QQ)echo " RM    $(SRC_DIR)/**/*~"
 	$Qfind $(SRC_DIR)     -name '*~' -delete
 	$Qfind $(INCLUDE_DIR) -name '*~' -delete
+
+doxygen :
+	$(QQ)echo " DOXY  $(DOC_DIR)"
+	$Qdoxygen config/Doxyfile
