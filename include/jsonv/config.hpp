@@ -161,6 +161,8 @@
 #   endif
 #elif !defined(JSONV_REGEX_NAMESPACE)
 #   error "JSONV_REGEX_NAMESPACE is unset, but JSONV_REGEX_INCLUDE is. You must set both."
+#elif defined(JSONV_REGEX_NAMESPACE)
+#   error "JSONV_REGEX_INCLUDE is unset, but JSONV_REGEX_NAMESPACE is. You must set both."
 #endif
 
 #endif/*__JSONV_CONFIG_HPP_INCLUDED__*/
