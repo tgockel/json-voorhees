@@ -11,6 +11,12 @@
 #ifndef __TEST_JSONV_TEST_HPP_INCLUDED__
 #define __TEST_JSONV_TEST_HPP_INCLUDED__
 
+#define ASSERT_ON_TEST_FAILURE 0
+
+#if ASSERT_ON_TEST_FAILURE
+#   include <cassert>
+#endif
+
 #include <deque>
 #include <sstream>
 #include <string>
@@ -23,7 +29,6 @@ class unit_test;
 typedef std::deque<unit_test*> unit_test_list_type;
 unit_test_list_type& get_unit_tests();
 
-#define ASSERT_ON_TEST_FAILURE 0
 #if ASSERT_ON_TEST_FAILURE
 #   define ensure assert
 #else
