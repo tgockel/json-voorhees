@@ -8,8 +8,8 @@ install:
   - sudo apt-get install --yes g++-4.8 clang-3.3 libboost1.55-all-dev
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 script:
-  - make CONF=debug BUILD_DIR=debug-gcc   VERBOSE=1 CXX_COMPILER=g++     test
-  - make CONF=debug BUILD_DIR=debug-clang VERBOSE=1 CXX_COMPILER=clang++ test CXX_WARNINGS=''
+  - make CONF=debug BUILD_DIR=debug-gcc   VERBOSE=1 CXX_COMPILER=g++     USE_BOOST_REGEX=1 test
+  - make CONF=debug BUILD_DIR=debug-clang VERBOSE=1 CXX_COMPILER=clang++ USE_BOOST_REGEX=1 test CXX_WARNINGS=''
 after_success:
   - sudo apt-get install --yes doxygen graphviz
   - openssl aes-256-cbc
