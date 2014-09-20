@@ -48,6 +48,26 @@ specific language governing permissions and limitations under the License.
 Miscellaneous
 =============
 
+Compiler Support
+----------------
+
+ - Supported
+     - GCC 4.9+
+     - GCC 4.8 (with [Boost.Regex][Boost.Regex])
+     - Clang 3.3+ (with [Boost.Regex][Boost.Regex])
+ - Unplanned
+     - MSVC
+
+While GCC 4.8 and Clang 3.3 are supported, you must compile them with `make USE_BOOST_REGEX=1`.
+Early versions will happy compile regular expressions, but will fail at runtime with a `regex_error`, which is not very
+ useful.
+However, you can use [Boost.Regex][Boost.Regex] as the regular expression engine for compilers with incomplete `<regex>`
+ implementations.
+The downside of this is your application must link with the Boost libraries (`-lboost_regex -lboost_system`).
+
+In the long-term, this library should be ported to MSVC, but there is no timeline for doing so at the moment.
+For progress updates, check in at [the MSVC support issue](https://github.com/tgockel/json-voorhees/issues/7).
+
 Versioning
 ----------
 
@@ -101,6 +121,8 @@ The drawback to this route is a needlessly lengthened resultant encoding if all 
  deal with UTF-8.
 There is an [outstanding issue][encode-utf8] to address this shortcoming.
 
+ [Boost.Regex]: http://www.boost.org/doc/libs/1_56_0/libs/regex/doc/html/index.html
+    "The Boost.Regex library"
  [decode-non-utf8]: https://github.com/tgockel/json-voorhees/issues/10
     "Decode numeric encodings into arbitrarily encoded std::string"
  [encode-utf8]: https://github.com/tgockel/json-voorhees/issues/11
