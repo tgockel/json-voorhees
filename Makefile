@@ -52,11 +52,31 @@ define MAKEFILE_EXTENSION_TEMPLATE
 endef
 $(foreach extension,$(MAKEFILE_EXTENSIONS),$(eval $(call MAKEFILE_EXTENSION_TEMPLATE,$(extension))))
 
-JSONV_VERSION = 0.3.-1
+################################################################################
+# Configuration                                                                #
+################################################################################
+
+# def: USE_BOOST_REGEX
+# Controls the variable JSONV_REGEX_USE_BOOST (see C++ documentation).
+USE_BOOST_REGEX ?= 0
+
+# def: BOOST_REGEX_LIB
+# The library flag used to link to if USE_BOOST_REGEX is 1.
+BOOST_REGEX_LIB ?= -lboost_regex
+
+# def: BOOST_SYSTEM_LIB
+# The library flag used to link to if USE_BOOST_REGEX is 1.
+BOOST_SYSTEM_LIB ?= -lboost_system
+
+JSONV_VERSION ?= 0.3.-1
 
 ifeq ($(.DEFAULT_GOAL),)
   .DEFAULT_GOAL := jsonv
 endif
+
+################################################################################
+# Build Paths                                                                  #
+################################################################################
 
 CONF        ?= release
 HEADER_DIR  ?= include
@@ -93,23 +113,16 @@ $(foreach dep,$(DEP_FILES),$(eval -include $(dep)))
 LIBRARIES = $(patsubst $(SRC_DIR)/%,%,$(wildcard $(SRC_DIR)/*))
 TESTS     = $(filter %-tests,$(LIBRARIES))
 
-define LIBRARY_TEMPLATE
-  $1_SYMBOL        = $$(subst -,_,$$(shell echo $1 | tr '[:lower:]' '[:upper:]'))
-  $1_OBJS          = $$(filter $$(OBJ_DIR)/$1/%,$$(OBJ_FILES))
-  $1_LIB_FILES     = $$(patsubst %,$$(LIB_DIR)/lib%.so,$$($1_LIBS))
-  $1_LD_LIBRARIES  = $$(patsubst %,-l%,$$($1_LIBS)) $$(LD_LIBRARIES)
-
-  $1 : $$(LIB_DIR)/lib$1.a $$(LIB_DIR)/lib$1.so.$$(JSONV_VERSION) $$(LIB_DIR)/lib$1.so
-endef
-
-$(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_TEMPLATE,$(lib))))
+################################################################################
+# Compiler Settings                                                            #
+################################################################################
 
 CXX           = $(CXX_COMPILER) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
 CXX_COMPILER ?= c++
 CXX_FLAGS    ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
 CXX_INCLUDES ?= -I$(SRC_DIR) -I$(HEADER_DIR)
 CXX_STANDARD ?= --std=c++11
-CXX_DEFINES  ?= 
+CXX_DEFINES  ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)
 CXX_WARNINGS ?= -Werror -Wall -Wextra
 LD            = $(CXX_COMPILER) $(LD_PATHS) $(LD_FLAGS)
 LD_FLAGS     ?= 
@@ -122,7 +135,30 @@ SO_LIBRARIES ?=
 
 CXX_FLAGS_release = -O3
 
+################################################################################
+# Libraries                                                                    #
+################################################################################
+
+define LIBRARY_TEMPLATE
+  $1_SYMBOL        = $$(subst -,_,$$(shell echo $1 | tr '[:lower:]' '[:upper:]'))
+  $1_OBJS          = $$(filter $$(OBJ_DIR)/$1/%,$$(OBJ_FILES))
+  $1_LIB_FILES     = $$(patsubst %,$$(LIB_DIR)/lib%.so,$$($1_LIBS))
+  $1_LD_LIBRARIES  = $$(patsubst %,-l%,$$($1_LIBS)) $$(LD_LIBRARIES)
+
+  $1 : $$(LIB_DIR)/lib$1.a $$(LIB_DIR)/lib$1.so.$$(JSONV_VERSION) $$(LIB_DIR)/lib$1.so
+endef
+
+$(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_TEMPLATE,$(lib))))
+
 jsonv-tests_LIBS = jsonv
+
+ifeq ($(USE_BOOST_REGEX),1)
+  jsonv-tests_LD_LIBRARIES += $(BOOST_REGEX_LIB) $(BOOST_SYSTEM_LIB)
+endif
+
+################################################################################
+# Build Recipes                                                                #
+################################################################################
 
 $(OBJ_DIR)/%.cpp.o : $(SRC_DIR)/%.cpp
 	$(QQ)echo " CXX   $*.cpp"
@@ -160,6 +196,10 @@ define TEST_TEMPLATE
 endef
 
 $(foreach test,$(TESTS),$(eval $(call TEST_TEMPLATE,$(test))))
+
+################################################################################
+# Convenience                                                                  #
+################################################################################
 
 test : $(TESTS)
 
