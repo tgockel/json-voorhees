@@ -6,6 +6,7 @@ var files =
     [ "jsonv/forward.hpp", "forward_8hpp.html", null ],
     [ "jsonv/parse.hpp", "parse_8hpp.html", "parse_8hpp" ],
     [ "jsonv/string_ref.hpp", "string__ref_8hpp.html", null ],
+    [ "jsonv/tokenizer.hpp", "tokenizer_8hpp.html", "tokenizer_8hpp" ],
     [ "jsonv/value.hpp", "value_8hpp.html", "value_8hpp" ],
     [ "jsonv/detail/basic_view.hpp", "basic__view_8hpp.html", null ],
     [ "jsonv/detail/string_ref.hpp", "detail_2string__ref_8hpp.html", null ],
@@ -19,6 +20,9 @@ var files =
     [ "jsonv/object.cpp", "object_8cpp.html", "object_8cpp" ],
     [ "jsonv/object.hpp", "object_8hpp.html", null ],
     [ "jsonv/parse.cpp", "parse_8cpp.html", "parse_8cpp" ],
+    [ "jsonv/tokenizer.cpp", "tokenizer_8cpp.html", "tokenizer_8cpp" ],
     [ "jsonv/value.cpp", "value_8cpp.html", "value_8cpp" ],
-    [ "jsonv/detail/fixed_map.hpp", "fixed__map_8hpp.html", null ]
+    [ "jsonv/detail/fixed_map.hpp", "fixed__map_8hpp.html", null ],
+    [ "jsonv/detail/token_patterns.cpp", "token__patterns_8cpp.html", "token__patterns_8cpp" ],
+    [ "jsonv/detail/token_patterns.hpp", "token__patterns_8hpp.html", "token__patterns_8hpp" ]
 ];

@@ -105,6 +105,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr><td class="indexkey">jsonv/<a class="el" href="forward_8hpp.html">forward.hpp</a> <a href="forward_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/<a class="el" href="parse_8hpp.html">parse.hpp</a> <a href="parse_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/<a class="el" href="string__ref_8hpp.html">string_ref.hpp</a> <a href="string__ref_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">jsonv/<a class="el" href="tokenizer_8hpp.html">tokenizer.hpp</a> <a href="tokenizer_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/<a class="el" href="value_8hpp.html">value.hpp</a> <a href="value_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/detail/<a class="el" href="basic__view_8hpp.html">basic_view.hpp</a> <a href="basic__view_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/detail/<a class="el" href="detail_2string__ref_8hpp.html">string_ref.hpp</a> <a href="detail_2string__ref_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
@@ -118,8 +119,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr><td class="indexkey">jsonv/<a class="el" href="object_8cpp.html">object.cpp</a> <a href="object_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/<a class="el" href="object_8hpp.html">object.hpp</a> <a href="object_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/<a class="el" href="parse_8cpp.html">parse.cpp</a> <a href="parse_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">jsonv/<a class="el" href="tokenizer_8cpp.html">tokenizer.cpp</a> <a href="tokenizer_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/<a class="el" href="value_8cpp.html">value.cpp</a> <a href="value_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">jsonv/detail/<a class="el" href="fixed__map_8hpp.html">fixed_map.hpp</a> <a href="fixed__map_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">jsonv/detail/<a class="el" href="token__patterns_8cpp.html">token_patterns.cpp</a> <a href="token__patterns_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">jsonv/detail/<a class="el" href="token__patterns_8hpp.html">token_patterns.hpp</a> <a href="token__patterns_8hpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
 </table>
 </div><!-- contents -->
 <!-- window showing the filter options -->
@@ -127,7 +131,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Defines</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">

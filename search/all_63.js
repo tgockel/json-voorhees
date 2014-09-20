@@ -15,5 +15,6 @@ var searchData=
   ['config_2ehpp',['config.hpp',['../config_8hpp.html',1,'']]],
   ['const_5fimpl',['const_impl',['../unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1const__impl.html',1,'jsonv::object_iter_converter&lt; value::object_value_type &gt;']]],
   ['const_5fimpl',['const_impl',['../unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1const__impl.html',1,'jsonv::object_iter_converter&lt; const value::object_value_type &gt;']]],
-  ['count',['count',['../group__Object.html#ga1c4a2ec8babfcc880c0ac4c7cb4fe7c4',1,'jsonv::value']]]
+  ['count',['count',['../group__Object.html#ga1c4a2ec8babfcc880c0ac4c7cb4fe7c4',1,'jsonv::value']]],
+  ['current',['current',['../classjsonv_1_1tokenizer.html#a04b97c7eb46a9e9ec1b0247161c2354c',1,'jsonv::tokenizer']]]
 ];

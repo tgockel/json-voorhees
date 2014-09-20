@@ -6,5 +6,6 @@ var searchData=
   ['basic_5fview',['basic_view',['../classjsonv_1_1detail_1_1basic__view.html',1,'jsonv::detail']]],
   ['basic_5fview_2ehpp',['basic_view.hpp',['../basic__view_8hpp.html',1,'']]],
   ['begin_5farray',['begin_array',['../group__Array.html#gacfd0272902a2f13d2c78353f0374434f',1,'jsonv::value']]],
-  ['begin_5fobject',['begin_object',['../group__Object.html#gaa4019824c87b97ac16b217960b1f12ed',1,'jsonv::value']]]
+  ['begin_5fobject',['begin_object',['../group__Object.html#gaa4019824c87b97ac16b217960b1f12ed',1,'jsonv::value']]],
+  ['buffer_5freserve',['buffer_reserve',['../classjsonv_1_1tokenizer.html#a23b1a2cf8aa90aa52e4f0a104577e15a',1,'jsonv::tokenizer']]]
 ];
