@@ -28,6 +28,32 @@ namespace jsonv
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// kind                                                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::ostream& operator<<(std::ostream& os, const kind& k)
+{
+    switch (k)
+    {
+        case kind::array:   return os << "array";
+        case kind::boolean: return os << "boolean";
+        case kind::decimal: return os << "decimal";
+        case kind::integer: return os << "integer";
+        case kind::null:    return os << "null";
+        case kind::object:  return os << "object";
+        case kind::string:  return os << "string";
+        default:            return os << "kind(" << static_cast<int>(k) << ")";
+    }
+}
+
+std::string to_string(const kind& k)
+{
+    std::ostringstream ss;
+    ss << k;
+    return ss.str();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // kind_error                                                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -358,6 +384,13 @@ std::ostream& operator<<(std::ostream& stream, const value& val)
     ostream_encoder encoder(stream);
     encoder.encode(val);
     return stream;
+}
+
+std::string to_string(const value& val)
+{
+    std::ostringstream os;
+    os << val;
+    return os.str();
 }
 
 bool value::empty() const

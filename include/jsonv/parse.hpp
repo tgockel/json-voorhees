@@ -196,7 +196,7 @@ value JSONV_PUBLIC parse(const char* input, std::size_t length, const parse_opti
  *  
  *  \see parse(const char*, std::size_t length)
  *  
- *  \example
+ *  \example "parse(std::istream&, const parse_options&)"
  *  Parse JSON from some file.
  *  \code
  *  std::ifstream file("file.json");
@@ -209,7 +209,7 @@ value JSONV_PUBLIC parse(std::istream& input, const parse_options& = parse_optio
  *  
  *  \see parse(const char*, std::size_t length)
  * 
- *  \example
+ *  \example "parse(const std::string&, const parse_options&)"
  *  Simple input parsing.
  *  \code
  *  jsonv::value out = jsonv::parse("{ \"my_input\": [4, 5, [], [6, 7, 8]] }");
@@ -220,7 +220,7 @@ value JSONV_PUBLIC parse(const std::string& input, const parse_options& = parse_
 /** Reads a JSON value from a buffered \c tokenizer. This less convenient function is useful when setting
  *  \c parse_options::complete_parse to \c false.
  *  
- *  \example
+ *  \example "parse(tokenizer&, const parse_options&)"
  *  \code
  *  tcp_stream input(get_network_stream());
  *  jsonv::tokenizer buffered(input);

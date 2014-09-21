@@ -61,6 +61,12 @@ enum class kind : unsigned char
     boolean
 };
 
+/** Print out the name of the \c kind. **/
+JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const kind&);
+
+/** Get the name of the \c kind. **/
+JSONV_PUBLIC std::string to_string(const kind&);
+
 /** Thrown from various \c value methods when attempting to perform an operation which is not valid for the \c kind of
  *  value.
 **/
@@ -250,8 +256,15 @@ public:
         size_type   _index;
     };
     
+    /** The \c array_iterator is applicable when \c get_kind is \c kind::array. It allows you to use algorithms as if
+     *  a \c value was a normal sequence container.
+    **/
     typedef basic_array_iterator<value, value>                       array_iterator;
     typedef basic_array_iterator<const value, const value>           const_array_iterator;
+    
+    /** If \c get_kind is \c kind::array, an \c array_view allows you to access a value as a sequence container. This is
+     *  most useful for range-based for loops.
+    **/
     typedef detail::basic_view<array_iterator, const_array_iterator> array_view;
     typedef detail::basic_view<const_array_iterator>                 const_array_view;
     
@@ -345,24 +358,50 @@ public:
         char _storage[sizeof(void*)];
     };
     
+    /** The type of value stored when \c get_kind is \c kind::object. **/
     typedef std::pair<const std::string, value>                        object_value_type;
+    
+    /** The \c object_iterator is applicable when \c get_kind is \c kind::object. It allows you to use algorithms as if
+     *  a \c value was a normal associative container.
+    **/
     typedef basic_object_iterator<object_value_type>                   object_iterator;
     typedef basic_object_iterator<const object_value_type>             const_object_iterator;
+    
+    /** If \c get_kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
+     *  This is most useful for range-based for loops.
+    **/
     typedef detail::basic_view<object_iterator, const_object_iterator> object_view;
     typedef detail::basic_view<const_object_iterator>                  const_object_view;
     
     /** \} **/
     
 public:
-    /// Default-construct this to null.
+    /** Default-construct this to null. **/
     value();
+    
+    /** Create a \c kind::null. **/
     value(std::nullptr_t);
+    
+    /** Copy the contents of \a source into a new instance. **/
     value(const value& source);
-    value(const std::string& val);
-    value(const char* val);
-    value(int64_t val);
-    value(double val);
-    value(bool val);
+    
+    /** Create a \c kind::string with the given \a value. **/
+    value(const std::string& value);
+    
+    /** Create a \c kind::string with the given \a value.
+     *  
+     *  \param value The value to create with. This must be null-terminated.
+    **/
+    value(const char* value);
+    
+    /** Create a \c kind::integer with the given \a value. **/
+    value(int64_t value);
+    
+    /** Create a \c kind::decimal with the given \a value. **/
+    value(double value);
+    
+    /** Create a \c kind::boolean with the given \a value. **/
+    value(bool value);
     
     #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR(type_)              \
         value(type_ val);
@@ -483,7 +522,11 @@ public:
     bool operator<=(const value& other) const;
     bool operator>=(const value& other) const;
     
+    /** Output this value to a stream. **/
     friend std::ostream& operator<<(std::ostream& stream, const value& val);
+    
+    /** Get a string representation of the given \c value. **/
+    friend std::string to_string(const value&);
     
     /** \} **/
     

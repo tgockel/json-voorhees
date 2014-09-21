@@ -181,7 +181,15 @@ private:
     std::ostream& _output;
 };
 
-/** Like \c ostream_encoder, but pretty prints output to an \c std::ostream. **/
+/** Like \c ostream_encoder, but pretty prints output to an \c std::ostream.
+ *  
+ *  \example "ostream_pretty_encoder to pretty-print JSON to std::cout"
+ *  \code
+ *  jsonv::ostream_pretty_encoder encoder(std::cout);
+ *  encoder.encode(some_value);
+ *  encoder.encode(another_value);
+ *  \endcode
+**/
 class JSONV_PUBLIC ostream_pretty_encoder :
         public ostream_encoder
 {
