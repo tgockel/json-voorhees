@@ -6,10 +6,20 @@
 0._ Series
 ==========
 
-[0.3 (future)](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.3)
-----------------------------------------------------------------------------------
+[0.3](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.3)
+-------------------------------------------------------------------------
 
 The main focus of this release is access and modification of the low-level parsing and encoding system.
+
+ - [0.3.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.3.0): 2014 September 21
+    - Creates `tokenizer` for easier access to JSON parsing
+    - Creates `encode` for customization of JSON output
+    - Creates `value::array_view` and `value::object_view` for use in range-based for loops
+    - Creates the `make install` recipe (with customization of versioned SOs)
+    - Re-write of the parsing system to be stream-based so not everything has to reside in memory at the same time
+    - Expose `string_ref` as part of the `encode` and `tokenizer` systems
+    - Improved exception-handling in `value`
+    - Improved documentation, including automatic Doxygen generation with Travis CI
 
 0.2
 ---
