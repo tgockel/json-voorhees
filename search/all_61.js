@@ -2,6 +2,8 @@ var searchData=
 [
   ['all_2ehpp',['all.hpp',['../all_8hpp.html',1,'']]],
   ['array',['array',['../classjsonv_1_1value.html#aa1fd9607c1bf9834c565f36ebc7a2086',1,'jsonv::value::array()'],['../group__Creation.html#gaee0b1767f4ec42adc02c5b0bb0781b91',1,'jsonv::array()'],['../group__Creation.html#ga4f0838289f72088c6a079e00140efda2',1,'jsonv::array(std::initializer_list&lt; value &gt; source)'],['../group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed',1,'jsonv::array(TForwardIterator first, TForwardIterator last)']]],
+  ['array_5fiterator',['array_iterator',['../group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf',1,'jsonv::value']]],
+  ['array_5fview',['array_view',['../group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f',1,'jsonv::value']]],
   ['as_5farray',['as_array',['../group__Array.html#ga8a825f07236530cdf01e0414bb75161f',1,'jsonv::value']]],
   ['as_5fboolean',['as_boolean',['../group__Conversions.html#ga918c6bb19f30df4caf86b99ed2e384b1',1,'jsonv::value']]],
   ['as_5fdecimal',['as_decimal',['../group__Conversions.html#gaa2768ae7e25318573327571b007c8df5',1,'jsonv::value']]],

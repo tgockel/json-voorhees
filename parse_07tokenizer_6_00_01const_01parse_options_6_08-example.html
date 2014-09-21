@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>JSON Voorhees: /home/travis/build/tgockel/json-voorhees/include/jsonv/parse.hpp</title>
+<title>JSON Voorhees: parse(tokenizer&amp;, const parse_options&amp;)</title>
 
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
@@ -85,27 +85,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-  initNavTree('_2home_2travis_2build_2tgockel_2json-voorhees_2include_2jsonv_2parse_8hpp-example.html','');
+  initNavTree('parse_07tokenizer_6_00_01const_01parse_options_6_08-example.html','');
 </script>
 <div id="doc-content">
 <div class="header">
   <div class="headertitle">
-<div class="title">/home/travis/build/tgockel/json-voorhees/include/jsonv/parse.hpp</div>  </div>
+<div class="title">parse(tokenizer&amp;, const parse_options&amp;)</div>  </div>
 </div><!--header-->
 <div class="contents">
-<p>Reads a JSON value from the input stream.</p>
-<dl class="see"><dt><b>See also:</b></dt><dd>parse(const char*, std::size_t length)</dd></dl>
-<p>Parse JSON from some file. </p>
-<div class="fragment"><pre class="fragment">  std::ifstream file(<span class="stringliteral">&quot;file.json&quot;</span>);
-  <a name="_a0"></a><a class="code" href="classjsonv_1_1value.html">jsonv::value</a> out = parse(file);
-</pre></div><div class="fragment"><pre class="fragment"></pre></div> </div><!-- contents -->
+<p>Reads a JSON value from a buffered <code>tokenizer</code>. This less convenient function is useful when setting <code>parse_options::complete_parse</code> to <code>false</code>.</p>
+<div class="fragment"><pre class="fragment">  tcp_stream input(get_network_stream());
+  <a name="_a0"></a><a class="code" href="classjsonv_1_1tokenizer.html">jsonv::tokenizer</a> buffered(input);
+  <a name="_a1"></a><a class="code" href="classjsonv_1_1parse__options.html">jsonv::parse_options</a> options = <a class="code" href="classjsonv_1_1parse__options.html">jsonv::parse_options</a>().<a name="a2"></a><a class="code" href="classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907">complete_parse</a>(<span class="keyword">false</span>);
+  <a name="_a3"></a><a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = parse(buffered, options);
+  <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> y = parse(buffered, options);
+</pre></div><div class="fragment"><pre class="fragment"></pre></div><p>(tokenizer&amp;, const parse_options&amp;) </p>
+</div><!-- contents -->
 </div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Defines</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">

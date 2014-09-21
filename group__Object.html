@@ -103,19 +103,16 @@ Classes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">jsonv::value::basic_object_iterator&lt; T &gt;</a></td></tr>
 <tr><td colspan="2"><h2><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabf0673825595a5326e65544af770b4dd"></a><!-- doxytag: member="Object::object_value_type" ref="gabf0673825595a5326e65544af770b4dd" args="" -->
-typedef std::pair&lt; const <br class="typebreak"/>
-std::string, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::object_value_type</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabe865fe7b043bceae9f2630410e406b7"></a><!-- doxytag: member="Object::object_iterator" ref="gabe865fe7b043bceae9f2630410e406b7" args="" -->
-typedef basic_object_iterator<br class="typebreak"/>
-&lt; object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::object_iterator</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef std::pair&lt; const <br class="typebreak"/>
+std::string, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">jsonv::value::object_value_type</a></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef basic_object_iterator<br class="typebreak"/>
+&lt; object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">jsonv::value::object_iterator</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaee495e9858cbf3a238f80afd946fbd8c"></a><!-- doxytag: member="Object::const_object_iterator" ref="gaee495e9858cbf3a238f80afd946fbd8c" args="" -->
 typedef basic_object_iterator<br class="typebreak"/>
 &lt; const object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_object_iterator</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga39d2820f80eac817a14d5e129de46449"></a><!-- doxytag: member="Object::object_view" ref="ga39d2820f80eac817a14d5e129de46449" args="" -->
-typedef detail::basic_view<br class="typebreak"/>
+<tr><td class="memItemLeft" align="right" valign="top">typedef detail::basic_view<br class="typebreak"/>
 &lt; object_iterator, <br class="typebreak"/>
-const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::object_view</b></td></tr>
+const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">jsonv::value::object_view</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f27cda168f235ef55974fa3d6a9e4e3"></a><!-- doxytag: member="Object::const_object_view" ref="ga8f27cda168f235ef55974fa3d6a9e4e3" args="" -->
 typedef detail::basic_view<br class="typebreak"/>
 &lt; const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_object_view</b></td></tr>
@@ -175,6 +172,55 @@ size_type&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::er
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <p>The base iterator type for iterating over object types. It is a bidirectional iterator similar to a <code>std::map&lt;std::string, jsonv::value&gt;</code>.</p>
 <p>These functions are only applicable if the kind of this value is an object. </p>
+<hr/><h2>Typedef Documentation</h2>
+<a class="anchor" id="gabe865fe7b043bceae9f2630410e406b7"></a><!-- doxytag: member="jsonv::value::object_iterator" ref="gabe865fe7b043bceae9f2630410e406b7" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef basic_object_iterator&lt;object_value_type&gt; <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">jsonv::value::object_iterator</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>The <code>object_iterator</code> is applicable when <code>get_kind</code> is <code>kind::object</code>. It allows you to use algorithms as if a <code>value</code> was a normal associative container. </p>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00367">367</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="gabf0673825595a5326e65544af770b4dd"></a><!-- doxytag: member="jsonv::value::object_value_type" ref="gabf0673825595a5326e65544af770b4dd" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef std::pair&lt;const std::string, value&gt; <a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">jsonv::value::object_value_type</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>The type of value stored when <code>get_kind</code> is <code>kind::object</code>. </p>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00362">362</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ga39d2820f80eac817a14d5e129de46449"></a><!-- doxytag: member="jsonv::value::object_view" ref="ga39d2820f80eac817a14d5e129de46449" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef detail::basic_view&lt;object_iterator, const_object_iterator&gt; <a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">jsonv::value::object_view</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>If <code>get_kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container. This is most useful for range-based for loops. </p>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00373">373</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+
+</div>
+</div>
 <hr/><h2>Function Documentation</h2>
 <a class="anchor" id="ga3010bfd6b26473ffb3335ab6ac933c83"></a><!-- doxytag: member="jsonv::value::as_object" ref="ga3010bfd6b26473ffb3335ab6ac933c83" args="()" -->
 <div class="memitem">
@@ -460,7 +506,7 @@ template&lt;typename TForwardIterator &gt; </div>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00687">687</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00730">730</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -471,7 +517,7 @@ template&lt;typename TForwardIterator &gt; </div>
         <tr>
           <td class="memname">void <a class="el" href="group__Object.html#ga67921ba5990e8e07f9a0cf854524b746">jsonv::value::insert</a> </td>
           <td>(</td>
-          <td class="paramtype">std::initializer_list&lt; object_value_type &gt;&#160;</td>
+          <td class="paramtype">std::initializer_list&lt; <a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a> &gt;&#160;</td>
           <td class="paramname"><em>items</em></td><td>)</td>
           <td></td>
         </tr>
@@ -518,7 +564,7 @@ template&lt;typename TForwardIterator &gt; </div>
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Defines</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">

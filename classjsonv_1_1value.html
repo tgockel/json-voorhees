@@ -121,54 +121,40 @@ Public Types</h2></td></tr>
 typedef std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size_type</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0770ff7991544233967cf449c04fe56a"></a><!-- doxytag: member="jsonv::value::difference_type" ref="a0770ff7991544233967cf449c04fe56a" args="" -->
 typedef std::ptrdiff_t&#160;</td><td class="memItemRight" valign="bottom"><b>difference_type</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaa58d1fe3e62a974eb331287ede1771bf"></a><!-- doxytag: member="jsonv::value::array_iterator" ref="gaa58d1fe3e62a974eb331287ede1771bf" args="" -->
-typedef <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">basic_array_iterator</a><br class="typebreak"/>
-&lt; <a class="el" href="classjsonv_1_1value.html">value</a>, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>array_iterator</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">basic_array_iterator</a><br class="typebreak"/>
+&lt; <a class="el" href="classjsonv_1_1value.html">value</a>, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0c185bba74f386f6c82b5b5fccdd8197"></a><!-- doxytag: member="jsonv::value::const_array_iterator" ref="ga0c185bba74f386f6c82b5b5fccdd8197" args="" -->
 typedef <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">basic_array_iterator</a><br class="typebreak"/>
 &lt; const <a class="el" href="classjsonv_1_1value.html">value</a>, const <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_array_iterator</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5f593b7e5b1958a3f602cb809a9dc77f"></a><!-- doxytag: member="jsonv::value::array_view" ref="ga5f593b7e5b1958a3f602cb809a9dc77f" args="" -->
-typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
-&lt; <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">array_iterator</a>, <br class="typebreak"/>
-<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>array_view</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
+&lt; <a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>, <br class="typebreak"/>
+<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">array_view</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga54dd1d743ab887969271695d5477d966"></a><!-- doxytag: member="jsonv::value::const_array_view" ref="ga54dd1d743ab887969271695d5477d966" args="" -->
 typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
 &lt; <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_array_view</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabf0673825595a5326e65544af770b4dd"></a><!-- doxytag: member="jsonv::value::object_value_type" ref="gabf0673825595a5326e65544af770b4dd" args="" -->
-typedef std::pair&lt; const <br class="typebreak"/>
-std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>object_value_type</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabe865fe7b043bceae9f2630410e406b7"></a><!-- doxytag: member="jsonv::value::object_iterator" ref="gabe865fe7b043bceae9f2630410e406b7" args="" -->
-typedef <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a><br class="typebreak"/>
-&lt; object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>object_iterator</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef std::pair&lt; const <br class="typebreak"/>
+std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a><br class="typebreak"/>
+&lt; <a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaee495e9858cbf3a238f80afd946fbd8c"></a><!-- doxytag: member="jsonv::value::const_object_iterator" ref="gaee495e9858cbf3a238f80afd946fbd8c" args="" -->
 typedef <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a><br class="typebreak"/>
-&lt; const object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_object_iterator</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga39d2820f80eac817a14d5e129de46449"></a><!-- doxytag: member="jsonv::value::object_view" ref="ga39d2820f80eac817a14d5e129de46449" args="" -->
-typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
-&lt; <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>, <br class="typebreak"/>
-<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>object_view</b></td></tr>
+&lt; const <a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_object_iterator</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
+&lt; <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>, <br class="typebreak"/>
+<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">object_view</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f27cda168f235ef55974fa3d6a9e4e3"></a><!-- doxytag: member="jsonv::value::const_object_view" ref="ga8f27cda168f235ef55974fa3d6a9e4e3" args="" -->
 typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
 &lt; <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_object_view</b></td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a758c919cef3b8158e5275ff6b456a56e"></a><!-- doxytag: member="jsonv::value::value" ref="a758c919cef3b8158e5275ff6b456a56e" args="()" -->
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">value</a> ()</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default-construct this to null. <br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0f11d28ea224ed300b726a85f95cee2b"></a><!-- doxytag: member="jsonv::value::value" ref="a0f11d28ea224ed300b726a85f95cee2b" args="(std::nullptr_t)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> (std::nullptr_t)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aae8213bbe2c15829705a12e06f3a7291"></a><!-- doxytag: member="jsonv::value::value" ref="aae8213bbe2c15829705a12e06f3a7291" args="(const value &amp;source)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;source)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a887b7188760217b43ecb0903ad87aa06"></a><!-- doxytag: member="jsonv::value::value" ref="a887b7188760217b43ecb0903ad87aa06" args="(const std::string &amp;val)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> (const std::string &amp;val)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2ed193a66ebfedb16cc94a2916c7a2ac"></a><!-- doxytag: member="jsonv::value::value" ref="a2ed193a66ebfedb16cc94a2916c7a2ac" args="(const char *val)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> (const char *val)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a305a02e2cdb69c74ce17b7791b6b9524"></a><!-- doxytag: member="jsonv::value::value" ref="a305a02e2cdb69c74ce17b7791b6b9524" args="(int64_t val)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> (int64_t val)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4d42e6237baf44dd53c1e89c61eda4a8"></a><!-- doxytag: member="jsonv::value::value" ref="a4d42e6237baf44dd53c1e89c61eda4a8" args="(double val)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> (double val)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6a8c165b0096c50dbfec1540da756ffa"></a><!-- doxytag: member="jsonv::value::value" ref="a6a8c165b0096c50dbfec1540da756ffa" args="(bool val)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>value</b> (bool val)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">value</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a0f11d28ea224ed300b726a85f95cee2b">value</a> (std::nullptr_t)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aae8213bbe2c15829705a12e06f3a7291">value</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;source)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#acb44bcc2693282e3d4fd0d801d397f0c">value</a> (const std::string &amp;<a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#add1aa9ddf147119f88084f59985206b7">value</a> (const char *<a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#af07ce6b42b31433a68b4817082fab33a">value</a> (int64_t <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aec0cf35155ec31a268aa84283958eadc">value</a> (double <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a9fb9bbb669cecc911340ae74ca92b779">value</a> (bool <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
 <tr><td class="memTemplParams" colspan="2"><a class="anchor" id="a3fa41622af88df2d63394ad0bde9746f"></a><!-- doxytag: member="jsonv::value::value" ref="a3fa41622af88df2d63394ad0bde9746f" args="(T)" -->
 template&lt;typename T &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>value</b> (T)</td></tr>
@@ -194,13 +180,13 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;</b> (con
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;=</b> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabc765cf852dce2e36b54388ba5b5e42d"></a><!-- doxytag: member="jsonv::value::operator&gt;=" ref="gabc765cf852dce2e36b54388ba5b5e42d" args="(const value &amp;other) const " -->
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;=</b> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7">begin_array</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7">begin_array</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae72d43169a3807c8dfb0407e52f7d9a9"></a><!-- doxytag: member="jsonv::value::begin_array" ref="gae72d43169a3807c8dfb0407e52f7d9a9" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>begin_array</b> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8e46475135847419326f43bb8652030">end_array</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8e46475135847419326f43bb8652030">end_array</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab687f9758ca4b30d495255a2ce17923a"></a><!-- doxytag: member="jsonv::value::end_array" ref="gab687f9758ca4b30d495255a2ce17923a" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>end_array</b> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1detail_1_1basic__view.html">array_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">as_array</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">array_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">as_array</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0823c5565b91e8fcbcc1a78ced491fa5"></a><!-- doxytag: member="jsonv::value::as_array" ref="ga0823c5565b91e8fcbcc1a78ced491fa5" args="() const " -->
 <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">const_array_view</a>&#160;</td><td class="memItemRight" valign="bottom"><b>as_array</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga08a88ea17e35fd2c7844ce4c7768bf12">operator[]</a> (size_type idx)</td></tr>
@@ -222,15 +208,15 @@ const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><t
 <tr><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Array.html#ga02c37341353a2b3897d346ae153d6659">assign</a> (TForwardIterator first, TForwardIterator last)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaecce2dbe3b0d2064d3d713b67a99955a">assign</a> (std::initializer_list&lt; <a class="el" href="classjsonv_1_1value.html">value</a> &gt; items)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga961156664c4bf71ebe27c516be6d8ae9">resize</a> (size_type <a class="el" href="group__Object.html#ga7442b42d745e649222506080a05e3913">count</a>, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;val=<a class="el" href="classjsonv_1_1value.html">value</a>())</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga7b480563d0e93fc21018e088ac38646d">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> position)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga1a32487f57f0c8c6de20394e17d4f768">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> first, <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> last)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gacf1294913abd859ce337eac45c6d7426">begin_object</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga7b480563d0e93fc21018e088ac38646d">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> position)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga1a32487f57f0c8c6de20394e17d4f768">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> first, <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> last)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gacf1294913abd859ce337eac45c6d7426">begin_object</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5998bc7c9d1c9161656eb9c1cd9f3df4"></a><!-- doxytag: member="jsonv::value::begin_object" ref="ga5998bc7c9d1c9161656eb9c1cd9f3df4" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>begin_object</b> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad599aedf17cab734644ff0785741c54c"></a><!-- doxytag: member="jsonv::value::end_object" ref="gad599aedf17cab734644ff0785741c54c" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>end_object</b> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1detail_1_1basic__view.html">object_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga3010bfd6b26473ffb3335ab6ac933c83">as_object</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">object_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga3010bfd6b26473ffb3335ab6ac933c83">as_object</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae82b39c0e6c034caa7715bd301887075"></a><!-- doxytag: member="jsonv::value::as_object" ref="gae82b39c0e6c034caa7715bd301887075" args="() const " -->
 <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">const_object_view</a>&#160;</td><td class="memItemRight" valign="bottom"><b>as_object</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gab9121a691d21e33d03773489114cb623">operator[]</a> (const std::string &amp;key)</td></tr>
@@ -250,36 +236,36 @@ const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><t
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga7442b42d745e649222506080a05e3913">count</a> (const std::string &amp;key) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga4058b79cc67270e63729fe7dc62667f2"></a><!-- doxytag: member="jsonv::value::count" ref="ga4058b79cc67270e63729fe7dc62667f2" args="(const char *key) const " -->
 size_type&#160;</td><td class="memItemRight" valign="bottom"><b>count</b> (const char *key) const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a> (const std::string &amp;key)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a> (const std::string &amp;key)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gafbb3346e65eef447f22db3c9509f98f8"></a><!-- doxytag: member="jsonv::value::find" ref="gafbb3346e65eef447f22db3c9509f98f8" args="(const std::string &amp;key) const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>find</b> (const std::string &amp;key) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8eb3fb925ff15ad1956de5bab9016b80"></a><!-- doxytag: member="jsonv::value::find" ref="ga8eb3fb925ff15ad1956de5bab9016b80" args="(const char *key)" -->
-<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>find</b> (const char *key)</td></tr>
+<a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>find</b> (const char *key)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga7881404fbe4ab2303fde9c023d7a632f"></a><!-- doxytag: member="jsonv::value::find" ref="ga7881404fbe4ab2303fde9c023d7a632f" args="(const char *key) const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>find</b> (const char *key) const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga67921ba5990e8e07f9a0cf854524b746">insert</a> (const std::pair&lt; std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga67921ba5990e8e07f9a0cf854524b746">insert</a> (const std::pair&lt; std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae03a316705c4adeeb63a147f8c7da24f"></a><!-- doxytag: member="jsonv::value::insert" ref="gae03a316705c4adeeb63a147f8c7da24f" args="(const std::pair&lt; const char *, value &gt; &amp;pair)" -->
-std::pair&lt; <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (const std::pair&lt; const char *, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
+std::pair&lt; <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (const std::pair&lt; const char *, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga824e2a5e456d8ab1ccf33850c85e10e9"></a><!-- doxytag: member="jsonv::value::insert" ref="ga824e2a5e456d8ab1ccf33850c85e10e9" args="(const_object_iterator hint, const std::pair&lt; std::string, value &gt; &amp;pair)" -->
-<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> hint, const std::pair&lt; std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
+<a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> hint, const std::pair&lt; std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaed77e7679593001f946daf80354305ff"></a><!-- doxytag: member="jsonv::value::insert" ref="gaed77e7679593001f946daf80354305ff" args="(const_object_iterator hint, const std::pair&lt; const char *, value &gt; &amp;pair)" -->
-<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> hint, const std::pair&lt; const char *, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
+<a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> hint, const std::pair&lt; const char *, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; &amp;pair)</td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Object.html#ga5b86bbeebd1d761d9a4598ee4baabe42">insert</a> (TForwardIterator first, TForwardIterator last)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gadf5eb695d124e8d3d6c6fa935f868900">insert</a> (std::initializer_list&lt; object_value_type &gt; items)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gadf5eb695d124e8d3d6c6fa935f868900">insert</a> (std::initializer_list&lt; <a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a> &gt; items)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga322239e87583528d6f1e2c6e5a1de197"></a><!-- doxytag: member="jsonv::value::insert" ref="ga322239e87583528d6f1e2c6e5a1de197" args="(std::initializer_list&lt; std::pair&lt; const char *, value &gt;&gt; items)" -->
 void&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (std::initializer_list&lt; std::pair&lt; const char *, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&gt; items)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gae5ee259b187051fa86ec1980c05408f5">erase</a> (const std::string &amp;key)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga939d19e4e0407610d9a3b2081a164668"></a><!-- doxytag: member="jsonv::value::erase" ref="ga939d19e4e0407610d9a3b2081a164668" args="(const char *key)" -->
 size_type&#160;</td><td class="memItemRight" valign="bottom"><b>erase</b> (const char *key)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga3524ccad9a4188014c507454ca38fc8f">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> position)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gadff0cf180eac1aaa3e95972a4a1671ab">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> first, <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> last)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga3524ccad9a4188014c507454ca38fc8f">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> position)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gadff0cf180eac1aaa3e95972a4a1671ab">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> first, <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> last)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gafc0eb6d0e3b9a8dcfba8c36c19ced691">empty</a> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82">size</a> () const </td></tr>
 <tr><td colspan="2"><h2><a name="friends"></a>
 Friends</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gacff1f9d0e10df14e2a1440911e30ef7e"></a><!-- doxytag: member="jsonv::value::operator&lt;&lt;" ref="gacff1f9d0e10df14e2a1440911e30ef7e" args="(std::ostream &amp;stream, const value &amp;val)" -->
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;stream, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;val)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e">operator&lt;&lt;</a> (std::ostream &amp;stream, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;val)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gadac006e646d57212ae0de2f87917a584">to_string</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aa1fd9607c1bf9834c565f36ebc7a2086">array</a> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a04162079a8874da80f0f74a1babb423d">object</a> ()</td></tr>
 </table>
@@ -297,10 +283,159 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operato
 <dl class="see"><dt><b>See also:</b></dt><dd><a href="http://json.org/">http://json.org/</a> </dd>
 <dd>
 <a href="http://tools.ietf.org/html/rfc7159">http://tools.ietf.org/html/rfc7159</a> </dd></dl>
-<dl><dt><b>Examples: </b></dt><dd><a class="el" href="_2home_2travis_2build_2tgockel_2json-voorhees_2include_2jsonv_2parse_8hpp-example.html#_a0">/home/travis/build/tgockel/json-voorhees/include/jsonv/parse.hpp</a>.</dd>
+<dl><dt><b>Examples: </b></dt><dd><a class="el" href="parse_07const_01std_1_1string_6_00_01const_01parse_options_6_08-example.html#_a0">parse(const std::string&amp;, const parse_options&amp;)</a>, <a class="el" href="parse_07std_1_1istream_6_00_01const_01parse_options_6_08-example.html#_a0">parse(std::istream&amp;, const parse_options&amp;)</a>, and <a class="el" href="parse_07tokenizer_6_00_01const_01parse_options_6_08-example.html#_a3">parse(tokenizer&amp;, const parse_options&amp;)</a>.</dd>
 </dl>
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00106">106</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00112">112</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 </div><hr/><h2>Constructor &amp; Destructor Documentation</h2>
+<a class="anchor" id="a758c919cef3b8158e5275ff6b456a56e"></a><!-- doxytag: member="jsonv::value::value" ref="a758c919cef3b8158e5275ff6b456a56e" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Default-construct this to null. </p>
+
+</div>
+</div>
+<a class="anchor" id="a0f11d28ea224ed300b726a85f95cee2b"></a><!-- doxytag: member="jsonv::value::value" ref="a0f11d28ea224ed300b726a85f95cee2b" args="(std::nullptr_t)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramtype">std::nullptr_t&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a <code>kind::null</code>. </p>
+
+</div>
+</div>
+<a class="anchor" id="aae8213bbe2c15829705a12e06f3a7291"></a><!-- doxytag: member="jsonv::value::value" ref="aae8213bbe2c15829705a12e06f3a7291" args="(const value &amp;source)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Copy the contents of <em>source</em> into a new instance. </p>
+
+</div>
+</div>
+<a class="anchor" id="acb44bcc2693282e3d4fd0d801d397f0c"></a><!-- doxytag: member="jsonv::value::value" ref="acb44bcc2693282e3d4fd0d801d397f0c" args="(const std::string &amp;value)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a <code>kind::string</code> with the given <em>value</em>. </p>
+
+</div>
+</div>
+<a class="anchor" id="add1aa9ddf147119f88084f59985206b7"></a><!-- doxytag: member="jsonv::value::value" ref="add1aa9ddf147119f88084f59985206b7" args="(const char *value)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a <code>kind::string</code> with the given <em>value</em>.</p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">value</td><td>The value to create with. This must be null-terminated. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="af07ce6b42b31433a68b4817082fab33a"></a><!-- doxytag: member="jsonv::value::value" ref="af07ce6b42b31433a68b4817082fab33a" args="(int64_t value)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a <code>kind::integer</code> with the given <em>value</em>. </p>
+
+</div>
+</div>
+<a class="anchor" id="aec0cf35155ec31a268aa84283958eadc"></a><!-- doxytag: member="jsonv::value::value" ref="aec0cf35155ec31a268aa84283958eadc" args="(double value)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a <code>kind::decimal</code> with the given <em>value</em>. </p>
+
+</div>
+</div>
+<a class="anchor" id="a9fb9bbb669cecc911340ae74ca92b779"></a><!-- doxytag: member="jsonv::value::value" ref="a9fb9bbb669cecc911340ae74ca92b779" args="(bool value)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">jsonv::value::value</a> </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a <code>kind::boolean</code> with the given <em>value</em>. </p>
+
+</div>
+</div>
 <a class="anchor" id="aaa697e7d7823f2c3518978f9270a7699"></a><!-- doxytag: member="jsonv::value::~value" ref="aaa697e7d7823f2c3518978f9270a7699" args="() noexcept" -->
 <div class="memitem">
 <div class="memproto">
@@ -420,7 +555,7 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operato
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Defines</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">

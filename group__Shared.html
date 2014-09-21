@@ -117,8 +117,8 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operato
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82">jsonv::value::size</a> () const </td></tr>
 <tr><td colspan="2"><h2><a name="friend-members"></a>
 Friends</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gacff1f9d0e10df14e2a1440911e30ef7e"></a><!-- doxytag: member="Shared::operator&lt;&lt;" ref="gacff1f9d0e10df14e2a1440911e30ef7e" args="(std::ostream &amp;stream, const value &amp;val)" -->
-std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operator&lt;&lt;</b> (std::ostream &amp;stream, const value &amp;val)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e">jsonv::value::operator&lt;&lt;</a> (std::ostream &amp;stream, const value &amp;val)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gadac006e646d57212ae0de2f87917a584">jsonv::value::to_string</a> (const value &amp;)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <p>These functions are applicable to all kinds of values and have the same fundemental meaning for all kinds.</p>
@@ -211,7 +211,7 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 <div class="memdoc">
 <p>Get this value's kind. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00435">435</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00474">474</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -306,13 +306,60 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 
 </div>
 </div>
+<hr/><h2>Friends</h2>
+<a class="anchor" id="gacff1f9d0e10df14e2a1440911e30ef7e"></a><!-- doxytag: member="jsonv::value::operator&lt;&lt;" ref="gacff1f9d0e10df14e2a1440911e30ef7e" args="(std::ostream &amp;stream, const value &amp;val)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::ostream&amp; operator&lt;&lt; </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>stream</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td>
+          <td class="paramname"><em>val</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [friend]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Output this value to a stream. </p>
+
+</div>
+</div>
+<a class="anchor" id="gadac006e646d57212ae0de2f87917a584"></a><!-- doxytag: member="jsonv::value::to_string" ref="gadac006e646d57212ae0de2f87917a584" args="(const value &amp;)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string to_string </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td><code> [friend]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Get a string representation of the given <code>value</code>. </p>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Defines</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">

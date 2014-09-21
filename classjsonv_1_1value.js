@@ -14,11 +14,11 @@ var classjsonv_1_1value =
     [ "value", "classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e", null ],
     [ "value", "classjsonv_1_1value.html#a0f11d28ea224ed300b726a85f95cee2b", null ],
     [ "value", "classjsonv_1_1value.html#aae8213bbe2c15829705a12e06f3a7291", null ],
-    [ "value", "classjsonv_1_1value.html#a887b7188760217b43ecb0903ad87aa06", null ],
-    [ "value", "classjsonv_1_1value.html#a2ed193a66ebfedb16cc94a2916c7a2ac", null ],
-    [ "value", "classjsonv_1_1value.html#a305a02e2cdb69c74ce17b7791b6b9524", null ],
-    [ "value", "classjsonv_1_1value.html#a4d42e6237baf44dd53c1e89c61eda4a8", null ],
-    [ "value", "classjsonv_1_1value.html#a6a8c165b0096c50dbfec1540da756ffa", null ],
+    [ "value", "classjsonv_1_1value.html#acb44bcc2693282e3d4fd0d801d397f0c", null ],
+    [ "value", "classjsonv_1_1value.html#add1aa9ddf147119f88084f59985206b7", null ],
+    [ "value", "classjsonv_1_1value.html#af07ce6b42b31433a68b4817082fab33a", null ],
+    [ "value", "classjsonv_1_1value.html#aec0cf35155ec31a268aa84283958eadc", null ],
+    [ "value", "classjsonv_1_1value.html#a9fb9bbb669cecc911340ae74ca92b779", null ],
     [ "value", "classjsonv_1_1value.html#a3fa41622af88df2d63394ad0bde9746f", null ],
     [ "~value", "classjsonv_1_1value.html#aaa697e7d7823f2c3518978f9270a7699", null ],
     [ "value", "classjsonv_1_1value.html#a947b385a10eccc9e112c782ee675a848", null ],
@@ -95,5 +95,6 @@ var classjsonv_1_1value =
     [ "swap", "group__Shared.html#gacea6f1f938880b1b1761324e59abad83", null ],
     [ "array", "classjsonv_1_1value.html#aa1fd9607c1bf9834c565f36ebc7a2086", null ],
     [ "object", "classjsonv_1_1value.html#a04162079a8874da80f0f74a1babb423d", null ],
-    [ "operator<<", "group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e", null ]
+    [ "operator<<", "group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e", null ],
+    [ "to_string", "group__Shared.html#gadac006e646d57212ae0de2f87917a584", null ]
 ];

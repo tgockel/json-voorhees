@@ -103,16 +103,14 @@ Classes</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">jsonv::value::basic_array_iterator&lt; T, TArrayView &gt;</a></td></tr>
 <tr><td colspan="2"><h2><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaa58d1fe3e62a974eb331287ede1771bf"></a><!-- doxytag: member="Array::array_iterator" ref="gaa58d1fe3e62a974eb331287ede1771bf" args="" -->
-typedef basic_array_iterator<br class="typebreak"/>
-&lt; value, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::array_iterator</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">typedef basic_array_iterator<br class="typebreak"/>
+&lt; value, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">jsonv::value::array_iterator</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0c185bba74f386f6c82b5b5fccdd8197"></a><!-- doxytag: member="Array::const_array_iterator" ref="ga0c185bba74f386f6c82b5b5fccdd8197" args="" -->
 typedef basic_array_iterator<br class="typebreak"/>
 &lt; const value, const value &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_array_iterator</b></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5f593b7e5b1958a3f602cb809a9dc77f"></a><!-- doxytag: member="Array::array_view" ref="ga5f593b7e5b1958a3f602cb809a9dc77f" args="" -->
-typedef detail::basic_view<br class="typebreak"/>
+<tr><td class="memItemLeft" align="right" valign="top">typedef detail::basic_view<br class="typebreak"/>
 &lt; array_iterator, <br class="typebreak"/>
-const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::array_view</b></td></tr>
+const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">jsonv::value::array_view</a></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga54dd1d743ab887969271695d5477d966"></a><!-- doxytag: member="Array::const_array_view" ref="ga54dd1d743ab887969271695d5477d966" args="" -->
 typedef detail::basic_view<br class="typebreak"/>
 &lt; const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_array_view</b></td></tr>
@@ -152,6 +150,39 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <p>The base type for iterating over array values.</p>
 <p>These functions are only applicable if the kind of this value is an array. </p>
+<hr/><h2>Typedef Documentation</h2>
+<a class="anchor" id="gaa58d1fe3e62a974eb331287ede1771bf"></a><!-- doxytag: member="jsonv::value::array_iterator" ref="gaa58d1fe3e62a974eb331287ede1771bf" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef basic_array_iterator&lt;value, value&gt; <a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">jsonv::value::array_iterator</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>The <code>array_iterator</code> is applicable when <code>get_kind</code> is <code>kind::array</code>. It allows you to use algorithms as if a <code>value</code> was a normal sequence container. </p>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00262">262</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ga5f593b7e5b1958a3f602cb809a9dc77f"></a><!-- doxytag: member="jsonv::value::array_view" ref="ga5f593b7e5b1958a3f602cb809a9dc77f" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef detail::basic_view&lt;array_iterator, const_array_iterator&gt; <a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">jsonv::value::array_view</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>If <code>get_kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container. This is most useful for range-based for loops. </p>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00268">268</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+
+</div>
+</div>
 <hr/><h2>Function Documentation</h2>
 <a class="anchor" id="ga8a825f07236530cdf01e0414bb75161f"></a><!-- doxytag: member="jsonv::value::as_array" ref="ga8a825f07236530cdf01e0414bb75161f" args="()" -->
 <div class="memitem">
@@ -244,7 +275,7 @@ template&lt;typename TForwardIterator &gt; </div>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00571">571</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00614">614</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -561,7 +592,7 @@ template&lt;typename TForwardIterator &gt; </div>
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Defines</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">

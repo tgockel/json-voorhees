@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>JSON Voorhees: Main Page</title>
+<title>JSON Voorhees: JSON Voorhees</title>
 
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
@@ -90,16 +90,177 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div id="doc-content">
 <div class="header">
   <div class="headertitle">
-<div class="title">JSON Voorhees Documentation</div>  </div>
+<div class="title">JSON Voorhees </div>  </div>
 </div><!--header-->
 <div class="contents">
-</div><!-- contents -->
+<div class="textblock"><p>JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler.</p>
+<p>Features include (but are not necessarily limited to):</p>
+<ul>
+<li>A simple system for the representation of JSON values</li>
+<li>Documentation consumable by human beings that answers questions you might actually ask</li>
+<li>Simple JSON parsing with <code>parse</code> or use the <code>tokenizer</code> system and customize to your heart's desires</li>
+<li>Write a JSON value with <code>operator&lt;&lt;</code> or use the <code>encoder</code> API for advanced output options</li>
+<li>Reasonable error messages when parsing fails</li>
+<li>Full support for Unicode-filled JSON (encoded in UTF-8 in C++)</li>
+<li>Safe: in the best case, illegal code should fail to compile; in the worst case, an illegal action should throw an exception</li>
+<li>Stable: worry less about upgrading -- the API and ABI will not change out from under you</li>
+</ul>
+<h2><a class="anchor" id="usage"></a>
+Using the library</h2>
+<p>JSON Voorhees is designed with ease-of-use in mind. So let's look at some code!</p>
+<h3><a class="anchor" id="demo_value"></a>
+The jsonv::value</h3>
+<p>The central class of JSON Voorhees is the <code>value</code>. This class represents a JSON AST and is somewhat of a dynamic type. This can make things a little bit awkward for C++ programmers who are used to static typing. Don't worry about it -- you can learn to love it.</p>
+<p>Putting values of different types is super-easy.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <span class="keyword">nullptr</span>;
+      std::cout &lt;&lt; x &lt;&lt; std::endl;
+      x = 5.9;
+      std::cout &lt;&lt; x &lt;&lt; std::endl;
+      x = -100;
+      std::cout &lt;&lt; x &lt;&lt; std::endl;
+      x = <span class="stringliteral">&quot;something else&quot;</span>;
+      std::cout &lt;&lt; x &lt;&lt; std::endl;
+      x = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;arrays&quot;</span>, <span class="stringliteral">&quot;of&quot;</span>, <span class="stringliteral">&quot;the&quot;</span>, 7, <span class="stringliteral">&quot;different&quot;</span>, <span class="stringliteral">&quot;types&quot;</span>});
+      std::cout &lt;&lt; x &lt;&lt; std::endl;
+      x = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({
+                          { <span class="stringliteral">&quot;objects&quot;</span>, <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({
+                                                     <span class="stringliteral">&quot;Are fun, too.&quot;</span>,
+                                                     <span class="stringliteral">&quot;Do what you want.&quot;</span>
+                                                   })
+                          },
+                          { <span class="stringliteral">&quot;compose like&quot;</span>, <span class="stringliteral">&quot;standard library maps&quot;</span> },
+                       });
+      std::cout &lt;&lt; x &lt;&lt; std::endl;
+  }
+</pre></div><p>JSON is dynamic, which makes value access a bit more of a hassle, but JSON Voorhees aims to make it not too horrifying for you. A <code><a class="el" href="classjsonv_1_1value.html">jsonv::value</a></code> has a number of accessor methods named things like <code>as_integer</code> and <code>as_string</code> which let you access the value as if it was that type. But what if it isn't that type? In that case, the function will throw a <code><a class="el" href="classjsonv_1_1kind__error.html">jsonv::kind_error</a></code> with a bit more information as to what rule you violated.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <span class="keyword">nullptr</span>;
+      <span class="keywordflow">try</span>
+      {
+          x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a>();
+      }
+      <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1kind__error.html">jsonv::kind_error</a>&amp; err)
+      {
+          std::cout &lt;&lt; err.what() &lt;&lt; std::endl;
+      }
+      
+      x = <span class="stringliteral">&quot;now make it a string&quot;</span>;
+      std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a>().size() &lt;&lt; std::endl;
+      std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a>() &lt;&lt; <span class="stringliteral">&quot;\tis the same as\t&quot;</span> &lt;&lt; x &lt;&lt; std::endl;
+  }
+</pre></div><p>You can also deal with container types in a similar manner that you would deal with the equivalent STL container type, with some minor caveats. Because the <code>value_type</code> of a JSON object and JSON array are different, they have different iterator types in JSON Voorhees. They are aptly-named <code>object_iterator</code> and <code>array_iterator</code>. The access methods for these iterators are <code>begin_object</code> / <code>end_object</code> and <code>begin_array</code> / <code>end_array</code>, respectively. The object interface behaves exactly like you would expect a <code>std::map&lt;std::string,jsonv::value&gt;</code> to, while the array interface behaves just like a <code>std::deque&lt;jsonv::value&gt;</code> would.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;one&quot;</span>, 1 }});
+      <span class="keyword">auto</span> iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;one&quot;</span>);
+      <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())
+          std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;
+      <span class="keywordflow">else</span>
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;
+      
+      iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);
+      <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())
+          std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;
+      <span class="keywordflow">else</span>
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;
+      
+      x[<span class="stringliteral">&quot;two&quot;</span>] = 2;
+      iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);
+      <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())
+          std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;
+      <span class="keywordflow">else</span>
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;
+      
+      x[<span class="stringliteral">&quot;two&quot;</span>] = jsonv::array({ <span class="stringliteral">&quot;one&quot;</span>, <span class="stringliteral">&quot;+&quot;</span>, x.<a class="code" href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;one&quot;</span>) });
+      iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);
+      <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())
+          std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;
+      <span class="keywordflow">else</span>
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;
+      
+      x.<a class="code" href="group__Array.html#ga7b480563d0e93fc21018e088ac38646d">erase</a>(<span class="stringliteral">&quot;one&quot;</span>);
+      iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;one&quot;</span>);
+      <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())
+          std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;
+      <span class="keywordflow">else</span>
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;
+  }
+</pre></div><p>The iterator types <em>work</em>. This means you are free to use all of the C++ things just like you would a regular container. To use a ranged-based for, simply call <code>as_array</code> or <code>as_object</code>. Everything from <code></code> &lt;algorithm&gt; and <code></code> &lt;iterator&gt; or any other library works great with JSON Voorhees. Bring those templates on!</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;algorithm&gt;</span>
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> arr = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;taco&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span>, 3, -2, <span class="keyword">nullptr</span>, <span class="stringliteral">&quot;beef&quot;</span>, 4.8, 5 });
+      std::cout &lt;&lt; <span class="stringliteral">&quot;Initial: &quot;</span>;
+      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; val : arr.<a class="code" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">as_array</a>())
+          std::cout &lt;&lt; val &lt;&lt; <span class="charliteral">&#39;\t&#39;</span>;
+      std::cout &lt;&lt; std::endl;
+      
+      std::sort(arr.<a class="code" href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7">begin_array</a>(), arr.<a class="code" href="group__Array.html#gae8e46475135847419326f43bb8652030">end_array</a>());
+      std::cout &lt;&lt; <span class="stringliteral">&quot;Sorted: &quot;</span>;
+      <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; val : arr.<a class="code" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">as_array</a>())
+          std::cout &lt;&lt; val &lt;&lt; <span class="charliteral">&#39;\t&#39;</span>;
+      std::cout &lt;&lt; std::endl;
+  }
+</pre></div><h3><a class="anchor" id="demo_parsing"></a>
+Encoding and decoding</h3>
+<p>Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services or storing things in a file or a database. JSON Voorhees makes this very easy for you.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="encode_8hpp.html">jsonv/encode.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="parse_8hpp.html">jsonv/parse.hpp</a>&gt;</span>
+  
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+<span class="preprocessor">  #include &lt;fstream&gt;</span>
+<span class="preprocessor">  #include &lt;limits&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> obj = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>();
+      obj[<span class="stringliteral">&quot;taco&quot;</span>]  = <span class="stringliteral">&quot;cat&quot;</span>;
+      obj[<span class="stringliteral">&quot;array&quot;</span>] = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ 1, 2, 3, 4, 5 });
+      obj[<span class="stringliteral">&quot;infinity&quot;</span>] = std::numeric_limits&lt;double&gt;::infinity();
+      
+      {
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Saving \&quot;file.json\&quot;...&quot;</span> &lt;&lt; obj &lt;&lt; std::endl;
+          std::ofstream file(<span class="stringliteral">&quot;file.json&quot;</span>);
+          file &lt;&lt; obj;
+      }
+      
+      <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> loaded;
+      {
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Loading \&quot;file.json\&quot;...&quot;</span>;
+          std::ifstream file(<span class="stringliteral">&quot;file.json&quot;</span>);
+          loaded = jsonv::parse(file);
+          std::cout &lt;&lt; loaded &lt;&lt; std::endl;
+      }
+      
+      <span class="keywordflow">return</span> obj == loaded ? 0 : 1;
+  }
+</pre></div><p>If you are paying close attention, you might have notice that the value for the <code>"infinity"</code> looks a little bit more <code>null</code> than <code>infinity</code>. This is because, much like mathematicians before Anaximander, JSON has no concept of infinity, so it is actually <em>illegal</em> to serialize a token like <code>infinity</code> anywhere. By default, when an encoder encounters an unrepresentable value in the JSON it is trying to encode, it outputs <code>null</code> instead. If you wish to change this behavior, implement your own <code><a class="el" href="classjsonv_1_1encoder.html">jsonv::encoder</a></code> (or derive from <code><a class="el" href="classjsonv_1_1ostream__encoder.html">jsonv::ostream_encoder</a></code>). If you ran the example program, you might have noticed that the return code was 1, meaning the value you put into the file and what you got from it were not equal. This is because all the type and value information is still kept around in the in-memory <code>obj</code>. It is only upon encoding that information is lost.</p>
+<dl class="see"><dt><b>See also:</b></dt><dd><a href="https://github.com/tgockel/json-voorhees">https://github.com/tgockel/json-voorhees</a> </dd>
+<dd>
+<a href="http://json.org/">http://json.org/</a> </dd></dl>
+</div></div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Defines</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Friends</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
