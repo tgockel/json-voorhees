@@ -132,10 +132,10 @@ Defines</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR</b>(type_)&#160;&#160;&#160;value(type_ val);</td></tr>
 <tr><td colspan="2"><h2><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::kind</b> { <br/>
+<tr><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><b>kind</b> { <br/>
 &#160;&#160;<b>jsonv::null</b> =  0x00008, 
-<a class="el" href="group__Creation.html#ga53ed0094608bbaa3835c88cc9f13ec22a09f60d7da8f8e8310babb6b5167114eb">jsonv::object</a>, 
-<a class="el" href="group__Creation.html#ga53ed0094608bbaa3835c88cc9f13ec22a602cedc3e3f22b348e1b4c79ed704940">jsonv::array</a>, 
+<b>object</b>, 
+<b>array</b>, 
 <b>jsonv::string</b> =  0x00040, 
 <br/>
 &#160;&#160;<b>integer</b>, 
@@ -145,13 +145,13 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::swap</b> (value &amp;a, value &amp;b) noexcept</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga8118ceef8298f5f6745d55af71b3723e">jsonv::array</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga4f0838289f72088c6a079e00140efda2">jsonv::array</a> (std::initializer_list&lt; value &gt; source)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::swap</b> (value &amp;a, value &amp;b) noexcept</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#gaee0b1767f4ec42adc02c5b0bb0781b91">jsonv::array</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga4f0838289f72088c6a079e00140efda2">jsonv::array</a> (std::initializer_list&lt; value &gt; source)</td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a> (TForwardIterator first, TForwardIterator last)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#gad5f03a6b45cfa827d38428b94d10cf8d">jsonv::object</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga9a4a81387cf2b8edf3a2fe1b38aa197b">jsonv::object</a> (std::initializer_list&lt; std::pair&lt; const std::string, value &gt;&gt; source)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga757770053a2714136231e26ec7c74673">jsonv::object</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga9a4a81387cf2b8edf3a2fe1b38aa197b">jsonv::object</a> (std::initializer_list&lt; std::pair&lt; const std::string, value &gt;&gt; source)</td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a> (TForwardIterator first, TForwardIterator last)</td></tr>
 </table>

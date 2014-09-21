@@ -124,9 +124,9 @@ typedef std::deque&lt; <a class="el" href="structjsonv_1_1parse__error_1_1proble
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acfa37fa3cccdfff7239f145e9f417c6a"></a><!-- doxytag: member="jsonv::parse_error::parse_error" ref="acfa37fa3cccdfff7239f145e9f417c6a" args="(problem_list, value partial_result)" -->
-&#160;</td><td class="memItemRight" valign="bottom"><b>parse_error</b> (problem_list, <a class="el" href="classjsonv_1_1value.html">value</a> <a class="el" href="classjsonv_1_1parse__error.html#ae1cd59dadf2dcce22d7620d67631091e">partial_result</a>)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">const problem_list &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__error.html#a0ea67d12485f168ce1de2cdca4474e82">problems</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__error.html#ae1cd59dadf2dcce22d7620d67631091e">partial_result</a> () const </td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>parse_error</b> (problem_list, <a class="el" href="classjsonv_1_1value.html">value</a> <a class="el" href="classjsonv_1_1parse__error.html#a6fbbb8105d55f34efdc7bca22fd369e7">partial_result</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const problem_list &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__error.html#a30458635786a5b7a5391536c88aec7f6">problems</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__error.html#a6fbbb8105d55f34efdc7bca22fd369e7">partial_result</a> () const </td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>An error encountered when parsing.</p>
@@ -134,12 +134,12 @@ Public Member Functions</h2></td></tr>
 
 <p>Definition at line <a class="el" href="parse_8hpp_source.html#l00030">30</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
 </div><hr/><h2>Member Function Documentation</h2>
-<a class="anchor" id="ae1cd59dadf2dcce22d7620d67631091e"></a><!-- doxytag: member="jsonv::parse_error::partial_result" ref="ae1cd59dadf2dcce22d7620d67631091e" args="() const " -->
+<a class="anchor" id="a6fbbb8105d55f34efdc7bca22fd369e7"></a><!-- doxytag: member="jsonv::parse_error::partial_result" ref="a6fbbb8105d55f34efdc7bca22fd369e7" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp; <a class="el" href="classjsonv_1_1parse__error.html#ae1cd59dadf2dcce22d7620d67631091e">jsonv::parse_error::partial_result</a> </td>
+          <td class="memname">const <a class="el" href="classjsonv_1_1value.html">value</a>&amp; <a class="el" href="classjsonv_1_1parse__error.html#a6fbbb8105d55f34efdc7bca22fd369e7">jsonv::parse_error::partial_result</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -149,16 +149,14 @@ Public Member Functions</h2></td></tr>
 <div class="memdoc">
 <p>Get the partial result of parsing. There is no guarantee this value even resembles the input JSON as the input JSON was malformed. </p>
 
-<p>Definition at line <a class="el" href="parse_8cpp_source.html#l00087">87</a> of file <a class="el" href="parse_8cpp_source.html">parse.cpp</a>.</p>
-
 </div>
 </div>
-<a class="anchor" id="a0ea67d12485f168ce1de2cdca4474e82"></a><!-- doxytag: member="jsonv::parse_error::problems" ref="a0ea67d12485f168ce1de2cdca4474e82" args="() const " -->
+<a class="anchor" id="a30458635786a5b7a5391536c88aec7f6"></a><!-- doxytag: member="jsonv::parse_error::problems" ref="a30458635786a5b7a5391536c88aec7f6" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const parse_error::problem_list &amp; <a class="el" href="classjsonv_1_1parse__error.html#a0ea67d12485f168ce1de2cdca4474e82">jsonv::parse_error::problems</a> </td>
+          <td class="memname">const problem_list&amp; <a class="el" href="classjsonv_1_1parse__error.html#a30458635786a5b7a5391536c88aec7f6">jsonv::parse_error::problems</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -168,13 +166,10 @@ Public Member Functions</h2></td></tr>
 <div class="memdoc">
 <p>The list of problems which ultimately contributed to this <code><a class="el" href="classjsonv_1_1parse__error.html">parse_error</a></code>. There will always be at least one <code>problem</code> in this list. </p>
 
-<p>Definition at line <a class="el" href="parse_8cpp_source.html#l00082">82</a> of file <a class="el" href="parse_8cpp_source.html">parse.cpp</a>.</p>
-
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following files:<ul>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="parse_8hpp_source.html">parse.hpp</a></li>
-<li>jsonv/<a class="el" href="parse_8cpp_source.html">parse.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div>

@@ -141,8 +141,8 @@ Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">constexpr token_kind&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator|</b> (token_kind a, token_kind b)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">constexpr token_kind&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator&amp;</b> (token_kind a, token_kind b)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">constexpr token_kind&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator~</b> (token_kind a)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator&lt;&lt;</b> (std::ostream &amp;os, const token_kind &amp;value)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::to_string</b> (const token_kind &amp;value)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator&lt;&lt;</b> (std::ostream &amp;, const token_kind &amp;)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::string&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::to_string</b> (const token_kind &amp;)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>A stream-based tokenizer meant to help with creating custom parsers. If you are happy with the JSON Voorhees AST (<code>value</code> and friends), it is probably easier to use the functions in <code><a class="el" href="parse_8hpp.html">jsonv/parse.hpp</a></code>.</p>

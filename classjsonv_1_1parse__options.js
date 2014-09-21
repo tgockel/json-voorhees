@@ -5,11 +5,11 @@ var classjsonv_1_1parse__options =
     [ "parse_options", "classjsonv_1_1parse__options.html#a64ef230fb92f599ead9937bb95c168d4", null ],
     [ "~parse_options", "classjsonv_1_1parse__options.html#aa54c494b2ac06f9d9c8ab58ab448e9a5", null ],
     [ "complete_parse", "classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907", null ],
-    [ "complete_parse", "classjsonv_1_1parse__options.html#a8c68bdd418fa6d66a2ed5979b7c75eb0", null ],
-    [ "failure_mode", "classjsonv_1_1parse__options.html#a75a888abc837bf83556f2b144a400eeb", null ],
-    [ "failure_mode", "classjsonv_1_1parse__options.html#a139ca8dd47c522adf884516ca77cb106", null ],
+    [ "complete_parse", "classjsonv_1_1parse__options.html#a88902d1ea1a01f4e91c3522161b7d9bb", null ],
+    [ "failure_mode", "classjsonv_1_1parse__options.html#a16b85fa454dcd89fada05abe80eded52", null ],
+    [ "failure_mode", "classjsonv_1_1parse__options.html#a4046eb80de3c823518f12c43c5fa851e", null ],
     [ "max_failures", "classjsonv_1_1parse__options.html#a0044af7c29cd709225303015ad9dedf9", null ],
-    [ "max_failures", "classjsonv_1_1parse__options.html#aee4026ce5a4691b71b25da0f5f6173b3", null ],
-    [ "string_encoding", "classjsonv_1_1parse__options.html#a95fcb4d321ca5e6be4c5a6187c8cb16f", null ],
-    [ "string_encoding", "classjsonv_1_1parse__options.html#aa87b410c98f8207b8245b8a8d9a4b037", null ]
+    [ "max_failures", "classjsonv_1_1parse__options.html#a328371640a11ab22fd09703c5d921f24", null ],
+    [ "string_encoding", "classjsonv_1_1parse__options.html#ac8763752b079dadae3f78780a81aed3a", null ],
+    [ "string_encoding", "classjsonv_1_1parse__options.html#abb80d2e9c91a9025894de595430f5532", null ]
 ];

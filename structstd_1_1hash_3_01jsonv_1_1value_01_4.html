@@ -110,7 +110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeac1e3c0475cc31c208de1518296ce84"></a><!-- doxytag: member="std::hash&lt; jsonv::value &gt;::operator()" ref="aeac1e3c0475cc31c208de1518296ce84" args="(const jsonv::value &amp;val) const noexcept" -->
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a48e8cd92beab641347916b709b1bd1f8"></a><!-- doxytag: member="std::hash&lt; jsonv::value &gt;::operator()" ref="a48e8cd92beab641347916b709b1bd1f8" args="(const jsonv::value &amp;val) const noexcept" -->
 std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>operator()</b> (const <a class="el" href="classjsonv_1_1value.html">jsonv::value</a> &amp;val) const noexcept</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
@@ -119,10 +119,9 @@ struct std::hash&lt; jsonv::value &gt;</h3>
 
 <p>Explicit specialization of <code>std::hash</code> for <code><a class="el" href="classjsonv_1_1value.html">jsonv::value</a></code> types so you can store a <code>value</code> in an unordered container. Hashing results depend on the <code>kind</code> for the provided value -- most kinds directly use the hasher for their kind (hashing a <code><a class="el" href="classjsonv_1_1value.html">jsonv::value</a></code> for integer <code>5</code> should have the same hash value as directly hashing the same integer). For aggregate kinds <code>array</code> and <code>object</code>, hashing visits every sub-element recursively. This might be expensive, but is required when storing multiple values with similar layouts in the a set (which is the most common use case). </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00808">808</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
-</div><hr/>The documentation for this struct was generated from the following files:<ul>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00815">815</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="value_8hpp_source.html">value.hpp</a></li>
-<li>jsonv/<a class="el" href="value_8cpp_source.html">value.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div>

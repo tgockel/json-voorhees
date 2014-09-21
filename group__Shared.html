@@ -114,7 +114,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operato
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabc765cf852dce2e36b54388ba5b5e42d"></a><!-- doxytag: member="Shared::operator&gt;=" ref="gabc765cf852dce2e36b54388ba5b5e42d" args="(const value &amp;other) const " -->
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operator&gt;=</b> (const value &amp;other) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gafc0eb6d0e3b9a8dcfba8c36c19ced691">jsonv::value::empty</a> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga31e787c8bd07e8125471ed48b8d113d1">jsonv::value::size</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82">jsonv::value::size</a> () const </td></tr>
 <tr><td colspan="2"><h2><a name="friend-members"></a>
 Friends</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gacff1f9d0e10df14e2a1440911e30ef7e"></a><!-- doxytag: member="Shared::operator&lt;&lt;" ref="gacff1f9d0e10df14e2a1440911e30ef7e" args="(std::ostream &amp;stream, const value &amp;val)" -->
@@ -139,8 +139,6 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 <div class="memdoc">
 <p>Resets this value to null. </p>
 
-<p>Definition at line <a class="el" href="value_8cpp_source.html#l00164">164</a> of file <a class="el" href="value_8cpp_source.html">value.cpp</a>.</p>
-
 </div>
 </div>
 <a class="anchor" id="ga05f2fca552d114e678040be40c8cbc06"></a><!-- doxytag: member="jsonv::value::compare" ref="ga05f2fca552d114e678040be40c8cbc06" args="(const value &amp;other) const " -->
@@ -158,10 +156,15 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 </div>
 <div class="memdoc">
 <p>Used to build a strict-ordering of JSON values. When comparing values of the same kind, the ordering should align with your intuition. When comparing values of different kinds, some arbitrary rules were created based on how "complicated" the author thought the type to be.</p>
-<p>null - less than everything but null, which it is equal to. boolean - false is less than true. integer, decimal - compared by their numeric value. Comparisons between two integers do not cast, but comparison between an integer and a decimal will coerce to decimal. string - compared lexicographically by character code (with basic char strings and non-ASCII encoding, this might lead to surprising results) array - compared lexicographically by elements (recursively following this same technique) object - entries in the object are sorted and compared lexicographically, first by key then by value</p>
+<ul>
+<li>null: less than everything but null, which it is equal to.</li>
+<li>boolean: false is less than true.</li>
+<li>integer, decimal: compared by their numeric value. Comparisons between two integers do not cast, but comparison between an integer and a decimal will coerce to decimal.</li>
+<li>string: compared lexicographically by character code (with basic char strings and non-ASCII encoding, this might lead to surprising results)</li>
+<li>array: compared lexicographically by elements (recursively following this same technique)</li>
+<li>object: entries in the object are sorted and compared lexicographically, first by key then by value</li>
+</ul>
 <dl class="return"><dt><b>Returns:</b></dt><dd>-1 if this is less than other by the rules stated above; 0 if this is equal to other; -1 if otherwise. </dd></dl>
-
-<p>Definition at line <a class="el" href="value_8cpp_source.html#l00304">304</a> of file <a class="el" href="value_8cpp_source.html">value.cpp</a>.</p>
 
 </div>
 </div>
@@ -191,8 +194,6 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8cpp_source.html#l00363">363</a> of file <a class="el" href="value_8cpp_source.html">value.cpp</a>.</p>
-
 </div>
 </div>
 <a class="anchor" id="ga69fe6e9df4d8771f4c0131ef11cffd3f"></a><!-- doxytag: member="jsonv::value::get_kind" ref="ga69fe6e9df4d8771f4c0131ef11cffd3f" args="() const " -->
@@ -210,7 +211,7 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 <div class="memdoc">
 <p>Get this value's kind. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00428">428</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00435">435</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -229,8 +230,6 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 </div>
 <div class="memdoc">
 <p>Compares two JSON values for inequality. The rules for inequality are the exact opposite of equality. </p>
-
-<p>Definition at line <a class="el" href="value_8cpp_source.html#l00243">243</a> of file <a class="el" href="value_8cpp_source.html">value.cpp</a>.</p>
 
 </div>
 </div>
@@ -251,20 +250,22 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 <p>Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions apply:</p>
 <p>1. They have the same valid value for <code>kind</code>.</p>
 <ul>
-<li>If <code>kind</code> is invalid (memory corruption), then two JSON values are <em>not</em> equal, even if they have been corrupted in the same way and even if they share <code>this</code> (a corrupt object is not equal to itself). 2. The kind comparison is also equal: a. Two null values are always equivalent. b. string, integer, decimal and boolean follow the classic rules for their type. c. objects are equal if they have the same keys and values corresponding with the same key are also equal. d. arrays are equal if they have the same length and the values at each index are also equal.</li>
+<li>If <code>kind</code> is invalid (memory corruption), then two JSON values are <em>not</em> equal, even if they have been corrupted in the same way and even if they share <code>this</code> (a corrupt object is not equal to itself). 2. The kind comparison is also equal:</li>
+<li>Two null values are always equivalent.</li>
+<li>string, integer, decimal and boolean follow the classic rules for their type.</li>
+<li>objects are equal if they have the same keys and values corresponding with the same key are also equal.</li>
+<li>arrays are equal if they have the same length and the values at each index are also equal.</li>
 </ul>
 <dl class="note"><dt><b>Note:</b></dt><dd>The rules for equality are based on Python <code>dict</code> and <code>list</code>. </dd></dl>
 
-<p>Definition at line <a class="el" href="value_8cpp_source.html#l00215">215</a> of file <a class="el" href="value_8cpp_source.html">value.cpp</a>.</p>
-
 </div>
 </div>
-<a class="anchor" id="ga31e787c8bd07e8125471ed48b8d113d1"></a><!-- doxytag: member="jsonv::value::size" ref="ga31e787c8bd07e8125471ed48b8d113d1" args="() const " -->
+<a class="anchor" id="ga79c3e426d63d6c658470ee2295b35f82"></a><!-- doxytag: member="jsonv::value::size" ref="ga79c3e426d63d6c658470ee2295b35f82" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">value::size_type <a class="el" href="group__Shared.html#ga31e787c8bd07e8125471ed48b8d113d1">jsonv::value::size</a> </td>
+          <td class="memname">size_type <a class="el" href="group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82">jsonv::value::size</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -285,8 +286,6 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8cpp_source.html#l00385">385</a> of file <a class="el" href="value_8cpp_source.html">value.cpp</a>.</p>
-
 </div>
 </div>
 <a class="anchor" id="gacea6f1f938880b1b1761324e59abad83"></a><!-- doxytag: member="jsonv::value::swap" ref="gacea6f1f938880b1b1761324e59abad83" args="(value &amp;other) noexcept" -->
@@ -304,8 +303,6 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::
 </div>
 <div class="memdoc">
 <p>Swap the value this instance represents with <em>other</em>. </p>
-
-<p>Definition at line <a class="el" href="value_8cpp_source.html#l00153">153</a> of file <a class="el" href="value_8cpp_source.html">value.cpp</a>.</p>
 
 </div>
 </div>

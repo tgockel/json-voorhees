@@ -9,20 +9,5 @@ var files =
     [ "jsonv/tokenizer.hpp", "tokenizer_8hpp.html", "tokenizer_8hpp" ],
     [ "jsonv/value.hpp", "value_8hpp.html", "value_8hpp" ],
     [ "jsonv/detail/basic_view.hpp", "basic__view_8hpp.html", null ],
-    [ "jsonv/detail/string_ref.hpp", "detail_2string__ref_8hpp.html", null ],
-    [ "jsonv/array.cpp", "array_8cpp.html", "array_8cpp" ],
-    [ "jsonv/array.hpp", "array_8hpp.html", null ],
-    [ "jsonv/char_convert.cpp", "char__convert_8cpp.html", "char__convert_8cpp" ],
-    [ "jsonv/char_convert.hpp", "char__convert_8hpp.html", "char__convert_8hpp" ],
-    [ "jsonv/detail.cpp", "detail_8cpp.html", "detail_8cpp" ],
-    [ "jsonv/detail.hpp", "detail_8hpp.html", "detail_8hpp" ],
-    [ "jsonv/encode.cpp", "encode_8cpp.html", null ],
-    [ "jsonv/object.cpp", "object_8cpp.html", "object_8cpp" ],
-    [ "jsonv/object.hpp", "object_8hpp.html", null ],
-    [ "jsonv/parse.cpp", "parse_8cpp.html", "parse_8cpp" ],
-    [ "jsonv/tokenizer.cpp", "tokenizer_8cpp.html", "tokenizer_8cpp" ],
-    [ "jsonv/value.cpp", "value_8cpp.html", "value_8cpp" ],
-    [ "jsonv/detail/fixed_map.hpp", "fixed__map_8hpp.html", null ],
-    [ "jsonv/detail/token_patterns.cpp", "token__patterns_8cpp.html", "token__patterns_8cpp" ],
-    [ "jsonv/detail/token_patterns.hpp", "token__patterns_8hpp.html", "token__patterns_8hpp" ]
+    [ "jsonv/detail/string_ref.hpp", "detail_2string__ref_8hpp.html", null ]
 ];

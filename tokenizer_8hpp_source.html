@@ -154,11 +154,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00100"></a>00100 <span class="keyword">public</span>:
 <a name="l00101"></a>00101     <span class="keyword">using</span> size_type = std::vector&lt;char&gt;::size_type;
 <a name="l00102"></a>00102     
-<a name="l00104"></a><a class="code" href="classjsonv_1_1tokenizer.html#af6e4ddccf2207bba181b486812f31636">00104</a>     <span class="keyword">static</span> <span class="keyword">const</span> size_type <a class="code" href="classjsonv_1_1tokenizer.html#af6e4ddccf2207bba181b486812f31636">min_buffer_size</a>;
+<a name="l00104"></a><a class="code" href="classjsonv_1_1tokenizer.html#a037a4c098832c587693267171c08d15c">00104</a>     <span class="keyword">static</span> <span class="keyword">const</span> size_type <a class="code" href="classjsonv_1_1tokenizer.html#a037a4c098832c587693267171c08d15c">min_buffer_size</a>;
 <a name="l00105"></a>00105     
 <a name="l00107"></a><a class="code" href="structjsonv_1_1tokenizer_1_1token.html">00107</a>     <span class="keyword">struct </span><a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a>
 <a name="l00108"></a>00108     {
-<a name="l00109"></a>00109         <a class="code" href="classjsonv_1_1detail_1_1string__ref.html">string_ref</a> text;
+<a name="l00109"></a>00109         string_ref text;
 <a name="l00110"></a>00110         token_kind kind;
 <a name="l00111"></a>00111         
 <a name="l00112"></a>00112         operator std::pair&lt;string_ref, token_kind&gt;()
