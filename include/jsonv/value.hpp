@@ -416,8 +416,7 @@ public:
     
     /** Copy-assigns \c source to this.
      *  
-     *  If an exception is thrown during the copy, it is propagated out. This instance will be set to a null value - any
-     *  value will be disposed.
+     *  If an exception is thrown during the copy, it is propagated out. This instance will remain unchanged.
     **/
     value& operator=(const value& source);
     
