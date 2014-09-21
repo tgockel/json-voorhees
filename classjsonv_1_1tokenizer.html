@@ -55,6 +55,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="modules.html"><span>Modules</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
+      <li><a href="examples.html"><span>Examples</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -97,6 +98,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div id="doc-content">
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-attribs">Static Public Attributes</a>  </div>
   <div class="headertitle">
@@ -108,12 +110,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p><a href="classjsonv_1_1tokenizer-members.html">List of all members.</a></p>
 <table class="memberdecls">
+<tr><td colspan="2"><h2><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1tokenizer_1_1token.html">token</a></td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#ab6e085d39aa9aee3ba2e87cefdbd24fb">tokenizer</a> (std::istream &amp;<a class="el" href="classjsonv_1_1tokenizer.html#a5fc6bd52c5ceacca540ebcb4d4496562">input</a>)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::istream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#a5fc6bd52c5ceacca540ebcb4d4496562">input</a> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#a6cb4f97577999ebc4dd898acdf6f3454">next</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="classjsonv_1_1detail_1_1string__ref.html">string_ref</a>, token_kind &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#a04b97c7eb46a9e9ec1b0247161c2354c">current</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structjsonv_1_1tokenizer_1_1token.html">token</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#a136011ecc0f4174f7d6e0f40198ff1c5">current</a> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#a23b1a2cf8aa90aa52e4f0a104577e15a">buffer_reserve</a> (size_type sz)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -143,7 +148,7 @@ Static Public Attributes</h2></td></tr>
 <div class="memdoc">
 <p>Construct a tokenizer to read the given <em>input</em>. </p>
 
-<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00098">98</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
+<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00110">110</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
 
 </div>
 </div>
@@ -164,16 +169,16 @@ Static Public Attributes</h2></td></tr>
 <div class="memdoc">
 <p>Reserve a certain amount of space in the buffer. This will have an effect of performance. </p>
 
-<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00210">210</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
+<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00226">226</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a04b97c7eb46a9e9ec1b0247161c2354c"></a><!-- doxytag: member="jsonv::tokenizer::current" ref="a04b97c7eb46a9e9ec1b0247161c2354c" args="() const " -->
+<a class="anchor" id="a136011ecc0f4174f7d6e0f40198ff1c5"></a><!-- doxytag: member="jsonv::tokenizer::current" ref="a136011ecc0f4174f7d6e0f40198ff1c5" args="() const " -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::pair&lt; <a class="el" href="classjsonv_1_1detail_1_1string__ref.html">string_ref</a>, token_kind &gt; <a class="el" href="classjsonv_1_1tokenizer.html#a04b97c7eb46a9e9ec1b0247161c2354c">jsonv::tokenizer::current</a> </td>
+          <td class="memname">const <a class="el" href="structjsonv_1_1tokenizer_1_1token.html">tokenizer::token</a> &amp; <a class="el" href="classjsonv_1_1tokenizer.html#a136011ecc0f4174f7d6e0f40198ff1c5">jsonv::tokenizer::current</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -190,7 +195,7 @@ Static Public Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00111">111</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
+<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00139">139</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
 
 </div>
 </div>
@@ -209,7 +214,7 @@ Static Public Attributes</h2></td></tr>
 <div class="memdoc">
 <p>Get the input this instance is reading from. </p>
 
-<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00106">106</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
+<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00134">134</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
 
 </div>
 </div>
@@ -229,7 +234,7 @@ Static Public Attributes</h2></td></tr>
 <p>Attempt to go to the next token in the input stream. The contents of <code>current</code> will be cleared.</p>
 <dl class="return"><dt><b>Returns:</b></dt><dd><code>true</code> if another token was obtained; <code>false</code> if we reached EOF or an I/O failure. Check <code>input</code> to see which. </dd></dl>
 
-<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00131">131</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
+<p>Definition at line <a class="el" href="tokenizer_8cpp_source.html#l00147">147</a> of file <a class="el" href="tokenizer_8cpp_source.html">tokenizer.cpp</a>.</p>
 
 </div>
 </div>

@@ -33,9 +33,10 @@ var NAVTREEINDEX =
 "structjsonv_1_1parse__error_1_1problem.html":[1,0,22],
 "classjsonv_1_1detail_1_1string__impl.html":[1,0,23],
 "classjsonv_1_1detail_1_1string__ref.html":[1,0,24],
-"classjsonv_1_1tokenizer.html":[1,0,25],
-"classjsonv_1_1value.html":[1,0,26],
-"unionjsonv_1_1detail_1_1value__storage.html":[1,0,27],
+"structjsonv_1_1tokenizer_1_1token.html":[1,0,25],
+"classjsonv_1_1tokenizer.html":[1,0,26],
+"classjsonv_1_1value.html":[1,0,27],
+"unionjsonv_1_1detail_1_1value__storage.html":[1,0,28],
 "classes.html":[1,1],
 "hierarchy.html":[1,2],
 "functions.html":[1,3,0],
@@ -71,5 +72,7 @@ var NAVTREEINDEX =
 "token__patterns_8cpp.html":[2,0,23],
 "token__patterns_8hpp.html":[2,0,24],
 "globals.html":[2,1,0],
-"globals_defs.html":[2,1,1]
+"globals_defs.html":[2,1,1],
+"examples.html":[3],
+"_2home_2travis_2build_2tgockel_2json-voorhees_2include_2jsonv_2parse_8hpp-example.html":[3,0]
 };

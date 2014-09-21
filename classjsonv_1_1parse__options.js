@@ -4,6 +4,8 @@ var classjsonv_1_1parse__options =
     [ "on_error", "classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46", null ],
     [ "parse_options", "classjsonv_1_1parse__options.html#a64ef230fb92f599ead9937bb95c168d4", null ],
     [ "~parse_options", "classjsonv_1_1parse__options.html#aa54c494b2ac06f9d9c8ab58ab448e9a5", null ],
+    [ "complete_parse", "classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907", null ],
+    [ "complete_parse", "classjsonv_1_1parse__options.html#a8c68bdd418fa6d66a2ed5979b7c75eb0", null ],
     [ "failure_mode", "classjsonv_1_1parse__options.html#a75a888abc837bf83556f2b144a400eeb", null ],
     [ "failure_mode", "classjsonv_1_1parse__options.html#a139ca8dd47c522adf884516ca77cb106", null ],
     [ "max_failures", "classjsonv_1_1parse__options.html#a0044af7c29cd709225303015ad9dedf9", null ],

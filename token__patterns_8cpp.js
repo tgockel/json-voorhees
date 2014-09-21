@@ -12,7 +12,6 @@ var token__patterns_8cpp =
     [ "match_whitespace", "namespacejsonv_1_1detail.html#a8be2f331c96b3866a5572b9aaf0f1ec1", null ],
     [ "re_comment", "namespacejsonv_1_1detail.html#a9713a32ac2b4bd82270e0896bd54a2b5", null ],
     [ "re_number", "namespacejsonv_1_1detail.html#a420d619636dfce38f572f3d9209b20a8", null ],
-    [ "re_string", "namespacejsonv_1_1detail.html#a10b0d9c91f3031769f6c003d24f45091", null ],
     [ "re_whitespace", "namespacejsonv_1_1detail.html#ad383e1b8834cdd95a840647f1028bac7", null ],
-    [ "syntax_options", "namespacejsonv_1_1detail.html#a7dbc8b11af43e49c4a7767af177bff78", null ]
+    [ "syntax_options", "namespacejsonv_1_1detail.html#a341b117d4d9f1997dcd3d7ed8920c022", null ]
 ];

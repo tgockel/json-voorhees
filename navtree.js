@@ -21,7 +21,8 @@ var NAVTREE =
         [ "All", "globals.html", null ],
         [ "Defines", "globals_defs.html", null ]
       ] ]
-    ] ]
+    ] ],
+    [ "Examples", "examples.html", "examples" ]
   ] ]
 ];
 

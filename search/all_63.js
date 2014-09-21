@@ -12,9 +12,10 @@ var searchData=
   ['collect_5fall',['collect_all',['../classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a61e82648c71a051f290df92774cd2d20',1,'jsonv::parse_options']]],
   ['column',['column',['../structjsonv_1_1parse__error_1_1problem.html#af089108087de95be77946942087836eb',1,'jsonv::parse_error::problem']]],
   ['compare',['compare',['../group__Shared.html#ga05f2fca552d114e678040be40c8cbc06',1,'jsonv::value']]],
+  ['complete_5fparse',['complete_parse',['../classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907',1,'jsonv::parse_options']]],
   ['config_2ehpp',['config.hpp',['../config_8hpp.html',1,'']]],
   ['const_5fimpl',['const_impl',['../unionjsonv_1_1object__iter__converter_3_01value_1_1object__value__type_01_4_1_1const__impl.html',1,'jsonv::object_iter_converter&lt; value::object_value_type &gt;']]],
   ['const_5fimpl',['const_impl',['../unionjsonv_1_1object__iter__converter_3_01const_01value_1_1object__value__type_01_4_1_1const__impl.html',1,'jsonv::object_iter_converter&lt; const value::object_value_type &gt;']]],
   ['count',['count',['../group__Object.html#ga1c4a2ec8babfcc880c0ac4c7cb4fe7c4',1,'jsonv::value']]],
-  ['current',['current',['../classjsonv_1_1tokenizer.html#a04b97c7eb46a9e9ec1b0247161c2354c',1,'jsonv::tokenizer']]]
+  ['current',['current',['../classjsonv_1_1tokenizer.html#a136011ecc0f4174f7d6e0f40198ff1c5',1,'jsonv::tokenizer']]]
 ];

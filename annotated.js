@@ -25,6 +25,7 @@ var annotated =
     [ "jsonv::parse_error::problem", "structjsonv_1_1parse__error_1_1problem.html", "structjsonv_1_1parse__error_1_1problem" ],
     [ "jsonv::detail::string_impl", "classjsonv_1_1detail_1_1string__impl.html", "classjsonv_1_1detail_1_1string__impl" ],
     [ "jsonv::detail::string_ref", "classjsonv_1_1detail_1_1string__ref.html", "classjsonv_1_1detail_1_1string__ref" ],
+    [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", "structjsonv_1_1tokenizer_1_1token" ],
     [ "jsonv::tokenizer", "classjsonv_1_1tokenizer.html", "classjsonv_1_1tokenizer" ],
     [ "jsonv::value", "classjsonv_1_1value.html", "classjsonv_1_1value" ],
     [ "jsonv::detail::value_storage", "unionjsonv_1_1detail_1_1value__storage.html", "unionjsonv_1_1detail_1_1value__storage" ]
