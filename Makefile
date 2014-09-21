@@ -52,6 +52,8 @@ define MAKEFILE_EXTENSION_TEMPLATE
 endef
 $(foreach extension,$(MAKEFILE_EXTENSIONS),$(eval $(call MAKEFILE_EXTENSION_TEMPLATE,$(extension))))
 
+.PHONY: clean install test
+
 ################################################################################
 # Configuration                                                                #
 ################################################################################
@@ -67,6 +69,33 @@ BOOST_REGEX_LIB ?= -lboost_regex
 # def: BOOST_SYSTEM_LIB
 # The library flag used to link to if USE_BOOST_REGEX is 1.
 BOOST_SYSTEM_LIB ?= -lboost_system
+
+# def: VERSION_STYLE
+# For the strongly-versioned shared objects, how should the version be styled? There are a few options...
+# 
+#  - standard
+#    lib$(NAME).so-$(VERSION)
+#  - internal
+#    lib$(NAME)-$(VERSION).so
+#  - custom
+#    Define a template for VERSIONED_SO yourself.
+VERSION_STYLE ?= standard
+
+ifeq ($(VERSION_STYLE),standard)
+  VERSIONED_SO = lib$(1).so-$(2)
+else
+ ifeq ($(VERSION_STYLE),internal)
+   VERSIONED_SO = lib$(1)-$(2).so
+ else
+  ifeq ($(VERSION_STYLE),custom)
+   ifndef VERSIONED_SO
+     $(error VERSION_STYLE set to custom but VERSIONED_SO is not defined)
+   endif
+  else
+   $(error Invalid VERSION_STYLE "$(VERSION_STYLE)")
+  endif
+ endif
+endif
 
 JSONV_VERSION ?= 0.3.-1
 
@@ -88,6 +117,7 @@ OBJ_DIR     ?= $(BUILD_DIR)/obj
 DEP_DIR     ?= $(BUILD_DIR)/dep
 LIB_DIR     ?= $(BUILD_DIR)/lib
 BIN_DIR     ?= $(BUILD_DIR)/bin
+INSTALL_DIR ?= /usr
 
 ifeq ($(VERBOSE),)
   Q  := @
@@ -110,28 +140,31 @@ DEP_FILES       = $(shell find $(DEP_DIR) -type f -name "*.dep" 2>/dev/null)
 
 $(foreach dep,$(DEP_FILES),$(eval -include $(dep)))
 
-LIBRARIES = $(patsubst $(SRC_DIR)/%,%,$(wildcard $(SRC_DIR)/*))
-TESTS     = $(filter %-tests,$(LIBRARIES))
+LIBRARIES   = $(patsubst $(SRC_DIR)/%,%,$(wildcard $(SRC_DIR)/*))
+DEPLOY_LIBS = $(filter-out %-tests,$(LIBRARIES))
+TESTS       = $(filter %-tests,$(LIBRARIES))
 
 ################################################################################
 # Compiler Settings                                                            #
 ################################################################################
 
-CXX           = $(CXX_COMPILER) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
-CXX_COMPILER ?= c++
-CXX_FLAGS    ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
-CXX_INCLUDES ?= -I$(SRC_DIR) -I$(HEADER_DIR)
-CXX_STANDARD ?= --std=c++11
-CXX_DEFINES  ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)
-CXX_WARNINGS ?= -Werror -Wall -Wextra
-LD            = $(CXX_COMPILER) $(LD_PATHS) $(LD_FLAGS)
-LD_FLAGS     ?= 
-LD_PATHS     ?= 
-LD_LIBRARIES ?= 
-SO            = $(CXX_COMPILER) $(SO_PATHS) $(SO_FLAGS)
-SO_FLAGS     ?= 
-SO_PATHS     ?= 
-SO_LIBRARIES ?= 
+CXX            = $(CXX_COMPILER) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
+CXX_COMPILER  ?= c++
+CXX_FLAGS     ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
+CXX_INCLUDES  ?= -I$(SRC_DIR) -I$(HEADER_DIR)
+CXX_STANDARD  ?= --std=c++11
+CXX_DEFINES   ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)
+CXX_WARNINGS  ?= -Werror -Wall -Wextra
+LD             = $(CXX_COMPILER) $(LD_PATHS) $(LD_FLAGS)
+LD_FLAGS      ?= 
+LD_PATHS      ?= 
+LD_LIBRARIES  ?= 
+SO             = $(CXX_COMPILER) $(SO_PATHS) $(SO_FLAGS)
+SO_FLAGS      ?= 
+SO_PATHS      ?= 
+SO_LIBRARIES  ?= 
+INSTALL        = cp $(INSTALL_FLAGS)
+INSTALL_FLAGS ?= --no-dereference
 
 CXX_FLAGS_release = -O3
 
@@ -145,7 +178,7 @@ define LIBRARY_TEMPLATE
   $1_LIB_FILES     = $$(patsubst %,$$(LIB_DIR)/lib%.so,$$($1_LIBS))
   $1_LD_LIBRARIES  = $$(patsubst %,-l%,$$($1_LIBS)) $$(LD_LIBRARIES)
 
-  $1 : $$(LIB_DIR)/lib$1.a $$(LIB_DIR)/lib$1.so.$$(JSONV_VERSION) $$(LIB_DIR)/lib$1.so
+  $1 : $$(LIB_DIR)/lib$1.a $$(LIB_DIR)/$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so
 endef
 
 $(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_TEMPLATE,$(lib))))
@@ -174,15 +207,15 @@ $(LIB_DIR)/lib%.a : $$($$*_OBJS)
 	$Q$(AR) cr $@ $^
 
 .SECONDEXPANSION:
-$(LIB_DIR)/lib%.so.$(JSONV_VERSION) : $$($$*_OBJS)
+$(LIB_DIR)/$(call VERSIONED_SO,%,$(JSONV_VERSION)) : $$($$*_OBJS)
 	$(QQ)echo " SO    lib$*.so.$(JSONV_VERSION)"
 	$(QQ)mkdir -p $(@D)
-	$Q$(SO) -shared -Wl,-soname,lib$*.so.$(JSONV_VERSION) $^ -o $@
+	$Q$(SO) -shared -Wl,-soname,$(call VERSIONED_SO,$*,$(JSONV_VERSION)) $^ -o $@
 
-$(LIB_DIR)/lib%.so : $(LIB_DIR)/lib%.so.$(JSONV_VERSION)
+$(LIB_DIR)/lib%.so : $(LIB_DIR)/$(call VERSIONED_SO,%,$(JSONV_VERSION))
 	$(QQ)echo " LN    $< -> $@"
 	$(QQ)rm -f $@
-	$Qln -s lib$*.so.$(JSONV_VERSION) $@
+	$Qln -s $(call VERSIONED_SO,$*,$(JSONV_VERSION)) $@
 
 define TEST_TEMPLATE
   $$(BIN_DIR)/$1 : $$($1_OBJS) $$($1_LIB_FILES)
@@ -190,6 +223,7 @@ define TEST_TEMPLATE
 	$$(QQ)mkdir -p $$(@D)
 	$$Q$$(LD) $$($1_OBJS) -L $$(LIB_DIR) $$($1_LD_LIBRARIES) -Wl,--rpath,$$(LIB_DIR) -o $$@
 
+  .PHONY: $1
   $1 : $$(BIN_DIR)/$1
 	$$(QQ)echo " TEST  $1 $$(ARGS)"
 	$$Q./$$< $$(ARGS)
@@ -200,6 +234,19 @@ define TEST_TEMPLATE
 endef
 
 $(foreach test,$(TESTS),$(eval $(call TEST_TEMPLATE,$(test))))
+
+define INSTALL_TEMPLATE
+  .PHONY: install_$(1)
+  install_$(1) : $$(LIB_DIR)/$$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so
+	$$(QQ)echo " INSTL $1 -> $$(INSTALL_DIR)"
+	$$(QQ)mkdir -p $$(INSTALL_DIR)/lib
+	$$Q$(INSTALL) $$(LIB_DIR)/$$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so $$(INSTALL_DIR)/lib
+	$$Q$(INSTALL) --recursive $$(HEADER_DIR)/$1 $$(INSTALL_DIR)/include
+  
+  install : install_$(1)
+endef
+
+$(foreach lib,$(DEPLOY_LIBS),$(eval $(call INSTALL_TEMPLATE,$(lib))))
 
 ################################################################################
 # Convenience                                                                  #
