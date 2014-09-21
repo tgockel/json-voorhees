@@ -108,10 +108,10 @@ const std::istream& tokenizer::input() const
     return _input;
 }
 
-std::pair<string_ref, token_kind> tokenizer::current() const
+const tokenizer::token& tokenizer::current() const
 {
-    if (_current.data())
-        return { _current, _current_kind };
+    if (_current.text.data())
+        return _current;
     else
         throw std::logic_error("Cannot get token -- call next() and make sure it returns true.");
 }
@@ -132,13 +132,13 @@ bool tokenizer::next()
 {
     auto valid = [this] (const string_ref& new_current, token_kind new_kind)
                  {
-                     _current = new_current;
-                     _current_kind = new_kind;
+                     _current.text = new_current;
+                     _current.kind = new_kind;
                      return true;
                  };
     auto invalid = [this]
                    {
-                       _current.clear();
+                       _current.text.clear();
                        return false;
                    };
     
@@ -146,14 +146,14 @@ bool tokenizer::next()
     bool nth_pass = false;
     while (true)
     {
-        if (_buffer.empty() || (position_in_buffer(_buffer, _current) + _current.size()) == _buffer.size())
+        if (_buffer.empty() || (position_in_buffer(_buffer, _current.text) + _current.text.size()) == _buffer.size())
         {
             if (!read_input(nth_pass))
                 return invalid();
             nth_pass = true;
         }
         
-        pos = position_in_buffer(_buffer, _current) + _current.size();
+        pos = position_in_buffer(_buffer, _current.text) + _current.text.size();
         
         token_kind kind;
         size_type match_len;
@@ -175,7 +175,7 @@ bool tokenizer::next()
 
 bool tokenizer::read_input(bool grow_buffer)
 {
-    auto old_buffer_pos = position_in_buffer(_buffer, _current);
+    auto old_buffer_pos = position_in_buffer(_buffer, _current.text);
     
     char* buffer_write_pos;
     size_type buffer_write_size;
@@ -198,7 +198,7 @@ bool tokenizer::read_input(bool grow_buffer)
     if (read_count > 0)
     {
         _buffer.resize(_input.gcount());
-        _current = string_ref(_buffer.data() + old_buffer_pos, _current.size());
+        _current.text = string_ref(_buffer.data() + old_buffer_pos, _current.text.size());
         return true;
     }
     else

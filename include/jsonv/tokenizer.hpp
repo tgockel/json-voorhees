@@ -103,6 +103,18 @@ public:
     /** The minimum size of the internal buffer. **/
     static const size_type min_buffer_size;
     
+    /** A representation of what this tokenizer has. **/
+    struct token
+    {
+        string_ref text;
+        token_kind kind;
+        
+        operator std::pair<string_ref, token_kind>()
+        {
+            return { text, kind };
+        }
+    };
+    
 public:
     /** Construct a tokenizer to read the given \a input. **/
     explicit tokenizer(std::istream& input);
@@ -124,7 +136,7 @@ public:
      *  \returns The current token.
      *  \throws std::logic_error if \c next has not been called or if it returned \c false.
     **/
-    std::pair<string_ref, token_kind> current() const;
+    const token& current() const;
     
     /** Reserve a certain amount of space in the buffer. This will have an effect of performance. **/
     void buffer_reserve(size_type sz);
@@ -135,8 +147,7 @@ private:
 private:
     std::istream&     _input;
     std::vector<char> _buffer;
-    string_ref        _current;      //!< The current token -- it always resides within _buffer
-    token_kind        _current_kind; //!< The kind of token \c _current is
+    token             _current;      //!< The current token -- the text always resides within _buffer
 };
 
 }

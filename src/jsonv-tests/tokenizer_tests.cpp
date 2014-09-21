@@ -47,8 +47,8 @@ TEST(tokenizer_single_boolean)
     tokenizer tokens(istream);
     ensure(tokens.next());
     auto found = tokens.current();
-    ensure_eq(found.second, token_kind::boolean);
-    ensure_eq(found.first, "true");
+    ensure_eq(found.kind, token_kind::boolean);
+    ensure_eq(found.text, "true");
 }
 
 }
