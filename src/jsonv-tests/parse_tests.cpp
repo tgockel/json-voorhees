@@ -9,7 +9,6 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include "test.hpp"
-#include "pull_parser_tests.hpp"
 
 #include <jsonv/array.hpp>
 #include <jsonv/parse.hpp>
@@ -24,30 +23,7 @@ static const value simple_obj = object({ { "foo", 4 },
                                          { "raz", object() }
                                        });
 
-#define TEST_PARSE(basename_)                                                                                   \
-    class basename_ ## _test :                                                                                  \
-            public ::jsonv_test::unit_test                                                                      \
-    {                                                                                                           \
-    public:                                                                                                     \
-        using parse_func = jsonv::value (*)(const std::string&, const jsonv::parse_options&);                   \
-                                                                                                                \
-        parse_func parse_impl;                                                                                  \
-                                                                                                                \
-        basename_ ## _test(const char* name, parse_func func) :                                                 \
-                ::jsonv_test::unit_test(name),                                                                  \
-                parse_impl(func)                                                                                \
-        { }                                                                                                     \
-                                                                                                                \
-        jsonv::value parse(const std::string& input, const jsonv::parse_options& opts = jsonv::parse_options()) \
-        {                                                                                                       \
-            return parse_impl(input, opts);                                                                     \
-        }                                                                                                       \
-                                                                                                                \
-        void run_impl();                                                                                        \
-    } basename_ ## _direct_test_instance("parse_" #basename_, jsonv::parse),                                    \
-      basename_ ## _stream_test_instance("parse_stream_" #basename_, jsonv_test::pull_parse);                   \
-                                                                                                                \
-    void basename_ ## _test::run_impl()
+#define TEST_PARSE TEST
 
 TEST_PARSE(object_simple_no_spaces)
 {
@@ -65,7 +41,7 @@ TEST_PARSE(object_simple_spaces_and_tabs)
 {
     value result = parse("           {    \t       \"foo\" :                 \t            4  , "
                          " \"bar\"                                :               [          \t         2\t,"
-                         " 3\t\t\t,\t4                ,                    \"5\"             ]"
+                         " 3\t\t\t,\t4                ,                    \"5\"             ],"
                          "         \t\"raz\"      \t: {                                                   }"
                          " \t\t}            \t");
     ensure_eq(simple_obj, result);
@@ -195,6 +171,11 @@ TEST_PARSE(malformed_decimal_collect_all)
     auto options = jsonv::parse_options()
                        .failure_mode(jsonv::parse_options::on_error::collect_all);
     ensure_throws(jsonv::parse_error, parse("123.456.789", options));
+}
+
+TEST_PARSE(malformed_decimal_in_object)
+{
+    ensure_throws(jsonv::parse_error, parse(R"({"x": 123.456.789 })"));
 }
 
 TEST_PARSE(malformed_decimal_ignore)

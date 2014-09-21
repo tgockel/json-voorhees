@@ -93,7 +93,9 @@ private:
     value        _partial_result;
 };
 
-/** Configuration for various parsing options. **/
+/** Configuration for various parsing options. All parse functions should take in a \c parse_options as a paramter and
+ *  should respect your settings.
+**/
 class JSONV_PUBLIC parse_options
 {
 public:
@@ -178,12 +180,25 @@ value JSONV_PUBLIC parse(const char* input, std::size_t length, const parse_opti
 /** Reads a JSON value from the input stream.
  *  
  *  \see parse(const char*, std::size_t length)
+ *  
+ *  \example
+ *  Parse JSON from some file.
+ *  \code
+ *  std::ifstream file("file.json");
+ *  jsonv::value out = parse(file);
+ *  \endcode
 **/
 value JSONV_PUBLIC parse(std::istream& input, const parse_options& = parse_options());
 
 /** Reads a JSON value from a string.
  *  
  *  \see parse(const char*, std::size_t length)
+ * 
+ *  \example
+ *  Simple input parsing.
+ *  \code
+ *  jsonv::value out = jsonv::parse("{ \"my_input\": [4, 5, [], [6, 7, 8]] }");
+ *  \endcode
 **/
 value JSONV_PUBLIC parse(const std::string& input, const parse_options& = parse_options());
 

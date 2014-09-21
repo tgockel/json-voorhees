@@ -64,4 +64,24 @@ TEST(token_attempt_match_number_integer_complete)
     ensure_eq(10, length);
 }
 
+TEST(token_attempt_match_string_complete)
+{
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match("\"1234567890\"", kind, length);
+    ensure(result == match_result::complete);
+    ensure_eq(token_kind::string, kind);
+    ensure_eq(12, length);
+}
+
+TEST(token_attempt_match_string_empty_complete)
+{
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match("\"\"", kind, length);
+    ensure(result == match_result::complete);
+    ensure_eq(token_kind::string, kind);
+    ensure_eq(2, length);
+}
+
 }

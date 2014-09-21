@@ -11,6 +11,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/array.hpp>
 #include <jsonv/object.hpp>
+#include <jsonv/tokenizer.hpp>
 
 #include "char_convert.hpp"
 
@@ -130,7 +131,7 @@ parse_options& parse_options::string_encoding(encoding encoding_)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// parse                                                                                                              //
+// parsing internals                                                                                                  //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace detail
@@ -138,32 +139,28 @@ namespace detail
 
 struct JSONV_LOCAL parse_context
 {
-    typedef std::size_t size_type;
+    using size_type = std::size_t;
     
+    tokenizer        input;
     parse_options    options;
     string_decode_fn string_decode;
     
-    size_type        line;
-    size_type        column;
-    size_type        character;
-    const char*      input;
-    size_type        input_size;
-    char             current;
-    bool             backed_off;
+    size_type line;
+    size_type column;
+    size_type character;
     
     bool                             successful;
     jsonv::parse_error::problem_list problems;
     
-    explicit parse_context(const parse_options& options, const char* input, size_type length) :
+    explicit parse_context(const parse_options& options, std::istream& input) :
+            input(input),
             options(options),
             string_decode(get_string_decoder(options.string_encoding())),
             line(0),
-            column(0),
+            column(1),
             character(0),
-            input(input),
-            input_size(length),
-            backed_off(false),
-            successful(true)
+            successful(true),
+            problems()
     { }
     
     parse_context(const parse_context&) = delete;
@@ -171,39 +168,49 @@ struct JSONV_LOCAL parse_context
     
     bool next()
     {
-        if (backed_off)
+        if (line != 0)
         {
-            backed_off = false;
-            return true;
-        }
-        
-        if (character < input_size)
-        {
-            current = input[character];
-            JSONV_DBG_NEXT(current);
-            
-            ++character;
-            if (current == '\n' || current == '\r')
+            character += current().text.size();
+            for (const char c : current().text)
             {
-                ++line;
-                column = 0;
+                if (c == '\n' || c == '\r')
+                {
+                    ++line;
+                    column = 1;
+                }
+                else
+                {
+                    ++column;
+                }
             }
-            else
-            {
-                ++column;
-            }
-            
-            return true;
         }
         else
+        {
+            ++line;
+        }
+        
+        if (input.next())
+        {
+            JSONV_DBG_NEXT("(" << input.current().text << " cxt:" << input.current().kind << ")");
+            if (current_kind() == token_kind::whitespace)
+                return next();
+            else
+                return true;
+        }
+        else
+        {
             return false;
+        }
     }
     
-    void previous()
+    const tokenizer::token& current() const
     {
-        if (backed_off)
-            parse_error("Internal parser error");
-        backed_off = true;
+        return input.current();
+    }
+    
+    const token_kind& current_kind() const
+    {
+        return current().kind;
     }
     
     template <typename... T>
@@ -216,6 +223,13 @@ struct JSONV_LOCAL parse_context
 private:
     void parse_error_impl(std::ostringstream& stream)
     {
+        try
+        {
+            string_ref text = current().text;
+            stream << ": \"" << text << "\"";
+        }
+        catch (const std::logic_error&)
+        { }
         jsonv::parse_error::problem problem(line, column, character, stream.str());
         if (options.failure_mode() == parse_options::on_error::fail_immediately)
         {
@@ -237,294 +251,249 @@ private:
     }
 };
 
-static bool parse_generic(parse_context& context, value& out, bool eat_whitespace = true);
+static bool parse_generic(parse_context& context, value& out, bool advance = true);
 
-static bool eat_whitespace(parse_context& context)
+static bool parse_boolean(parse_context& context, value& out)
 {
-    while (context.next())
+    assert(context.current_kind() == token_kind::boolean);
+    switch (context.current().text.at(0))
     {
-        if (!isspace(context.current))
-            return true;
+    case 't':
+        out = true;
+        return true;
+    case 'f':
+        out = false;
+        return true;
+    default:
+        context.parse_error("Invalid token for boolean.");
+        return true;
     }
-    return false;
 }
 
-static value parse_literal(parse_context& context, const value& outval, const char* const literal)
+static bool parse_null(parse_context& context, value& out)
 {
-    assert(context.current == *literal);
-    
-    for (const char* ptr = literal; *ptr; ++ptr)
-    {
-        if (context.current != *ptr)
-            context.parse_error("Unexpected character '", context.current, "' while trying to match ", literal);
-        
-        if (!context.next() && ptr[1])
-            context.parse_error("Unexpected end while trying to match ", literal);
-    }
-    
-    context.previous();
-    return outval;
+    assert(context.current_kind() == token_kind::null);
+    out = nullptr;
+    return true;
 }
 
-static value parse_null(parse_context& context)
+static bool parse_number(parse_context& context, value& out)
 {
-    return parse_literal(context, value(), "null");
-}
-
-static value parse_true(parse_context& context)
-{
-    return parse_literal(context, true, "true");
-}
-
-static value parse_false(parse_context& context)
-{
-    return parse_literal(context, false, "false");
-}
-
-static std::set<char> get_allowed_number_chars()
-{
-    const std::string allowed_chars_src("-0123456789+-eE.");
-    return std::set<char>(allowed_chars_src.begin(), allowed_chars_src.end());
-}
-
-static value parse_number(parse_context& context)
-{
-    // Regex is probably the more "right" way to get a number, but lexical_cast is faster and easier.
-    //typedef std::regex regex;
-    //static const regex number_pattern("^(-)?(0|[1-9][0-9]*)(?:(\\.)([0-9]+))?(?:([eE])([+-])?([0-9]+))?$");
-                                     // 0   |1                |2   |3           |4    |5     |6
-                                     // sign|whole            |dot |decimal     |ise  |esign |exp
-                                     // re.compile("^(-)?(0|[1-9][0-9]*)(?:(\\.)([0-9]+))?(?:([eE])([+-])?([0-9]+))?$") \.
-                                     //   .match('-123.45e+67').groups()
-                                     // ('-', '123', '.', '45', 'e', '+', '67')
-    static std::set<char> allowed_chars = get_allowed_number_chars();
-    const char* characters_start = context.input + context.character - 1;
-    std::size_t characters_count = 1;
-    
-    bool is_double = false;
-    while (true)
-    {
-        if (!context.next())
-            // it is okay to end the stream in the middle of a number
-            break;
-        
-        if (!allowed_chars.count(context.current))
-        {
-            context.previous();
-            break;
-        }
-        else
-        {
-            if (context.current == '.')
-                is_double = true;
-            
-            ++characters_count;
-        }
-    }
-    
+    JSONV_DBG_STRUCT("#");
+    string_ref characters = context.current().text;
     try
     {
         
-        if (is_double)
-            return boost::lexical_cast<double>(characters_start, characters_count);
-        else if (characters_start[0] == '-')
-            return boost::lexical_cast<int64_t>(characters_start, characters_count);
+        if (characters[0] == '-')
+            out = boost::lexical_cast<int64_t>(characters.data(), characters.size());
         else
             // For non-negative integer types, use lexical_cast of a uint64_t then static_cast to an int64_t. This is
             // done to deal with the values 2^63..2^64-1 -- do not consider it an exception, as we can store the bits
             // properly, but the onus is on the user to know the particular key was in the overflow range.
-            return static_cast<int64_t>(boost::lexical_cast<uint64_t>(characters_start, characters_count));
+            out = static_cast<int64_t>(boost::lexical_cast<uint64_t>(characters.data(), characters.size()));
     }
     catch (boost::bad_lexical_cast&)
     {
-        std::string characters(characters_start, characters_count);
-        context.parse_error("Could not extract ", kind_desc(is_double ? kind::decimal : kind::integer),
-                            " from \"", characters, "\"");
-        return value();
+        // could not get an integer...try to get a double
+        try
+        {
+            out = boost::lexical_cast<double>(characters.data(), characters.size());
+        }
+        catch (boost::bad_lexical_cast&)
+        {
+            context.parse_error("Could not extract number from \"", characters, "\"");
+            out = nullptr;
+        }
     }
+    return true;
 }
 
 static std::string parse_string(parse_context& context)
 {
-    assert(context.current == '\"');
+    assert(context.current_kind() == token_kind::string);
     
-    const char* characters_start = context.input + context.character;
-    std::size_t characters_count = 0;
-    
-    while (true)
-    {
-        if (!context.next())
-        {
-            context.parse_error("Unterminated string \"", std::string(characters_start, characters_count));
-            break;
-        }
-        
-        if (context.current == '\"')
-        {
-            if (characters_count > 0 && characters_start[characters_count-1] == '\\'
-                && !(characters_count > 1 && characters_start[characters_count-2] == '\\') //already escaped
-               )
-            {
-                ++characters_count;
-            }
-            else
-                break;
-        }
-        else
-        {
-            ++characters_count;
-        }
-    }
+    string_ref source = context.current().text;
+    JSONV_DBG_STRUCT(source);
+    // chop off the ""s
+    source.remove_prefix(1);
+    source.remove_suffix(1);
     
     try
     {
-        return context.string_decode(characters_start, characters_count);
+        return context.string_decode(source.data(), source.size());
     }
     catch (const detail::decode_error& err)
     {
         context.parse_error("Error decoding string:", err.what());
         // return it un-decoded
-        return std::string(characters_start, characters_count);
+        return std::string(source);
     }
 }
 
-static value parse_array(parse_context& context)
+static bool parse_string(parse_context& context, value& out)
 {
-    assert(context.current == '[');
+    out = parse_string(context);
+    return true;
+}
+
+static bool parse_array(parse_context& context, value& arr)
+{
     JSONV_DBG_STRUCT('[');
-    
-    value arr = array();
+    arr = array();
     
     while (true)
     {
-        if (!eat_whitespace(context))
-        {
-            context.parse_error("Unexpected end: unmatched '['");
+        if (!context.next())
             break;
-        }
         
-        if (context.current == ']')
+        value val;
+        if (context.current_kind() == token_kind::array_end)
         {
-            break;
+            JSONV_DBG_STRUCT(']');
+            return true;
         }
-        else if (context.current == ',')
-            continue;
+        else if (parse_generic(context, val, false))
+        {
+            JSONV_DBG_STRUCT(val);
+            arr.push_back(std::move(val));
+        }
         else
         {
-            value val;
-            if (parse_generic(context, val, false))
-            {
-                arr.push_back(std::move(val));
-            }
-            else
-            {
-                context.parse_error("Unexpected end: unmatched '['");
-                break;
-            }
+            JSONV_DBG_STRUCT("parse error:" << context.current().text << " kind:" << context.current_kind());
+            // a parse error, but parse_generic will have complained about it
         }
-    }
-    JSONV_DBG_STRUCT(']');
-    return arr;
-}
-
-static value parse_object(parse_context& context)
-{
-    assert(context.current == '{');
-    JSONV_DBG_STRUCT('{');
-    
-    value obj = object();
-    
-    while (true)
-    {
-        if (!eat_whitespace(context))
-            context.parse_error("Unexpected end: unmatched '{'");
         
-        switch (context.current)
+        if (!context.next())
         {
-        case ',':
-            // Jump over all commas in a row.
-            break;
-        case '\"':
-        {
-            JSONV_DBG_STRUCT('(');
-            std::string key = parse_string(context);
-            if (!eat_whitespace(context))
-                context.parse_error("Unexpected end: missing ':' for key '", key, "'");
-            
-            if (context.current != ':')
-                context.parse_error("Invalid character '", context.current, "' expecting ':'");
-            
-            value val;
-            if (!parse_generic(context, val))
-                context.parse_error("Unexpected end: missing value for key '", key, "'");
-            
-            //object::iterator iter = obj.find(key);
-            //if (iter != obj.end())
-            //    context.parse_error("Duplicate key \"", key, "\"");
-            obj[key] = std::move(val);
-            JSONV_DBG_STRUCT(')');
             break;
         }
-        case '}':
-            JSONV_DBG_STRUCT('}');
-            return obj;
-        default:
-            context.parse_error("Invalid character '", context.current, "' expecting '}' or a key (string)");
-            return obj;
+        
+        if (context.current_kind() == token_kind::array_end)
+        {
+            JSONV_DBG_STRUCT(']');
+            return true;
+        }
+        else if (context.current_kind() == token_kind::separator)
+        {
+            JSONV_DBG_STRUCT(',');
+        }
+        else
+        {
+            context.parse_error("Invalid entry when looking for ',' or ']'");
         }
     }
+    context.parse_error("Unexpected end: unmatched '['");
+    return false;
 }
 
-static bool parse_generic(parse_context& context, value& out, bool eat_whitespace_)
+static bool parse_object(parse_context& context, value& out)
 {
-    if (eat_whitespace_)
-        if (!eat_whitespace(context))
-            return false;
+    out = object();
     
-    switch (context.current)
+    while (context.next())
     {
-    case '{':
-        out = parse_object(context);
-        return true;
-    case '[':
-        out = parse_array(context);
-        return true;
-    case '\"':
-        out = parse_string(context);
-        return true;
-    case 'n':
-        out = parse_null(context);
-        return true;
-    case 't':
-        out = parse_true(context);
-        return true;
-    case 'f':
-        out = parse_false(context);
-        return true;
-    case '-':
-    case '0':
-    case '1':
-    case '2':
-    case '3':
-    case '4':
-    case '5':
-    case '6':
-    case '7':
-    case '8':
-    case '9':
-        out = parse_number(context);
-        return true;
-    default:
-        context.parse_error("Invalid character '", context.current, "'");
-        return true;
+        std::string key;
+        if (context.current_kind() == token_kind::string)
+        {
+            key = parse_string(context);
+        }
+        else if (context.current_kind() == token_kind::object_end)
+        {
+            return true;
+        }
+        else
+        {
+            context.parse_error("Expecting a key, but found ", context.current_kind());
+            // simulate a new key
+            key = std::string(context.current().text);
+        }
+        
+        if (!context.next())
+        {
+            context.parse_error("Unexpected end: missing ':' for key '", key, "'");
+            return false;
+        }
+        
+        if (context.current_kind() != token_kind::object_key_delimiter)
+            context.parse_error("Invalid key-value delimiter...expecting ':' after key '", key, "'");
+        
+        value val;
+        if (!parse_generic(context, val))
+        {
+            context.parse_error("Unexpected end: incomplete value for key '", key, "'");
+            return false;
+        }
+        
+        auto iter = out.find(key);
+        if (iter == out.end_object())
+        {
+            out.insert({ std::move(key), std::move(val) });
+        }
+        else
+        {
+            context.parse_error("Duplicate entries for key '", key, "'. ",
+                                "Updating old value ", iter->second, " with new value ", val, "."
+                               );
+            iter->second = std::move(val);
+        }
+        
+        if (!context.next())
+            break;
+        
+        if (context.current_kind() == token_kind::object_end)
+            return true;
+        else if (context.current_kind() != token_kind::separator)
+            context.parse_error("Invalid token while searching for next value in object.");
     }
+    
+    context.parse_error("Unexpected end inside of object.");
+    return false;
 }
 
-}
-
-value parse(const char* input, std::size_t length, const parse_options& options)
+static bool parse_generic(parse_context& context, value& out, bool advance)
 {
-    detail::parse_context context(options, input, length);
+    if (advance && !context.next())
+        return false;
+    
+    switch (context.current().kind)
+    {
+    case token_kind::array_begin:
+        return parse_array(context, out);
+    case token_kind::boolean:
+        return parse_boolean(context, out);
+    case token_kind::null:
+        return parse_null(context, out);
+    case token_kind::number:
+        return parse_number(context, out);
+    case token_kind::object_begin:
+        return parse_object(context, out);
+    case token_kind::string:
+        return parse_string(context, out);
+    case token_kind::comment:
+    case token_kind::whitespace:
+        // ignore
+        return parse_generic(context, out);
+    case token_kind::unknown:
+    case token_kind::array_end:
+    case token_kind::object_end:
+    case token_kind::object_key_delimiter:
+    case token_kind::separator:
+    case token_kind::parse_error_indicator:
+        context.parse_error("Encountered invalid token ", context.current().kind, ": \"", context.current().text, "\"");
+    }
+    return true;
+}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// parse functions                                                                                                    //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+value parse(std::istream& input, const parse_options& options)
+{
+    
+    detail::parse_context context(options, input);
     value out;
     if (!detail::parse_generic(context, out))
         context.parse_error("No input");
@@ -535,21 +504,18 @@ value parse(const char* input, std::size_t length, const parse_options& options)
         throw parse_error(context.problems, out);
 }
 
-value parse(std::istream& input, const parse_options& options)
+value parse(const char* input, std::size_t length, const parse_options& options)
 {
-    // Copy the input into a buffer
-    input.seekg(0, std::ios::end);
-    std::size_t len = input.tellg();
-    std::vector<char> buffer(len);
-    input.seekg(0, std::ios::beg);
-    std::copy(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>(), buffer.data());
-    
-    return parse(buffer.data(), buffer.size(), options);
+    std::stringstream sstream;
+    sstream.write(input, length);
+    return parse(sstream, options);
 }
+
 
 value parse(const std::string& source, const parse_options& options)
 {
-    return parse(source.c_str(), source.size(), options);
+    std::istringstream istream(source);
+    return parse(istream, options);
 }
 
 }

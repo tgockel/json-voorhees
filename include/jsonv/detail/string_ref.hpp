@@ -113,7 +113,7 @@ public:
     
     void remove_prefix(size_type n)
     {
-        if (n < _length)
+        if (n <= _length)
         {
             _base += n;
             _length -= n;
@@ -126,7 +126,7 @@ public:
     
     void remove_suffix(size_type n)
     {
-        if (n < _length)
+        if (n <= _length)
         {
             _length -= n;
         }

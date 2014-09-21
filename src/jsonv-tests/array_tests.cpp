@@ -58,9 +58,9 @@ TEST(parse_array)
 {
     jsonv::value arr = jsonv::parse("\t\n[2, 10, \"Hello, world!\"]   ");
     ensure(arr.get_kind() == jsonv::kind::array);
-    ensure(arr.size() == 3);
-    ensure(arr[0].as_integer() == 2);
-    ensure(arr[1].as_integer() == 10);
+    ensure_eq(arr.size(), 3);
+    ensure_eq(arr[0].as_integer(), 2);
+    ensure_eq(arr[1].as_integer(), 10);
     ensure_eq(arr[2].as_string(), "Hello, world!");
     ensure(arr == jsonv::array({ 2, 10, "Hello, world!" }));
 }

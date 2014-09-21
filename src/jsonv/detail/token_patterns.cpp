@@ -26,7 +26,6 @@ const regex_ns::regex_constants::syntax_option_type syntax_options = regex_ns::r
                                                                    | regex_ns::regex_constants::optimize;
 
 const regex_ns::regex re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE]-?[0-9]+(\.[0-9]+)?)?)", syntax_options);
-const regex_ns::regex re_string(      R"(^\"([^\]|\["\/bfnrt]|\\u[0-9a-fA-F]{4})*\")", syntax_options);
 const regex_ns::regex re_whitespace(  R"(^[ \t\r\n]+)", syntax_options);
 const regex_ns::regex re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)", syntax_options);
 
@@ -89,7 +88,31 @@ static match_result match_number(const char* begin, const char* end, token_kind&
 static match_result match_string(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
     kind = token_kind::string;
-    return match_pattern(begin, end, re_string, length);
+    length = 1;
+    while (true)
+    {
+        if (begin + length == end)
+            return match_result::complete_eof;
+        
+        if (begin[length] == '\"')
+        {
+            if (length > 0 && begin[length-1] == '\\'
+                && !(length > 1 && begin[length-2] == '\\') //already escaped
+               )
+            {
+                ++length;
+            }
+            else
+            {
+                ++length;
+                return match_result::complete;
+            }
+        }
+        else
+        {
+            ++length;
+        }
+    }
 }
 
 static match_result match_whitespace(const char* begin, const char* end, token_kind& kind, std::size_t& length)

@@ -48,10 +48,10 @@ int benchmark(const std::string& filename)
 
 TEST(demo)
 {
-    std::string src = "{ \"blazing\": [ 3 \"\\\"\\n\" 4.5 5.123 4.10921e19 ] " // <- no need for commas
-                      "  \"text\": [ 1, 2, ,,3,, 4,,, \t\"something\"],,  ,, " // <- or go crazy with commas
-                      "  \"we call him \\\"empty array\\\"\": [] "
-                      "  \"we call him \\\"empty object\\\"\": {} "
+    std::string src = "{ \"blazing\": [ 3, \"\\\"\\n\", 4.5, 5.123, 4.10921e19 ], "
+                      "  \"text\": [ 1, 2, 3, 4, \t\"something\"],  "
+                      "  \"we call him \\\"empty array\\\"\": [], "
+                      "  \"we call him \\\"empty object\\\"\": {}, "
                       "  \"unicode\" :\"\\uface\""
                       "}";
     jsonv::value parsed = jsonv::parse(src);

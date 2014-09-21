@@ -51,4 +51,15 @@ TEST(tokenizer_single_boolean)
     ensure_eq(found.text, "true");
 }
 
+TEST(tokenizer_string)
+{
+    std::string input = "\"true\"";
+    std::istringstream istream(input);
+    tokenizer tokens(istream);
+    ensure(tokens.next());
+    auto found = tokens.current();
+    ensure_eq(found.kind, token_kind::string);
+    ensure_eq(found.text, "\"true\"");
+}
+
 }
