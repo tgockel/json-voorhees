@@ -46,6 +46,10 @@ union value_storage
 
 }
 
+/** Describes the \e kind of data a \c value holds. See \c value for more information.
+ *  
+ *  \see http://json.org/
+**/
 enum class kind : unsigned char
 {
     null,
@@ -57,6 +61,9 @@ enum class kind : unsigned char
     boolean
 };
 
+/** Thrown from various \c value methods when attempting to perform an operation which is not valid for the \c kind of
+ *  value.
+**/
 class JSONV_PUBLIC kind_error :
         public std::logic_error
 {
@@ -440,10 +447,10 @@ public:
      *      - If \c kind is invalid (memory corruption), then two JSON values are \e not equal, even if they have been
      *        corrupted in the same way and even if they share \c this (a corrupt object is not equal to itself).
      *   2. The kind comparison is also equal:
-     *      a. Two null values are always equivalent.
-     *      b. string, integer, decimal and boolean follow the classic rules for their type.
-     *      c. objects are equal if they have the same keys and values corresponding with the same key are also equal.
-     *      d. arrays are equal if they have the same length and the values at each index are also equal.
+     *      - Two null values are always equivalent.
+     *      - string, integer, decimal and boolean follow the classic rules for their type.
+     *      - objects are equal if they have the same keys and values corresponding with the same key are also equal.
+     *      - arrays are equal if they have the same length and the values at each index are also equal.
      *  
      *  \note
      *  The rules for equality are based on Python \c dict and \c list.
@@ -458,14 +465,14 @@ public:
      *  align with your intuition. When comparing values of different kinds, some arbitrary rules were created based on
      *  how "complicated" the author thought the type to be.
      *  
-     *  null - less than everything but null, which it is equal to.
-     *  boolean - false is less than true.
-     *  integer, decimal - compared by their numeric value. Comparisons between two integers do not cast, but comparison
-     *    between an integer and a decimal will coerce to decimal.
-     *  string - compared lexicographically by character code (with basic char strings and non-ASCII encoding, this
-     *    might lead to surprising results)
-     *  array - compared lexicographically by elements (recursively following this same technique)
-     *  object - entries in the object are sorted and compared lexicographically, first by key then by value
+     *   - null: less than everything but null, which it is equal to.
+     *   - boolean: false is less than true.
+     *   - integer, decimal: compared by their numeric value. Comparisons between two integers do not cast, but comparison
+     *     between an integer and a decimal will coerce to decimal.
+     *   - string: compared lexicographically by character code (with basic char strings and non-ASCII encoding, this
+     *     might lead to surprising results)
+     *   - array: compared lexicographically by elements (recursively following this same technique)
+     *   - object: entries in the object are sorted and compared lexicographically, first by key then by value
      *  
      *  \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; -1 if otherwise.
     **/

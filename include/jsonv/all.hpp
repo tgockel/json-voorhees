@@ -16,6 +16,8 @@
 #include "encode.hpp"
 #include "forward.hpp"
 #include "parse.hpp"
+#include "string_ref.hpp"
+#include "tokenizer.hpp"
 #include "value.hpp"
 
 #endif/*__JSONV_ALL_HPP_INCLUDED__*/
