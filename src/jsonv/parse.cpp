@@ -130,6 +130,17 @@ parse_options& parse_options::string_encoding(encoding encoding_)
     return *this;
 }
 
+bool parse_options::complete_parse() const
+{
+    return _complete_parse;
+}
+
+parse_options& parse_options::complete_parse(bool complete_parse_)
+{
+    _complete_parse = complete_parse_;
+    return *this;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parsing internals                                                                                                  //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +152,7 @@ struct JSONV_LOCAL parse_context
 {
     using size_type = std::size_t;
     
-    tokenizer        input;
+    tokenizer&       input;
     parse_options    options;
     string_decode_fn string_decode;
     
@@ -151,8 +162,9 @@ struct JSONV_LOCAL parse_context
     
     bool                             successful;
     jsonv::parse_error::problem_list problems;
+    bool                             complete;
     
-    explicit parse_context(const parse_options& options, std::istream& input) :
+    explicit parse_context(const parse_options& options, tokenizer& input) :
             input(input),
             options(options),
             string_decode(get_string_decoder(options.string_encoding())),
@@ -160,7 +172,8 @@ struct JSONV_LOCAL parse_context
             column(1),
             character(0),
             successful(true),
-            problems()
+            problems(),
+            complete(false)
     { }
     
     parse_context(const parse_context&) = delete;
@@ -168,7 +181,7 @@ struct JSONV_LOCAL parse_context
     
     bool next()
     {
-        if (line != 0)
+        if (!complete && line != 0)
         {
             character += current().text.size();
             for (const char c : current().text)
@@ -199,6 +212,7 @@ struct JSONV_LOCAL parse_context
         }
         else
         {
+            complete = true;
             return false;
         }
     }
@@ -490,18 +504,37 @@ static bool parse_generic(parse_context& context, value& out, bool advance)
 // parse functions                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-value parse(std::istream& input, const parse_options& options)
+value parse(tokenizer& input, const parse_options& options)
 {
-    
     detail::parse_context context(options, input);
     value out;
     if (!detail::parse_generic(context, out))
         context.parse_error("No input");
     
+    if (context.successful && options.complete_parse())
+    {
+        while (context.next())
+        {
+            if (  context.current_kind() != token_kind::whitespace
+               && context.current_kind() != token_kind::comment
+               && context.current_kind() != token_kind::unknown
+               )
+            {
+                context.parse_error("Found non-trivial data after final token. ", context.current_kind());
+            }
+        }
+    }
+    
     if (context.successful || context.options.failure_mode() == parse_options::on_error::ignore)
         return out;
     else
         throw parse_error(context.problems, out);
+}
+
+value parse(std::istream& input, const parse_options& options)
+{
+    tokenizer tokens(input);
+    return parse(tokens, options);
 }
 
 value parse(const char* input, std::size_t length, const parse_options& options)

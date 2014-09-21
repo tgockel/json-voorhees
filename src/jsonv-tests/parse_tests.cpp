@@ -13,6 +13,7 @@
 #include <jsonv/array.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/object.hpp>
+#include <jsonv/tokenizer.hpp>
 
 #include <iostream>
 
@@ -23,7 +24,7 @@ static const value simple_obj = object({ { "foo", 4 },
                                          { "raz", object() }
                                        });
 
-#define TEST_PARSE TEST
+#define TEST_PARSE(name) TEST(parse_ ## name)
 
 TEST_PARSE(object_simple_no_spaces)
 {
@@ -184,4 +185,19 @@ TEST_PARSE(malformed_decimal_ignore)
                        .failure_mode(jsonv::parse_options::on_error::ignore);
     // Could potentially check that the result is still a decimal, but the result is undefined.
     parse("123.456.789", options);
+}
+
+TEST_PARSE(option_complete_parse_false)
+{
+    auto options = jsonv::parse_options()
+                         .complete_parse(false);
+    std::string input = R"({ "x": [4, 3, 5] })";
+    jsonv::value expected = parse(input);
+    std::istringstream istream(input + input + input + input);
+    jsonv::tokenizer tokens(istream);
+    for (std::size_t x = 0; x < 4; ++x)
+    {
+        jsonv::value entry = jsonv::parse(tokens, options);
+        ensure_eq(expected, entry);
+    }
 }

@@ -95,13 +95,41 @@ std::string to_string(const token_kind& value)
 
 const tokenizer::size_type tokenizer::min_buffer_size = 4096;
 
+static std::size_t position_in_buffer(const std::vector<char>& buffer, const string_ref& current)
+{
+    // an invalid current means the buffer is fresh, so we're at the start of it
+    if (!current.data())
+        return 0;
+    
+    std::ptrdiff_t pos = current.data() - buffer.data();
+    assert(pos >= 0);
+    assert(std::size_t(pos) < buffer.size());
+    return std::size_t(pos);
+}
+
 tokenizer::tokenizer(std::istream& input) :
         _input(input)
 {
     buffer_reserve(min_buffer_size);
 }
 
-tokenizer::~tokenizer() noexcept = default;
+tokenizer::~tokenizer() noexcept
+{
+    // getting destroyed -- need to put our buffer back into the istream
+    try
+    {
+        if (_current.text.data())
+        {
+            for (std::size_t idx = _buffer.size() - 1; idx != position_in_buffer(_buffer, _current.text); --idx)
+                _input.putback(_buffer[idx]);
+        }
+    }
+    catch (...)
+    {
+        // there's not much we can do here...if the istream doesn't allow us to give things back, we can only hope that
+        // the user didn't care.
+    }
+}
 
 const std::istream& tokenizer::input() const
 {
@@ -114,18 +142,6 @@ const tokenizer::token& tokenizer::current() const
         return _current;
     else
         throw std::logic_error("Cannot get token -- call next() and make sure it returns true.");
-}
-
-static std::size_t position_in_buffer(const std::vector<char>& buffer, const string_ref& current)
-{
-    // an invalid current means the buffer is fresh, so we're at the start of it
-    if (!current.data())
-        return 0;
-    
-    std::ptrdiff_t pos = current.data() - buffer.data();
-    assert(pos >= 0);
-    assert(std::size_t(pos) < buffer.size());
-    return std::size_t(pos);
 }
 
 bool tokenizer::next()

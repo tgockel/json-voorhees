@@ -21,6 +21,8 @@
 namespace jsonv
 {
 
+class tokenizer;
+
 /** An error encountered when parsing.
  *  
  *  \see parse
@@ -155,12 +157,25 @@ public:
     encoding string_encoding() const;
     parse_options& string_encoding(encoding);
     
+    /** Should the input be completely parsed to consider the parsing a success? This is on by default. Disabling this
+     *  option can be useful for situations where JSON input is coming from some stream and you wish to process distinct
+     *  objects separately (this technique is used to great effect in jq: http://stedolan.github.io/jq/).
+     *  
+     *  \warning
+     *  When using this option, it is best to construct a \c tokenizer for your input stream and reuse that. The
+     *  \c parse functions all internally buffer your \c istream and while they \e attempt to use \c putback re-put
+     *  characters back into the \c istream, they are not necessarily successful at doing so.
+    **/
+    bool complete_parse() const;
+    parse_options& complete_parse(bool);
+    
 private:
     // For the purposes of ABI compliance, most modifications to the variables in this class should bump the minor
     // version number.
     on_error    _failure_mode     = on_error::fail_immediately;
     std::size_t _max_failures     = 10;
     encoding    _string_encoding  = encoding::utf8;
+    bool        _complete_parse   = true;
 };
 
 /** Construct a JSON value from the given input.
@@ -201,6 +216,20 @@ value JSONV_PUBLIC parse(std::istream& input, const parse_options& = parse_optio
  *  \endcode
 **/
 value JSONV_PUBLIC parse(const std::string& input, const parse_options& = parse_options());
+
+/** Reads a JSON value from a buffered \c tokenizer. This less convenient function is useful when setting
+ *  \c parse_options::complete_parse to \c false.
+ *  
+ *  \example
+ *  \code
+ *  tcp_stream input(get_network_stream());
+ *  jsonv::tokenizer buffered(input);
+ *  jsonv::parse_options options = jsonv::parse_options().complete_parse(false);
+ *  jsonv::value x = parse(buffered, options);
+ *  jsonv::value y = parse(buffered, options);
+ *  \endcode
+**/
+value JSONV_PUBLIC parse(tokenizer& input, const parse_options& = parse_options());
 
 }
 

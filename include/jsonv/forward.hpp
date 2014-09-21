@@ -20,6 +20,8 @@ class kind_error;
 class value;
 class parse_error;
 class parse_options;
+class tokenizer;
+enum class token_kind : unsigned int;
 
 }
 
