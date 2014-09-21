@@ -1,5 +1,5 @@
-Introduction
-============
+JSON Voorhees
+=============
 
 Yet another [JSON](http://www.json.org/) library for C++.
 This one touts new C++11 features for developer-friendliness, an extremely high-speed parser and no dependencies beyond
@@ -21,6 +21,19 @@ Features include (but are not necessarily limited to):
      - Clang++ (3.3+)
 
 [![Build Status](https://travis-ci.org/tgockel/json-voorhees.svg?branch=master)](https://travis-ci.org/tgockel/json-voorhees)
+
+Compile and Install
+-------------------
+
+JSON Voorhees uses plain-old [GNU Make](http://www.gnu.org/software/make/) as the build and installation system so you
+ do not have to deal with any wonky custom build systems or automatic configuration software.
+If you have `boost`, `g++` and `make` installed, simply:
+
+    $> make
+    $> sudo make install
+
+If you want to customize your compilation or installation, see the top of the `Makefile` for easy-to-use configuration
+ options.
 
 Future
 ------
@@ -71,7 +84,7 @@ For progress updates, check in at [the MSVC support issue](https://github.com/tg
 Versioning
 ----------
 
-Like every software system ever, JsonVoorhees describes versions in 3 parts: `${major}.${minor}.${maintenance}`.
+Like every software system ever, JSON Voorhees describes versions in 3 parts: `${major}.${minor}.${maintenance}`.
 Unlike most software, it actually means something when the versions change.
 
  - `major`: There are no guarantees whatsoever across major releases.
@@ -79,8 +92,8 @@ Unlike most software, it actually means something when the versions change.
             That means code written against version 1.1 can be recompiled against version 1.4 and continue to work.
             No guarantees are made for going backwards (version 1.4 might have added new functions).
  - `maintenance`: Code is ABI-compatible across maintenance.
-                  Library *A* built against JsonVoorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
-                   built against JsonVoorhees 1.2.9.
+                  Library *A* built against JSON Voorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
+                   built against JSON Voorhees 1.2.9.
                   Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
                    minor version.
 
