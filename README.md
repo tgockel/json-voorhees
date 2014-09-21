@@ -78,6 +78,9 @@ However, you can use [Boost.Regex][Boost.Regex] as the regular expression engine
  implementations.
 The downside of this is your application must link with the Boost libraries (`-lboost_regex -lboost_system`).
 
+    $> make USE_BOOST_REGEX=1
+    $> sudo make install
+
 In the long-term, this library should be ported to MSVC, but there is no timeline for doing so at the moment.
 For progress updates, check in at [the MSVC support issue](https://github.com/tgockel/json-voorhees/issues/7).
 
