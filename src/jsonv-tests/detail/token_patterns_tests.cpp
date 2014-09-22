@@ -84,4 +84,22 @@ TEST(token_attempt_match_string_empty_complete)
     ensure_eq(2, length);
 }
 
+template <std::size_t N>
+std::size_t sstrlen(const char (&)[N])
+{
+    return N-1;
+}
+
+TEST(token_attempt_match_string_double_reverse_solidus_before_escaped_quote)
+{
+    static const char tokens[] = R"("\\\" and keep going")";
+    
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match(tokens, kind, length);
+    ensure(result == match_result::complete);
+    ensure_eq(token_kind::string, kind);
+    ensure_eq(sstrlen(tokens), length);
+}
+
 }

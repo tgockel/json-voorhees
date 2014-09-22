@@ -11,6 +11,7 @@
 #include <jsonv/detail/token_patterns.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <iterator>
 
 #include JSONV_REGEX_INCLUDE
@@ -87,8 +88,11 @@ static match_result match_number(const char* begin, const char* end, token_kind&
 
 static match_result match_string(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
+    assert(*begin == '\"');
+    
     kind = token_kind::string;
     length = 1;
+    
     while (true)
     {
         if (begin + length == end)
@@ -96,17 +100,15 @@ static match_result match_string(const char* begin, const char* end, token_kind&
         
         if (begin[length] == '\"')
         {
-            if (length > 0 && begin[length-1] == '\\'
-                && !(length > 1 && begin[length-2] == '\\') //already escaped
-               )
-            {
-                ++length;
-            }
+            ++length;
+            return match_result::complete;
+        }
+        else if (begin[length] == '\\')
+        {
+            if (begin + length + 1 == end)
+                return match_result::complete_eof;
             else
-            {
-                ++length;
-                return match_result::complete;
-            }
+                length += 2;
         }
         else
         {
