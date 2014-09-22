@@ -334,7 +334,7 @@ static std::string parse_string(parse_context& context)
     
     try
     {
-        return context.string_decode(source.data(), source.size());
+        return context.string_decode(source);
     }
     catch (const detail::decode_error& err)
     {

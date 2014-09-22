@@ -362,19 +362,19 @@ static bool utf16_combine_surrogates(uint16_t high, uint16_t low, char32_t* out)
 }
 
 template <parse_options::encoding encoding>
-std::string string_decode(const char* source, std::string::size_type source_size)
+std::string string_decode(string_ref source)
 {
     typedef std::string::size_type size_type;
     
     std::string output;
-    const char* last_pushed_src = source;
+    const char* last_pushed_src = source.data();
     
-    for (size_type idx = 0; idx < source_size; /* incremented inline */)
+    for (size_type idx = 0; idx < source.size(); /* incremented inline */)
     {
         const char& current = source[idx];
         if (current == '\\')
         {
-            output.append(last_pushed_src, source+idx);
+            output.append(last_pushed_src, source.data()+idx);
             
             const char& next = source[idx + 1];
             if (const char* replacement = find_decoding(next))
@@ -384,7 +384,7 @@ std::string string_decode(const char* source, std::string::size_type source_size
             }
             else if (next == 'u')
             {
-                if (idx + 6 > source_size)
+                if (idx + 6 > source.size())
                     throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
                 uint16_t hexval = from_hex(&source[idx + 2]);
                 
@@ -397,9 +397,9 @@ std::string string_decode(const char* source, std::string::size_type source_size
                 // numeric encoding is in U+d800 - U+dfff with UTF-8 output, so deal with surrogate pairing...
                 else
                 {
-                    auto surrogateString = [&] () { return std::string(source+idx, 6); };
-                    if (  idx + 12 > source_size
-                       || idx +  8 > source_size
+                    auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
+                    if (  idx + 12 > source.size()
+                       || idx +  8 > source.size()
                        || source[idx + 6] != '\\'
                        || source[idx + 7] != 'u'
                        )
@@ -421,7 +421,7 @@ std::string string_decode(const char* source, std::string::size_type source_size
                 //++idx;
             }
             
-            last_pushed_src = source + idx;
+            last_pushed_src = source.data() + idx;
         }
         else
         {
@@ -429,7 +429,7 @@ std::string string_decode(const char* source, std::string::size_type source_size
         }
     }
     
-    output.append(last_pushed_src, source+source_size);
+    output.append(last_pushed_src, source.end());
     return output;
 }
 
