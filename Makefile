@@ -66,8 +66,12 @@ USE_BOOST_REGEX ?= 0
 # The library flag used to link to if USE_BOOST_REGEX is 1.
 BOOST_REGEX_LIB ?= -lboost_regex
 
+# def: BOOST_FILESYSTEM_LIB
+# The library flag used to link to Boost.Filesystem. This is always used in unit testing.
+BOOST_FILESYSTEM_LIB ?= -lboost_filesystem
+
 # def: BOOST_SYSTEM_LIB
-# The library flag used to link to if USE_BOOST_REGEX is 1.
+# The library flag used to link to Boost.System. This is always used in unit testing.
 BOOST_SYSTEM_LIB ?= -lboost_system
 
 # def: VERSION_STYLE
@@ -186,8 +190,10 @@ $(foreach lib,$(LIBRARIES),$(eval $(call LIBRARY_TEMPLATE,$(lib))))
 jsonv-tests_LIBS = jsonv
 
 ifeq ($(USE_BOOST_REGEX),1)
-  jsonv-tests_LD_LIBRARIES += $(BOOST_REGEX_LIB) $(BOOST_SYSTEM_LIB)
+  jsonv-tests_LD_LIBRARIES += $(BOOST_REGEX_LIB)
 endif
+
+jsonv-tests_LD_LIBRARIES += $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)
 
 ################################################################################
 # Build Recipes                                                                #
