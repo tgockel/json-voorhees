@@ -7,11 +7,14 @@ before_install:
 install:
   - sudo apt-get install --yes g++-4.8 clang-3.3 libboost1.55-all-dev
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
+env:
+  matrix:
+    - CONF=debug COMPILER=g++     STRING_REF_NAME=jsonv USE_BOOST_STRING_REF=0
+    - CONF=debug COMPILER=g++     STRING_REF_NAME=boost USE_BOOST_STRING_REF=1
+    - CONF=debug COMPILER=clang++ STRING_REF_NAME=jsonv USE_BOOST_STRING_REF=0
+    - CONF=debug COMPILER=clang++ STRING_REF_NAME=boost USE_BOOST_STRING_REF=1
 script:
-  - make CONF=debug BUILD_DIR=debug-gcc/jsonv-string-ref   VERBOSE=1 CXX_COMPILER=g++     USE_BOOST_REGEX=1 USE_BOOST_STRING_REF=0 test
-  - make CONF=debug BUILD_DIR=debug-clang/jsonv-string-ref VERBOSE=1 CXX_COMPILER=clang++ USE_BOOST_REGEX=1 USE_BOOST_STRING_REF=0 test CXX_WARNINGS=''
-  - make CONF=debug BUILD_DIR=debug-gcc/boost-string-ref   VERBOSE=1 CXX_COMPILER=g++     USE_BOOST_REGEX=1 USE_BOOST_STRING_REF=1 test
-  - make CONF=debug BUILD_DIR=debug-clang/boost-string-ref VERBOSE=1 CXX_COMPILER=clang++ USE_BOOST_REGEX=1 USE_BOOST_STRING_REF=1 test CXX_WARNINGS=''
+  - make CONF=${CONF} BUILD_DIR=build/${CONF}-${STRING_REF_NAME}-string-ref VERBOSE=1 CXX_COMPILER=${COMPILER} USE_BOOST_REGEX=1 USE_BOOST_STRING_REF=${USE_BOOST_STRING_REF}
 after_success:
   - sudo apt-get install --yes doxygen graphviz
   - openssl aes-256-cbc
