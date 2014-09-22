@@ -1,0 +1,46 @@
+# Maintainer: Travis Gockel <travis@gockelhut.com>
+# mkaurball
+pkgname=json-voorhees
+pkgver=v0.3.0.r11.g9f28154
+_sover=$(echo ${pkgver} | cut -c2-)
+pkgver() {
+	cd "${srcdir}/${pkgname}"
+	git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
+}
+pkgrel=1
+epoch=
+pkgdesc="A modern JSON parsing library for C++"
+arch=('x86_64')
+url="https://github.com/tgockel/json-voorhees"
+license=('Apache')
+groups=()
+depends=()
+makedepends=('gcc>=4.9' 'boost-libs>=1.52')
+checkdepends=('boost>=1.48')
+optdepends=()
+provides=()
+conflicts=()
+replaces=()
+backup=()
+options=()
+install=
+changelog=
+source=("${pkgname}::git+https://github.com/tgockel/${pkgname}.git")
+noextract=()
+md5sums=('SKIP')
+
+build() {
+	cd "${srcdir}/${pkgname}"
+	make JSONV_VERSION=${_sover}
+}
+
+check() {
+	cd "${srcdir}/${pkgname}"
+	make test JSONV_VERSION=${_sover}
+}
+
+package() {
+	cd "${srcdir}/${pkgname}"
+	echo "Installing ${pkgdir}/"
+	make install INSTALL_DIR="${pkgdir}/" JSONV_VERSION=${_sover} VERBOSE=2
+}
