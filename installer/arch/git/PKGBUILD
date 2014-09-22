@@ -41,6 +41,5 @@ check() {
 
 package() {
 	cd "${srcdir}/${pkgname}"
-	echo "Installing ${pkgdir}/"
 	make install INSTALL_DIR="${pkgdir}/" JSONV_VERSION=${_sover} VERBOSE=2
 }
