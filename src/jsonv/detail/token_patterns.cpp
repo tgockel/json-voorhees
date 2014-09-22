@@ -25,7 +25,7 @@ namespace regex_ns = JSONV_REGEX_NAMESPACE;
 const regex_ns::regex_constants::syntax_option_type syntax_options = regex_ns::regex_constants::ECMAScript
                                                                    | regex_ns::regex_constants::optimize;
 
-const regex_ns::regex re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE]-?[0-9]+(\.[0-9]+)?)?)", syntax_options);
+const regex_ns::regex re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options);
 const regex_ns::regex re_whitespace(  R"(^[ \t\r\n]+)", syntax_options);
 const regex_ns::regex re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)", syntax_options);
 
