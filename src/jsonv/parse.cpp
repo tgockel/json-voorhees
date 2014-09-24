@@ -107,6 +107,7 @@ parse_options parse_options::create_strict()
     return parse_options()
            .failure_mode(on_error::fail_immediately)
            .string_encoding(encoding::utf8)
+           .comma_policy(commas::strict)
            .require_document(true)
            .complete_parse(true)
            ;
@@ -142,6 +143,17 @@ parse_options::encoding parse_options::string_encoding() const
 parse_options& parse_options::string_encoding(encoding encoding_)
 {
     _string_encoding = encoding_;
+    return *this;
+}
+
+parse_options::commas parse_options::comma_policy() const
+{
+    return _comma_policy;
+}
+
+parse_options& parse_options::comma_policy(commas policy)
+{
+    _comma_policy = policy;
     return *this;
 }
 
@@ -380,6 +392,7 @@ static bool parse_array(parse_context& context, value& arr)
 {
     JSONV_DBG_STRUCT('[');
     arr = array();
+    bool trailing_comma = false;
     
     while (true)
     {
@@ -389,6 +402,8 @@ static bool parse_array(parse_context& context, value& arr)
         value val;
         if (context.current_kind() == token_kind::array_end)
         {
+            if (trailing_comma && context.options.comma_policy() != parse_options::commas::allow_trailing)
+                context.parse_error("Array contained a trailing comma");
             JSONV_DBG_STRUCT(']');
             return true;
         }
@@ -396,6 +411,7 @@ static bool parse_array(parse_context& context, value& arr)
         {
             JSONV_DBG_STRUCT(val);
             arr.push_back(std::move(val));
+            trailing_comma = false;
         }
         else
         {
@@ -416,6 +432,7 @@ static bool parse_array(parse_context& context, value& arr)
         else if (context.current_kind() == token_kind::separator)
         {
             JSONV_DBG_STRUCT(',');
+            trailing_comma = true;
         }
         else
         {
@@ -429,6 +446,7 @@ static bool parse_array(parse_context& context, value& arr)
 static bool parse_object(parse_context& context, value& out)
 {
     out = object();
+    bool trailing_comma = false;
     
     while (context.next())
     {
@@ -436,9 +454,12 @@ static bool parse_object(parse_context& context, value& out)
         if (context.current_kind() == token_kind::string)
         {
             key = parse_string(context);
+            trailing_comma = false;
         }
         else if (context.current_kind() == token_kind::object_end)
         {
+            if (trailing_comma && context.options.comma_policy() != parse_options::commas::allow_trailing)
+                context.parse_error("Trailing comma at end of object.");
             return true;
         }
         else
@@ -482,7 +503,9 @@ static bool parse_object(parse_context& context, value& out)
         
         if (context.current_kind() == token_kind::object_end)
             return true;
-        else if (context.current_kind() != token_kind::separator)
+        else if (context.current_kind() == token_kind::separator)
+            trailing_comma = true;
+        else
             context.parse_error("Invalid token while searching for next value in object.");
     }
     

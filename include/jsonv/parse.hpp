@@ -131,6 +131,15 @@ public:
         cesu8
     };
     
+    /** When dealing with comma separators, how should extra commas be treated? **/
+    enum class commas
+    {
+        /** Do not allow any extra commas anywhere -- require valid JSON. **/
+        strict,
+        /** Allow a single trailing comma at the end of an array or object (similar to C++ \c enum definitions). **/
+        allow_trailing,
+    };
+    
 public:
     /** Create an instance with the default options. **/
     parse_options();
@@ -148,6 +157,7 @@ public:
      *  \code
      *  failure_mode() == on_error::fail_immediately
      *  string_encoding() == encoding::utf8
+     *  comma_policy() == commas::strict
      *  require_document() == true
      *  complete_parse() == true
      *  \endcode
@@ -174,6 +184,10 @@ public:
     encoding string_encoding() const;
     parse_options& string_encoding(encoding);
     
+    /** How should extra commas be treated? By default, this is \c commas::allow_trailing. **/
+    commas comma_policy() const;
+    parse_options& comma_policy(commas);
+    
     /** If set to true, the result of a parse is required to have \c kind of \c kind::object or \c kind::array. By
      *  default, this is turned off, which will allow \c parse to return incomplete documents.
     **/
@@ -198,6 +212,7 @@ private:
     on_error    _failure_mode     = on_error::fail_immediately;
     std::size_t _max_failures     = 10;
     encoding    _string_encoding  = encoding::utf8;
+    commas      _comma_policy     = commas::allow_trailing;
     bool        _require_document = false;
     bool        _complete_parse   = true;
 };
@@ -206,8 +221,7 @@ private:
  *  
  *  \note
  *  This function is \e not intended for verifying if the input is valid JSON, as it will intentionally correctly parse
- *  invalid JSON. This library ignores extra commas in objects and arrays and will add commas between key-value pairs in
- *  objects and elements in arrays.
+ *  invalid JSON (so long as it resembles valid JSON). See \c parse_options::create_strict for a strict-mode parse.
  *  
  *  \throws parse_error if an error is found in the JSON. If the \a input terminates unexpectedly, a \c parse_error will
  *   still be thrown with a message like "Unexpected end: unmatched {...". If you suspect the input of going bad, you
