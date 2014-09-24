@@ -682,18 +682,11 @@ value parse(std::istream& input, const parse_options& options)
     return parse(tokens, options);
 }
 
-value parse(const char* input, std::size_t length, const parse_options& options)
+value parse(const string_ref& input, const parse_options& options)
 {
     std::stringstream sstream;
-    sstream.write(input, length);
+    sstream.write(input.data(), input.size());
     return parse(sstream, options);
-}
-
-
-value parse(const std::string& source, const parse_options& options)
-{
-    std::istringstream istream(source);
-    return parse(istream, options);
 }
 
 }

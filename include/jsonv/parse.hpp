@@ -12,6 +12,7 @@
 #define __JSONV_PARSE_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
+#include <jsonv/string_ref.hpp>
 #include <jsonv/value.hpp>
 
 #include <cstddef>
@@ -252,22 +253,11 @@ private:
     bool        _complete_parse   = true;
 };
 
-/** Construct a JSON value from the given input.
+/** Reads a JSON value from the input stream.
  *  
  *  \note
  *  This function is \e not intended for verifying if the input is valid JSON, as it will intentionally correctly parse
  *  invalid JSON (so long as it resembles valid JSON). See \c parse_options::create_strict for a strict-mode parse.
- *  
- *  \throws parse_error if an error is found in the JSON. If the \a input terminates unexpectedly, a \c parse_error will
- *   still be thrown with a message like "Unexpected end: unmatched {...". If you suspect the input of going bad, you
- *   can check the state flags or set the exception mask of the stream (exceptions thrown by \a input while processing
- *   will be propagated out).
-**/
-value JSONV_PUBLIC parse(const char* input, std::size_t length, const parse_options& = parse_options());
-
-/** Reads a JSON value from the input stream.
- *  
- *  \see parse(const char*, std::size_t length)
  *  
  *  \example "parse(std::istream&, const parse_options&)"
  *  Parse JSON from some file.
@@ -278,20 +268,19 @@ value JSONV_PUBLIC parse(const char* input, std::size_t length, const parse_opti
 **/
 value JSONV_PUBLIC parse(std::istream& input, const parse_options& = parse_options());
 
-/** Reads a JSON value from a string.
+/** Construct a JSON value from the given input.
  *  
- *  \see parse(const char*, std::size_t length)
- * 
- *  \example "parse(const std::string&, const parse_options&)"
- *  Simple input parsing.
- *  \code
- *  jsonv::value out = jsonv::parse("{ \"my_input\": [4, 5, [], [6, 7, 8]] }");
- *  \endcode
+ *  \throws parse_error if an error is found in the JSON. If the \a input terminates unexpectedly, a \c parse_error will
+ *   still be thrown with a message like "Unexpected end: unmatched {...". If you suspect the input of going bad, you
+ *   can check the state flags or set the exception mask of the stream (exceptions thrown by \a input while processing
+ *   will be propagated out).
 **/
-value JSONV_PUBLIC parse(const std::string& input, const parse_options& = parse_options());
+value JSONV_PUBLIC parse(const string_ref& input, const parse_options& = parse_options());
 
 /** Reads a JSON value from a buffered \c tokenizer. This less convenient function is useful when setting
  *  \c parse_options::complete_parse to \c false.
+ *  
+ *  \see parse(std::istream&, const parse_options&)
  *  
  *  \example "parse(tokenizer&, const parse_options&)"
  *  \code
