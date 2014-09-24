@@ -99,7 +99,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
-<a href="#pub-methods">Public Member Functions</a>  </div>
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a>  </div>
   <div class="headertitle">
 <div class="title">jsonv::parse_options Class Reference</div>  </div>
 </div><!--header-->
@@ -116,8 +117,17 @@ Public Types</h2></td></tr>
 <a class="el" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a085fa3fff6511d835f01a633e24dfd16">ignore</a>
  }</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593">encoding</a> { <a class="el" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593a9779fadc56f67384db00397c1b7df2b6">utf8</a>, 
+<a class="el" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593ac8e59892be8b84d277f56e99b2ebe3cc">utf8_strict</a>, 
 <a class="el" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf">cesu8</a>
  }</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">commas</a> { <a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437">strict</a>, 
+<a class="el" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a">allow_trailing</a>
+ }</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">numbers</a> { <a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa1e11d53c300b1f67f20698c28b455c1d">decimal</a>, 
+<a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437">strict</a>
+ }</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a355ff8e824be29d57864cad7d7c0fb8d"></a><!-- doxytag: member="jsonv::parse_options::size_type" ref="a355ff8e824be29d57864cad7d7c0fb8d" args="" -->
+typedef std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size_type</b></td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a64ef230fb92f599ead9937bb95c168d4">parse_options</a> ()</td></tr>
@@ -130,16 +140,59 @@ Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593">encoding</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#ac8763752b079dadae3f78780a81aed3a">string_encoding</a> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abb80d2e9c91a9025894de595430f5532"></a><!-- doxytag: member="jsonv::parse_options::string_encoding" ref="abb80d2e9c91a9025894de595430f5532" args="(encoding)" -->
 <a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>string_encoding</b> (<a class="el" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593">encoding</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">numbers</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#acded344edf6ae99bbbf167699df2ab88">number_encoding</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acb7b47c3d79df0a82e16dc6e9bb42c08"></a><!-- doxytag: member="jsonv::parse_options::number_encoding" ref="acb7b47c3d79df0a82e16dc6e9bb42c08" args="(numbers)" -->
+<a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>number_encoding</b> (<a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">numbers</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">commas</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a24b93f3fc4a36c850b103228290a6758">comma_policy</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab900a856ab6eb2b40826893ceececb44"></a><!-- doxytag: member="jsonv::parse_options::comma_policy" ref="ab900a856ab6eb2b40826893ceececb44" args="(commas)" -->
+<a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>comma_policy</b> (<a class="el" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">commas</a>)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a7129a3bbe69dd6f1a4bd269cef399c53">max_structure_depth</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a873bc86e38735a9292765f8843821c7a"></a><!-- doxytag: member="jsonv::parse_options::max_structure_depth" ref="a873bc86e38735a9292765f8843821c7a" args="(size_type depth)" -->
+<a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>max_structure_depth</b> (size_type depth)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a57f5c91bc1491c9556d0d86a74d09a05">require_document</a> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a17ad7d68778a3161f6691d991aafd67d"></a><!-- doxytag: member="jsonv::parse_options::require_document" ref="a17ad7d68778a3161f6691d991aafd67d" args="(bool)" -->
+<a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>require_document</b> (bool)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907">complete_parse</a> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a88902d1ea1a01f4e91c3522161b7d9bb"></a><!-- doxytag: member="jsonv::parse_options::complete_parse" ref="a88902d1ea1a01f4e91c3522161b7d9bb" args="(bool)" -->
 <a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>complete_parse</b> (bool)</td></tr>
+<tr><td colspan="2"><h2><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classjsonv_1_1parse__options.html">parse_options</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a699b9ee16f5c3ac8cb3d1ab1f39c1fb9">create_default</a> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classjsonv_1_1parse__options.html">parse_options</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1parse__options.html#a27a3f08de1318c06049ec1c264f71740">create_strict</a> ()</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>Configuration for various parsing options. All parse functions should take in a <code><a class="el" href="classjsonv_1_1parse__options.html">parse_options</a></code> as a paramter and should respect your settings. </p>
 <dl><dt><b>Examples: </b></dt><dd><a class="el" href="parse_07tokenizer_6_00_01const_01parse_options_6_08-example.html#_a1">parse(tokenizer&amp;, const parse_options&amp;)</a>.</dd>
 </dl>
-<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00101">101</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
+<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00102">102</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
 </div><hr/><h2>Member Enumeration Documentation</h2>
+<a class="anchor" id="a07d2a01c5527614ea710a84e8c88d714"></a><!-- doxytag: member="jsonv::parse_options::commas" ref="a07d2a01c5527614ea710a84e8c88d714" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">jsonv::parse_options::commas</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>When dealing with comma separators, how should extra commas be treated? </p>
+<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437"></a><!-- doxytag: member="strict" ref="a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437" args="" -->strict</em>&nbsp;</td><td>
+<p>Do not allow any extra commas anywhere -- require valid JSON.</p>
+<p>Strictly comply with the JSON specification for numbers -- no leading zeros! </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a"></a><!-- doxytag: member="allow_trailing" ref="a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a" args="" -->allow_trailing</em>&nbsp;</td><td>
+<p>Allow a single trailing comma at the end of an array or object (similar to C++ <code>enum</code> definitions). </p>
+</td></tr>
+</table>
+</dd>
+</dl>
+
+<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00143">143</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="acdf4825f573d55b50c82d455fb93f593"></a><!-- doxytag: member="jsonv::parse_options::encoding" ref="acdf4825f573d55b50c82d455fb93f593" args="" -->
 <div class="memitem">
 <div class="memproto">
@@ -156,6 +209,9 @@ Public Member Functions</h2></td></tr>
 <p>Use UTF-8 like a sane library should.</p>
 <dl class="see"><dt><b>See also:</b></dt><dd><a href="http://www.unicode.org/versions/Unicode6.2.0/ch03.pdf#G7404">http://www.unicode.org/versions/Unicode6.2.0/ch03.pdf#G7404</a> </dd></dl>
 </td></tr>
+<tr><td valign="top"><em><a class="anchor" id="acdf4825f573d55b50c82d455fb93f593ac8e59892be8b84d277f56e99b2ebe3cc"></a><!-- doxytag: member="utf8_strict" ref="acdf4825f573d55b50c82d455fb93f593ac8e59892be8b84d277f56e99b2ebe3cc" args="" -->utf8_strict</em>&nbsp;</td><td>
+<p>Like <code>utf8</code>, but check that there are no unprintable characters in the input stream (see <code>std::isprint</code>). To contrast this with <code>utf8</code>, this mode will reject things such as the <code>tab</code> and <code>newline</code> characters, while this will reject them. </p>
+</td></tr>
 <tr><td valign="top"><em><a class="anchor" id="acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf"></a><!-- doxytag: member="cesu8" ref="acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf" args="" -->cesu8</em>&nbsp;</td><td>
 <p>Use the CESU-8 Compatibility Encoding Scheme for UTF-16? It is generally not recommended unless your processing environment requires binary collation with UTF-16. If you do not know you need this, you probably do not.</p>
 <dl class="see"><dt><b>See also:</b></dt><dd><a href="http://www.unicode.org/reports/tr26/">http://www.unicode.org/reports/tr26/</a> </dd></dl>
@@ -164,7 +220,34 @@ Public Member Functions</h2></td></tr>
 </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00118">118</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
+<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00121">121</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a62238f46e2076c4e3ac113345476176a"></a><!-- doxytag: member="jsonv::parse_options::numbers" ref="a62238f46e2076c4e3ac113345476176a" args="" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">jsonv::parse_options::numbers</a></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>How should numbers be dealt with? </p>
+<dl><dt><b>Enumerator: </b></dt><dd><table border="0" cellspacing="2" cellpadding="0">
+<tr><td valign="top"><em><a class="anchor" id="a62238f46e2076c4e3ac113345476176aa1e11d53c300b1f67f20698c28b455c1d"></a><!-- doxytag: member="decimal" ref="a62238f46e2076c4e3ac113345476176aa1e11d53c300b1f67f20698c28b455c1d" args="" -->decimal</em>&nbsp;</td><td>
+<p>Parse <em>all</em> forms of decimal input that we can. To contrast this from <code>strict</code>, the <code>decimal</code> does not allow leading zeros on numbers. </p>
+</td></tr>
+<tr><td valign="top"><em><a class="anchor" id="a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437"></a><!-- doxytag: member="strict" ref="a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437" args="" -->strict</em>&nbsp;</td><td>
+<p>Do not allow any extra commas anywhere -- require valid JSON.</p>
+<p>Strictly comply with the JSON specification for numbers -- no leading zeros! </p>
+</td></tr>
+</table>
+</dd>
+</dl>
+
+<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00152">152</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
 
 </div>
 </div>
@@ -193,7 +276,7 @@ Public Member Functions</h2></td></tr>
 </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00105">105</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
+<p>Definition at line <a class="el" href="parse_8hpp_source.html#l00108">108</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
 
 </div>
 </div>
@@ -216,6 +299,23 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/><h2>Member Function Documentation</h2>
+<a class="anchor" id="a24b93f3fc4a36c850b103228290a6758"></a><!-- doxytag: member="jsonv::parse_options::comma_policy" ref="a24b93f3fc4a36c850b103228290a6758" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">commas</a> <a class="el" href="classjsonv_1_1parse__options.html#a24b93f3fc4a36c850b103228290a6758">jsonv::parse_options::comma_policy</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>How should extra commas be treated? By default, this is <code>commas::allow_trailing</code>. </p>
+
+</div>
+</div>
 <a class="anchor" id="af1f27e329e44ce74b51edbe14a732907"></a><!-- doxytag: member="jsonv::parse_options::complete_parse" ref="af1f27e329e44ce74b51edbe14a732907" args="() const " -->
 <div class="memitem">
 <div class="memproto">
@@ -233,6 +333,47 @@ Public Member Functions</h2></td></tr>
 <dl class="warning"><dt><b>Warning:</b></dt><dd>When using this option, it is best to construct a <code>tokenizer</code> for your input stream and reuse that. The <code>parse</code> functions all internally buffer your <code>istream</code> and while they <em>attempt</em> to use <code>putback</code> re-put characters back into the <code>istream</code>, they are not necessarily successful at doing so. </dd></dl>
 <dl><dt><b>Examples: </b></dt><dd><a class="el" href="parse_07tokenizer_6_00_01const_01parse_options_6_08-example.html#a2">parse(tokenizer&amp;, const parse_options&amp;)</a>.</dd>
 </dl>
+</div>
+</div>
+<a class="anchor" id="a699b9ee16f5c3ac8cb3d1ab1f39c1fb9"></a><!-- doxytag: member="jsonv::parse_options::create_default" ref="a699b9ee16f5c3ac8cb3d1ab1f39c1fb9" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> <a class="el" href="classjsonv_1_1parse__options.html#a699b9ee16f5c3ac8cb3d1ab1f39c1fb9">jsonv::parse_options::create_default</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td><code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a parser with the default options -- this is the same result as the default constructor, but might be helpful if you like to be more explicit. </p>
+
+</div>
+</div>
+<a class="anchor" id="a27a3f08de1318c06049ec1c264f71740"></a><!-- doxytag: member="jsonv::parse_options::create_strict" ref="a27a3f08de1318c06049ec1c264f71740" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classjsonv_1_1parse__options.html">parse_options</a> <a class="el" href="classjsonv_1_1parse__options.html#a27a3f08de1318c06049ec1c264f71740">jsonv::parse_options::create_strict</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td><code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>Create a strict parser. In general, these options are meant to fail on anything that is not a 100% valid JSON document. More specifically:</p>
+<div class="fragment"><pre class="fragment">  <a class="code" href="classjsonv_1_1parse__options.html#a16b85fa454dcd89fada05abe80eded52">failure_mode</a>() == on_error::fail_immediately
+  <a class="code" href="classjsonv_1_1parse__options.html#ac8763752b079dadae3f78780a81aed3a">string_encoding</a>() == encoding::utf8_strict
+  <a class="code" href="classjsonv_1_1parse__options.html#acded344edf6ae99bbbf167699df2ab88">number_encoding</a>() == numbers::strict
+  <a class="code" href="classjsonv_1_1parse__options.html#a24b93f3fc4a36c850b103228290a6758">comma_policy</a>() == commas::strict
+  <a class="code" href="classjsonv_1_1parse__options.html#a7129a3bbe69dd6f1a4bd269cef399c53">max_structure_depth</a>() == 20
+  <a class="code" href="classjsonv_1_1parse__options.html#a57f5c91bc1491c9556d0d86a74d09a05">require_document</a>() == <span class="keyword">true</span>
+  <a class="code" href="classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907">complete_parse</a>() == <span class="keyword">true</span>
+</pre></div> 
 </div>
 </div>
 <a class="anchor" id="a16b85fa454dcd89fada05abe80eded52"></a><!-- doxytag: member="jsonv::parse_options::failure_mode" ref="a16b85fa454dcd89fada05abe80eded52" args="() const " -->
@@ -267,6 +408,57 @@ Public Member Functions</h2></td></tr>
 <div class="memdoc">
 <p>The maximum allowed parsing failures the parser can encounter before throwing an error. This is only applicable if the <code>failure_mode</code> is not <code>on_error::fail_immediately</code>. By default, this value is 10.</p>
 <p>You should probably not set this value to an unreasonably high number, as each parse error encountered must be stored in memory for some period of time. </p>
+
+</div>
+</div>
+<a class="anchor" id="a7129a3bbe69dd6f1a4bd269cef399c53"></a><!-- doxytag: member="jsonv::parse_options::max_structure_depth" ref="a7129a3bbe69dd6f1a4bd269cef399c53" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_type <a class="el" href="classjsonv_1_1parse__options.html#a7129a3bbe69dd6f1a4bd269cef399c53">jsonv::parse_options::max_structure_depth</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>The maximum allowed nesting depth of any structure in the JSON document. The JSON specification technically limits the depth to 20, but very few implementations actually conform to this, so it is fairly dangerous to set this value. By default, the value is 0, which means we should not do any depth checking. </p>
+
+</div>
+</div>
+<a class="anchor" id="acded344edf6ae99bbbf167699df2ab88"></a><!-- doxytag: member="jsonv::parse_options::number_encoding" ref="acded344edf6ae99bbbf167699df2ab88" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">numbers</a> <a class="el" href="classjsonv_1_1parse__options.html#acded344edf6ae99bbbf167699df2ab88">jsonv::parse_options::number_encoding</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>How should a parser interpret numbers? By default, this is <code>numbers::decimal</code>, which allows any form of decimal input. </p>
+
+</div>
+</div>
+<a class="anchor" id="a57f5c91bc1491c9556d0d86a74d09a05"></a><!-- doxytag: member="jsonv::parse_options::require_document" ref="a57f5c91bc1491c9556d0d86a74d09a05" args="() const " -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="classjsonv_1_1parse__options.html#a57f5c91bc1491c9556d0d86a74d09a05">jsonv::parse_options::require_document</a> </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+<p>If set to true, the result of a parse is required to have <code>kind</code> of <code>kind::object</code> or <code>kind::array</code>. By default, this is turned off, which will allow <code>parse</code> to return incomplete documents. </p>
 
 </div>
 </div>

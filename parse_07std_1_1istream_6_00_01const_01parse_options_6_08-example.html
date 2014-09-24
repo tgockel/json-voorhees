@@ -94,7 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <p>Reads a JSON value from the input stream.</p>
-<dl class="see"><dt><b>See also:</b></dt><dd>parse(const char*, std::size_t length)</dd></dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>This function is <em>not</em> intended for verifying if the input is valid JSON, as it will intentionally correctly parse invalid JSON (so long as it resembles valid JSON). See <code>parse_options::create_strict</code> for a strict-mode parse.</dd></dl>
 <p>Parse JSON from some file. </p>
 <div class="fragment"><pre class="fragment">  std::ifstream file(<span class="stringliteral">&quot;file.json&quot;</span>);
   <a name="_a0"></a><a class="code" href="classjsonv_1_1value.html">jsonv::value</a> out = parse(file);

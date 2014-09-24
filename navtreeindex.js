@@ -49,7 +49,6 @@ var NAVTREEINDEX =
 "globals_defs.html":[3,1,1],
 "examples.html":[4],
 "ostream_pretty_encoder_01to_01pretty-print_01JSON_01to_01std_1_1cout-example.html":[4,0],
-"parse_07const_01std_1_1string_6_00_01const_01parse_options_6_08-example.html":[4,1],
-"parse_07std_1_1istream_6_00_01const_01parse_options_6_08-example.html":[4,2],
-"parse_07tokenizer_6_00_01const_01parse_options_6_08-example.html":[4,3]
+"parse_07std_1_1istream_6_00_01const_01parse_options_6_08-example.html":[4,1],
+"parse_07tokenizer_6_00_01const_01parse_options_6_08-example.html":[4,2]
 };

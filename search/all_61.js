@@ -1,6 +1,7 @@
 var searchData=
 [
   ['all_2ehpp',['all.hpp',['../all_8hpp.html',1,'']]],
+  ['allow_5ftrailing',['allow_trailing',['../classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a',1,'jsonv::parse_options']]],
   ['array',['array',['../classjsonv_1_1value.html#aa1fd9607c1bf9834c565f36ebc7a2086',1,'jsonv::value::array()'],['../group__Creation.html#gaee0b1767f4ec42adc02c5b0bb0781b91',1,'jsonv::array()'],['../group__Creation.html#ga4f0838289f72088c6a079e00140efda2',1,'jsonv::array(std::initializer_list&lt; value &gt; source)'],['../group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed',1,'jsonv::array(TForwardIterator first, TForwardIterator last)']]],
   ['array_5fiterator',['array_iterator',['../group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf',1,'jsonv::value']]],
   ['array_5fview',['array_view',['../group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f',1,'jsonv::value']]],

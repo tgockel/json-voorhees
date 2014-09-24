@@ -94,6 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <p>Reads a JSON value from a buffered <code>tokenizer</code>. This less convenient function is useful when setting <code>parse_options::complete_parse</code> to <code>false</code>.</p>
+<dl class="see"><dt><b>See also:</b></dt><dd>parse(std::istream&amp;, const parse_options&amp;)</dd></dl>
 <div class="fragment"><pre class="fragment">  tcp_stream input(get_network_stream());
   <a name="_a0"></a><a class="code" href="classjsonv_1_1tokenizer.html">jsonv::tokenizer</a> buffered(input);
   <a name="_a1"></a><a class="code" href="classjsonv_1_1parse__options.html">jsonv::parse_options</a> options = <a class="code" href="classjsonv_1_1parse__options.html">jsonv::parse_options</a>().<a name="a2"></a><a class="code" href="classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907">complete_parse</a>(<span class="keyword">false</span>);
