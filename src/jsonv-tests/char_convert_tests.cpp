@@ -26,6 +26,11 @@ static std::string string_decode_static(const char (& data)[N],
     return decoder(jsonv::string_ref(data, N-1));
 }
 
+TEST(string_decode_invalid_escape_sequence)
+{
+    ensure_throws(jsonv::detail::decode_error, string_decode_static("\\y"));
+}
+
 TEST(string_decode_unchanged)
 {
     ensure_eq("Hello!", string_decode_static("Hello!"));
