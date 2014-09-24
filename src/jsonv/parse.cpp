@@ -108,6 +108,7 @@ parse_options parse_options::create_strict()
     return parse_options()
            .failure_mode(on_error::fail_immediately)
            .string_encoding(encoding::utf8_strict)
+           .number_encoding(numbers::strict)
            .comma_policy(commas::strict)
            .max_structure_depth(20)
            .require_document(true)
@@ -145,6 +146,17 @@ parse_options::encoding parse_options::string_encoding() const
 parse_options& parse_options::string_encoding(encoding encoding_)
 {
     _string_encoding = encoding_;
+    return *this;
+}
+
+parse_options::numbers parse_options::number_encoding() const
+{
+    return _number_encoding;
+}
+
+parse_options& parse_options::number_encoding(numbers encoding_)
+{
+    _number_encoding = encoding_;
     return *this;
 }
 
@@ -348,6 +360,13 @@ static bool parse_number(parse_context& context, value& out)
     string_ref characters = context.current().text;
     try
     {
+        if (  context.options.number_encoding() == parse_options::numbers::strict
+           && characters.size() > 1
+           && characters.at(0) == '0'
+           )
+        {
+            context.parse_error("Numbers cannot start with a leading '0'");
+        }
         
         if (characters[0] == '-')
             out = boost::lexical_cast<int64_t>(characters.data(), characters.size());

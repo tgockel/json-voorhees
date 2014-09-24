@@ -147,6 +147,17 @@ public:
         allow_trailing,
     };
     
+    /** How should numbers be dealt with? **/
+    enum class numbers
+    {
+        /** Parse \e all forms of decimal input that we can. To contrast this from \c strict, the \c decimal does not
+         *  allow leading zeros on numbers.
+        **/
+        decimal,
+        /** Strictly comply with the JSON specification for numbers -- no leading zeros! **/
+        strict,
+    };
+    
 public:
     /** Create an instance with the default options. **/
     parse_options();
@@ -164,6 +175,7 @@ public:
      *  \code
      *  failure_mode() == on_error::fail_immediately
      *  string_encoding() == encoding::utf8_strict
+     *  number_encoding() == numbers::strict
      *  comma_policy() == commas::strict
      *  max_structure_depth() == 20
      *  require_document() == true
@@ -191,6 +203,12 @@ public:
     **/
     encoding string_encoding() const;
     parse_options& string_encoding(encoding);
+    
+    /** How should a parser interpret numbers? By default, this is \c numbers::decimal, which allows any form of decimal
+     *  input.
+    **/
+    numbers number_encoding() const;
+    parse_options& number_encoding(numbers);
     
     /** How should extra commas be treated? By default, this is \c commas::allow_trailing. **/
     commas comma_policy() const;
@@ -227,6 +245,7 @@ private:
     on_error    _failure_mode     = on_error::fail_immediately;
     std::size_t _max_failures     = 10;
     encoding    _string_encoding  = encoding::utf8;
+    numbers     _number_encoding  = numbers::decimal;
     commas      _comma_policy     = commas::allow_trailing;
     size_type   _max_struct_depth = 0;
     bool        _require_document = false;
