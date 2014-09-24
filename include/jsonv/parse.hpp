@@ -137,6 +137,23 @@ public:
     
     ~parse_options() noexcept;
     
+    /** Create a parser with the default options -- this is the same result as the default constructor, but might be
+     *  helpful if you like to be more explicit.
+    **/
+    static parse_options create_default();
+    
+    /** Create a strict parser. In general, these options are meant to fail on anything that is not a 100% valid JSON
+     *  document. More specifically:
+     *  
+     *  \code
+     *  failure_mode() == on_error::fail_immediately
+     *  string_encoding() == encoding::utf8
+     *  require_document() == true
+     *  complete_parse() == true
+     *  \endcode
+    **/
+    static parse_options create_strict();
+    
     /** See \c on_error. The default failure mode is \c fail_immediately. **/
     on_error failure_mode() const;
     parse_options& failure_mode(on_error mode);
@@ -157,6 +174,12 @@ public:
     encoding string_encoding() const;
     parse_options& string_encoding(encoding);
     
+    /** If set to true, the result of a parse is required to have \c kind of \c kind::object or \c kind::array. By
+     *  default, this is turned off, which will allow \c parse to return incomplete documents.
+    **/
+    bool require_document() const;
+    parse_options& require_document(bool);
+    
     /** Should the input be completely parsed to consider the parsing a success? This is on by default. Disabling this
      *  option can be useful for situations where JSON input is coming from some stream and you wish to process distinct
      *  objects separately (this technique is used to great effect in jq: http://stedolan.github.io/jq/).
@@ -175,6 +198,7 @@ private:
     on_error    _failure_mode     = on_error::fail_immediately;
     std::size_t _max_failures     = 10;
     encoding    _string_encoding  = encoding::utf8;
+    bool        _require_document = false;
     bool        _complete_parse   = true;
 };
 

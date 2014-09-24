@@ -97,6 +97,21 @@ parse_options::parse_options() = default;
 
 parse_options::~parse_options() noexcept = default;
 
+parse_options parse_options::create_default()
+{
+    return parse_options();
+}
+
+parse_options parse_options::create_strict()
+{
+    return parse_options()
+           .failure_mode(on_error::fail_immediately)
+           .string_encoding(encoding::utf8)
+           .require_document(true)
+           .complete_parse(true)
+           ;
+}
+
 parse_options::on_error parse_options::failure_mode() const
 {
     return _failure_mode;
@@ -127,6 +142,17 @@ parse_options::encoding parse_options::string_encoding() const
 parse_options& parse_options::string_encoding(encoding encoding_)
 {
     _string_encoding = encoding_;
+    return *this;
+}
+
+bool parse_options::require_document() const
+{
+    return _require_document;
+}
+
+parse_options& parse_options::require_document(bool val)
+{
+    _require_document = val;
     return *this;
 }
 
@@ -504,14 +530,11 @@ static bool parse_generic(parse_context& context, value& out, bool advance)
 // parse functions                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-value parse(tokenizer& input, const parse_options& options)
+static value post_parse(detail::parse_context& context, value&& out_)
 {
-    detail::parse_context context(options, input);
-    value out;
-    if (!detail::parse_generic(context, out))
-        context.parse_error("No input");
-    
-    if (context.successful && options.complete_parse())
+    // allow RVO
+    value out(std::move(out_));
+    if (context.successful && context.options.complete_parse())
     {
         while (context.next())
         {
@@ -525,10 +548,28 @@ value parse(tokenizer& input, const parse_options& options)
         }
     }
     
+    if (context.successful && context.options.require_document())
+    {
+        if (out.get_kind() != kind::array && out.get_kind() != kind::object)
+        {
+            context.parse_error("JSON requires the root of a payload to be an array or object, not ", out.get_kind());
+        }
+    }
+    
     if (context.successful || context.options.failure_mode() == parse_options::on_error::ignore)
         return out;
     else
         throw parse_error(context.problems, out);
+}
+
+value parse(tokenizer& input, const parse_options& options)
+{
+    detail::parse_context context(options, input);
+    value out;
+    if (!detail::parse_generic(context, out))
+        context.parse_error("No input");
+    
+    return post_parse(context, std::move(out));
 }
 
 value parse(std::istream& input, const parse_options& options)
