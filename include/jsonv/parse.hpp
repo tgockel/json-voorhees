@@ -1,6 +1,6 @@
 /** \file jsonv/parse.hpp
  *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -101,6 +101,8 @@ private:
 class JSONV_PUBLIC parse_options
 {
 public:
+    using size_type = value::size_type;
+    
     /** When a parse error is encountered, what should the parser do? **/
     enum class on_error
     {
@@ -163,6 +165,7 @@ public:
      *  failure_mode() == on_error::fail_immediately
      *  string_encoding() == encoding::utf8_strict
      *  comma_policy() == commas::strict
+     *  max_structure_depth() == 20
      *  require_document() == true
      *  complete_parse() == true
      *  \endcode
@@ -193,6 +196,13 @@ public:
     commas comma_policy() const;
     parse_options& comma_policy(commas);
     
+    /** The maximum allowed nesting depth of any structure in the JSON document. The JSON specification technically
+     *  limits the depth to 20, but very few implementations actually conform to this, so it is fairly dangerous to set
+     *  this value. By default, the value is 0, which means we should not do any depth checking.
+    **/
+    size_type max_structure_depth() const;
+    parse_options& max_structure_depth(size_type depth);
+    
     /** If set to true, the result of a parse is required to have \c kind of \c kind::object or \c kind::array. By
      *  default, this is turned off, which will allow \c parse to return incomplete documents.
     **/
@@ -218,6 +228,7 @@ private:
     std::size_t _max_failures     = 10;
     encoding    _string_encoding  = encoding::utf8;
     commas      _comma_policy     = commas::allow_trailing;
+    size_type   _max_struct_depth = 0;
     bool        _require_document = false;
     bool        _complete_parse   = true;
 };

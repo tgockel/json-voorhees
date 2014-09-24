@@ -10,6 +10,7 @@
 **/
 #include <jsonv/parse.hpp>
 #include <jsonv/array.hpp>
+#include <jsonv/encode.hpp>
 #include <jsonv/object.hpp>
 #include <jsonv/tokenizer.hpp>
 
@@ -108,6 +109,7 @@ parse_options parse_options::create_strict()
            .failure_mode(on_error::fail_immediately)
            .string_encoding(encoding::utf8_strict)
            .comma_policy(commas::strict)
+           .max_structure_depth(20)
            .require_document(true)
            .complete_parse(true)
            ;
@@ -154,6 +156,17 @@ parse_options::commas parse_options::comma_policy() const
 parse_options& parse_options::comma_policy(commas policy)
 {
     _comma_policy = policy;
+    return *this;
+}
+
+parse_options::size_type parse_options::max_structure_depth() const
+{
+    return _max_struct_depth;
+}
+
+parse_options& parse_options::max_structure_depth(size_type depth)
+{
+    _max_struct_depth = depth;
     return *this;
 }
 
@@ -547,6 +560,49 @@ static bool parse_generic(parse_context& context, value& out, bool advance)
     return true;
 }
 
+class JSONV_LOCAL depth_checker :
+        private encoder
+{
+public:
+    explicit depth_checker(parse_context& context) :
+            _context(context),
+            _current_depth(0)
+    { }
+    
+    void check(const value& val)
+    {
+        encode(val);
+    }
+    
+private:
+    virtual void write_null() override                      { }
+    virtual void write_object_key(string_ref) override      { }
+    virtual void write_object_delimiter() override          { }
+    virtual void write_array_delimiter() override           { }
+    virtual void write_string(string_ref) override          { }
+    virtual void write_integer(std::int64_t) override       { }
+    virtual void write_decimal(double) override             { }
+    virtual void write_boolean(bool) override               { }
+    
+    virtual void write_object_begin() override { increase_depth(); }
+    virtual void write_array_begin() override  { increase_depth(); }
+    virtual void write_object_end() override   { --_current_depth; }
+    virtual void write_array_end() override    { --_current_depth; }
+    
+private:
+    void increase_depth()
+    {
+        if (++_current_depth == _context.options.max_structure_depth())
+        {
+            _context.parse_error("Structure depth reached maximum of ", _current_depth);
+        }
+    }
+    
+private:
+    parse_context&           _context;
+    parse_options::size_type _current_depth;
+};
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -577,6 +633,12 @@ static value post_parse(detail::parse_context& context, value&& out_)
         {
             context.parse_error("JSON requires the root of a payload to be an array or object, not ", out.get_kind());
         }
+    }
+    
+    if (context.options.max_structure_depth() > 0)
+    {
+        detail::depth_checker depth_checker(context);
+        depth_checker.check(out);
     }
     
     if (context.successful || context.options.failure_mode() == parse_options::on_error::ignore)
