@@ -122,13 +122,18 @@ public:
          *  \see http://www.unicode.org/versions/Unicode6.2.0/ch03.pdf#G7404
         **/
         utf8,
+        /** Like \c utf8, but check that there are no unprintable characters in the input stream (see \c std::isprint).
+         *  To contrast this with \c utf8, this mode will reject things such as the \c tab and \c newline characters,
+         *  while this will reject them.
+        **/
+        utf8_strict,
         /** Use the CESU-8 Compatibility Encoding Scheme for UTF-16? It is generally not recommended unless your
          *  processing environment requires binary collation with UTF-16. If you do not know you need this, you probably
          *  do not.
          *  
          *  \see http://www.unicode.org/reports/tr26/
         **/
-        cesu8
+        cesu8,
     };
     
     /** When dealing with comma separators, how should extra commas be treated? **/
@@ -156,7 +161,7 @@ public:
      *  
      *  \code
      *  failure_mode() == on_error::fail_immediately
-     *  string_encoding() == encoding::utf8
+     *  string_encoding() == encoding::utf8_strict
      *  comma_policy() == commas::strict
      *  require_document() == true
      *  complete_parse() == true

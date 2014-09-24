@@ -106,7 +106,7 @@ parse_options parse_options::create_strict()
 {
     return parse_options()
            .failure_mode(on_error::fail_immediately)
-           .string_encoding(encoding::utf8)
+           .string_encoding(encoding::utf8_strict)
            .comma_policy(commas::strict)
            .require_document(true)
            .complete_parse(true)

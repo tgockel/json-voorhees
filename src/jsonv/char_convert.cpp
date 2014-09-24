@@ -16,8 +16,10 @@
 #include <cassert>
 #include <cctype>
 #include <cstdint>
+#include <iomanip>
 #include <map>
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
 
 namespace jsonv
@@ -91,7 +93,14 @@ static constexpr bool char_bitmatch(char c, char pos, char neg)
         && !(c & neg);
 }
 
-static void utf8_extract_info(char c, unsigned& length, char& bitmask)
+/** Tests if \a c is a valid UTF-8 sequence continuation. **/
+static bool is_utf8_sequence_continuation(char c)
+{
+    return char_bitmatch(c, '\x80', '\x40');
+}
+
+template <typename FOnError>
+static void utf8_extract_info(char c, unsigned& length, char& bitmask, const FOnError& on_error)
 {
     if (!(c & '\x80'))
     {
@@ -126,12 +135,16 @@ static void utf8_extract_info(char c, unsigned& length, char& bitmask)
     else
     {
         // This is not an acceptable/valid UTF8 string.  A failure here means I can't trust or don't understand the
-        // encoding on the platform.
-        assert(false);
+        // source encoding.
+        on_error(c);
         // In release mode, we'll spit out *potentially* garbage JSON.
         length = 1;
         bitmask = '\x7f';
     }
+}
+static void utf8_extract_info(char c, unsigned& length, char& bitmask)
+{
+    utf8_extract_info(c, length, bitmask, [] (char) { assert(false && "Bad encoding."); });
 }
 
 static char32_t utf8_extract_code(const char* c, unsigned length, char bitmask)
@@ -361,71 +374,139 @@ static bool utf16_combine_surrogates(uint16_t high, uint16_t low, char32_t* out)
     }
 }
 
-template <parse_options::encoding encoding>
+/**
+ *  \tparam require_printable Requires all characters in the sequence to be "printable" (aka: call \c std::isprint on
+ *                            them). This will probably eventually eventually transform into a "strict mode."
+**/
+template <parse_options::encoding encoding, bool require_printable>
 std::string string_decode(string_ref source)
 {
     typedef std::string::size_type size_type;
     
     std::string output;
     const char* last_pushed_src = source.data();
+    size_type utf8_sequence_start = 0;
+    unsigned remaining_utf8_sequence = 0;
     
     for (size_type idx = 0; idx < source.size(); /* incremented inline */)
     {
         const char& current = source[idx];
-        if (current == '\\')
+        if (remaining_utf8_sequence == 0)
         {
-            output.append(last_pushed_src, source.data()+idx);
-            
-            const char& next = source[idx + 1];
-            if (const char* replacement = find_decoding(next))
+            if (current == '\\')
             {
-                output += *replacement;
-                idx += 2;
-            }
-            else if (next == 'u')
-            {
-                if (idx + 6 > source.size())
-                    throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
-                uint16_t hexval = from_hex(&source[idx + 2]);
+                output.append(last_pushed_src, source.data()+idx);
                 
-                if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
+                const char& next = source[idx + 1];
+                if (const char* replacement = find_decoding(next))
                 {
-                    utf8_append_code(output, hexval);
-                    
-                    idx += 6;
+                    output += *replacement;
+                    idx += 2;
                 }
-                // numeric encoding is in U+d800 - U+dfff with UTF-8 output, so deal with surrogate pairing...
+                else if (next == 'u')
+                {
+                    if (idx + 6 > source.size())
+                        throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
+                    uint16_t hexval = from_hex(&source[idx + 2]);
+                    
+                    if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
+                    {
+                        utf8_append_code(output, hexval);
+                        
+                        idx += 6;
+                    }
+                    // numeric encoding is in U+d800 - U+dfff with UTF-8 output, so deal with surrogate pairing...
+                    else
+                    {
+                        auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
+                        if (  idx + 12 > source.size()
+                        || idx +  8 > source.size()
+                        || source[idx + 6] != '\\'
+                        || source[idx + 7] != 'u'
+                        )
+                            throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
+                        uint16_t hexlowval = from_hex(&source[idx + 8]);
+                        char32_t codepoint;
+                        if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
+                            throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
+                        
+                        utf8_append_code(output, codepoint);
+                        
+                        idx += 12;
+                    }
+                }
                 else
                 {
-                    auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
-                    if (  idx + 12 > source.size()
-                       || idx +  8 > source.size()
-                       || source[idx + 6] != '\\'
-                       || source[idx + 7] != 'u'
-                       )
-                        throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
-                    uint16_t hexlowval = from_hex(&source[idx + 8]);
-                    char32_t codepoint;
-                    if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
-                        throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
-                    
-                    utf8_append_code(output, codepoint);
-                    
-                    idx += 12;
+                    throw decode_error(idx, std::string("Unknown escape character: ") + next);
+                    //output += '?'; Maybe better solution if we don't want to throw
+                    //++idx;
+                }
+                
+                last_pushed_src = source.data() + idx;
+            }
+            else 
+            {
+                unsigned utf8_length;
+                char utf8_bitmask;
+                utf8_extract_info(current,
+                                  utf8_length,
+                                  utf8_bitmask,
+                                  [&idx] (char x)
+                                  {
+                                      std::ostringstream os;
+                                      os << "Invalid UTF-8 code point: \\x"
+                                         << std::hex << std::setw(2) << static_cast<int>(x) << std::dec << '.';
+                                      throw decode_error(idx, os.str());
+                                  }
+                                 );
+                
+                if (utf8_length > 1)
+                {
+                    utf8_sequence_start = idx;
+                    remaining_utf8_sequence = utf8_length - 1;
+                    ++idx;
+                }
+                else if (require_printable && !std::isprint(current))
+                {
+                    std::ostringstream os;
+                    os << "Unprintable character found in input: ";
+                    switch (current)
+                    {
+                    case '\t': os << "\\t (tab)"; break;
+                    case '\b': os << "\\b (backspace)"; break;
+                    case '\f': os << "\\f (formfeed)"; break;
+                    case '\n': os << "\\n (newline)"; break;
+                    case '\r': os << "\\r (carriage return)"; break;
+                    default:   os << "\\x" << std::hex << std::setw(2) << static_cast<int>(current) << std::dec; break;
+                    }
+                    throw decode_error(idx, os.str());
+                }
+                else
+                {
+                    ++idx;
                 }
             }
-            else
-            {
-                throw decode_error(idx, std::string("Unknown escape character: ") + next);
-                //output += '?'; Maybe better solution if we don't want to throw
-                //++idx;
-            }
-            
-            last_pushed_src = source.data() + idx;
         }
+        // remaining_utf8_sequence > 0
         else
         {
-            ++idx;
+            if (is_utf8_sequence_continuation(current))
+            {
+                ++idx;
+                --remaining_utf8_sequence;
+            }
+            // not on a UTF8 continuation, even though we should be...
+            else
+            {
+                std::ostringstream os;
+                os << "Invalid UTF-8 multi-byte sequence in source: \"";
+                for (size_type pos = utf8_sequence_start; pos <= idx; ++pos)
+                    os << "\\x" << std::setw(2) << std::hex << static_cast<int>(source[pos]);
+                os << std::dec << "\". ";
+                os << "The sequence should continue for " << remaining_utf8_sequence
+                   << " character" << (remaining_utf8_sequence == 1 ? "" : "s");
+                throw decode_error(idx, os.str());
+            }
         }
     }
     
@@ -438,10 +519,12 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
     switch (encoding)
     {
     case parse_options::encoding::cesu8:
-        return string_decode<parse_options::encoding::cesu8>;
+        return string_decode<parse_options::encoding::cesu8, false>;
+    case parse_options::encoding::utf8_strict:
+        return string_decode<parse_options::encoding::utf8, true>;
     case parse_options::encoding::utf8:
     default:
-        return string_decode<parse_options::encoding::utf8>;
+        return string_decode<parse_options::encoding::utf8, false>;
     };
 }
 
