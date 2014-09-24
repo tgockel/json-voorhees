@@ -9,10 +9,12 @@ install:
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 env:
   matrix:
-    - CONF=debug COMPILER=g++     STRING_REF_NAME=jsonv USE_BOOST_STRING_REF=0
-    - CONF=debug COMPILER=g++     STRING_REF_NAME=boost USE_BOOST_STRING_REF=1
-    - CONF=debug COMPILER=clang++ STRING_REF_NAME=jsonv USE_BOOST_STRING_REF=0
-    - CONF=debug COMPILER=clang++ STRING_REF_NAME=boost USE_BOOST_STRING_REF=1
+    - CONF=debug   COMPILER=g++     STRING_REF_NAME=jsonv USE_BOOST_STRING_REF=0 PUBLISH_DOCS=0
+    - CONF=debug   COMPILER=g++     STRING_REF_NAME=boost USE_BOOST_STRING_REF=1 PUBLISH_DOCS=0
+    - CONF=release COMPILER=g++     STRING_REF_NAME=jsonv USE_BOOST_STRING_REF=0 PUBLISH_DOCS=0
+    - CONF=release COMPILER=g++     STRING_REF_NAME=boost USE_BOOST_STRING_REF=1 PUBLISH_DOCS=0
+    - CONF=release COMPILER=clang++ STRING_REF_NAME=jsonv USE_BOOST_STRING_REF=0 PUBLISH_DOCS=0
+    - CONF=release COMPILER=clang++ STRING_REF_NAME=boost USE_BOOST_STRING_REF=1 PUBLISH_DOCS=1
 script:
   - make CONF=${CONF}
          BUILD_DIR=build/${CONF}-${STRING_REF_NAME}-string-ref
@@ -22,6 +24,7 @@ script:
          USE_BOOST_STRING_REF=${USE_BOOST_STRING_REF}
          CXX_WARNINGS='-Wall -Wextra'
 after_success:
+  - [[ ${PUBLISH_DOCS} == 0 ]] && { echo "Skipping documentation publishing."; exit 0; }
   - sudo apt-get install --yes doxygen graphviz
   - openssl aes-256-cbc
     -K $encrypted_da53dd2710a4_key
