@@ -24,7 +24,7 @@ script:
          USE_BOOST_STRING_REF=${USE_BOOST_STRING_REF}
          CXX_WARNINGS='-Wall -Wextra'
 after_success:
-  - [[ ${PUBLISH_DOCS} == 0 ]] && { echo "Skipping documentation publishing."; exit 0; }
+  - if [[ ${PUBLISH_DOCS} == 0 ]]; then echo "Skipping documentation publishing."; exit 0; fi
   - sudo apt-get install --yes doxygen graphviz
   - openssl aes-256-cbc
     -K $encrypted_da53dd2710a4_key
