@@ -12,6 +12,7 @@
 
 #include "detail.hpp"
 
+#include <algorithm>
 #include <ostream>
 
 namespace jsonv
@@ -189,21 +190,7 @@ bool array_impl::operator==(const array_impl& other) const
     if (_values.size() != other._values.size())
         return false;
     
-    typedef array_impl::array_type::const_iterator const_iterator;
-    
-    const_iterator self_iter  = _values.begin();
-    const_iterator other_iter = other._values.begin();
-    
-    for (const const_iterator self_end = _values.end();
-         self_iter != self_end;
-         ++self_iter, ++other_iter
-        )
-    {
-        if (*self_iter != *other_iter)
-            return false;
-    }
-    
-    return true;
+    return std::equal(begin(_values), end(_values), begin(other._values));
 }
 
 bool array_impl::operator!=(const array_impl& other) const

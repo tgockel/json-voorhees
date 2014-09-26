@@ -11,6 +11,7 @@
 **/
 #include <jsonv/object.hpp>
 
+#include <algorithm>
 #include <cstring>
 
 namespace jsonv
@@ -403,22 +404,7 @@ bool object_impl::operator==(const object_impl& other) const
     if (_values.size() != other._values.size())
         return false;
     
-    typedef object_impl::map_type::const_iterator const_iterator;
-    const_iterator self_iter  = _values.begin();
-    const_iterator other_iter = other._values.begin();
-    
-    for (const const_iterator self_end = _values.end();
-         self_iter != self_end;
-         ++self_iter, ++other_iter
-        )
-    {
-        if (self_iter->first != other_iter->first)
-            return false;
-        if (self_iter->second != other_iter->second)
-            return false;
-    }
-    
-    return true;
+    return std::equal(begin(_values), end(_values), begin(other._values));
 }
 
 bool object_impl::operator!=(const object_impl& other) const
