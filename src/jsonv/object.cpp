@@ -13,8 +13,6 @@
 
 #include <cstring>
 
-using namespace jsonv::detail;
-
 namespace jsonv
 {
 
@@ -28,6 +26,8 @@ struct object_iter_converter;
 template <>
 struct object_iter_converter<value::object_value_type>
 {
+    using object_impl = jsonv::detail::object_impl;
+    
     union impl
     {
         char* storage;
@@ -44,6 +44,8 @@ struct object_iter_converter<value::object_value_type>
 template <>
 struct object_iter_converter<const value::object_value_type>
 {
+    using object_impl = jsonv::detail::object_impl;
+    
     union impl
     {
         char* storage;

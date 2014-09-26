@@ -22,8 +22,6 @@
 #include <ostream>
 #include <sstream>
 
-using namespace jsonv::detail;
-
 namespace jsonv
 {
 
@@ -81,7 +79,7 @@ value::value(std::nullptr_t) :
 value::value(const std::string& val) :
         _kind(kind::null)
 {
-    _data.string = new string_impl;
+    _data.string = new detail::string_impl;
     _kind = kind::string;
     _data.string->_string = val;
 }

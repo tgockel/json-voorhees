@@ -17,12 +17,6 @@
 namespace jsonv
 {
 
-using namespace jsonv::detail;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// array                                                                                                              //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #define ARR _data.array->_values
 
 value array()
@@ -40,6 +34,9 @@ value array(std::initializer_list<value> source)
     return x;
 }
 
+namespace detail
+{
+
 value::size_type array_impl::size() const
 {
     return _values.size();
@@ -48,6 +45,8 @@ value::size_type array_impl::size() const
 bool array_impl::empty() const
 {
     return _values.empty();
+}
+
 }
 
 value::array_iterator value::begin_array()
