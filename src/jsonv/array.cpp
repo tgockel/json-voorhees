@@ -17,8 +17,6 @@
 namespace jsonv
 {
 
-#define ARR _data.array->_values
-
 value array()
 {
     value x;
@@ -64,13 +62,13 @@ value::const_array_iterator value::begin_array() const
 value::array_iterator value::end_array()
 {
     check_type(kind::array, get_kind());
-    return array_iterator(this, ARR.size());
+    return array_iterator(this, _data.array->_values.size());
 }
 
 value::const_array_iterator value::end_array() const
 {
     check_type(kind::array, get_kind());
-    return const_array_iterator(this, ARR.size());
+    return const_array_iterator(this, _data.array->_values.size());
 }
 
 value::array_view value::as_array()
@@ -86,78 +84,78 @@ value::const_array_view value::as_array() const
 value& value::operator[](size_type idx)
 {
     check_type(kind::array, get_kind());
-    return ARR[idx];
+    return _data.array->_values[idx];
 }
 
 const value& value::operator[](size_type idx) const
 {
     check_type(kind::array, get_kind());
-    return ARR[idx];
+    return _data.array->_values[idx];
 }
 
 value& value::at(size_type idx)
 {
     check_type(kind::array, get_kind());
-    return ARR.at(idx);
+    return _data.array->_values.at(idx);
 }
 
 const value& value::at(size_type idx) const
 {
     check_type(kind::array, get_kind());
-    return ARR.at(idx);
+    return _data.array->_values.at(idx);
 }
 
 void value::push_back(value item)
 {
     check_type(kind::array, get_kind());
-    ARR.emplace_back(std::move(item));
+    _data.array->_values.emplace_back(std::move(item));
 }
 
 void value::pop_back()
 {
     check_type(kind::array, get_kind());
-    if (ARR.empty())
+    if (_data.array->_values.empty())
         throw std::logic_error("Cannot pop from empty array");
-    ARR.pop_back();
+    _data.array->_values.pop_back();
 }
 
 void value::push_front(value item)
 {
     check_type(kind::array, get_kind());
-    ARR.emplace_front(std::move(item));
+    _data.array->_values.emplace_front(std::move(item));
 }
 
 void value::pop_front()
 {
     check_type(kind::array, get_kind());
-    if (ARR.empty())
+    if (_data.array->_values.empty())
         throw std::logic_error("Cannot pop from empty array");
-    ARR.pop_front();
+    _data.array->_values.pop_front();
 }
 
 void value::assign(size_type count, const value& val)
 {
     check_type(kind::array, get_kind());
-    ARR.assign(count, val);
+    _data.array->_values.assign(count, val);
 }
 
 void value::assign(std::initializer_list<value> items)
 {
     check_type(kind::array, get_kind());
-    ARR.assign(std::move(items));
+    _data.array->_values.assign(std::move(items));
 }
 
 void value::resize(size_type count, const value& val)
 {
     check_type(kind::array, get_kind());
-    ARR.resize(count, val);
+    _data.array->_values.resize(count, val);
 }
 
 value::array_iterator value::erase(const_array_iterator position)
 {
     check_type(kind::array, get_kind());
     difference_type dist(position - begin_array());
-    ARR.erase(ARR.begin() + dist);
+    _data.array->_values.erase(_data.array->_values.begin() + dist);
     return array_iterator(this, static_cast<size_type>(dist));
 }
 
@@ -165,7 +163,9 @@ value::array_iterator value::erase(const_array_iterator first, const_array_itera
 {
     difference_type fdist(first - begin_array());
     difference_type ldist(last  - begin_array());
-    ARR.erase(ARR.begin() + fdist, ARR.begin() + ldist);
+    _data.array->_values.erase(_data.array->_values.begin() + fdist,
+                               _data.array->_values.begin() + ldist
+                              );
     return array_iterator(this, static_cast<size_type>(fdist));
 }
 

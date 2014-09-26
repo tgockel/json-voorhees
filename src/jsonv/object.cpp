@@ -160,8 +160,6 @@ template value::basic_object_iterator<const value::object_value_type>
 // object                                                                                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define OBJ _data.object->_values
-
 value object()
 {
     value x;
@@ -180,25 +178,25 @@ value object(std::initializer_list<std::pair<const std::string, value>> source)
 value::object_iterator value::begin_object()
 {
     check_type(kind::object, get_kind());
-    return object_iterator(OBJ.begin());
+    return object_iterator(_data.object->_values.begin());
 }
 
 value::const_object_iterator value::begin_object() const
 {
     check_type(kind::object, get_kind());
-    return const_object_iterator(OBJ.begin());
+    return const_object_iterator(_data.object->_values.begin());
 }
 
 value::object_iterator value::end_object()
 {
     check_type(kind::object, get_kind());
-    return object_iterator(OBJ.end());
+    return object_iterator(_data.object->_values.end());
 }
 
 value::const_object_iterator value::end_object() const
 {
     check_type(kind::object, get_kind());
-    return const_object_iterator(OBJ.end());
+    return const_object_iterator(_data.object->_values.end());
 }
 
 value::object_view value::as_object()
@@ -214,85 +212,85 @@ value::const_object_view value::as_object() const
 value& value::operator[](const std::string& key)
 {
     check_type(kind::object, get_kind());
-    return OBJ[key];
+    return _data.object->_values[key];
 }
 
 const value& value::operator[](const std::string& key) const
 {
     check_type(kind::object, get_kind());
-    return OBJ[key];
+    return _data.object->_values[key];
 }
 
 value& value::operator[](const char* key)
 {
     check_type(kind::object, get_kind());
-    return OBJ[key];
+    return _data.object->_values[key];
 }
 
 const value& value::operator[](const char* key) const
 {
     check_type(kind::object, get_kind());
-    return OBJ[key];
+    return _data.object->_values[key];
 }
 
 value& value::at(const std::string& key)
 {
     check_type(kind::object, get_kind());
-    return OBJ.at(key);
+    return _data.object->_values.at(key);
 }
 
 const value& value::at(const std::string& key) const
 {
     check_type(kind::object, get_kind());
-    return OBJ.at(key);
+    return _data.object->_values.at(key);
 }
 
 value& value::at(const char* key)
 {
     check_type(kind::object, get_kind());
-    return OBJ.at(key);
+    return _data.object->_values.at(key);
 }
 
 const value& value::at(const char* key) const
 {
     check_type(kind::object, get_kind());
-    return OBJ.at(key);
+    return _data.object->_values.at(key);
 }
 
 value::size_type value::count(const std::string& key) const
 {
     check_type(kind::object, get_kind());
-    return OBJ.count(key);
+    return _data.object->_values.count(key);
 }
 
 value::size_type value::count(const char* key) const
 {
     check_type(kind::object, get_kind());
-    return OBJ.count(key);
+    return _data.object->_values.count(key);
 }
 
 value::object_iterator value::find(const std::string& key)
 {
     check_type(kind::object, get_kind());
-    return object_iterator(OBJ.find(key));
+    return object_iterator(_data.object->_values.find(key));
 }
 
 value::const_object_iterator value::find(const std::string& key) const
 {
     check_type(kind::object, get_kind());
-    return const_object_iterator(OBJ.find(key));
+    return const_object_iterator(_data.object->_values.find(key));
 }
 
 value::object_iterator value::find(const char* key)
 {
     check_type(kind::object, get_kind());
-    return object_iterator(OBJ.find(key));
+    return object_iterator(_data.object->_values.find(key));
 }
 
 value::const_object_iterator value::find(const char* key) const
 {
     check_type(kind::object, get_kind());
-    return const_object_iterator(OBJ.find(key));
+    return const_object_iterator(_data.object->_values.find(key));
 }
 
 value::object_iterator value::insert(value::const_object_iterator hint, const std::pair<std::string, value>& pair)
@@ -301,7 +299,7 @@ value::object_iterator value::insert(value::const_object_iterator hint, const st
     typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
     const_converter_union hint_convert;
     hint_convert.storage = hint._storage;
-    return object_iterator(OBJ.insert(*hint_convert.iter, pair));
+    return object_iterator(_data.object->_values.insert(*hint_convert.iter, pair));
 }
 
 value::object_iterator value::insert(value::const_object_iterator hint, const std::pair<const char*, value>& pair)
@@ -310,45 +308,45 @@ value::object_iterator value::insert(value::const_object_iterator hint, const st
     typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
     const_converter_union hint_convert;
     hint_convert.storage = hint._storage;
-    return object_iterator(OBJ.insert(*hint_convert.iter, pair));
+    return object_iterator(_data.object->_values.insert(*hint_convert.iter, pair));
 }
 
 std::pair<value::object_iterator, bool> value::insert(const std::pair<std::string, value>& pair)
 {
     check_type(kind::object, get_kind());
-    auto ret = OBJ.insert(pair);
+    auto ret = _data.object->_values.insert(pair);
     return { object_iterator(ret.first), ret.second };
 }
 
 std::pair<value::object_iterator, bool> value::insert(const std::pair<const char*, value>& pair)
 {
     check_type(kind::object, get_kind());
-    auto ret = OBJ.insert(pair);
+    auto ret = _data.object->_values.insert(pair);
     return { object_iterator(ret.first), ret.second };
 }
 
 void value::insert(std::initializer_list<object_value_type> items)
 {
     check_type(kind::object, get_kind());
-    OBJ.insert(items);
+    _data.object->_values.insert(items);
 }
 
 void value::insert(std::initializer_list<std::pair<const char*, value>> items)
 {
     check_type(kind::object, get_kind());
-    OBJ.insert(items.begin(), items.end());
+    _data.object->_values.insert(items.begin(), items.end());
 }
 
 value::size_type value::erase(const std::string& key)
 {
     check_type(kind::object, get_kind());
-    return OBJ.erase(key);
+    return _data.object->_values.erase(key);
 }
 
 value::size_type value::erase(const char* key)
 {
     check_type(kind::object, get_kind());
-    return OBJ.erase(key);
+    return _data.object->_values.erase(key);
 }
 
 value::object_iterator value::erase(const_object_iterator position)
@@ -357,7 +355,7 @@ value::object_iterator value::erase(const_object_iterator position)
     typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
     const_converter_union pos_convert;
     pos_convert.storage = position._storage;
-    return object_iterator(OBJ.erase(*pos_convert.iter));
+    return object_iterator(_data.object->_values.erase(*pos_convert.iter));
 }
 
 value::object_iterator value::erase(const_object_iterator first, const_object_iterator last)
@@ -368,7 +366,7 @@ value::object_iterator value::erase(const_object_iterator first, const_object_it
     first_convert.storage = first._storage;
     const_converter_union last_convert;
     last_convert.storage = last._storage;
-    return object_iterator(OBJ.erase(*first_convert.iter, *last_convert.iter));
+    return object_iterator(_data.object->_values.erase(*first_convert.iter, *last_convert.iter));
 }
 
 namespace detail
