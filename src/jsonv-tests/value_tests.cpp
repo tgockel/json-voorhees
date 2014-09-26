@@ -12,6 +12,7 @@
 
 #include <jsonv/all.hpp>
 
+#include <cstdint>
 #include <tuple>
 #include <unordered_map>
 
@@ -51,4 +52,17 @@ TEST(value_store_unordered_map)
     }
     
     ensure_lt(1, m.bucket_count());
+}
+
+TEST(value_decimal_denorm_min_compares)
+{
+    // kind of a hack...we'll use 0.0 and *almost* 0.0
+    union { std::uint64_t ival; double dval; } val;
+    val.ival = 0x1;
+    jsonv::value x = 0.0;
+    jsonv::value y = val.dval;
+    
+    ensure_ne(x.as_decimal(), y.as_decimal());
+    ensure_eq(x, y);
+    ensure_eq(0, x.compare(y));
 }

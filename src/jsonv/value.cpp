@@ -236,6 +236,13 @@ bool value::as_boolean() const
     return _data.boolean;
 }
 
+static int decimal_compare(const double& x, const double& y)
+{
+    return (std::abs(x - y) < (std::numeric_limits<double>::denorm_min() * 10.0)) ?  0
+         : (x < y)                                                                ? -1
+         :                                                                           1;
+}
+
 bool value::operator==(const value& other) const
 {
     if (this == &other && kind_valid(get_kind()))
@@ -254,7 +261,7 @@ bool value::operator==(const value& other) const
     case kind::integer:
         return as_integer() == other.as_integer();
     case kind::decimal:
-        return std::abs(as_decimal() - other.as_decimal()) < (std::numeric_limits<double>::denorm_min() * 10.0);
+        return decimal_compare(as_decimal(), other.as_decimal()) == 0;
     case kind::boolean:
         return as_boolean() == other.as_boolean();
     case kind::null:
@@ -286,7 +293,7 @@ bool value::operator !=(const value& other) const
     case kind::integer:
         return as_integer() != other.as_integer();
     case kind::decimal:
-        return as_decimal() != other.as_decimal();
+        return decimal_compare(as_decimal(), other.as_decimal()) != 0;
     case kind::boolean:
         return as_boolean() != other.as_boolean();
     case kind::null:
@@ -345,7 +352,7 @@ int value::compare(const value& other) const
             return as_integer() == other.as_integer() ? 0 : as_integer() < other.as_integer() ? -1 : 1;
         // fall through
     case kind::decimal:
-        return as_decimal() == other.as_decimal() ? 0 : as_decimal() < other.as_decimal() ? -1 : 1;
+        return decimal_compare(as_decimal(), other.as_decimal());
     case kind::string:
         return as_string().compare(other.as_string());
     case kind::array:
