@@ -106,6 +106,25 @@ TEST(object_view)
     ensure_eq(obj1, obj2);
 }
 
+TEST(object_nested_access)
+{
+    jsonv::value v = jsonv::object({ { "x", 0 } });
+    jsonv::value* p = &v;
+    int depth = 1;
+    for (const char* name : { "a", "b", "c", "d" })
+    {
+        (*p)[name] = jsonv::object({ { "x", depth } });
+        p = &(*p)[name];
+        ++depth;
+    }
+    
+    ensure_eq(v["x"],                     0);
+    ensure_eq(v["a"]["x"],                1);
+    ensure_eq(v["a"]["b"]["x"],           2);
+    ensure_eq(v["a"]["b"]["c"]["x"],      3);
+    ensure_eq(v["a"]["b"]["c"]["d"]["x"], 4);
+}
+
 TEST(parse_empty_object)
 {
     auto obj = jsonv::parse("{}");
