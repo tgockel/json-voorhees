@@ -100,6 +100,10 @@ value::value(double val) :
     _data.decimal = val;
 }
 
+value::value(float val) :
+        value(double(val))
+{ }
+
 value::value(bool val) :
         _kind(kind::boolean)
 {

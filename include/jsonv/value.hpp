@@ -401,6 +401,9 @@ public:
     /** Create a \c kind::decimal with the given \a value. **/
     value(double value);
     
+    /** Create a \c kind::decimal with the given \a value. **/
+    value(float value);
+    
     /** Create a \c kind::boolean with the given \a value. **/
     value(bool value);
     
