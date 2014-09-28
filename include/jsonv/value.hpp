@@ -1,6 +1,6 @@
 /** \file jsonv/value.hpp
  *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -12,6 +12,7 @@
 #define __JSONV_VALUE_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
+#include <jsonv/string_ref.hpp>
 #include <jsonv/detail/basic_view.hpp>
 
 #include <cstddef>
@@ -681,9 +682,7 @@ public:
      *  \throws kind_error if the kind is not an object.
     **/
     value& operator[](const std::string& key);
-    const value& operator[](const std::string& key) const;
-    value& operator[](const char* key);
-    const value& operator[](const char* key) const;
+    value& operator[](std::string&& key);
     
     /** Get the value associated with the given \a key of this object.
      *  
@@ -692,34 +691,27 @@ public:
     **/
     value& at(const std::string& key);
     const value& at(const std::string& key) const;
-    value& at(const char* key);
-    const value& at(const char* key) const;
     
     /** Check if the given \a key exists in this object.
      *  
      *  \throws kind_error if the kind is not an object.
     **/
-    size_type count(const std::string& key) const;
-    size_type count(const char* key) const;
+    size_type count(const string_ref& key) const;
     
     /** Attempt to locate a key-value pair with the provided \a key in this object.
      *  
      *  \throws kind_error if the kind is not an object.
     **/
-    object_iterator       find(const std::string& key);
-    const_object_iterator find(const std::string& key) const;
-    object_iterator       find(const char* key);
-    const_object_iterator find(const char* key) const;
+    object_iterator       find(const string_ref& key);
+    const_object_iterator find(const string_ref& key) const;
     
     /** Insert \a pair into this object. If \a hint is provided, this insertion could be optimized.
      *  
      *  \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key).
      *  \throws kind_error if the kind is not an object.
     **/
-    std::pair<object_iterator, bool> insert(const std::pair<std::string, value>& pair);
-    std::pair<object_iterator, bool> insert(const std::pair<const char*, value>& pair);
-    object_iterator insert(const_object_iterator hint, const std::pair<std::string, value>& pair);
-    object_iterator insert(const_object_iterator hint, const std::pair<const char*, value>& pair);
+    std::pair<object_iterator, bool> insert(std::pair<std::string, value> pair);
+    object_iterator insert(const_object_iterator hint, std::pair<std::string, value> pair);
     
     /** Insert range defined by [\a first, \a last) into this object.
      *  
@@ -729,23 +721,21 @@ public:
     void insert(TForwardIterator first, TForwardIterator last)
     {
         for ( ; first != last; ++first)
-            insert(first);
+            insert(*first);
     }
     
     /** Insert \a items into this object.
      *  
      *  \throws kind_error if the kind is not an object.
     **/
-    void insert(std::initializer_list<object_value_type> items);
-    void insert(std::initializer_list<std::pair<const char*, value>> items);
+    void insert(std::initializer_list<std::pair<std::string, value>> items);
     
     /** Erase the item with the given \a key.
      *  
      *  \returns 1 if \a key was erased; 0 if it did not.
      *  \throws kind_error if the kind is not an object.
     **/
-    size_type erase(const std::string& key);
-    size_type erase(const char* key);
+    size_type erase(const string_ref& key);
     
     /** Erase the item at the given \a position.
      *  
@@ -828,7 +818,7 @@ value array(TForwardIterator first, TForwardIterator last)
 JSONV_PUBLIC value object();
 
 /** Create an object with key-value pairs from the given \a source. **/
-JSONV_PUBLIC value object(std::initializer_list<std::pair<const std::string, value>> source);
+JSONV_PUBLIC value object(std::initializer_list<std::pair<std::string, value>> source);
 
 /** Create an object whose contents are defined by range [\a first, \a last). **/
 template <typename TForwardIterator>

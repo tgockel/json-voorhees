@@ -169,7 +169,7 @@ value object()
     return x;
 }
 
-value object(std::initializer_list<std::pair<const std::string, value>> source)
+value object(std::initializer_list<std::pair<std::string, value>> source)
 {
     value x = object();
     x.insert(std::move(source));
@@ -216,22 +216,10 @@ value& value::operator[](const std::string& key)
     return _data.object->_values[key];
 }
 
-const value& value::operator[](const std::string& key) const
+value& value::operator[](std::string&& key)
 {
     check_type(kind::object, get_kind());
-    return _data.object->_values[key];
-}
-
-value& value::operator[](const char* key)
-{
-    check_type(kind::object, get_kind());
-    return _data.object->_values[key];
-}
-
-const value& value::operator[](const char* key) const
-{
-    check_type(kind::object, get_kind());
-    return _data.object->_values[key];
+    return _data.object->_values[std::move(key)];
 }
 
 value& value::at(const std::string& key)
@@ -246,105 +234,42 @@ const value& value::at(const std::string& key) const
     return _data.object->_values.at(key);
 }
 
-value& value::at(const char* key)
-{
-    check_type(kind::object, get_kind());
-    return _data.object->_values.at(key);
-}
-
-const value& value::at(const char* key) const
-{
-    check_type(kind::object, get_kind());
-    return _data.object->_values.at(key);
-}
-
-value::size_type value::count(const std::string& key) const
+value::size_type value::count(const string_ref& key) const
 {
     check_type(kind::object, get_kind());
     return _data.object->_values.count(key);
 }
 
-value::size_type value::count(const char* key) const
-{
-    check_type(kind::object, get_kind());
-    return _data.object->_values.count(key);
-}
-
-value::object_iterator value::find(const std::string& key)
+value::object_iterator value::find(const string_ref& key)
 {
     check_type(kind::object, get_kind());
     return object_iterator(_data.object->_values.find(key));
 }
 
-value::const_object_iterator value::find(const std::string& key) const
-{
-    check_type(kind::object, get_kind());
-    return const_object_iterator(_data.object->_values.find(key));
-}
-
-value::object_iterator value::find(const char* key)
-{
-    check_type(kind::object, get_kind());
-    return object_iterator(_data.object->_values.find(key));
-}
-
-value::const_object_iterator value::find(const char* key) const
-{
-    check_type(kind::object, get_kind());
-    return const_object_iterator(_data.object->_values.find(key));
-}
-
-value::object_iterator value::insert(value::const_object_iterator hint, const std::pair<std::string, value>& pair)
+value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::string, value> pair)
 {
     check_type(kind::object, get_kind());
     typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
     const_converter_union hint_convert;
     hint_convert.storage = hint._storage;
-    return object_iterator(_data.object->_values.insert(*hint_convert.iter, pair));
+    return object_iterator(_data.object->_values.insert(*hint_convert.iter, std::move(pair)));
 }
 
-value::object_iterator value::insert(value::const_object_iterator hint, const std::pair<const char*, value>& pair)
-{
-    check_type(kind::object, get_kind());
-    typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
-    const_converter_union hint_convert;
-    hint_convert.storage = hint._storage;
-    return object_iterator(_data.object->_values.insert(*hint_convert.iter, pair));
-}
-
-std::pair<value::object_iterator, bool> value::insert(const std::pair<std::string, value>& pair)
+std::pair<value::object_iterator, bool> value::insert(std::pair<std::string, value> pair)
 {
     check_type(kind::object, get_kind());
     auto ret = _data.object->_values.insert(pair);
     return { object_iterator(ret.first), ret.second };
 }
 
-std::pair<value::object_iterator, bool> value::insert(const std::pair<const char*, value>& pair)
+void value::insert(std::initializer_list<std::pair<std::string, value>> items)
 {
     check_type(kind::object, get_kind());
-    auto ret = _data.object->_values.insert(pair);
-    return { object_iterator(ret.first), ret.second };
+    for (auto& pair : items)
+         _data.object->_values.insert(std::move(pair));
 }
 
-void value::insert(std::initializer_list<object_value_type> items)
-{
-    check_type(kind::object, get_kind());
-    _data.object->_values.insert(items);
-}
-
-void value::insert(std::initializer_list<std::pair<const char*, value>> items)
-{
-    check_type(kind::object, get_kind());
-    _data.object->_values.insert(items.begin(), items.end());
-}
-
-value::size_type value::erase(const std::string& key)
-{
-    check_type(kind::object, get_kind());
-    return _data.object->_values.erase(key);
-}
-
-value::size_type value::erase(const char* key)
+value::size_type value::erase(const string_ref& key)
 {
     check_type(kind::object, get_kind());
     return _data.object->_values.erase(key);
