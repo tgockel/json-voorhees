@@ -109,7 +109,7 @@ else
  endif
 endif
 
-JSONV_VERSION ?= 0.3.1
+JSONV_VERSION ?= 0.4.0-pre0
 
 ifeq ($(.DEFAULT_GOAL),)
   .DEFAULT_GOAL := jsonv
