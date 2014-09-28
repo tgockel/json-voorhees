@@ -10,6 +10,16 @@
 -------------------------------------------------------------------------
 
 The main focus of this release is access and modification of the low-level parsing and encoding system.
+ 
+ - [0.3.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.3.1): 2014 September 27
+   - Greatly expands the flexibility of `parse_options`
+   - Adds all the tests from [JSON_Checker](http://json.org/JSON_checker/)
+   - Adds a `parse` that takes a `string_ref`, which unifies the `const char*` and `std::string` overloads
+   - Changes the installer to put header files inside of a `jsonv` folder
+   - Adds Arch Linux `PKGBUILD` to the `installer` folder
+   - Fixes issue with incorrectly escaping `\\\"`
+   - Fixes issue with `value::compare(const value&) const` returning non-zero when two decimal kinds were within the
+     epsilon value (and `operator==` would have returned `true`)
 
  - [0.3.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.3.0): 2014 September 21
     - Creates `tokenizer` for easier access to JSON parsing
