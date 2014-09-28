@@ -101,8 +101,8 @@ Unlike most software, it actually means something when the versions change.
                   Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
                    minor version.
 
-The preceding statements are not true if any of the version components has a negative value.
-Negatives are "pre-release" and are allowed to do whatever they feel like before a release.
+The preceding statements are not true if the version is suffixed with `-preN`.
+These values are "pre-release" and are allowed to do whatever they feel like before a release.
 
 When developing code, follow this simple workflow to determine which version components need to change:
 
