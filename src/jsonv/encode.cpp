@@ -109,10 +109,10 @@ void ostream_encoder::write_boolean(bool value)
 
 void ostream_encoder::write_decimal(double value)
 {
-    if (std::isnormal(value))
+    if (std::isfinite(value))
         _output << value;
     else
-        // not a number isn't a valid JSON value, so put it as null
+        // non-finite values do not have valid JSON representations, so put it as null
         write_null();
 }
 
