@@ -1,11 +1,11 @@
 # Maintainer: Travis Gockel <travis@gockelhut.com>
 # mkaurball
-pkgname=json-voorhees
-pkgver=v0.3.0.r22.gd31638e
-_sover=$(echo ${pkgver} | cut -c2-)
+_pkgbase=json-voorhees
+pkgname=${_pkgbase}-git
+pkgver=0.4.0.r0.g06a0209
 pkgver() {
-	cd "${srcdir}/${pkgname}"
-	git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
+	cd "${srcdir}/${_pkgbase}"
+	git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g' | cut -c2-
 }
 pkgrel=1
 epoch=
@@ -25,21 +25,21 @@ backup=()
 options=()
 install=
 changelog=
-source=("${pkgname}::git+https://github.com/tgockel/${pkgname}.git")
+source=("${_pkgbase}::git+https://github.com/tgockel/${_pkgbase}.git")
 noextract=()
 md5sums=('SKIP')
 
 build() {
-	cd "${srcdir}/${pkgname}"
-	make JSONV_VERSION=${_sover}
+	cd "${srcdir}/${_pkgbase}"
+	make JSONV_VERSION=${pkgver}
 }
 
 check() {
-	cd "${srcdir}/${pkgname}"
-	make test JSONV_VERSION=${_sover}
+	cd "${srcdir}/${_pkgbase}"
+	make test JSONV_VERSION=${pkgver}
 }
 
 package() {
-	cd "${srcdir}/${pkgname}"
-	make install INSTALL_DIR="${pkgdir}/" JSONV_VERSION=${_sover} VERBOSE=2
+	cd "${srcdir}/${_pkgbase}"
+	make install INSTALL_DIR="${pkgdir}/" JSONV_VERSION=${pkgver} VERBOSE=2
 }
