@@ -70,7 +70,7 @@ public:
     string_ref& operator=(const string_ref&) noexcept = default;
     
     template <typename UAllocator>
-    operator std::basic_string<value_type, std::char_traits<value_type>, UAllocator>() const
+    explicit operator std::basic_string<value_type, std::char_traits<value_type>, UAllocator>() const
     {
         return std::basic_string<value_type, std::char_traits<value_type>, UAllocator>(_base, _length);
     }

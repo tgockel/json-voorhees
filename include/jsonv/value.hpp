@@ -699,14 +699,14 @@ public:
      *  
      *  \throws kind_error if the kind is not an object.
     **/
-    size_type count(const string_ref& key) const;
+    size_type count(const std::string& key) const;
     
     /** Attempt to locate a key-value pair with the provided \a key in this object.
      *  
      *  \throws kind_error if the kind is not an object.
     **/
-    object_iterator       find(const string_ref& key);
-    const_object_iterator find(const string_ref& key) const;
+    object_iterator       find(const std::string& key);
+    const_object_iterator find(const std::string& key) const;
     
     /** Insert \a pair into this object. If \a hint is provided, this insertion could be optimized.
      *  
@@ -738,7 +738,7 @@ public:
      *  \returns 1 if \a key was erased; 0 if it did not.
      *  \throws kind_error if the kind is not an object.
     **/
-    size_type erase(const string_ref& key);
+    size_type erase(const std::string& key);
     
     /** Erase the item at the given \a position.
      *  
