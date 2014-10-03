@@ -105,6 +105,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;<a class="el" href="config_8hpp_source.html">jsonv/config.hpp</a>&gt;</code><br/>
+<code>#include &lt;<a class="el" href="string__ref_8hpp_source.html">jsonv/string_ref.hpp</a>&gt;</code><br/>
 <code>#include &lt;<a class="el" href="basic__view_8hpp_source.html">jsonv/detail/basic_view.hpp</a>&gt;</code><br/>
 <code>#include &lt;cstddef&gt;</code><br/>
 <code>#include &lt;cstdint&gt;</code><br/>
@@ -153,12 +154,12 @@ Functions</h2></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a> (TForwardIterator first, TForwardIterator last)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga757770053a2714136231e26ec7c74673">jsonv::object</a> ()</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga9a4a81387cf2b8edf3a2fe1b38aa197b">jsonv::object</a> (std::initializer_list&lt; std::pair&lt; const std::string, value &gt;&gt; source)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga0626c41c76cb46a7859de92c1f3bdd68">jsonv::object</a> (std::initializer_list&lt; std::pair&lt; std::string, value &gt;&gt; source)</td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a> (TForwardIterator first, TForwardIterator last)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock"><p>Copyright (c) 2012 by Travis Gockel. All rights reserved.</p>
+<div class="textblock"><p>Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.</p>
 <p>This program is free software: you can redistribute it and/or modify it under the terms of the Apache License as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later version.</p>
 <dl class="author"><dt><b>Author:</b></dt><dd>Travis Gockel (<a href="mailto:travis@gockelhut.com">travis@gockelhut.com</a>) </dd></dl>
 

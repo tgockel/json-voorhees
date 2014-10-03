@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['object',['object',['../classjsonv_1_1value.html#a04162079a8874da80f0f74a1babb423d',1,'jsonv::value::object()'],['../group__Creation.html#ga757770053a2714136231e26ec7c74673',1,'jsonv::object()'],['../group__Creation.html#ga9a4a81387cf2b8edf3a2fe1b38aa197b',1,'jsonv::object(std::initializer_list&lt; std::pair&lt; const std::string, value &gt;&gt; source)'],['../group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1',1,'jsonv::object(TForwardIterator first, TForwardIterator last)']]],
+  ['object',['object',['../classjsonv_1_1value.html#a04162079a8874da80f0f74a1babb423d',1,'jsonv::value::object()'],['../group__Creation.html#ga757770053a2714136231e26ec7c74673',1,'jsonv::object()'],['../group__Creation.html#ga0626c41c76cb46a7859de92c1f3bdd68',1,'jsonv::object(std::initializer_list&lt; std::pair&lt; std::string, value &gt;&gt; source)'],['../group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1',1,'jsonv::object(TForwardIterator first, TForwardIterator last)']]],
   ['object_5fiterator',['object_iterator',['../group__Object.html#gabe865fe7b043bceae9f2630410e406b7',1,'jsonv::value']]],
   ['object_5fvalue_5ftype',['object_value_type',['../group__Object.html#gabf0673825595a5326e65544af770b4dd',1,'jsonv::value']]],
   ['object_5fview',['object_view',['../group__Object.html#ga39d2820f80eac817a14d5e129de46449',1,'jsonv::value']]],
