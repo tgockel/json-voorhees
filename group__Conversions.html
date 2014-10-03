@@ -95,13 +95,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Conversions</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>These functions are used for accessing specific kinds of values.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">jsonv::value::as_string</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a string.  <a href="#gae6e2ac07064fefff63342e28ed65a9d9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8">jsonv::value::as_integer</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as an integer.  <a href="#gaababe6acf36d6517205714b17b821ff8"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gaa2768ae7e25318573327571b007c8df5">jsonv::value::as_decimal</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a decimal.  <a href="#gaa2768ae7e25318573327571b007c8df5"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#ga918c6bb19f30df4caf86b99ed2e384b1">jsonv::value::as_boolean</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a boolean.  <a href="#ga918c6bb19f30df4caf86b99ed2e384b1"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <p>These functions are used for accessing specific kinds of values. </p>
@@ -119,10 +126,11 @@ Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Get this value as a boolean.</p>
+
+<p>Get this value as a boolean. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if this value does not represent a boolean. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if this value does not represent a boolean. </td></tr>
   </table>
   </dd>
 </dl>
@@ -142,10 +150,12 @@ Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Get this value as a decimal. If the value's underlying kind is actually an integer type, cast the integer to a double before returning. This ignores the potential loss of precision.</p>
+
+<p>Get this value as a decimal. </p>
+<p>If the value's underlying kind is actually an integer type, cast the integer to a double before returning. This ignores the potential loss of precision.</p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if this value does not represent a decimal or integer. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if this value does not represent a decimal or integer. </td></tr>
   </table>
   </dd>
 </dl>
@@ -165,10 +175,11 @@ Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Get this value as an integer.</p>
+
+<p>Get this value as an integer. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if this value does not represent an integer. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if this value does not represent an integer. </td></tr>
   </table>
   </dd>
 </dl>
@@ -188,10 +199,11 @@ Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Get this value as a string.</p>
+
+<p>Get this value as a string. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if this value does not represent a string. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if this value does not represent a string. </td></tr>
   </table>
   </dd>
 </dl>

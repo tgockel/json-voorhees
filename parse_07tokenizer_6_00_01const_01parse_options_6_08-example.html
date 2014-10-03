@@ -96,10 +96,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>Reads a JSON value from a buffered <code>tokenizer</code>. This less convenient function is useful when setting <code>parse_options::complete_parse</code> to <code>false</code>.</p>
 <dl class="see"><dt><b>See also:</b></dt><dd>parse(std::istream&amp;, const parse_options&amp;)</dd></dl>
 <div class="fragment"><pre class="fragment">  tcp_stream input(get_network_stream());
-  <a name="_a0"></a><a class="code" href="classjsonv_1_1tokenizer.html">jsonv::tokenizer</a> buffered(input);
-  <a name="_a1"></a><a class="code" href="classjsonv_1_1parse__options.html">jsonv::parse_options</a> options = <a class="code" href="classjsonv_1_1parse__options.html">jsonv::parse_options</a>().<a name="a2"></a><a class="code" href="classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907">complete_parse</a>(<span class="keyword">false</span>);
-  <a name="_a3"></a><a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = parse(buffered, options);
-  <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> y = parse(buffered, options);
+  <a name="_a0"></a><a class="code" href="classjsonv_1_1tokenizer.html" title="Splits input into tokens, allowing traversal of JSON without verification.">jsonv::tokenizer</a> buffered(input);
+  <a name="_a1"></a><a class="code" href="classjsonv_1_1parse__options.html" title="Configuration for various parsing options.">jsonv::parse_options</a> options = <a class="code" href="classjsonv_1_1parse__options.html" title="Configuration for various parsing options.">jsonv::parse_options</a>().<a name="a2"></a><a class="code" href="classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907" title="Should the input be completely parsed to consider the parsing a success? This is on by default...">complete_parse</a>(<span class="keyword">false</span>);
+  <a name="_a3"></a><a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> x = parse(buffered, options);
+  <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> y = parse(buffered, options);
 </pre></div><div class="fragment"><pre class="fragment"></pre></div><p>(tokenizer&amp;, const parse_options&amp;) </p>
 </div><!-- contents -->
 </div><!-- contents -->

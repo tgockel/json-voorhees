@@ -96,15 +96,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Shared</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>These functions are applicable to all kinds of values and have the same fundemental meaning for all kinds.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga11b8dfc38c7a6ceac53c639f18aaebea">jsonv::value::clear</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets this value to null.  <a href="#ga11b8dfc38c7a6ceac53c639f18aaebea"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">kind&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga69fe6e9df4d8771f4c0131ef11cffd3f">jsonv::value::get_kind</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value's kind.  <a href="#ga69fe6e9df4d8771f4c0131ef11cffd3f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gacea6f1f938880b1b1761324e59abad83">jsonv::value::swap</a> (value &amp;other) noexcept</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Swap the value this instance represents with <em>other</em>.  <a href="#gacea6f1f938880b1b1761324e59abad83"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga22d5a5d815048ca653136ef404668cf4">jsonv::value::operator==</a> (const value &amp;other) const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two JSON values for equality.  <a href="#ga22d5a5d815048ca653136ef404668cf4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga5a94bbcbaa79b35a4a24c0ceeb3ca7be">jsonv::value::operator!=</a> (const value &amp;other) const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two JSON values for inequality.  <a href="#ga5a94bbcbaa79b35a4a24c0ceeb3ca7be"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga05f2fca552d114e678040be40c8cbc06">jsonv::value::compare</a> (const value &amp;other) const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to build a strict-ordering of JSON values.  <a href="#ga05f2fca552d114e678040be40c8cbc06"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga20e0a977720b5083be3ec231450509c8"></a><!-- doxytag: member="Shared::operator&lt;" ref="ga20e0a977720b5083be3ec231450509c8" args="(const value &amp;other) const " -->
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operator&lt;</b> (const value &amp;other) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga9f977b98e907066a2b6ce6adb5bc3e2e"></a><!-- doxytag: member="Shared::operator&gt;" ref="ga9f977b98e907066a2b6ce6adb5bc3e2e" args="(const value &amp;other) const " -->
@@ -114,14 +123,18 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operato
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabc765cf852dce2e36b54388ba5b5e42d"></a><!-- doxytag: member="Shared::operator&gt;=" ref="gabc765cf852dce2e36b54388ba5b5e42d" args="(const value &amp;other) const " -->
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operator&gt;=</b> (const value &amp;other) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gafc0eb6d0e3b9a8dcfba8c36c19ced691">jsonv::value::empty</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent to asking if the size is 0.  <a href="#gafc0eb6d0e3b9a8dcfba8c36c19ced691"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82">jsonv::value::size</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of items in this value.  <a href="#ga79c3e426d63d6c658470ee2295b35f82"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="friend-members"></a>
 Friends</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e">jsonv::value::operator&lt;&lt;</a> (std::ostream &amp;stream, const value &amp;val)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Output this value to a stream.  <a href="#gacff1f9d0e10df14e2a1440911e30ef7e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gadac006e646d57212ae0de2f87917a584">jsonv::value::to_string</a> (const value &amp;)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a string representation of the given <code>value</code>.  <a href="#gadac006e646d57212ae0de2f87917a584"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<p>These functions are applicable to all kinds of values and have the same fundemental meaning for all kinds.</p>
+<p>These functions are applicable to all kinds of values and have the same fundemental meaning for all kinds. </p>
 <p>These functions are only applicable if the kind of this value is an array. </p>
 <hr/><h2>Function Documentation</h2>
 <a class="anchor" id="ga11b8dfc38c7a6ceac53c639f18aaebea"></a><!-- doxytag: member="jsonv::value::clear" ref="ga11b8dfc38c7a6ceac53c639f18aaebea" args="()" -->
@@ -137,6 +150,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Resets this value to null. </p>
 
 </div>
@@ -155,7 +169,9 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Used to build a strict-ordering of JSON values. When comparing values of the same kind, the ordering should align with your intuition. When comparing values of different kinds, some arbitrary rules were created based on how "complicated" the author thought the type to be.</p>
+
+<p>Used to build a strict-ordering of JSON values. </p>
+<p>When comparing values of the same kind, the ordering should align with your intuition. When comparing values of different kinds, some arbitrary rules were created based on how "complicated" the author thought the type to be.</p>
 <ul>
 <li>null: less than everything but null, which it is equal to.</li>
 <li>boolean: false is less than true.</li>
@@ -181,7 +197,8 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent to asking if the size is 0.</p>
+
+<p>Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent to asking if the size is 0. </p>
 <ul>
 <li>object: Are there no keys?</li>
 <li>array: Are there no values?</li>
@@ -189,7 +206,7 @@ Friends</h2></td></tr>
 </ul>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an object, array or string. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an object, array or string. </td></tr>
   </table>
   </dd>
 </dl>
@@ -209,6 +226,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Get this value's kind. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00477">477</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
@@ -229,7 +247,9 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Compares two JSON values for inequality. The rules for inequality are the exact opposite of equality. </p>
+
+<p>Compares two JSON values for inequality. </p>
+<p>The rules for inequality are the exact opposite of equality. </p>
 
 </div>
 </div>
@@ -247,7 +267,9 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions apply:</p>
+
+<p>Compares two JSON values for equality. </p>
+<p>Two JSON values are equal if and only if all of the following conditions apply:</p>
 <p>1. They have the same valid value for <code>kind</code>.</p>
 <ul>
 <li>If <code>kind</code> is invalid (memory corruption), then two JSON values are <em>not</em> equal, even if they have been corrupted in the same way and even if they share <code>this</code> (a corrupt object is not equal to itself). 2. The kind comparison is also equal:</li>
@@ -273,7 +295,8 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Get the number of items in this value.</p>
+
+<p>Get the number of items in this value. </p>
 <ul>
 <li>object: The number of key/value pairs.</li>
 <li>array: The number of values.</li>
@@ -281,7 +304,7 @@ Friends</h2></td></tr>
 </ul>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an object, array or string. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an object, array or string. </td></tr>
   </table>
   </dd>
 </dl>
@@ -302,6 +325,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Swap the value this instance represents with <em>other</em>. </p>
 
 </div>
@@ -331,6 +355,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Output this value to a stream. </p>
 
 </div>
@@ -349,6 +374,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Get a string representation of the given <code>value</code>. </p>
 
 </div>

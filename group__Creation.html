@@ -95,17 +95,26 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Creation</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Free functions meant for easily creating <code>value</code> instances.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#gaee0b1767f4ec42adc02c5b0bb0781b91">jsonv::array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an empty array value.  <a href="#gaee0b1767f4ec42adc02c5b0bb0781b91"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga4f0838289f72088c6a079e00140efda2">jsonv::array</a> (std::initializer_list&lt; value &gt; source)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an array value from the given source.  <a href="#ga4f0838289f72088c6a079e00140efda2"></a><br/></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a> (TForwardIterator first, TForwardIterator last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an array with contents defined by range [<em>first</em>, <em>last</em>).  <a href="#ga8c4ac5022703a328eddc667d4ce333ed"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga757770053a2714136231e26ec7c74673">jsonv::object</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an empty object.  <a href="#ga757770053a2714136231e26ec7c74673"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Creation.html#ga0626c41c76cb46a7859de92c1f3bdd68">jsonv::object</a> (std::initializer_list&lt; std::pair&lt; std::string, value &gt;&gt; source)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an object with key-value pairs from the given <em>source</em>.  <a href="#ga0626c41c76cb46a7859de92c1f3bdd68"></a><br/></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a> (TForwardIterator first, TForwardIterator last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an object whose contents are defined by range [<em>first</em>, <em>last</em>).  <a href="#gabae5c5bfa8dceec8849cfe0a58ad83b1"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <p>Free functions meant for easily creating <code>value</code> instances. </p>
@@ -123,6 +132,7 @@ Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an empty array value. </p>
 
 </div>
@@ -141,6 +151,7 @@ Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an array value from the given source. </p>
 
 </div>
@@ -171,6 +182,7 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an array with contents defined by range [<em>first</em>, <em>last</em>). </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00813">813</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
@@ -190,6 +202,7 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an empty object. </p>
 
 </div>
@@ -208,6 +221,7 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an object with key-value pairs from the given <em>source</em>. </p>
 
 </div>
@@ -238,6 +252,7 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an object whose contents are defined by range [<em>first</em>, <em>last</em>). </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00828">828</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>

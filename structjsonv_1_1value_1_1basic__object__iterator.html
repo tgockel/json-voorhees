@@ -111,8 +111,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae94503a585acb7db8f268e3a8c20ba05"></a><!-- doxytag: member="jsonv::value::basic_object_iterator::basic_object_iterator" ref="ae94503a585acb7db8f268e3a8c20ba05" args="(const basic_object_iterator &amp;source)" -->
 &#160;</td><td class="memItemRight" valign="bottom"><b>basic_object_iterator</b> (const <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a> &amp;source)</td></tr>
-<tr><td class="memTemplParams" colspan="2">template&lt;typename U &gt; </td></tr>
+<tr><td class="memTemplParams" colspan="2"><a class="anchor" id="ab1419118d13ba6326bce1943df30569a"></a><!-- doxytag: member="jsonv::value::basic_object_iterator::basic_object_iterator" ref="ab1419118d13ba6326bce1943df30569a" args="(const basic_object_iterator&lt; U &gt; &amp;source, typename std::enable_if&lt; std::is_convertible&lt; U *, T * &gt;::value &gt;::type *=0)" -->
+template&lt;typename U &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html#ab1419118d13ba6326bce1943df30569a">basic_object_iterator</a> (const <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a>&lt; U &gt; &amp;source, typename std::enable_if&lt; std::is_convertible&lt; U *, T * &gt;::<a class="el" href="classjsonv_1_1value.html">value</a> &gt;::type *=0)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">This allows assignment from an <code>object_iterator</code> to a <code>const_object_iterator</code>. <br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2803d90ea9ecd9460a80f4b094345d5f"></a><!-- doxytag: member="jsonv::value::basic_object_iterator::operator++" ref="a2803d90ea9ecd9460a80f4b094345d5f" args="()" -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator++</b> ()</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa371ccc77cefdc065edf2db913da8d8d"></a><!-- doxytag: member="jsonv::value::basic_object_iterator::operator++" ref="aa371ccc77cefdc065edf2db913da8d8d" args="(int) const " -->
@@ -142,40 +144,7 @@ struct jsonv::value::basic_object_iterator&lt; T &gt;</h3>
 
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00280">280</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
-</div><hr/><h2>Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="ab1419118d13ba6326bce1943df30569a"></a><!-- doxytag: member="jsonv::value::basic_object_iterator::basic_object_iterator" ref="ab1419118d13ba6326bce1943df30569a" args="(const basic_object_iterator&lt; U &gt; &amp;source, typename std::enable_if&lt; std::is_convertible&lt; U *, T * &gt;::value &gt;::type *=0)" -->
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T&gt; </div>
-<div class="memtemplate">
-template&lt;typename U &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">jsonv::value::basic_object_iterator</a>&lt; T &gt;::<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a> </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a>&lt; U &gt; &amp;&#160;</td>
-          <td class="paramname"><em>source</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">typename std::enable_if&lt; std::is_convertible&lt; U *, T * &gt;::<a class="el" href="classjsonv_1_1value.html">value</a> &gt;::type *&#160;</td>
-          <td class="paramname"> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div>
-<div class="memdoc">
-<p>This allows assignment from an <code>object_iterator</code> to a <code>const_object_iterator</code>. </p>
-
-</div>
-</div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="value_8hpp_source.html">value.hpp</a></li>
 </ul>
 </div><!-- contents -->

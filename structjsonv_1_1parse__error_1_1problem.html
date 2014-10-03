@@ -104,6 +104,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <!-- doxytag: class="jsonv::parse_error::problem" -->
+<p>Description of a single parsing problem.  
+ <a href="structjsonv_1_1parse__error_1_1problem.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="parse_8hpp_source.html">jsonv/parse.hpp</a>&gt;</code></p>
 
 <p><a href="structjsonv_1_1parse__error_1_1problem-members.html">List of all members.</a></p>
@@ -113,9 +116,13 @@ Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa8ed80572c69e2cd0cf5135c77623c4c"></a><!-- doxytag: member="jsonv::parse_error::problem::problem" ref="aa8ed80572c69e2cd0cf5135c77623c4c" args="(size_type line, size_type column, size_type character, std::string message)" -->
 &#160;</td><td class="memItemRight" valign="bottom"><b>problem</b> (size_type <a class="el" href="structjsonv_1_1parse__error_1_1problem.html#aa5b23e576a2125610123d532728e6240">line</a>, size_type <a class="el" href="structjsonv_1_1parse__error_1_1problem.html#af089108087de95be77946942087836eb">column</a>, size_type <a class="el" href="structjsonv_1_1parse__error_1_1problem.html#a9a170800c8dffbbef3aa8bfbac5cd8a6">character</a>, std::string <a class="el" href="structjsonv_1_1parse__error_1_1problem.html#ac557310d768e355372bc569854cf38d1">message</a>)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1parse__error_1_1problem.html#aa5b23e576a2125610123d532728e6240">line</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The line of input this error was encountered on.  <a href="#aa5b23e576a2125610123d532728e6240"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1parse__error_1_1problem.html#af089108087de95be77946942087836eb">column</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The character index on the current line this error was encountered on.  <a href="#af089108087de95be77946942087836eb"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1parse__error_1_1problem.html#a9a170800c8dffbbef3aa8bfbac5cd8a6">character</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The character index into the entire input this error was encountered on.  <a href="#a9a170800c8dffbbef3aa8bfbac5cd8a6"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1parse__error_1_1problem.html#ac557310d768e355372bc569854cf38d1">message</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">A message from the parser which has user-readable details about the encountered problem.  <a href="#ac557310d768e355372bc569854cf38d1"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>Description of a single parsing problem. </p>
@@ -135,6 +142,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>The character index into the entire input this error was encountered on. </p>
 
 <p>Definition at line <a class="el" href="parse_8hpp_source.html#l00059">59</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
@@ -154,6 +162,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>The character index on the current line this error was encountered on. </p>
 
 <p>Definition at line <a class="el" href="parse_8hpp_source.html#l00053">53</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
@@ -173,7 +182,9 @@ Public Member Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>The line of input this error was encountered on. A new "line" is determined by carriage return or line feed. If you are in Windows and line breaks are two characters, the line number of the error will appear to be twice as high as you would think. </p>
+
+<p>The line of input this error was encountered on. </p>
+<p>A new "line" is determined by carriage return or line feed. If you are in Windows and line breaks are two characters, the line number of the error will appear to be twice as high as you would think. </p>
 
 <p>Definition at line <a class="el" href="parse_8hpp_source.html#l00047">47</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>
 
@@ -192,6 +203,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>A message from the parser which has user-readable details about the encountered problem. </p>
 
 <p>Definition at line <a class="el" href="parse_8hpp_source.html#l00065">65</a> of file <a class="el" href="parse_8hpp_source.html">parse.hpp</a>.</p>

@@ -107,6 +107,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <!-- doxytag: class="jsonv::value" -->
+<p>Represents a single JSON value, which can be any one of a potential <code>kind</code>, each behaving slightly differently.  
+ <a href="classjsonv_1_1value.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="value_8hpp_source.html">jsonv/value.hpp</a>&gt;</code></p>
 
 <p><a href="classjsonv_1_1value-members.html">List of all members.</a></p>
@@ -123,56 +126,84 @@ typedef std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>size_t
 typedef std::ptrdiff_t&#160;</td><td class="memItemRight" valign="bottom"><b>difference_type</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">basic_array_iterator</a><br class="typebreak"/>
 &lt; <a class="el" href="classjsonv_1_1value.html">value</a>, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>array_iterator</code> is applicable when <code>get_kind</code> is <code>kind::array</code>.  <a href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0c185bba74f386f6c82b5b5fccdd8197"></a><!-- doxytag: member="jsonv::value::const_array_iterator" ref="ga0c185bba74f386f6c82b5b5fccdd8197" args="" -->
 typedef <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">basic_array_iterator</a><br class="typebreak"/>
 &lt; const <a class="el" href="classjsonv_1_1value.html">value</a>, const <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_array_iterator</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
 &lt; <a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>, <br class="typebreak"/>
 <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">array_view</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">If <code>get_kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container.  <a href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga54dd1d743ab887969271695d5477d966"></a><!-- doxytag: member="jsonv::value::const_array_view" ref="ga54dd1d743ab887969271695d5477d966" args="" -->
 typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
 &lt; <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_array_view</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef std::pair&lt; const <br class="typebreak"/>
 std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of value stored when <code>get_kind</code> is <code>kind::object</code>.  <a href="group__Object.html#gabf0673825595a5326e65544af770b4dd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a><br class="typebreak"/>
 &lt; <a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>object_iterator</code> is applicable when <code>get_kind</code> is <code>kind::object</code>.  <a href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaee495e9858cbf3a238f80afd946fbd8c"></a><!-- doxytag: member="jsonv::value::const_object_iterator" ref="gaee495e9858cbf3a238f80afd946fbd8c" args="" -->
 typedef <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">basic_object_iterator</a><br class="typebreak"/>
 &lt; const <a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">object_value_type</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_object_iterator</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
 &lt; <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>, <br class="typebreak"/>
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">object_view</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">If <code>get_kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container.  <a href="group__Object.html#ga39d2820f80eac817a14d5e129de46449"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f27cda168f235ef55974fa3d6a9e4e3"></a><!-- doxytag: member="jsonv::value::const_object_view" ref="ga8f27cda168f235ef55974fa3d6a9e4e3" args="" -->
 typedef <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">detail::basic_view</a><br class="typebreak"/>
 &lt; <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_object_view</b></td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">value</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Default-construct this to null.  <a href="#a758c919cef3b8158e5275ff6b456a56e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a0f11d28ea224ed300b726a85f95cee2b">value</a> (std::nullptr_t)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::null</code>.  <a href="#a0f11d28ea224ed300b726a85f95cee2b"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aae8213bbe2c15829705a12e06f3a7291">value</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;source)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy the contents of <em>source</em> into a new instance.  <a href="#aae8213bbe2c15829705a12e06f3a7291"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#acb44bcc2693282e3d4fd0d801d397f0c">value</a> (const std::string &amp;<a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::string</code> with the given <em>value</em>.  <a href="#acb44bcc2693282e3d4fd0d801d397f0c"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#add1aa9ddf147119f88084f59985206b7">value</a> (const char *<a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::string</code> with the given <em>value</em>.  <a href="#add1aa9ddf147119f88084f59985206b7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#af07ce6b42b31433a68b4817082fab33a">value</a> (int64_t <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::integer</code> with the given <em>value</em>.  <a href="#af07ce6b42b31433a68b4817082fab33a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aec0cf35155ec31a268aa84283958eadc">value</a> (double <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::decimal</code> with the given <em>value</em>.  <a href="#aec0cf35155ec31a268aa84283958eadc"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a1a83a1a26dd16f668249c180f57e36eb">value</a> (float <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::decimal</code> with the given <em>value</em>.  <a href="#a1a83a1a26dd16f668249c180f57e36eb"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a9fb9bbb669cecc911340ae74ca92b779">value</a> (bool <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::boolean</code> with the given <em>value</em>.  <a href="#a9fb9bbb669cecc911340ae74ca92b779"></a><br/></td></tr>
 <tr><td class="memTemplParams" colspan="2"><a class="anchor" id="a3fa41622af88df2d63394ad0bde9746f"></a><!-- doxytag: member="jsonv::value::value" ref="a3fa41622af88df2d63394ad0bde9746f" args="(T)" -->
 template&lt;typename T &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><b>value</b> (T)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aaa697e7d7823f2c3518978f9270a7699">~value</a> () noexcept</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Destruction will never throw.  <a href="#aaa697e7d7823f2c3518978f9270a7699"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a6d0c99d7a7004dfbf3e787636834c7b4">operator=</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;source)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy-assigns <code>source</code> to this.  <a href="#a6d0c99d7a7004dfbf3e787636834c7b4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a947b385a10eccc9e112c782ee675a848">value</a> (<a class="el" href="classjsonv_1_1value.html">value</a> &amp;&amp;source) noexcept</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Move-construct this instance, leaving <em>source</em> as a null value.  <a href="#a947b385a10eccc9e112c782ee675a848"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a20594daa871eaa685f6e6d716561bb76">operator=</a> (<a class="el" href="classjsonv_1_1value.html">value</a> &amp;&amp;source) noexcept</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Move-assigns <code>source</code> to this, leaving <em>source</em> as a null value.  <a href="#a20594daa871eaa685f6e6d716561bb76"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a string.  <a href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8">as_integer</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as an integer.  <a href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gaa2768ae7e25318573327571b007c8df5">as_decimal</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a decimal.  <a href="group__Conversions.html#gaa2768ae7e25318573327571b007c8df5"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#ga918c6bb19f30df4caf86b99ed2e384b1">as_boolean</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a boolean.  <a href="group__Conversions.html#ga918c6bb19f30df4caf86b99ed2e384b1"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga11b8dfc38c7a6ceac53c639f18aaebea">clear</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets this value to null.  <a href="group__Shared.html#ga11b8dfc38c7a6ceac53c639f18aaebea"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">kind&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga69fe6e9df4d8771f4c0131ef11cffd3f">get_kind</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value's kind.  <a href="group__Shared.html#ga69fe6e9df4d8771f4c0131ef11cffd3f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gacea6f1f938880b1b1761324e59abad83">swap</a> (<a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) noexcept</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Swap the value this instance represents with <em>other</em>.  <a href="group__Shared.html#gacea6f1f938880b1b1761324e59abad83"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga22d5a5d815048ca653136ef404668cf4">operator==</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two JSON values for equality.  <a href="group__Shared.html#ga22d5a5d815048ca653136ef404668cf4"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga5a94bbcbaa79b35a4a24c0ceeb3ca7be">operator!=</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two JSON values for inequality.  <a href="group__Shared.html#ga5a94bbcbaa79b35a4a24c0ceeb3ca7be"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga05f2fca552d114e678040be40c8cbc06">compare</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Used to build a strict-ordering of JSON values.  <a href="group__Shared.html#ga05f2fca552d114e678040be40c8cbc06"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga20e0a977720b5083be3ec231450509c8"></a><!-- doxytag: member="jsonv::value::operator&lt;" ref="ga20e0a977720b5083be3ec231450509c8" args="(const value &amp;other) const " -->
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;</b> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga9f977b98e907066a2b6ce6adb5bc3e2e"></a><!-- doxytag: member="jsonv::value::operator&gt;" ref="ga9f977b98e907066a2b6ce6adb5bc3e2e" args="(const value &amp;other) const " -->
@@ -182,15 +213,19 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;=</b> (co
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabc765cf852dce2e36b54388ba5b5e42d"></a><!-- doxytag: member="jsonv::value::operator&gt;=" ref="gabc765cf852dce2e36b54388ba5b5e42d" args="(const value &amp;other) const " -->
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;=</b> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;other) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7">begin_array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the beginning of this array.  <a href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae72d43169a3807c8dfb0407e52f7d9a9"></a><!-- doxytag: member="jsonv::value::begin_array" ref="gae72d43169a3807c8dfb0407e52f7d9a9" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>begin_array</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8e46475135847419326f43bb8652030">end_array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the end of this array.  <a href="group__Array.html#gae8e46475135847419326f43bb8652030"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab687f9758ca4b30d495255a2ce17923a"></a><!-- doxytag: member="jsonv::value::end_array" ref="gab687f9758ca4b30d495255a2ce17923a" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>end_array</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">array_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">as_array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">View this instance as an array.  <a href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0823c5565b91e8fcbcc1a78ced491fa5"></a><!-- doxytag: member="jsonv::value::as_array" ref="ga0823c5565b91e8fcbcc1a78ced491fa5" args="() const " -->
 <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">const_array_view</a>&#160;</td><td class="memItemRight" valign="bottom"><b>as_array</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga08a88ea17e35fd2c7844ce4c7768bf12">operator[]</a> (size_type idx)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value in this array at the given <em>idx</em>.  <a href="group__Array.html#ga08a88ea17e35fd2c7844ce4c7768bf12"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga940f1805f720c6a15100833ac26c629a"></a><!-- doxytag: member="jsonv::value::operator[]" ref="ga940f1805f720c6a15100833ac26c629a" args="(size_type idx) const " -->
 const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (size_type idx) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga848090429593c135c3798925fd659119"></a><!-- doxytag: member="jsonv::value::operator[]" ref="ga848090429593c135c3798925fd659119" args="(int idx)" -->
@@ -198,58 +233,89 @@ const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><t
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaf87d36cc32b6e2793a5e8a95c91bfef9"></a><!-- doxytag: member="jsonv::value::operator[]" ref="gaf87d36cc32b6e2793a5e8a95c91bfef9" args="(int idx) const " -->
 const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (int idx) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22">at</a> (size_type idx)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value in this array at the given <em>idx</em>.  <a href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga294cff0fc6a5d04b8787f4416a788265"></a><!-- doxytag: member="jsonv::value::at" ref="ga294cff0fc6a5d04b8787f4416a788265" args="(size_type idx) const " -->
 const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>at</b> (size_type idx) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gac8dadf575c194b8685abe745ccf78967">push_back</a> (<a class="el" href="classjsonv_1_1value.html">value</a> item)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Push <em>item</em> to the back of this array.  <a href="group__Array.html#gac8dadf575c194b8685abe745ccf78967"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gadfa8dbeba86d9ad39610d7972d995eaf">pop_back</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Pop an item off the back of this array.  <a href="group__Array.html#gadfa8dbeba86d9ad39610d7972d995eaf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga94242bf7d37ef7ae32abe4b3fb553f2a">push_front</a> (<a class="el" href="classjsonv_1_1value.html">value</a> item)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Push <em>item</em> to the front of this array.  <a href="group__Array.html#ga94242bf7d37ef7ae32abe4b3fb553f2a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gad7cec4c8d1d57aa153605b321dd1b0e9">pop_front</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Pop an item from the front of this array.  <a href="group__Array.html#gad7cec4c8d1d57aa153605b321dd1b0e9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga34cbe426ef55efe31111bed84c3f6dba">assign</a> (size_type <a class="el" href="group__Object.html#ga7442b42d745e649222506080a05e3913">count</a>, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;val)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign <em>count</em> elements to this array with <em>val</em>.  <a href="group__Array.html#ga34cbe426ef55efe31111bed84c3f6dba"></a><br/></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Array.html#ga02c37341353a2b3897d346ae153d6659">assign</a> (TForwardIterator first, TForwardIterator last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign the contents of range [<em>first</em>, <em>last</em>) to this array.  <a href="group__Array.html#ga02c37341353a2b3897d346ae153d6659"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaecce2dbe3b0d2064d3d713b67a99955a">assign</a> (std::initializer_list&lt; <a class="el" href="classjsonv_1_1value.html">value</a> &gt; items)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign the given <em>items</em> to this array.  <a href="group__Array.html#gaecce2dbe3b0d2064d3d713b67a99955a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga961156664c4bf71ebe27c516be6d8ae9">resize</a> (size_type <a class="el" href="group__Object.html#ga7442b42d745e649222506080a05e3913">count</a>, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;val=<a class="el" href="classjsonv_1_1value.html">value</a>())</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Resize the length of this array to <em>count</em> items.  <a href="group__Array.html#ga961156664c4bf71ebe27c516be6d8ae9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga7b480563d0e93fc21018e088ac38646d">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> position)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase the item at this array's <em>position</em>.  <a href="group__Array.html#ga7b480563d0e93fc21018e088ac38646d"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">array_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga1a32487f57f0c8c6de20394e17d4f768">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> first, <a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a> last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase the range [<em>first</em>, <em>last</em>) from this array.  <a href="group__Array.html#ga1a32487f57f0c8c6de20394e17d4f768"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gacf1294913abd859ce337eac45c6d7426">begin_object</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the first key-value pair in this object.  <a href="group__Object.html#gacf1294913abd859ce337eac45c6d7426"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5998bc7c9d1c9161656eb9c1cd9f3df4"></a><!-- doxytag: member="jsonv::value::begin_object" ref="ga5998bc7c9d1c9161656eb9c1cd9f3df4" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>begin_object</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the one past the end of this object.  <a href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad599aedf17cab734644ff0785741c54c"></a><!-- doxytag: member="jsonv::value::end_object" ref="gad599aedf17cab734644ff0785741c54c" args="() const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>end_object</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">object_view</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga3010bfd6b26473ffb3335ab6ac933c83">as_object</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">View this instance as an object.  <a href="group__Object.html#ga3010bfd6b26473ffb3335ab6ac933c83"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae82b39c0e6c034caa7715bd301887075"></a><!-- doxytag: member="jsonv::value::as_object" ref="gae82b39c0e6c034caa7715bd301887075" args="() const " -->
 <a class="el" href="classjsonv_1_1detail_1_1basic__view.html">const_object_view</a>&#160;</td><td class="memItemRight" valign="bottom"><b>as_object</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gab9121a691d21e33d03773489114cb623">operator[]</a> (const std::string &amp;key)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value associated with the given <em>key</em> of this object.  <a href="group__Object.html#gab9121a691d21e33d03773489114cb623"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab75bdfc63eac5469201270cc682c01f5"></a><!-- doxytag: member="jsonv::value::operator[]" ref="gab75bdfc63eac5469201270cc682c01f5" args="(std::string &amp;&amp;key)" -->
 <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (std::string &amp;&amp;key)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga2bf8ac39a2be8fc276f0a8937010036f">at</a> (const std::string &amp;key)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value associated with the given <em>key</em> of this object.  <a href="group__Object.html#ga2bf8ac39a2be8fc276f0a8937010036f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab6d5edaa820b46cd1790eb051e53ae9a"></a><!-- doxytag: member="jsonv::value::at" ref="gab6d5edaa820b46cd1790eb051e53ae9a" args="(const std::string &amp;key) const " -->
 const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>at</b> (const std::string &amp;key) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga7442b42d745e649222506080a05e3913">count</a> (const std::string &amp;key) const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the given <em>key</em> exists in this object.  <a href="group__Object.html#ga7442b42d745e649222506080a05e3913"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a> (const std::string &amp;key)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Attempt to locate a key-value pair with the provided <em>key</em> in this object.  <a href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gafbb3346e65eef447f22db3c9509f98f8"></a><!-- doxytag: member="jsonv::value::find" ref="gafbb3346e65eef447f22db3c9509f98f8" args="(const std::string &amp;key) const " -->
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>find</b> (const std::string &amp;key) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gab1bb3e772366da9b594e58fdf8e8aa57">insert</a> (std::pair&lt; std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; pair)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert <em>pair</em> into this object.  <a href="group__Object.html#gab1bb3e772366da9b594e58fdf8e8aa57"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaabc202669d43c8031521c54e043f32f7"></a><!-- doxytag: member="jsonv::value::insert" ref="gaabc202669d43c8031521c54e043f32f7" args="(const_object_iterator hint, std::pair&lt; std::string, value &gt; pair)" -->
 <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>insert</b> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> hint, std::pair&lt; std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt; pair)</td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Object.html#ga5b86bbeebd1d761d9a4598ee4baabe42">insert</a> (TForwardIterator first, TForwardIterator last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert range defined by [<em>first</em>, <em>last</em>) into this object.  <a href="group__Object.html#ga5b86bbeebd1d761d9a4598ee4baabe42"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga7c7c41413bcfcfebde5f2968458fc725">insert</a> (std::initializer_list&lt; std::pair&lt; std::string, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&gt; items)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert <em>items</em> into this object.  <a href="group__Object.html#ga7c7c41413bcfcfebde5f2968458fc725"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gae5ee259b187051fa86ec1980c05408f5">erase</a> (const std::string &amp;key)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase the item with the given <em>key</em>.  <a href="group__Object.html#gae5ee259b187051fa86ec1980c05408f5"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga3524ccad9a4188014c507454ca38fc8f">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> position)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase the item at the given <em>position</em>.  <a href="group__Object.html#ga3524ccad9a4188014c507454ca38fc8f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gadff0cf180eac1aaa3e95972a4a1671ab">erase</a> (<a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> first, <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a> last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase the range defined by [<em>first</em>, <em>last</em>).  <a href="group__Object.html#gadff0cf180eac1aaa3e95972a4a1671ab"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gafc0eb6d0e3b9a8dcfba8c36c19ced691">empty</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent to asking if the size is 0.  <a href="group__Shared.html#gafc0eb6d0e3b9a8dcfba8c36c19ced691"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82">size</a> () const </td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of items in this value.  <a href="group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82"></a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="friends"></a>
 Friends</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e">operator&lt;&lt;</a> (std::ostream &amp;stream, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;val)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Output this value to a stream.  <a href="group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Shared.html#gadac006e646d57212ae0de2f87917a584">to_string</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a string representation of the given <code>value</code>.  <a href="group__Shared.html#gadac006e646d57212ae0de2f87917a584"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aa1fd9607c1bf9834c565f36ebc7a2086">array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an empty array value.  <a href="#aa1fd9607c1bf9834c565f36ebc7a2086"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a04162079a8874da80f0f74a1babb423d">object</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an empty object.  <a href="#a04162079a8874da80f0f74a1babb423d"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock"><p>Represents a single JSON value, which can be any one of a potential <code>kind</code>, each behaving slightly differently. Instances will vary their behavior based on their kind -- functions will throw a <code><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></code> if the operation does not apply to the value's kind. For example, it does not make sense to call <code>find</code> on an <code>integer</code>.</p>
+<div class="textblock"><p>Represents a single JSON value, which can be any one of a potential <code>kind</code>, each behaving slightly differently. </p>
+<p>Instances will vary their behavior based on their kind -- functions will throw a <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></code> if the operation does not apply to the value's kind. For example, it does not make sense to call <code>find</code> on an <code>integer</code>.</p>
 <ul>
 <li><code>kind::null</code> You cannot do anything with this...it is just null.</li>
 <li><code>kind::boolean</code> These values can be <code>true</code> or <code>false</code>.</li>
@@ -279,6 +345,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Default-construct this to null. </p>
 
 </div>
@@ -297,6 +364,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create a <code>kind::null</code>. </p>
 
 </div>
@@ -315,6 +383,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Copy the contents of <em>source</em> into a new instance. </p>
 
 </div>
@@ -333,6 +402,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create a <code>kind::string</code> with the given <em>value</em>. </p>
 
 </div>
@@ -351,7 +421,8 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Create a <code>kind::string</code> with the given <em>value</em>.</p>
+
+<p>Create a <code>kind::string</code> with the given <em>value</em>. </p>
 <dl class="params"><dt><b>Parameters:</b></dt><dd>
   <table class="params">
     <tr><td class="paramname">value</td><td>The value to create with. This must be null-terminated. </td></tr>
@@ -375,6 +446,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create a <code>kind::integer</code> with the given <em>value</em>. </p>
 
 </div>
@@ -393,6 +465,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create a <code>kind::decimal</code> with the given <em>value</em>. </p>
 
 </div>
@@ -411,6 +484,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create a <code>kind::decimal</code> with the given <em>value</em>. </p>
 
 </div>
@@ -429,6 +503,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create a <code>kind::boolean</code> with the given <em>value</em>. </p>
 
 </div>
@@ -446,6 +521,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Destruction will never throw. </p>
 
 </div>
@@ -464,6 +540,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Move-construct this instance, leaving <em>source</em> as a null value. </p>
 
 </div>
@@ -483,7 +560,8 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Copy-assigns <code>source</code> to this.</p>
+
+<p>Copy-assigns <code>source</code> to this. </p>
 <p>If an exception is thrown during the copy, it is propagated out. This instance will remain unchanged. </p>
 
 </div>
@@ -502,7 +580,8 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
-<p>Move-assigns <code>source</code> to this, leaving <em>source</em> as a null value.</p>
+
+<p>Move-assigns <code>source</code> to this, leaving <em>source</em> as a null value. </p>
 <p>Unlike a copy, this will never throw. </p>
 
 </div>
@@ -521,6 +600,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an empty array value. </p>
 
 </div>
@@ -538,6 +618,7 @@ Friends</h2></td></tr>
       </table>
 </div>
 <div class="memdoc">
+
 <p>Create an empty object. </p>
 
 </div>

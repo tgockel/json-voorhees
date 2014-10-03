@@ -97,6 +97,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Array</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>The base type for iterating over array values.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -105,27 +108,33 @@ Classes</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef basic_array_iterator<br class="typebreak"/>
 &lt; value, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">jsonv::value::array_iterator</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>array_iterator</code> is applicable when <code>get_kind</code> is <code>kind::array</code>.  <a href="#gaa58d1fe3e62a974eb331287ede1771bf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0c185bba74f386f6c82b5b5fccdd8197"></a><!-- doxytag: member="Array::const_array_iterator" ref="ga0c185bba74f386f6c82b5b5fccdd8197" args="" -->
 typedef basic_array_iterator<br class="typebreak"/>
 &lt; const value, const value &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_array_iterator</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef detail::basic_view<br class="typebreak"/>
 &lt; array_iterator, <br class="typebreak"/>
 const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">jsonv::value::array_view</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">If <code>get_kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container.  <a href="#ga5f593b7e5b1958a3f602cb809a9dc77f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga54dd1d743ab887969271695d5477d966"></a><!-- doxytag: member="Array::const_array_view" ref="ga54dd1d743ab887969271695d5477d966" args="" -->
 typedef detail::basic_view<br class="typebreak"/>
 &lt; const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_array_view</b></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">array_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7">jsonv::value::begin_array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the beginning of this array.  <a href="#gae8a94ae8199b6de18e9e27347b6a2dd7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae72d43169a3807c8dfb0407e52f7d9a9"></a><!-- doxytag: member="Array::begin_array" ref="gae72d43169a3807c8dfb0407e52f7d9a9" args="() const " -->
 const_array_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::begin_array</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">array_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8e46475135847419326f43bb8652030">jsonv::value::end_array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the end of this array.  <a href="#gae8e46475135847419326f43bb8652030"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab687f9758ca4b30d495255a2ce17923a"></a><!-- doxytag: member="Array::end_array" ref="gab687f9758ca4b30d495255a2ce17923a" args="() const " -->
 const_array_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::end_array</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">array_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">jsonv::value::as_array</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">View this instance as an array.  <a href="#ga8a825f07236530cdf01e0414bb75161f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0823c5565b91e8fcbcc1a78ced491fa5"></a><!-- doxytag: member="Array::as_array" ref="ga0823c5565b91e8fcbcc1a78ced491fa5" args="() const " -->
 const_array_view&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::as_array</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">value &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga08a88ea17e35fd2c7844ce4c7768bf12">jsonv::value::operator[]</a> (size_type idx)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value in this array at the given <em>idx</em>.  <a href="#ga08a88ea17e35fd2c7844ce4c7768bf12"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga940f1805f720c6a15100833ac26c629a"></a><!-- doxytag: member="Array::operator[]" ref="ga940f1805f720c6a15100833ac26c629a" args="(size_type idx) const " -->
 const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operator[]</b> (size_type idx) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga848090429593c135c3798925fd659119"></a><!-- doxytag: member="Array::operator[]" ref="ga848090429593c135c3798925fd659119" args="(int idx)" -->
@@ -133,22 +142,33 @@ value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaf87d36cc32b6e2793a5e8a95c91bfef9"></a><!-- doxytag: member="Array::operator[]" ref="gaf87d36cc32b6e2793a5e8a95c91bfef9" args="(int idx) const " -->
 const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::operator[]</b> (int idx) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">value &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22">jsonv::value::at</a> (size_type idx)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value in this array at the given <em>idx</em>.  <a href="#gad1978289ca5b93314f1faf54787d3e22"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga294cff0fc6a5d04b8787f4416a788265"></a><!-- doxytag: member="Array::at" ref="ga294cff0fc6a5d04b8787f4416a788265" args="(size_type idx) const " -->
 const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::at</b> (size_type idx) const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gac8dadf575c194b8685abe745ccf78967">jsonv::value::push_back</a> (value item)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Push <em>item</em> to the back of this array.  <a href="#gac8dadf575c194b8685abe745ccf78967"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gadfa8dbeba86d9ad39610d7972d995eaf">jsonv::value::pop_back</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Pop an item off the back of this array.  <a href="#gadfa8dbeba86d9ad39610d7972d995eaf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga94242bf7d37ef7ae32abe4b3fb553f2a">jsonv::value::push_front</a> (value item)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Push <em>item</em> to the front of this array.  <a href="#ga94242bf7d37ef7ae32abe4b3fb553f2a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gad7cec4c8d1d57aa153605b321dd1b0e9">jsonv::value::pop_front</a> ()</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Pop an item from the front of this array.  <a href="#gad7cec4c8d1d57aa153605b321dd1b0e9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga34cbe426ef55efe31111bed84c3f6dba">jsonv::value::assign</a> (size_type count, const value &amp;val)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign <em>count</em> elements to this array with <em>val</em>.  <a href="#ga34cbe426ef55efe31111bed84c3f6dba"></a><br/></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Array.html#ga02c37341353a2b3897d346ae153d6659">jsonv::value::assign</a> (TForwardIterator first, TForwardIterator last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign the contents of range [<em>first</em>, <em>last</em>) to this array.  <a href="#ga02c37341353a2b3897d346ae153d6659"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaecce2dbe3b0d2064d3d713b67a99955a">jsonv::value::assign</a> (std::initializer_list&lt; value &gt; items)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign the given <em>items</em> to this array.  <a href="#gaecce2dbe3b0d2064d3d713b67a99955a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga961156664c4bf71ebe27c516be6d8ae9">jsonv::value::resize</a> (size_type count, const value &amp;val=value())</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Resize the length of this array to <em>count</em> items.  <a href="#ga961156664c4bf71ebe27c516be6d8ae9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">array_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga7b480563d0e93fc21018e088ac38646d">jsonv::value::erase</a> (const_array_iterator position)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase the item at this array's <em>position</em>.  <a href="#ga7b480563d0e93fc21018e088ac38646d"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">array_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga1a32487f57f0c8c6de20394e17d4f768">jsonv::value::erase</a> (const_array_iterator first, const_array_iterator last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Erase the range [<em>first</em>, <em>last</em>) from this array.  <a href="#ga1a32487f57f0c8c6de20394e17d4f768"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<p>The base type for iterating over array values.</p>
+<p>The base type for iterating over array values. </p>
 <p>These functions are only applicable if the kind of this value is an array. </p>
 <hr/><h2>Typedef Documentation</h2>
 <a class="anchor" id="gaa58d1fe3e62a974eb331287ede1771bf"></a><!-- doxytag: member="jsonv::value::array_iterator" ref="gaa58d1fe3e62a974eb331287ede1771bf" args="" -->
@@ -161,7 +181,9 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
       </table>
 </div>
 <div class="memdoc">
-<p>The <code>array_iterator</code> is applicable when <code>get_kind</code> is <code>kind::array</code>. It allows you to use algorithms as if a <code>value</code> was a normal sequence container. </p>
+
+<p>The <code>array_iterator</code> is applicable when <code>get_kind</code> is <code>kind::array</code>. </p>
+<p>It allows you to use algorithms as if a <code>value</code> was a normal sequence container. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00263">263</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
@@ -177,7 +199,9 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
       </table>
 </div>
 <div class="memdoc">
-<p>If <code>get_kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container. This is most useful for range-based for loops. </p>
+
+<p>If <code>get_kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container. </p>
+<p>This is most useful for range-based for loops. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00269">269</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
@@ -197,10 +221,11 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
       </table>
 </div>
 <div class="memdoc">
-<p>View this instance as an array.</p>
+
+<p>View this instance as an array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -231,10 +256,11 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
       </table>
 </div>
 <div class="memdoc">
-<p>Assign <em>count</em> elements to this array with <em>val</em>.</p>
+
+<p>Assign <em>count</em> elements to this array with <em>val</em>. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -267,10 +293,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Assign the contents of range [<em>first</em>, <em>last</em>) to this array.</p>
+
+<p>Assign the contents of range [<em>first</em>, <em>last</em>) to this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -293,10 +320,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Assign the given <em>items</em> to this array.</p>
+
+<p>Assign the given <em>items</em> to this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -317,10 +345,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Get the value in this array at the given <em>idx</em>.</p>
+
+<p>Get the value in this array at the given <em>idx</em>. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
     <tr><td class="paramname">std::out_of_range</td><td>if the provided <em>idx</em> is above <code>size</code>. </td></tr>
   </table>
   </dd>
@@ -341,10 +370,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Get an iterator to the beginning of this array.</p>
+
+<p>Get an iterator to the beginning of this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -364,10 +394,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Get an iterator to the end of this array.</p>
+
+<p>Get an iterator to the end of this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -388,10 +419,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Erase the item at this array's <em>position</em>.</p>
+
+<p>Erase the item at this array's <em>position</em>. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -422,10 +454,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Erase the range [<em>first</em>, <em>last</em>) from this array.</p>
+
+<p>Erase the range [<em>first</em>, <em>last</em>) from this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -446,10 +479,12 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Get the value in this array at the given <em>idx</em>. The overloads which accept an <code>int</code> are required to resolve the type ambiguity of the literal <code>0</code> between a size_type and a char*.</p>
+
+<p>Get the value in this array at the given <em>idx</em>. </p>
+<p>The overloads which accept an <code>int</code> are required to resolve the type ambiguity of the literal <code>0</code> between a size_type and a char*.</p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -469,10 +504,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Pop an item off the back of this array.</p>
+
+<p>Pop an item off the back of this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
     <tr><td class="paramname">std::logic_error</td><td>if the array is empty. </td></tr>
   </table>
   </dd>
@@ -493,10 +529,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Pop an item from the front of this array.</p>
+
+<p>Pop an item from the front of this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
     <tr><td class="paramname">std::logic_error</td><td>if the array is empty. </td></tr>
   </table>
   </dd>
@@ -518,10 +555,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Push <em>item</em> to the back of this array.</p>
+
+<p>Push <em>item</em> to the back of this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -542,10 +580,11 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Push <em>item</em> to the front of this array.</p>
+
+<p>Push <em>item</em> to the front of this array. </p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -576,10 +615,12 @@ template&lt;typename TForwardIterator &gt; </div>
       </table>
 </div>
 <div class="memdoc">
-<p>Resize the length of this array to <em>count</em> items. If the resize creates new elements, fill those newly-created elements with <em>val</em>.</p>
+
+<p>Resize the length of this array to <em>count</em> items. </p>
+<p>If the resize creates new elements, fill those newly-created elements with <em>val</em>.</p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html">kind_error</a></td><td>if the kind is not an array. </td></tr>
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
   </table>
   </dd>
 </dl>

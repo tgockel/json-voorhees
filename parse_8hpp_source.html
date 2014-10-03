@@ -103,9 +103,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00011"></a>00011 <span class="preprocessor">#ifndef __JSONV_PARSE_HPP_INCLUDED__</span>
 <a name="l00012"></a>00012 <span class="preprocessor"></span><span class="preprocessor">#define __JSONV_PARSE_HPP_INCLUDED__</span>
 <a name="l00013"></a>00013 <span class="preprocessor"></span>
-<a name="l00014"></a>00014 <span class="preprocessor">#include &lt;<a class="code" href="config_8hpp.html">jsonv/config.hpp</a>&gt;</span>
-<a name="l00015"></a>00015 <span class="preprocessor">#include &lt;<a class="code" href="string__ref_8hpp.html">jsonv/string_ref.hpp</a>&gt;</span>
-<a name="l00016"></a>00016 <span class="preprocessor">#include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span>
+<a name="l00014"></a>00014 <span class="preprocessor">#include &lt;<a class="code" href="config_8hpp.html" title="Copyright (c) 2014 by Travis Gockel.">jsonv/config.hpp</a>&gt;</span>
+<a name="l00015"></a>00015 <span class="preprocessor">#include &lt;<a class="code" href="string__ref_8hpp.html" title="Pulls in an implementation of string_ref.">jsonv/string_ref.hpp</a>&gt;</span>
+<a name="l00016"></a>00016 <span class="preprocessor">#include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <a name="l00017"></a>00017 
 <a name="l00018"></a>00018 <span class="preprocessor">#include &lt;cstddef&gt;</span>
 <a name="l00019"></a>00019 <span class="preprocessor">#include &lt;deque&gt;</span>
@@ -116,16 +116,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00024"></a>00024 
 <a name="l00025"></a>00025 <span class="keyword">class </span>tokenizer;
 <a name="l00026"></a>00026 
-<a name="l00031"></a><a class="code" href="classjsonv_1_1parse__error.html">00031</a> <span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees. If you are including JsonVoorhees ...">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1parse__error.html">parse_error</a> :
+<a name="l00031"></a><a class="code" href="classjsonv_1_1parse__error.html">00031</a> <span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1parse__error.html" title="An error encountered when parsing.">parse_error</a> :
 <a name="l00032"></a>00032         <span class="keyword">public</span> std::runtime_error
 <a name="l00033"></a>00033 {
 <a name="l00034"></a>00034 <span class="keyword">public</span>:
 <a name="l00035"></a>00035     <span class="keyword">typedef</span> std::size_t size_type;
 <a name="l00036"></a>00036     
-<a name="l00038"></a><a class="code" href="structjsonv_1_1parse__error_1_1problem.html">00038</a>     <span class="keyword">struct </span><a class="code" href="structjsonv_1_1parse__error_1_1problem.html">problem</a>
+<a name="l00038"></a><a class="code" href="structjsonv_1_1parse__error_1_1problem.html">00038</a>     <span class="keyword">struct </span><a class="code" href="structjsonv_1_1parse__error_1_1problem.html" title="Description of a single parsing problem.">problem</a>
 <a name="l00039"></a>00039     {
 <a name="l00040"></a>00040     <span class="keyword">public</span>:
-<a name="l00041"></a>00041         <a class="code" href="structjsonv_1_1parse__error_1_1problem.html">problem</a>(size_type line, size_type column, size_type character, std::string message);
+<a name="l00041"></a>00041         <a class="code" href="structjsonv_1_1parse__error_1_1problem.html" title="Description of a single parsing problem.">problem</a>(size_type line, size_type column, size_type character, std::string message);
 <a name="l00042"></a>00042         
 <a name="l00047"></a><a class="code" href="structjsonv_1_1parse__error_1_1problem.html#aa5b23e576a2125610123d532728e6240">00047</a>         size_type line()<span class="keyword"> const</span>
 <a name="l00048"></a>00048 <span class="keyword">        </span>{
@@ -157,47 +157,47 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00077"></a>00077     <span class="keyword">typedef</span> std::deque&lt;problem&gt; problem_list;
 <a name="l00078"></a>00078     
 <a name="l00079"></a>00079 <span class="keyword">public</span>:
-<a name="l00080"></a>00080     <a class="code" href="classjsonv_1_1parse__error.html">parse_error</a>(problem_list, <a class="code" href="classjsonv_1_1value.html">value</a> partial_result);
+<a name="l00080"></a>00080     <a class="code" href="classjsonv_1_1parse__error.html" title="An error encountered when parsing.">parse_error</a>(problem_list, <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> partial_result);
 <a name="l00081"></a>00081     
-<a name="l00082"></a>00082     <span class="keyword">virtual</span> ~<a class="code" href="classjsonv_1_1parse__error.html">parse_error</a>() noexcept;
+<a name="l00082"></a>00082     <span class="keyword">virtual</span> ~<a class="code" href="classjsonv_1_1parse__error.html" title="An error encountered when parsing.">parse_error</a>() noexcept;
 <a name="l00083"></a>00083     
 <a name="l00087"></a>00087     const problem_list&amp; problems() const;
 <a name="l00088"></a>00088     
-<a name="l00092"></a>00092     const <a class="code" href="classjsonv_1_1value.html">value</a>&amp; partial_result() const;
+<a name="l00092"></a>00092     const <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; partial_result() const;
 <a name="l00093"></a>00093     
 <a name="l00094"></a>00094 private:
 <a name="l00095"></a>00095     problem_list _problems;
-<a name="l00096"></a>00096     <a class="code" href="classjsonv_1_1value.html">value</a>        _partial_result;
+<a name="l00096"></a>00096     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>        _partial_result;
 <a name="l00097"></a>00097 };
 <a name="l00098"></a>00098 
-<a name="l00102"></a><a class="code" href="classjsonv_1_1parse__options.html">00102</a> class <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees. If you are including JsonVoorhees ...">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1parse__options.html">parse_options</a>
+<a name="l00102"></a><a class="code" href="classjsonv_1_1parse__options.html">00102</a> class <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1parse__options.html" title="Configuration for various parsing options.">parse_options</a>
 <a name="l00103"></a>00103 {
 <a name="l00104"></a>00104 <span class="keyword">public</span>:
 <a name="l00105"></a>00105     <span class="keyword">using</span> size_type = value::size_type;
 <a name="l00106"></a>00106     
-<a name="l00108"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46">00108</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46">on_error</a>
+<a name="l00108"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46">00108</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46" title="When a parse error is encountered, what should the parser do?">on_error</a>
 <a name="l00109"></a>00109     {
-<a name="l00111"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46ab65182150b5a12459bad6911975a76ac">00111</a>         <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46ab65182150b5a12459bad6911975a76ac">fail_immediately</a>,
-<a name="l00113"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a61e82648c71a051f290df92774cd2d20">00113</a>         <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a61e82648c71a051f290df92774cd2d20">collect_all</a>,
-<a name="l00117"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a085fa3fff6511d835f01a633e24dfd16">00117</a>         <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a085fa3fff6511d835f01a633e24dfd16">ignore</a>,
+<a name="l00111"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46ab65182150b5a12459bad6911975a76ac">00111</a>         <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46ab65182150b5a12459bad6911975a76ac" title="Immediately throw a parse_error -- do not attempt to construct a partial result.">fail_immediately</a>,
+<a name="l00113"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a61e82648c71a051f290df92774cd2d20">00113</a>         <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a61e82648c71a051f290df92774cd2d20" title="Attempt to continue parsing and constructing a result.">collect_all</a>,
+<a name="l00117"></a><a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a085fa3fff6511d835f01a633e24dfd16">00117</a>         <a class="code" href="classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a085fa3fff6511d835f01a633e24dfd16" title="Ignore all errors and pretend to be successful.">ignore</a>,
 <a name="l00118"></a>00118     };
 <a name="l00119"></a>00119     
-<a name="l00121"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593">00121</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593">encoding</a>
+<a name="l00121"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593">00121</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593" title="The encoding format for strings.">encoding</a>
 <a name="l00122"></a>00122     {
-<a name="l00127"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593a9779fadc56f67384db00397c1b7df2b6">00127</a>         <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593a9779fadc56f67384db00397c1b7df2b6">utf8</a>,
-<a name="l00132"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593ac8e59892be8b84d277f56e99b2ebe3cc">00132</a>         <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593ac8e59892be8b84d277f56e99b2ebe3cc">utf8_strict</a>,
-<a name="l00139"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf">00139</a>         <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf">cesu8</a>,
+<a name="l00127"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593a9779fadc56f67384db00397c1b7df2b6">00127</a>         <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593a9779fadc56f67384db00397c1b7df2b6" title="Use UTF-8 like a sane library should.">utf8</a>,
+<a name="l00132"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593ac8e59892be8b84d277f56e99b2ebe3cc">00132</a>         <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593ac8e59892be8b84d277f56e99b2ebe3cc" title="Like utf8, but check that there are no unprintable characters in the input stream (see std::isprint)...">utf8_strict</a>,
+<a name="l00139"></a><a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf">00139</a>         <a class="code" href="classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf" title="Use the CESU-8 Compatibility Encoding Scheme for UTF-16? It is generally not recommended unless your ...">cesu8</a>,
 <a name="l00140"></a>00140     };
 <a name="l00141"></a>00141     
-<a name="l00143"></a><a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">00143</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">commas</a>
+<a name="l00143"></a><a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714">00143</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714" title="When dealing with comma separators, how should extra commas be treated?">commas</a>
 <a name="l00144"></a>00144     {
-<a name="l00146"></a><a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437">00146</a>         <a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437">strict</a>,
-<a name="l00148"></a><a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a">00148</a>         <a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a">allow_trailing</a>,
+<a name="l00146"></a><a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437">00146</a>         <a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa9901b19029e72320694376d123e77437" title="Do not allow any extra commas anywhere -- require valid JSON.">strict</a>,
+<a name="l00148"></a><a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a">00148</a>         <a class="code" href="classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714aec1cc8772398f68a2fe5ee4e509c300a" title="Allow a single trailing comma at the end of an array or object (similar to C++ enum definitions)...">allow_trailing</a>,
 <a name="l00149"></a>00149     };
 <a name="l00150"></a>00150     
-<a name="l00152"></a><a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">00152</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">numbers</a>
+<a name="l00152"></a><a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a">00152</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176a" title="How should numbers be dealt with?">numbers</a>
 <a name="l00153"></a>00153     {
-<a name="l00157"></a><a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa1e11d53c300b1f67f20698c28b455c1d">00157</a>         <a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa1e11d53c300b1f67f20698c28b455c1d">decimal</a>,
+<a name="l00157"></a><a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa1e11d53c300b1f67f20698c28b455c1d">00157</a>         <a class="code" href="classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa1e11d53c300b1f67f20698c28b455c1d" title="Parse all forms of decimal input that we can.">decimal</a>,
 <a name="l00159"></a>00159         strict,
 <a name="l00160"></a>00160     };
 <a name="l00161"></a>00161     
@@ -247,11 +247,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00253"></a>00253     <span class="keywordtype">bool</span>        _complete_parse   = true;
 <a name="l00254"></a>00254 };
 <a name="l00255"></a>00255 
-<a name="l00269"></a>00269 <a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees. If you are including JsonVoorhees ...">JSONV_PUBLIC</a> parse(std::istream&amp; input, const parse_options&amp; = parse_options());
+<a name="l00269"></a>00269 <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> parse(std::istream&amp; input, const parse_options&amp; = parse_options());
 <a name="l00270"></a>00270 
-<a name="l00278"></a>00278 <a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees. If you are including JsonVoorhees ...">JSONV_PUBLIC</a> parse(const string_ref&amp; input, const parse_options&amp; = parse_options());
+<a name="l00278"></a>00278 <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> parse(const string_ref&amp; input, const parse_options&amp; = parse_options());
 <a name="l00279"></a>00279 
-<a name="l00294"></a>00294 <a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees. If you are including JsonVoorhees ...">JSONV_PUBLIC</a> parse(<a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>&amp; input, const parse_options&amp; = parse_options());
+<a name="l00294"></a>00294 <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> parse(<a class="code" href="classjsonv_1_1tokenizer.html" title="Splits input into tokens, allowing traversal of JSON without verification.">tokenizer</a>&amp; input, const parse_options&amp; = parse_options());
 <a name="l00295"></a>00295 
 <a name="l00296"></a>00296 }
 <a name="l00297"></a>00297 
