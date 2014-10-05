@@ -251,28 +251,8 @@ bool value::operator==(const value& other) const
 {
     if (this == &other && kind_valid(get_kind()))
         return true;
-    if (get_kind() != other.get_kind())
-        return false;
-    
-    switch (get_kind())
-    {
-    case kind::object:
-        return *_data.object == *_data.object;
-    case kind::array:
-        return *_data.array == *_data.array;
-    case kind::string:
-        return as_string() == other.as_string();
-    case kind::integer:
-        return as_integer() == other.as_integer();
-    case kind::decimal:
-        return decimal_compare(as_decimal(), other.as_decimal()) == 0;
-    case kind::boolean:
-        return as_boolean() == other.as_boolean();
-    case kind::null:
-        return true;
-    default:
-        return false;
-    }
+    else
+        return compare(other) == 0;
 }
 
 bool value::operator !=(const value& other) const
@@ -283,28 +263,8 @@ bool value::operator !=(const value& other) const
     
     if (this == &other)
         return false;
-    if (get_kind() != other.get_kind())
-        return true;
-    
-    switch (get_kind())
-    {
-    case kind::object:
-        return *_data.object != *_data.object;
-    case kind::array:
-        return *_data.array != *_data.array;
-    case kind::string:
-        return as_string() != other.as_string();
-    case kind::integer:
-        return as_integer() != other.as_integer();
-    case kind::decimal:
-        return decimal_compare(as_decimal(), other.as_decimal()) != 0;
-    case kind::boolean:
-        return as_boolean() != other.as_boolean();
-    case kind::null:
-        return false;
-    default:
-        return true;
-    }
+    else
+        return compare(other) != 0;
 }
 
 static int kindval(kind k)
