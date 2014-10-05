@@ -1,6 +1,7 @@
 var files =
 [
     [ "jsonv/all.hpp", "all_8hpp.html", null ],
+    [ "jsonv/coerce.hpp", "coerce_8hpp.html", "coerce_8hpp" ],
     [ "jsonv/config.hpp", "config_8hpp.html", "config_8hpp" ],
     [ "jsonv/encode.hpp", "encode_8hpp.html", null ],
     [ "jsonv/forward.hpp", "forward_8hpp.html", null ],

@@ -1,7 +1,15 @@
 var searchData=
 [
+  ['can_5fcoerce',['can_coerce',['../group__Coercion.html#gaf20cb82e10e2201d983e217c47e26ba6',1,'jsonv::can_coerce(const kind &amp;from, const kind &amp;to)'],['../group__Coercion.html#gafe7cfb78c4ebf72fe476ce5137b8538f',1,'jsonv::can_coerce(const value &amp;from, const kind &amp;to)']]],
   ['character',['character',['../structjsonv_1_1parse__error_1_1problem.html#a9a170800c8dffbbef3aa8bfbac5cd8a6',1,'jsonv::parse_error::problem']]],
   ['clear',['clear',['../group__Shared.html#ga11b8dfc38c7a6ceac53c639f18aaebea',1,'jsonv::value']]],
+  ['coerce_5farray',['coerce_array',['../group__Coercion.html#gae17eed7144363cc743cf143f13c377c1',1,'jsonv']]],
+  ['coerce_5fboolean',['coerce_boolean',['../group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16',1,'jsonv']]],
+  ['coerce_5fdecimal',['coerce_decimal',['../group__Coercion.html#gab8622e02fd1f38c93d11bc9680815627',1,'jsonv']]],
+  ['coerce_5finteger',['coerce_integer',['../group__Coercion.html#ga202340832fcd5dc84ed142954bf4e85c',1,'jsonv']]],
+  ['coerce_5fnull',['coerce_null',['../group__Coercion.html#ga82b464dbe1081e60ddcd82c434b28c34',1,'jsonv']]],
+  ['coerce_5fobject',['coerce_object',['../group__Coercion.html#gae9a1f603c9ce75f7bd479f022e43dc91',1,'jsonv']]],
+  ['coerce_5fstring',['coerce_string',['../group__Coercion.html#ga7e3fd5c6922f9ead68a46031b0af3e49',1,'jsonv']]],
   ['column',['column',['../structjsonv_1_1parse__error_1_1problem.html#af089108087de95be77946942087836eb',1,'jsonv::parse_error::problem']]],
   ['comma_5fpolicy',['comma_policy',['../classjsonv_1_1parse__options.html#a24b93f3fc4a36c850b103228290a6758',1,'jsonv::parse_options']]],
   ['compare',['compare',['../group__Shared.html#ga05f2fca552d114e678040be40c8cbc06',1,'jsonv::value']]],
