@@ -221,6 +221,7 @@
  *  \see http://json.org/
 **/
 
+#include "coerce.hpp"
 #include "config.hpp"
 #include "encode.hpp"
 #include "forward.hpp"
