@@ -175,7 +175,7 @@ path_element::~path_element() noexcept
     }
 }
 
-path_element_kind path_element::get_kind() const
+path_element_kind path_element::kind() const
 {
     return _kind;
 }
@@ -198,9 +198,9 @@ const std::string& path_element::key() const
 
 bool path_element::operator==(const path_element& other) const
 {
-    if (get_kind() != other.get_kind())
+    if (kind() != other.kind())
         return false;
-    else if (get_kind() == path_element_kind::object_key)
+    else if (kind() == path_element_kind::object_key)
         return key() == other.key();
     else
         return index() == other.index();
@@ -213,7 +213,7 @@ bool path_element::operator!=(const path_element& other) const
 
 static std::ostream& stream_path_element(std::ostream& os, const path_element& elem)
 {
-    switch (elem.get_kind())
+    switch (elem.kind())
     {
     case path_element_kind::array_index:
         return os << '[' << elem.index() << ']';
@@ -224,7 +224,7 @@ static std::ostream& stream_path_element(std::ostream& os, const path_element& e
         else
             return os << '.' << elem.key();
     default:
-        return os << "path_element(invalid:" << elem.get_kind() << ")";
+        return os << "path_element(invalid:" << elem.kind() << ")";
     }
 }
 

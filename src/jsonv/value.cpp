@@ -191,7 +191,7 @@ TValueRef walk_path(TValueRef&&               current,
         return current;
     
     const path_element& elem = *first;
-    switch (elem.get_kind())
+    switch (elem.kind())
     {
     case path_element_kind::array_index:
         check_type({ kind::array, kind::null }, current.get_kind());
@@ -263,7 +263,7 @@ value& value::path(const jsonv::path& p)
                      p.end(),
                      [] (const path_element& elem, value& current)
                      {
-                         switch (elem.get_kind())
+                         switch (elem.kind())
                          {
                          case path_element_kind::array_index:
                              if (current.get_kind() == kind::null)

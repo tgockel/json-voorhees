@@ -49,7 +49,7 @@ public:
     
     ~path_element() noexcept;
     
-    path_element_kind get_kind() const;
+    path_element_kind kind() const;
     
     std::size_t index() const;
     
