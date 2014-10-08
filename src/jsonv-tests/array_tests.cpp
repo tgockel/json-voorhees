@@ -14,6 +14,7 @@
 #include <jsonv/parse.hpp>
 
 #include <algorithm>
+#include <sstream>
 
 TEST(array)
 {
@@ -156,6 +157,14 @@ TEST(array_view)
         arr2.push_back(val);
     
     ensure_eq(arr1, arr2);
+}
+
+TEST(array_iterate_over_temp)
+{
+    using namespace jsonv;
+    std::ostringstream os;
+    for (const value& x : array({ 1, "two", "three", array({ 4, 4, 4 }) }).as_array())
+        os << x;
 }
 
 TEST(parse_empty_array)

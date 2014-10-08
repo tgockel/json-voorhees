@@ -200,14 +200,23 @@ value::const_object_iterator value::end_object() const
     return const_object_iterator(_data.object->_values.end());
 }
 
-value::object_view value::as_object()
+value::object_view value::as_object() &
 {
     return object_view(begin_object(), end_object());
 }
 
-value::const_object_view value::as_object() const
+value::const_object_view value::as_object() const &
 {
     return const_object_view(begin_object(), end_object());
+}
+
+value::owning_object_view value::as_object() &&
+{
+    check_type(kind::object, get_kind());
+    return owning_object_view(std::move(*this),
+                              [] (value& x) { return x.begin_object(); },
+                              [] (value& x) { return x.end_object(); }
+                             );
 }
 
 value& value::operator[](const std::string& key)
