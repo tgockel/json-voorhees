@@ -25,7 +25,7 @@ encoder::~encoder() noexcept = default;
 
 void encoder::encode(const value& source)
 {
-    switch (source.get_kind())
+    switch (source.kind())
     {
     case kind::array:
         write_array_begin();

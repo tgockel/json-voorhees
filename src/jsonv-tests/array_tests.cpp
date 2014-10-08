@@ -20,15 +20,15 @@ TEST(array)
     jsonv::value arr = jsonv::array();
     arr.push_back(8.9);
     ensure(arr.size() == 1);
-    ensure(arr[0].get_kind() == jsonv::kind::decimal);
+    ensure(arr[0].kind() == jsonv::kind::decimal);
     arr.push_back(true);
     ensure(arr.size() == 2);
-    ensure(arr[0].get_kind() == jsonv::kind::decimal);
-    ensure(arr[1].get_kind() == jsonv::kind::boolean);
+    ensure(arr[0].kind() == jsonv::kind::decimal);
+    ensure(arr[1].kind() == jsonv::kind::boolean);
     arr[0] = "Hi";
     ensure(arr.size() == 2);
-    ensure(arr[0].get_kind() == jsonv::kind::string);
-    ensure(arr[1].get_kind() == jsonv::kind::boolean);
+    ensure(arr[0].kind() == jsonv::kind::string);
+    ensure(arr[1].kind() == jsonv::kind::boolean);
 }
 
 TEST(array_init_list)
@@ -47,7 +47,7 @@ TEST(array_init_list)
 TEST(make_array)
 {
     jsonv::value arr = jsonv::array({ 2, 10, "Hello, world!" });
-    ensure(arr.get_kind() == jsonv::kind::array);
+    ensure(arr.kind() == jsonv::kind::array);
     ensure(arr.size() == 3);
     ensure(arr[0].as_integer() == 2);
     ensure(arr[1].as_integer() == 10);
@@ -57,7 +57,7 @@ TEST(make_array)
 TEST(parse_array)
 {
     jsonv::value arr = jsonv::parse("\t\n[2, 10, \"Hello, world!\"]   ");
-    ensure(arr.get_kind() == jsonv::kind::array);
+    ensure(arr.kind() == jsonv::kind::array);
     ensure_eq(arr.size(), 3);
     ensure_eq(arr[0].as_integer(), 2);
     ensure_eq(arr[1].as_integer(), 10);
@@ -133,7 +133,7 @@ TEST(array_push_move)
     jsonv::value arr = jsonv::array();
     jsonv::value val = "contents";
     arr.push_back(std::move(val));
-    ensure(val.get_kind() == jsonv::kind::null);
+    ensure(val.kind() == jsonv::kind::null);
 }
 
 TEST(array_algo_sort)

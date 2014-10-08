@@ -259,13 +259,13 @@ public:
         size_type   _index;
     };
     
-    /** The \c array_iterator is applicable when \c get_kind is \c kind::array. It allows you to use algorithms as if
+    /** The \c array_iterator is applicable when \c kind is \c kind::array. It allows you to use algorithms as if
      *  a \c value was a normal sequence container.
     **/
     typedef basic_array_iterator<value, value>                       array_iterator;
     typedef basic_array_iterator<const value, const value>           const_array_iterator;
     
-    /** If \c get_kind is \c kind::array, an \c array_view allows you to access a value as a sequence container. This is
+    /** If \c kind is \c kind::array, an \c array_view allows you to access a value as a sequence container. This is
      *  most useful for range-based for loops.
     **/
     typedef detail::basic_view<array_iterator, const_array_iterator> array_view;
@@ -361,16 +361,16 @@ public:
         char _storage[sizeof(void*)];
     };
     
-    /** The type of value stored when \c get_kind is \c kind::object. **/
+    /** The type of value stored when \c kind is \c kind::object. **/
     typedef std::pair<const std::string, value>                        object_value_type;
     
-    /** The \c object_iterator is applicable when \c get_kind is \c kind::object. It allows you to use algorithms as if
+    /** The \c object_iterator is applicable when \c kind is \c kind::object. It allows you to use algorithms as if
      *  a \c value was a normal associative container.
     **/
     typedef basic_object_iterator<object_value_type>                   object_iterator;
     typedef basic_object_iterator<const object_value_type>             const_object_iterator;
     
-    /** If \c get_kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
+    /** If \c kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
      *  This is most useful for range-based for loops.
     **/
     typedef detail::basic_view<object_iterator, const_object_iterator> object_view;
@@ -476,7 +476,7 @@ public:
     void clear();
     
     /** Get this value's kind. **/
-    inline kind get_kind() const
+    inline jsonv::kind kind() const
     {
         return _kind;
     }
@@ -823,7 +823,7 @@ private:
     
 private:
     detail::value_storage _data;
-    kind                  _kind;
+    jsonv::kind           _kind;
 };
 
 /** Swap the values \a a and \a b. **/

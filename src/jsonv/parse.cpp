@@ -648,9 +648,9 @@ static value post_parse(detail::parse_context& context, value&& out_)
     
     if (context.successful && context.options.require_document())
     {
-        if (out.get_kind() != kind::array && out.get_kind() != kind::object)
+        if (out.kind() != kind::array && out.kind() != kind::object)
         {
-            context.parse_error("JSON requires the root of a payload to be an array or object, not ", out.get_kind());
+            context.parse_error("JSON requires the root of a payload to be an array or object, not ", out.kind());
         }
     }
     

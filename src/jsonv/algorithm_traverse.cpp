@@ -21,10 +21,10 @@ void traverse(const value&                                           tree,
               bool                                                   leafs_only
              )
 {
-    if (!leafs_only || (tree.get_kind() != kind::array && tree.get_kind() != kind::object))
+    if (!leafs_only || (tree.kind() != kind::array && tree.kind() != kind::object))
         func(base_path, tree);
     
-    if (tree.get_kind() == kind::object)
+    if (tree.kind() == kind::object)
     {
         for (const auto& field : tree.as_object())
         {
@@ -35,7 +35,7 @@ void traverse(const value&                                           tree,
                     );
         }
     }
-    else if (tree.get_kind() == kind::array)
+    else if (tree.kind() == kind::array)
     {
         for (value::size_type idx = 0; idx < tree.size(); ++idx)
             traverse(tree[idx],
