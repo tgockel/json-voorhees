@@ -108,14 +108,14 @@ Classes</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef basic_array_iterator<br class="typebreak"/>
 &lt; value, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gaa58d1fe3e62a974eb331287ede1771bf">jsonv::value::array_iterator</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>array_iterator</code> is applicable when <code>get_kind</code> is <code>kind::array</code>.  <a href="#gaa58d1fe3e62a974eb331287ede1771bf"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>array_iterator</code> is applicable when <code>kind</code> is <code>kind::array</code>.  <a href="#gaa58d1fe3e62a974eb331287ede1771bf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0c185bba74f386f6c82b5b5fccdd8197"></a><!-- doxytag: member="Array::const_array_iterator" ref="ga0c185bba74f386f6c82b5b5fccdd8197" args="" -->
 typedef basic_array_iterator<br class="typebreak"/>
 &lt; const value, const value &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_array_iterator</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef detail::basic_view<br class="typebreak"/>
 &lt; array_iterator, <br class="typebreak"/>
 const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga5f593b7e5b1958a3f602cb809a9dc77f">jsonv::value::array_view</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">If <code>get_kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container.  <a href="#ga5f593b7e5b1958a3f602cb809a9dc77f"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">If <code>kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container.  <a href="#ga5f593b7e5b1958a3f602cb809a9dc77f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga54dd1d743ab887969271695d5477d966"></a><!-- doxytag: member="Array::const_array_view" ref="ga54dd1d743ab887969271695d5477d966" args="" -->
 typedef detail::basic_view<br class="typebreak"/>
 &lt; const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_array_view</b></td></tr>
@@ -182,7 +182,7 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
 </div>
 <div class="memdoc">
 
-<p>The <code>array_iterator</code> is applicable when <code>get_kind</code> is <code>kind::array</code>. </p>
+<p>The <code>array_iterator</code> is applicable when <code>kind</code> is <code>kind::array</code>. </p>
 <p>It allows you to use algorithms as if a <code>value</code> was a normal sequence container. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00265">265</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
@@ -200,7 +200,7 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
 </div>
 <div class="memdoc">
 
-<p>If <code>get_kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container. </p>
+<p>If <code>kind</code> is <code>kind::array</code>, an <code>array_view</code> allows you to access a value as a sequence container. </p>
 <p>This is most useful for range-based for loops. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00271">271</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>

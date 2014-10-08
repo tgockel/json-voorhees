@@ -108,17 +108,17 @@ Classes</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef std::pair&lt; const <br class="typebreak"/>
 std::string, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">jsonv::value::object_value_type</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of value stored when <code>get_kind</code> is <code>kind::object</code>.  <a href="#gabf0673825595a5326e65544af770b4dd"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of value stored when <code>kind</code> is <code>kind::object</code>.  <a href="#gabf0673825595a5326e65544af770b4dd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef basic_object_iterator<br class="typebreak"/>
 &lt; object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">jsonv::value::object_iterator</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>object_iterator</code> is applicable when <code>get_kind</code> is <code>kind::object</code>.  <a href="#gabe865fe7b043bceae9f2630410e406b7"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>object_iterator</code> is applicable when <code>kind</code> is <code>kind::object</code>.  <a href="#gabe865fe7b043bceae9f2630410e406b7"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaee495e9858cbf3a238f80afd946fbd8c"></a><!-- doxytag: member="Object::const_object_iterator" ref="gaee495e9858cbf3a238f80afd946fbd8c" args="" -->
 typedef basic_object_iterator<br class="typebreak"/>
 &lt; const object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_object_iterator</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">typedef detail::basic_view<br class="typebreak"/>
 &lt; object_iterator, <br class="typebreak"/>
 const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">jsonv::value::object_view</a></td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">If <code>get_kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container.  <a href="#ga39d2820f80eac817a14d5e129de46449"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">If <code>kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container.  <a href="#ga39d2820f80eac817a14d5e129de46449"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f27cda168f235ef55974fa3d6a9e4e3"></a><!-- doxytag: member="Object::const_object_view" ref="ga8f27cda168f235ef55974fa3d6a9e4e3" args="" -->
 typedef detail::basic_view<br class="typebreak"/>
 &lt; const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_object_view</b></td></tr>
@@ -182,7 +182,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 </div>
 <div class="memdoc">
 
-<p>The <code>object_iterator</code> is applicable when <code>get_kind</code> is <code>kind::object</code>. </p>
+<p>The <code>object_iterator</code> is applicable when <code>kind</code> is <code>kind::object</code>. </p>
 <p>It allows you to use algorithms as if a <code>value</code> was a normal associative container. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00370">370</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
@@ -200,7 +200,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 </div>
 <div class="memdoc">
 
-<p>The type of value stored when <code>get_kind</code> is <code>kind::object</code>. </p>
+<p>The type of value stored when <code>kind</code> is <code>kind::object</code>. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00365">365</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
@@ -217,7 +217,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 </div>
 <div class="memdoc">
 
-<p>If <code>get_kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container. </p>
+<p>If <code>kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container. </p>
 <p>This is most useful for range-based for loops. </p>
 
 <p>Definition at line <a class="el" href="value_8hpp_source.html#l00376">376</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
