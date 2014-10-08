@@ -8,10 +8,15 @@ var hierarchy =
         [ "jsonv::ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", null ]
       ] ]
     ] ],
+    [ "jsonv::detail::generic_container< TStorage >", "classjsonv_1_1detail_1_1generic__container.html", null ],
+    [ "jsonv::detail::generic_container< std::vector< path_element > >", "classjsonv_1_1detail_1_1generic__container.html", [
+      [ "jsonv::path", "classjsonv_1_1path.html", null ]
+    ] ],
     [ "std::hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", null ],
     [ "jsonv::kind_error", "classjsonv_1_1kind__error.html", null ],
     [ "jsonv::parse_error", "classjsonv_1_1parse__error.html", null ],
     [ "jsonv::parse_options", "classjsonv_1_1parse__options.html", null ],
+    [ "jsonv::path_element", "classjsonv_1_1path__element.html", null ],
     [ "jsonv::parse_error::problem", "structjsonv_1_1parse__error_1_1problem.html", null ],
     [ "jsonv::detail::string_ref", "classjsonv_1_1detail_1_1string__ref.html", null ],
     [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", null ],

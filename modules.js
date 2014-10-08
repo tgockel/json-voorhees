@@ -1,5 +1,6 @@
 var modules =
 [
+    [ "Algorithm", "group__Algorithm.html", null ],
     [ "Array", "group__Array.html", null ],
     [ "Coercion", "group__Coercion.html", null ],
     [ "Conversions", "group__Conversions.html", null ],
