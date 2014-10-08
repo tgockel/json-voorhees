@@ -119,6 +119,11 @@ const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a 
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga54dd1d743ab887969271695d5477d966"></a><!-- doxytag: member="Array::const_array_view" ref="ga54dd1d743ab887969271695d5477d966" args="" -->
 typedef detail::basic_view<br class="typebreak"/>
 &lt; const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_array_view</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f0f32ab9bba1cd06590fd942bccc10b"></a><!-- doxytag: member="Array::owning_array_view" ref="ga8f0f32ab9bba1cd06590fd942bccc10b" args="" -->
+typedef <br class="typebreak"/>
+detail::basic_owning_view<br class="typebreak"/>
+&lt; value, array_iterator, <br class="typebreak"/>
+const_array_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::owning_array_view</b></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">array_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7">jsonv::value::begin_array</a> ()</td></tr>
@@ -129,10 +134,10 @@ const_array_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the end of this array.  <a href="#gae8e46475135847419326f43bb8652030"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab687f9758ca4b30d495255a2ce17923a"></a><!-- doxytag: member="Array::end_array" ref="gab687f9758ca4b30d495255a2ce17923a" args="() const " -->
 const_array_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::end_array</b> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">array_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">jsonv::value::as_array</a> ()</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">View this instance as an array.  <a href="#ga8a825f07236530cdf01e0414bb75161f"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0823c5565b91e8fcbcc1a78ced491fa5"></a><!-- doxytag: member="Array::as_array" ref="ga0823c5565b91e8fcbcc1a78ced491fa5" args="() const " -->
-const_array_view&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::as_array</b> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">array_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga3c76f4a236a6d3ad0bc6fbeb4fd2a834">jsonv::value::as_array</a> ()&amp;</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">View this instance as an array.  <a href="#ga3c76f4a236a6d3ad0bc6fbeb4fd2a834"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gafd838ab36db9aeea9f7fa53c702bc154"></a><!-- doxytag: member="Array::as_array" ref="gafd838ab36db9aeea9f7fa53c702bc154" args="() const &amp;" -->
+const_array_view&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::as_array</b> () const &amp;</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">value &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga08a88ea17e35fd2c7844ce4c7768bf12">jsonv::value::operator[]</a> (size_type idx)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value in this array at the given <em>idx</em>.  <a href="#ga08a88ea17e35fd2c7844ce4c7768bf12"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga940f1805f720c6a15100833ac26c629a"></a><!-- doxytag: member="Array::operator[]" ref="ga940f1805f720c6a15100833ac26c629a" args="(size_type idx) const " -->
@@ -208,12 +213,12 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
 </div>
 </div>
 <hr/><h2>Function Documentation</h2>
-<a class="anchor" id="ga8a825f07236530cdf01e0414bb75161f"></a><!-- doxytag: member="jsonv::value::as_array" ref="ga8a825f07236530cdf01e0414bb75161f" args="()" -->
+<a class="anchor" id="ga3c76f4a236a6d3ad0bc6fbeb4fd2a834"></a><!-- doxytag: member="jsonv::value::as_array" ref="ga3c76f4a236a6d3ad0bc6fbeb4fd2a834" args="()&amp;" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">array_view <a class="el" href="group__Array.html#ga8a825f07236530cdf01e0414bb75161f">jsonv::value::as_array</a> </td>
+          <td class="memname">array_view <a class="el" href="group__Array.html#ga3c76f4a236a6d3ad0bc6fbeb4fd2a834">jsonv::value::as_array</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -302,7 +307,7 @@ template&lt;typename TForwardIterator &gt; </div>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00649">649</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00652">652</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>

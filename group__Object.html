@@ -122,6 +122,11 @@ const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f27cda168f235ef55974fa3d6a9e4e3"></a><!-- doxytag: member="Object::const_object_view" ref="ga8f27cda168f235ef55974fa3d6a9e4e3" args="" -->
 typedef detail::basic_view<br class="typebreak"/>
 &lt; const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_object_view</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga87b6b088b2b670634e2c9c4e66e4e1b5"></a><!-- doxytag: member="Object::owning_object_view" ref="ga87b6b088b2b670634e2c9c4e66e4e1b5" args="" -->
+typedef <br class="typebreak"/>
+detail::basic_owning_view<br class="typebreak"/>
+&lt; value, object_iterator, <br class="typebreak"/>
+const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::owning_object_view</b></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">object_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gacf1294913abd859ce337eac45c6d7426">jsonv::value::begin_object</a> ()</td></tr>
@@ -132,10 +137,10 @@ const_object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>json
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an iterator to the one past the end of this object.  <a href="#ga4575cef7e4195a25eeba35a7f15b2fbd"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad599aedf17cab734644ff0785741c54c"></a><!-- doxytag: member="Object::end_object" ref="gad599aedf17cab734644ff0785741c54c" args="() const " -->
 const_object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::end_object</b> () const </td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">object_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga3010bfd6b26473ffb3335ab6ac933c83">jsonv::value::as_object</a> ()</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">View this instance as an object.  <a href="#ga3010bfd6b26473ffb3335ab6ac933c83"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae82b39c0e6c034caa7715bd301887075"></a><!-- doxytag: member="Object::as_object" ref="gae82b39c0e6c034caa7715bd301887075" args="() const " -->
-const_object_view&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::as_object</b> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">object_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gaa80e31e8c9795f28c74bc943df4411cc">jsonv::value::as_object</a> ()&amp;</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">View this instance as an object.  <a href="#gaa80e31e8c9795f28c74bc943df4411cc"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae2fd82a7be4f41cd55265226e2d3d2b9"></a><!-- doxytag: member="Object::as_object" ref="gae2fd82a7be4f41cd55265226e2d3d2b9" args="() const &amp;" -->
+const_object_view&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::as_object</b> () const &amp;</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">value &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gab9121a691d21e33d03773489114cb623">jsonv::value::operator[]</a> (const std::string &amp;key)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the value associated with the given <em>key</em> of this object.  <a href="#gab9121a691d21e33d03773489114cb623"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab75bdfc63eac5469201270cc682c01f5"></a><!-- doxytag: member="Object::operator[]" ref="gab75bdfc63eac5469201270cc682c01f5" args="(std::string &amp;&amp;key)" -->
@@ -185,7 +190,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 <p>The <code>object_iterator</code> is applicable when <code>kind</code> is <code>kind::object</code>. </p>
 <p>It allows you to use algorithms as if a <code>value</code> was a normal associative container. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00370">370</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00371">371</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -202,7 +207,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 
 <p>The type of value stored when <code>kind</code> is <code>kind::object</code>. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00365">365</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00366">366</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -220,17 +225,17 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 <p>If <code>kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container. </p>
 <p>This is most useful for range-based for loops. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00376">376</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00377">377</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
 <hr/><h2>Function Documentation</h2>
-<a class="anchor" id="ga3010bfd6b26473ffb3335ab6ac933c83"></a><!-- doxytag: member="jsonv::value::as_object" ref="ga3010bfd6b26473ffb3335ab6ac933c83" args="()" -->
+<a class="anchor" id="gaa80e31e8c9795f28c74bc943df4411cc"></a><!-- doxytag: member="jsonv::value::as_object" ref="gaa80e31e8c9795f28c74bc943df4411cc" args="()&amp;" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">object_view <a class="el" href="group__Object.html#ga3010bfd6b26473ffb3335ab6ac933c83">jsonv::value::as_object</a> </td>
+          <td class="memname">object_view <a class="el" href="group__Object.html#gaa80e31e8c9795f28c74bc943df4411cc">jsonv::value::as_object</a> </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -521,7 +526,7 @@ template&lt;typename TForwardIterator &gt; </div>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00756">756</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00760">760</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>

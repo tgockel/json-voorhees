@@ -2,7 +2,13 @@ var hierarchy =
 [
     [ "jsonv::value::basic_array_iterator< T, TArrayView >", "structjsonv_1_1value_1_1basic__array__iterator.html", null ],
     [ "jsonv::value::basic_object_iterator< T >", "structjsonv_1_1value_1_1basic__object__iterator.html", null ],
-    [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", null ],
+    [ "jsonv::detail::basic_owner< T >", "classjsonv_1_1detail_1_1basic__owner.html", null ],
+    [ "jsonv::detail::basic_owner< TContainer >", "classjsonv_1_1detail_1_1basic__owner.html", [
+      [ "jsonv::detail::basic_owning_view< TContainer, TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__owning__view.html", null ]
+    ] ],
+    [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", [
+      [ "jsonv::detail::basic_owning_view< TContainer, TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__owning__view.html", null ]
+    ] ],
     [ "jsonv::encoder", "classjsonv_1_1encoder.html", [
       [ "jsonv::ostream_encoder", "classjsonv_1_1ostream__encoder.html", [
         [ "jsonv::ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", null ]

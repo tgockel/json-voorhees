@@ -2,6 +2,8 @@ var annotated =
 [
     [ "jsonv::value::basic_array_iterator< T, TArrayView >", "structjsonv_1_1value_1_1basic__array__iterator.html", "structjsonv_1_1value_1_1basic__array__iterator" ],
     [ "jsonv::value::basic_object_iterator< T >", "structjsonv_1_1value_1_1basic__object__iterator.html", "structjsonv_1_1value_1_1basic__object__iterator" ],
+    [ "jsonv::detail::basic_owner< T >", "classjsonv_1_1detail_1_1basic__owner.html", "classjsonv_1_1detail_1_1basic__owner" ],
+    [ "jsonv::detail::basic_owning_view< TContainer, TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__owning__view.html", "classjsonv_1_1detail_1_1basic__owning__view" ],
     [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", "classjsonv_1_1detail_1_1basic__view" ],
     [ "jsonv::encoder", "classjsonv_1_1encoder.html", "classjsonv_1_1encoder" ],
     [ "jsonv::detail::generic_container< TStorage >", "classjsonv_1_1detail_1_1generic__container.html", "classjsonv_1_1detail_1_1generic__container" ],
