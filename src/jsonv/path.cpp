@@ -65,9 +65,21 @@ path_element::path_element(std::size_t idx) :
         _data(idx)
 { }
 
+path_element::path_element(int idx) :
+        path_element(std::size_t(idx))
+{ }
+
 path_element::path_element(std::string key) :
         _kind(path_element_kind::object_key),
         _data(std::move(key))
+{ }
+
+path_element::path_element(string_ref key) :
+        path_element(std::string(key))
+{ }
+
+path_element::path_element(const char* key) :
+        path_element(std::string(key))
 { }
 
 path_element::path_element(const path_element& src) :
@@ -309,32 +321,6 @@ path path::operator+(path_element elem) const
 {
     path clone(*this);
     clone += elem;
-    return clone;
-}
-
-path& path::operator+=(std::string key)
-{
-    _data.emplace_back(std::move(key));
-    return *this;
-}
-
-path path::operator+(std::string key) const
-{
-    path clone(*this);
-    clone += key;
-    return clone;
-}
-
-path& path::operator+=(std::size_t index)
-{
-    _data.emplace_back(index);
-    return *this;
-}
-
-path path::operator+(std::size_t index) const
-{
-    path clone(*this);
-    clone += index;
     return clone;
 }
 

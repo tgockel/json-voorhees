@@ -37,8 +37,11 @@ JSONV_PUBLIC std::string to_string(const path_element_kind&);
 class JSONV_PUBLIC path_element
 {
 public:
-    explicit path_element(std::size_t idx);
-    explicit path_element(std::string key);
+    path_element(std::size_t idx);
+    path_element(int         idx);
+    path_element(std::string key);
+    path_element(string_ref  key);
+    path_element(const char* key);
     path_element(const path_element&);
     path_element& operator=(const path_element&);
     path_element(path_element&&) noexcept;
@@ -101,14 +104,6 @@ public:
     /** Return a new path with the given \a elem appended to the back. **/
     path  operator+(path_element elem) const;
     path& operator+=(path_element elem);
-    
-    /** Return a new path with the given object \a key appended to the back. **/
-    path  operator+(std::string key) const;
-    path& operator+=(std::string key);
-    
-    /** Return a new path with the given array \a index appended to the back. **/
-    path  operator+(std::size_t index) const;
-    path& operator+=(std::size_t index);
 };
 
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path&);
