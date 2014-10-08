@@ -10,6 +10,7 @@
 **/
 #include <jsonv/value.hpp>
 #include <jsonv/encode.hpp>
+#include <jsonv/path.hpp>
 
 #include "array.hpp"
 #include "char_convert.hpp"
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <iterator>
 #include <ostream>
 #include <sstream>
 
@@ -176,6 +178,116 @@ value& value::operator=(value&& source) noexcept
     source._kind = kind::null;
     
     return *this;
+}
+
+template <typename TValueRef, typename TPathIterator, typename FOnNonexistantPath>
+TValueRef walk_path(TValueRef&&               current,
+                    TPathIterator             first,
+                    TPathIterator             last,
+                    const FOnNonexistantPath& on_nonexistant_path
+                   )
+{
+    if (first == last)
+        return current;
+    
+    const path_element& elem = *first;
+    switch (elem.get_kind())
+    {
+    case path_element_kind::array_index:
+        check_type({ kind::array, kind::null }, current.get_kind());
+        if (current.get_kind() != kind::array || elem.index() >= current.size())
+            on_nonexistant_path(elem, current);
+        return walk_path(current.at(elem.index()), std::next(first), last, on_nonexistant_path);
+    case path_element_kind::object_key:
+        check_type({ kind::object, kind::null }, current.get_kind());
+        if (current.get_kind() != kind::object || !current.count(elem.key()))
+            on_nonexistant_path(elem, current);
+        return walk_path(current.at(elem.key()), std::next(first), last, on_nonexistant_path);
+    default:
+        throw std::runtime_error(to_string(elem));
+    }
+}
+
+value& value::at_path(const jsonv::path& p)
+{
+    return walk_path(*this,
+                     p.begin(),
+                     p.end(),
+                     [&p] (const path_element& elem, const value& current)
+                     {
+                         throw std::out_of_range(to_string(elem) + " does not exist on " + to_string(current)
+                                                 + " (full path: " + to_string(p) + ")"
+                                                );
+                     }
+                    );
+}
+
+value& value::at_path(string_ref path_description)
+{
+    return at_path(jsonv::path::create(path_description));
+}
+
+value& value::at_path(size_type path_idx)
+{
+    return at_path(jsonv::path({ path_element(path_idx) }));
+}
+
+const value& value::at_path(const jsonv::path& p) const
+{
+    return walk_path(*this,
+                     p.begin(),
+                     p.end(),
+                     [&p] (const path_element& elem, const value& current)
+                     {
+                         throw std::out_of_range(to_string(elem) + " does not exist on " + to_string(current)
+                                                 + " (full path: " + to_string(p) + ")"
+                                                );
+                     }
+                    );
+}
+
+const value& value::at_path(string_ref path_description) const
+{
+    return at_path(jsonv::path::create(path_description));
+}
+
+const value& value::at_path(size_type path_idx) const
+{
+    return at_path(jsonv::path({ path_element(path_idx) }));
+}
+
+value& value::path(const jsonv::path& p)
+{
+    return walk_path(*this,
+                     p.begin(),
+                     p.end(),
+                     [] (const path_element& elem, value& current)
+                     {
+                         switch (elem.get_kind())
+                         {
+                         case path_element_kind::array_index:
+                             if (current.get_kind() == kind::null)
+                                 current = array();
+                             current.resize(elem.index() + 1);
+                             break;
+                         case path_element_kind::object_key:
+                             if (current.get_kind() == kind::null)
+                                 current = object();
+                             current.insert({ elem.key(), nullptr });
+                             break;
+                         }
+                     }
+                    );
+}
+
+value& value::path(string_ref path_description)
+{
+    return path(jsonv::path::create(path_description));
+}
+
+value& value::path(size_type path_idx)
+{
+    return path(jsonv::path({ path_element(path_idx) }));
 }
 
 void value::swap(value& other) noexcept

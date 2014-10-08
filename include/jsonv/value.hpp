@@ -28,6 +28,8 @@
 namespace jsonv
 {
 
+class path;
+
 namespace detail
 {
 
@@ -478,6 +480,36 @@ public:
     {
         return _kind;
     }
+    
+    /** Get the value specified by the path \a p.
+     *  
+     *  \throws std::out_of_range if any path along the chain did not exist.
+     *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
+     *                     index when the value is a string).
+     *  \throws parse_error if a \c string_ref was specified that did not have a valid specification (see
+     *                      \c path::create).
+    **/
+    value&       at_path(const path& p);
+    value&       at_path(string_ref  p);
+    value&       at_path(size_type   p);
+    const value& at_path(const path& p) const;
+    const value& at_path(string_ref  p) const;
+    const value& at_path(size_type   p) const;
+    
+    /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
+     *  no value exists at the path, a new one is created as the default (\c null) value. If any path along the way
+     *  either does not exist or is \c null, it is created for you.
+     *  
+     *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
+     *                     index when the value is a string).
+     *  \throws parse_error if a \c string_ref was specified that did not have a valid specification (see
+     *                      \c path::create).
+     *  
+     *  \see at_path
+    **/
+    value& path(const path& p);
+    value& path(string_ref  p);
+    value& path(size_type   p);
     
     /** Swap the value this instance represents with \a other. **/
     void swap(value& other) noexcept;

@@ -17,11 +17,14 @@ namespace jsonv
 class encoder;
 enum class kind : unsigned char;
 class kind_error;
-class value;
 class parse_error;
 class parse_options;
+class path;
+class path_element;
+enum class path_element_kind : unsigned char;
 class tokenizer;
 enum class token_kind : unsigned int;
+class value;
 
 }
 
