@@ -277,7 +277,7 @@ path path::create(string_ref specification)
                 break;
             case '[':
                 if (match.at(1) == '\"')
-                    out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(1, match.size() - 2));
+                    out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
                 else
                     out += boost::lexical_cast<std::size_t>(match.data() + 1, match.size() - 2);
                 break;
