@@ -28,6 +28,8 @@
 namespace jsonv
 {
 
+class path;
+
 namespace detail
 {
 
@@ -257,13 +259,13 @@ public:
         size_type   _index;
     };
     
-    /** The \c array_iterator is applicable when \c get_kind is \c kind::array. It allows you to use algorithms as if
+    /** The \c array_iterator is applicable when \c kind is \c kind::array. It allows you to use algorithms as if
      *  a \c value was a normal sequence container.
     **/
     typedef basic_array_iterator<value, value>                       array_iterator;
     typedef basic_array_iterator<const value, const value>           const_array_iterator;
     
-    /** If \c get_kind is \c kind::array, an \c array_view allows you to access a value as a sequence container. This is
+    /** If \c kind is \c kind::array, an \c array_view allows you to access a value as a sequence container. This is
      *  most useful for range-based for loops.
     **/
     typedef detail::basic_view<array_iterator, const_array_iterator>               array_view;
@@ -360,16 +362,16 @@ public:
         char _storage[sizeof(void*)];
     };
     
-    /** The type of value stored when \c get_kind is \c kind::object. **/
+    /** The type of value stored when \c kind is \c kind::object. **/
     typedef std::pair<const std::string, value>                        object_value_type;
     
-    /** The \c object_iterator is applicable when \c get_kind is \c kind::object. It allows you to use algorithms as if
+    /** The \c object_iterator is applicable when \c kind is \c kind::object. It allows you to use algorithms as if
      *  a \c value was a normal associative container.
     **/
     typedef basic_object_iterator<object_value_type>                   object_iterator;
     typedef basic_object_iterator<const object_value_type>             const_object_iterator;
     
-    /** If \c get_kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
+    /** If \c kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
      *  This is most useful for range-based for loops.
     **/
     typedef detail::basic_view<object_iterator, const_object_iterator>               object_view;
@@ -476,10 +478,40 @@ public:
     void clear();
     
     /** Get this value's kind. **/
-    inline kind get_kind() const
+    inline jsonv::kind kind() const
     {
         return _kind;
     }
+    
+    /** Get the value specified by the path \a p.
+     *  
+     *  \throws std::out_of_range if any path along the chain did not exist.
+     *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
+     *                     index when the value is a string).
+     *  \throws parse_error if a \c string_ref was specified that did not have a valid specification (see
+     *                      \c path::create).
+    **/
+    value&       at_path(const path& p);
+    value&       at_path(string_ref  p);
+    value&       at_path(size_type   p);
+    const value& at_path(const path& p) const;
+    const value& at_path(string_ref  p) const;
+    const value& at_path(size_type   p) const;
+    
+    /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
+     *  no value exists at the path, a new one is created as the default (\c null) value. If any path along the way
+     *  either does not exist or is \c null, it is created for you.
+     *  
+     *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
+     *                     index when the value is a string).
+     *  \throws parse_error if a \c string_ref was specified that did not have a valid specification (see
+     *                      \c path::create).
+     *  
+     *  \see at_path
+    **/
+    value& path(const path& p);
+    value& path(string_ref  p);
+    value& path(size_type   p);
     
     /** Swap the value this instance represents with \a other. **/
     void swap(value& other) noexcept;
@@ -795,7 +827,7 @@ private:
     
 private:
     detail::value_storage _data;
-    kind                  _kind;
+    jsonv::kind           _kind;
 };
 
 /** Swap the values \a a and \a b. **/

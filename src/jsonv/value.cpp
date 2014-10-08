@@ -10,6 +10,7 @@
 **/
 #include <jsonv/value.hpp>
 #include <jsonv/encode.hpp>
+#include <jsonv/path.hpp>
 
 #include "array.hpp"
 #include "char_convert.hpp"
@@ -19,6 +20,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <iterator>
 #include <ostream>
 #include <sstream>
 
@@ -33,13 +35,13 @@ std::ostream& operator<<(std::ostream& os, const kind& k)
 {
     switch (k)
     {
-        case kind::array:   return os << "array";
-        case kind::boolean: return os << "boolean";
-        case kind::decimal: return os << "decimal";
-        case kind::integer: return os << "integer";
-        case kind::null:    return os << "null";
-        case kind::object:  return os << "object";
-        case kind::string:  return os << "string";
+        case jsonv::kind::array:   return os << "array";
+        case jsonv::kind::boolean: return os << "boolean";
+        case jsonv::kind::decimal: return os << "decimal";
+        case jsonv::kind::integer: return os << "integer";
+        case jsonv::kind::null:    return os << "null";
+        case jsonv::kind::object:  return os << "object";
+        case jsonv::kind::string:  return os << "string";
         default:            return os << "kind(" << static_cast<int>(k) << ")";
     }
 }
@@ -67,7 +69,7 @@ kind_error::~kind_error() noexcept
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 value::value() :
-        _kind(kind::null)
+        _kind(jsonv::kind::null)
 {
     _data.object = nullptr;
 }
@@ -77,10 +79,10 @@ value::value(std::nullptr_t) :
 { }
 
 value::value(const std::string& val) :
-        _kind(kind::null)
+        _kind(jsonv::kind::null)
 {
     _data.string = new detail::string_impl;
-    _kind = kind::string;
+    _kind = jsonv::kind::string;
     _data.string->_string = val;
 }
 
@@ -89,13 +91,13 @@ value::value(const char* val) :
 { }
 
 value::value(int64_t val) :
-        _kind(kind::integer)
+        _kind(jsonv::kind::integer)
 {
     _data.integer = val;
 }
 
 value::value(double val) :
-        _kind(kind::decimal)
+        _kind(jsonv::kind::decimal)
 {
     _data.decimal = val;
 }
@@ -105,14 +107,14 @@ value::value(float val) :
 { }
 
 value::value(bool val) :
-        _kind(kind::boolean)
+        _kind(jsonv::kind::boolean)
 {
     _data.boolean = val;
 }
 
 #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR(type_)              \
     value::value(type_ val) :                                              \
-            _kind(kind::integer)                                           \
+            _kind(jsonv::kind::integer)                                           \
     {                                                                      \
         _data.integer = val;                                               \
     }
@@ -126,27 +128,27 @@ value::~value() noexcept
 value::value(const value& other) :
         _kind(other._kind)
 {
-    switch (other.get_kind())
+    switch (other.kind())
     {
-    case kind::object:
+    case jsonv::kind::object:
         _data.object = other._data.object->clone();
         break;
-    case kind::array:
+    case jsonv::kind::array:
         _data.array = other._data.array->clone();
         break;
-    case kind::string:
+    case jsonv::kind::string:
         _data.string = other._data.string->clone();
         break;
-    case kind::integer:
+    case jsonv::kind::integer:
         _data.integer = other._data.integer;
         break;
-    case kind::decimal:
+    case jsonv::kind::decimal:
         _data.decimal = other._data.decimal;
         break;
-    case kind::boolean:
+    case jsonv::kind::boolean:
         _data.boolean = other._data.boolean;
         break;
-    case kind::null:
+    case jsonv::kind::null:
         break;
     }
 }
@@ -163,7 +165,7 @@ value::value(value&& other) noexcept :
         _kind(other._kind)
 {
     other._data.object = 0;
-    other._kind = kind::null;
+    other._kind = jsonv::kind::null;
 }
 
 value& value::operator=(value&& source) noexcept
@@ -173,9 +175,119 @@ value& value::operator=(value&& source) noexcept
     _data = source._data;
     _kind = source._kind;
     source._data.object = 0;
-    source._kind = kind::null;
+    source._kind = jsonv::kind::null;
     
     return *this;
+}
+
+template <typename TValueRef, typename TPathIterator, typename FOnNonexistantPath>
+TValueRef walk_path(TValueRef&&               current,
+                    TPathIterator             first,
+                    TPathIterator             last,
+                    const FOnNonexistantPath& on_nonexistant_path
+                   )
+{
+    if (first == last)
+        return current;
+    
+    const path_element& elem = *first;
+    switch (elem.kind())
+    {
+    case path_element_kind::array_index:
+        check_type({ jsonv::kind::array, jsonv::kind::null }, current.kind());
+        if (current.kind() != jsonv::kind::array || elem.index() >= current.size())
+            on_nonexistant_path(elem, current);
+        return walk_path(current.at(elem.index()), std::next(first), last, on_nonexistant_path);
+    case path_element_kind::object_key:
+        check_type({ jsonv::kind::object, jsonv::kind::null }, current.kind());
+        if (current.kind() != jsonv::kind::object || !current.count(elem.key()))
+            on_nonexistant_path(elem, current);
+        return walk_path(current.at(elem.key()), std::next(first), last, on_nonexistant_path);
+    default:
+        throw std::runtime_error(to_string(elem));
+    }
+}
+
+value& value::at_path(const jsonv::path& p)
+{
+    return walk_path(*this,
+                     p.begin(),
+                     p.end(),
+                     [&p] (const path_element& elem, const value& current)
+                     {
+                         throw std::out_of_range(to_string(elem) + " does not exist on " + to_string(current)
+                                                 + " (full path: " + to_string(p) + ")"
+                                                );
+                     }
+                    );
+}
+
+value& value::at_path(string_ref path_description)
+{
+    return at_path(jsonv::path::create(path_description));
+}
+
+value& value::at_path(size_type path_idx)
+{
+    return at_path(jsonv::path({ path_element(path_idx) }));
+}
+
+const value& value::at_path(const jsonv::path& p) const
+{
+    return walk_path(*this,
+                     p.begin(),
+                     p.end(),
+                     [&p] (const path_element& elem, const value& current)
+                     {
+                         throw std::out_of_range(to_string(elem) + " does not exist on " + to_string(current)
+                                                 + " (full path: " + to_string(p) + ")"
+                                                );
+                     }
+                    );
+}
+
+const value& value::at_path(string_ref path_description) const
+{
+    return at_path(jsonv::path::create(path_description));
+}
+
+const value& value::at_path(size_type path_idx) const
+{
+    return at_path(jsonv::path({ path_element(path_idx) }));
+}
+
+value& value::path(const jsonv::path& p)
+{
+    return walk_path(*this,
+                     p.begin(),
+                     p.end(),
+                     [] (const path_element& elem, value& current)
+                     {
+                         switch (elem.kind())
+                         {
+                         case path_element_kind::array_index:
+                             if (current.kind() == jsonv::kind::null)
+                                 current = array();
+                             current.resize(elem.index() + 1);
+                             break;
+                         case path_element_kind::object_key:
+                             if (current.kind() == jsonv::kind::null)
+                                 current = object();
+                             current.insert({ elem.key(), nullptr });
+                             break;
+                         }
+                     }
+                    );
+}
+
+value& value::path(string_ref path_description)
+{
+    return path(jsonv::path::create(path_description));
+}
+
+value& value::path(size_type path_idx)
+{
+    return path(jsonv::path({ path_element(path_idx) }));
 }
 
 void value::swap(value& other) noexcept
@@ -193,50 +305,50 @@ void value::clear()
 {
     switch (_kind)
     {
-    case kind::object:
+    case jsonv::kind::object:
         delete _data.object;
         break;
-    case kind::array:
+    case jsonv::kind::array:
         delete _data.array;
         break;
-    case kind::string:
+    case jsonv::kind::string:
         delete _data.string;
         break;
-    case kind::integer:
-    case kind::decimal:
-    case kind::boolean:
-    case kind::null:
+    case jsonv::kind::integer:
+    case jsonv::kind::decimal:
+    case jsonv::kind::boolean:
+    case jsonv::kind::null:
         // do nothing
         break;
     }
     
-    _kind = kind::null;
+    _kind = jsonv::kind::null;
     _data.object = 0;
 }
 
 const std::string& value::as_string() const
 {
-    check_type(kind::string, _kind);
+    check_type(jsonv::kind::string, _kind);
     return _data.string->_string;
 }
 
 int64_t value::as_integer() const
 {
-    check_type(kind::integer, _kind);
+    check_type(jsonv::kind::integer, _kind);
     return _data.integer;
 }
 
 double value::as_decimal() const
 {
-    if (_kind == kind::integer)
+    if (_kind == jsonv::kind::integer)
         return double(as_integer());
-    check_type(kind::decimal, _kind);
+    check_type(jsonv::kind::decimal, _kind);
     return _data.decimal;
 }
 
 bool value::as_boolean() const
 {
-    check_type(kind::boolean, _kind);
+    check_type(jsonv::kind::boolean, _kind);
     return _data.boolean;
 }
 
@@ -249,7 +361,7 @@ static int decimal_compare(const double& x, const double& y)
 
 bool value::operator==(const value& other) const
 {
-    if (this == &other && kind_valid(get_kind()))
+    if (this == &other && kind_valid(kind()))
         return true;
     else
         return compare(other) == 0;
@@ -258,7 +370,7 @@ bool value::operator==(const value& other) const
 bool value::operator !=(const value& other) const
 {
     // must be first: an invalid type is not equal to itself
-    if (!kind_valid(get_kind()))
+    if (!kind_valid(kind()))
         return true;
     
     if (this == &other)
@@ -271,18 +383,18 @@ static int kindval(kind k)
 {
     switch (k)
     {
-    case kind::null:
+    case jsonv::kind::null:
         return 0;
-    case kind::boolean:
+    case jsonv::kind::boolean:
         return 1;
-    case kind::integer:
-    case kind::decimal:
+    case jsonv::kind::integer:
+    case jsonv::kind::decimal:
         return 2;
-    case kind::string:
+    case jsonv::kind::string:
         return 3;
-    case kind::array:
+    case jsonv::kind::array:
         return 4;
-    case kind::object:
+    case jsonv::kind::object:
         return 5;
     default:
         return -1;
@@ -301,27 +413,27 @@ int value::compare(const value& other) const
     if (this == &other)
         return 0;
     
-    if (int kindcmp = compare_kinds(get_kind(), other.get_kind()))
+    if (int kindcmp = compare_kinds(kind(), other.kind()))
         return kindcmp;
     
-    switch (get_kind())
+    switch (kind())
     {
-    case kind::null:
+    case jsonv::kind::null:
         return 0;
-    case kind::boolean:
+    case jsonv::kind::boolean:
         return as_boolean() == other.as_boolean() ? 0 : as_boolean() ? 1 : -1;
-    case kind::integer:
+    case jsonv::kind::integer:
         // other might be a decimal type, but if they are both integers, compare directly
-        if (other.get_kind() == kind::integer)
+        if (other.kind() == jsonv::kind::integer)
             return as_integer() == other.as_integer() ? 0 : as_integer() < other.as_integer() ? -1 : 1;
         // fall through
-    case kind::decimal:
+    case jsonv::kind::decimal:
         return decimal_compare(as_decimal(), other.as_decimal());
-    case kind::string:
+    case jsonv::kind::string:
         return as_string().compare(other.as_string());
-    case kind::array:
+    case jsonv::kind::array:
         return _data.array->compare(*other._data.array);
-    case kind::object:
+    case jsonv::kind::object:
         return _data.object->compare(*other._data.object);
     default:
         return -1;
@@ -364,20 +476,20 @@ std::string to_string(const value& val)
 
 bool value::empty() const
 {
-    check_type({ kind::object, kind::array, kind::string }, get_kind());
+    check_type({ jsonv::kind::object, jsonv::kind::array, jsonv::kind::string }, kind());
     
-    switch (get_kind())
+    switch (kind())
     {
-    case kind::object:
+    case jsonv::kind::object:
         return _data.object->empty();
-    case kind::array:
+    case jsonv::kind::array:
         return _data.array->empty();
-    case kind::string:
+    case jsonv::kind::string:
         return _data.string->_string.empty();
-    case kind::integer:
-    case kind::decimal:
-    case kind::boolean:
-    case kind::null:
+    case jsonv::kind::integer:
+    case jsonv::kind::decimal:
+    case jsonv::kind::boolean:
+    case jsonv::kind::null:
     default:
         // Should never hit this...
         return false;
@@ -386,20 +498,20 @@ bool value::empty() const
 
 value::size_type value::size() const
 {
-    check_type({ kind::object, kind::array, kind::string }, get_kind());
+    check_type({ jsonv::kind::object, jsonv::kind::array, jsonv::kind::string }, kind());
     
-    switch (get_kind())
+    switch (kind())
     {
-    case kind::object:
+    case jsonv::kind::object:
         return _data.object->size();
-    case kind::array:
+    case jsonv::kind::array:
         return _data.array->size();
-    case kind::string:
+    case jsonv::kind::string:
         return _data.string->_string.size();
-    case kind::integer:
-    case kind::decimal:
-    case kind::boolean:
-    case kind::null:
+    case jsonv::kind::integer:
+    case jsonv::kind::decimal:
+    case jsonv::kind::boolean:
+    case jsonv::kind::null:
     default:
         // Should never hit this...
         return false;
@@ -430,25 +542,25 @@ size_t hash<jsonv::value>::operator()(const jsonv::value& val) const noexcept
 {
     using namespace jsonv;
     
-    switch (val.get_kind())
+    switch (val.kind())
     {
-    case kind::object:
+    case jsonv::kind::object:
         return hash_range(val.begin_object(), val.end_object(),
                           [] (const value::object_value_type& x) { return std::hash<std::string>()(x.first)
                                                                         ^ std::hash<value>()(x.second);
                                                                  }
                          );
-    case kind::array:
+    case jsonv::kind::array:
         return hash_range(val.begin_array(), val.end_array(), hash<jsonv::value>());
-    case kind::string:
+    case jsonv::kind::string:
         return std::hash<std::string>()(val.as_string());
-    case kind::integer:
+    case jsonv::kind::integer:
         return std::hash<std::int64_t>()(val.as_integer());
-    case kind::decimal:
+    case jsonv::kind::decimal:
         return std::hash<double>()(val.as_decimal());
-    case kind::boolean:
+    case jsonv::kind::boolean:
         return std::hash<bool>()(val.as_boolean());
-    case kind::null:
+    case jsonv::kind::null:
         return 0x51afb2fe9467d0f7ULL;
     default:
         // Should never hit this...

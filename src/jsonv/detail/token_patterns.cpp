@@ -27,8 +27,9 @@ const regex_ns::regex_constants::syntax_option_type syntax_options = regex_ns::r
                                                                    | regex_ns::regex_constants::optimize;
 
 const regex_ns::regex re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options);
-const regex_ns::regex re_whitespace(  R"(^[ \t\r\n]+)", syntax_options);
-const regex_ns::regex re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)", syntax_options);
+const regex_ns::regex re_whitespace(  R"(^[ \t\r\n]+)",                                       syntax_options);
+const regex_ns::regex re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)",                           syntax_options);
+const regex_ns::regex re_simplestring(R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options);
 
 template <std::ptrdiff_t N>
 static match_result match_literal(const char* begin, const char* end, const char (& literal)[N], std::size_t& length)
@@ -61,10 +62,10 @@ static match_result match_null(const char* begin, const char* end, token_kind& k
     return match_literal(begin, end, "null", length);
 }
 
-static match_result match_pattern(const char* begin,
-                                  const char* end,
+static match_result match_pattern(const char*            begin,
+                                  const char*            end,
                                   const regex_ns::regex& pattern,
-                                  std::size_t& length
+                                  std::size_t&           length
                                  )
 {
     regex_ns::cmatch match;
@@ -177,6 +178,49 @@ match_result attempt_match(const char* begin, const char* end, token_kind& kind,
         return match_comment(begin, end, kind, length);
     default:
         return result(match_result::unmatched, token_kind::unknown, 1);
+    }
+}
+
+bool path_match(string_ref input, string_ref& match_contents)
+{
+    if (input.length() < 2)
+        return false;
+    
+    match_result result;
+    token_kind kind;
+    std::size_t length;
+    
+    switch (input.at(0))
+    {
+    case '.':
+        result = match_pattern(input.data() + 1, input.data() + input.size(), re_simplestring, length);
+        if (result == match_result::complete || result == match_result::complete_eof)
+        {
+            match_contents = input.substr(0, length + 1);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    case '[':
+        result = attempt_match(input.data() + 1, input.data() + input.length(), kind, length);
+        if (result == match_result::complete || result == match_result::complete_eof)
+        {
+            if (input.length() == length + 1 || input.at(1 + length) != ']')
+                return false;
+            if (kind != token_kind::string && kind != token_kind::number)
+                return false;
+            
+            match_contents = input.substr(0, length + 2);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    default:
+        return false;
     }
 }
 

@@ -79,7 +79,7 @@ public:
     constexpr size_type max_size() const noexcept { return _length; }
     constexpr size_type length()   const noexcept { return _length; }
     
-    constexpr bool empty() const noexcept { return _length != 0; }
+    constexpr bool empty() const noexcept { return _length == 0; }
     
     constexpr const_reference operator[](size_type idx) const { return _base[idx]; }
     const_reference at(size_type idx) const
@@ -138,8 +138,8 @@ public:
     
     string_ref substr(size_type idx, size_type count = npos) const
     {
-        count = count == npos ? _length : count;
-        if (idx + count < _length)
+        count = count == npos ? (_length - idx) : count;
+        if (idx + count <= _length)
             return string_ref(_base + idx, count);
         else
             throw std::range_error("jsonv::string_ref::substr");
