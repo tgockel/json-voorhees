@@ -42,6 +42,12 @@ TEST(compare_arrs)
     ensure_eq(a1234.compare(a123),  1);
 }
 
+TEST(value_equal_integer_decimal)
+{
+    ensure_eq(jsonv::value(2), jsonv::value(2.0));
+    ensure_eq(jsonv::value(2.0), jsonv::value(2));
+}
+
 TEST(value_store_unordered_map)
 {
     std::unordered_map<jsonv::value, std::int64_t> m;

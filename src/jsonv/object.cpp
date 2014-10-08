@@ -234,16 +234,22 @@ const value& value::at(const std::string& key) const
     return _data.object->_values.at(key);
 }
 
-value::size_type value::count(const string_ref& key) const
+value::size_type value::count(const std::string& key) const
 {
     check_type(kind::object, get_kind());
     return _data.object->_values.count(key);
 }
 
-value::object_iterator value::find(const string_ref& key)
+value::object_iterator value::find(const std::string& key)
 {
     check_type(kind::object, get_kind());
     return object_iterator(_data.object->_values.find(key));
+}
+
+value::const_object_iterator value::find(const std::string& key) const
+{
+    check_type(kind::object, get_kind());
+    return const_object_iterator(_data.object->_values.find(key));
 }
 
 value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::string, value> pair)
@@ -269,7 +275,7 @@ void value::insert(std::initializer_list<std::pair<std::string, value>> items)
          _data.object->_values.insert(std::move(pair));
 }
 
-value::size_type value::erase(const string_ref& key)
+value::size_type value::erase(const std::string& key)
 {
     check_type(kind::object, get_kind());
     return _data.object->_values.erase(key);
