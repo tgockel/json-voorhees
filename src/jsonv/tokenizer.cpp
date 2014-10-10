@@ -95,7 +95,7 @@ std::string to_string(const token_kind& value)
 
 const tokenizer::size_type tokenizer::min_buffer_size = 4096;
 
-static std::size_t position_in_buffer(const std::vector<char>& buffer, const string_ref& current)
+static std::size_t position_in_buffer(const std::vector<char>& buffer, const string_view& current)
 {
     // an invalid current means the buffer is fresh, so we're at the start of it
     if (!current.data())
@@ -146,7 +146,7 @@ const tokenizer::token& tokenizer::current() const
 
 bool tokenizer::next()
 {
-    auto valid = [this] (const string_ref& new_current, token_kind new_kind)
+    auto valid = [this] (const string_view& new_current, token_kind new_kind)
                  {
                      _current.text = new_current;
                      _current.kind = new_kind;
@@ -185,7 +185,7 @@ bool tokenizer::next()
                 // we couldn't read more data due to EOF...but we have an incomplete match
                 kind = kind | token_kind::parse_error_indicator;
         }
-        return valid(string_ref(_buffer.data() + pos, match_len), kind);
+        return valid(string_view(_buffer.data() + pos, match_len), kind);
     }
 }
 
@@ -214,7 +214,7 @@ bool tokenizer::read_input(bool grow_buffer)
     if (read_count > 0)
     {
         _buffer.resize(_input.gcount());
-        _current.text = string_ref(_buffer.data() + old_buffer_pos, _current.text.size());
+        _current.text = string_view(_buffer.data() + old_buffer_pos, _current.text.size());
         return true;
     }
     else

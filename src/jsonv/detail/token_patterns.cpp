@@ -181,7 +181,7 @@ match_result attempt_match(const char* begin, const char* end, token_kind& kind,
     }
 }
 
-bool path_match(string_ref input, string_ref& match_contents)
+bool path_match(string_view input, string_view& match_contents)
 {
     if (input.length() < 2)
         return false;

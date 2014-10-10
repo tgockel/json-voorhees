@@ -222,7 +222,7 @@ value& value::at_path(const jsonv::path& p)
                     );
 }
 
-value& value::at_path(string_ref path_description)
+value& value::at_path(string_view path_description)
 {
     return at_path(jsonv::path::create(path_description));
 }
@@ -246,7 +246,7 @@ const value& value::at_path(const jsonv::path& p) const
                     );
 }
 
-const value& value::at_path(string_ref path_description) const
+const value& value::at_path(string_view path_description) const
 {
     return at_path(jsonv::path::create(path_description));
 }
@@ -280,7 +280,7 @@ value& value::path(const jsonv::path& p)
                     );
 }
 
-value& value::path(string_ref path_description)
+value& value::path(string_view path_description)
 {
     return path(jsonv::path::create(path_description));
 }

@@ -1,6 +1,6 @@
-/** \file jsonv/detail/string_ref.hpp
- *  The JsonVoorhees implementation of string_ref. You should not include this directly; instead, prefer including
- *  \c jsonv/string_ref.hpp and manipulating \c JSONV_STRING_REF_TYPE and \c JSONV_STRING_REF_INCLUDE.
+/** \file jsonv/detail/string_view.hpp
+ *  The JsonVoorhees implementation of string_view. You should not include this directly; instead, prefer including
+ *  \c jsonv/string_view.hpp and manipulating \c JSONV_STRING_REF_TYPE and \c JSONV_STRING_REF_INCLUDE.
  *  
  *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
  *
@@ -10,8 +10,8 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_DETAIL_STRING_REF_HPP_INCLUDED__
-#define __JSONV_DETAIL_STRING_REF_HPP_INCLUDED__
+#ifndef __JSONV_DETAIL_STRING_VIEW_HPP_INCLUDED__
+#define __JSONV_DETAIL_STRING_VIEW_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
 
@@ -27,7 +27,7 @@ namespace jsonv
 namespace detail
 {
 
-class string_ref
+class string_view
 {
 public:
     using value_type             = char;
@@ -44,30 +44,30 @@ public:
     static constexpr size_type npos = size_type(~0);
     
 public:
-    constexpr string_ref() noexcept :
+    constexpr string_view() noexcept :
             _base(nullptr),
             _length(0)
     { }
     
-    string_ref(pointer p) noexcept :
+    string_view(pointer p) noexcept :
             _base(p),
             _length(std::strlen(p))
     { }
     
-    constexpr string_ref(pointer p, size_type len) noexcept :
+    constexpr string_view(pointer p, size_type len) noexcept :
             _base(p),
             _length(len)
     { }
     
     template <typename UAllocator>
-    string_ref(const std::basic_string<value_type, std::char_traits<value_type>, UAllocator>& src)
+    string_view(const std::basic_string<value_type, std::char_traits<value_type>, UAllocator>& src)
                 noexcept(noexcept(src.data()) && noexcept(src.length())):
             _base(src.data()),
             _length(src.length())
     { }
     
-    string_ref(const string_ref&) noexcept = default;
-    string_ref& operator=(const string_ref&) noexcept = default;
+    string_view(const string_view&) noexcept = default;
+    string_view& operator=(const string_view&) noexcept = default;
     
     template <typename UAllocator>
     explicit operator std::basic_string<value_type, std::char_traits<value_type>, UAllocator>() const
@@ -87,7 +87,7 @@ public:
         if (idx < _length)
             return _base[idx];
         else
-            throw std::out_of_range("jsonv::string_ref::at");
+            throw std::out_of_range("jsonv::string_view::at");
     }
     
     constexpr const_reference front() const { return _base[0]; }
@@ -120,7 +120,7 @@ public:
         }
         else
         {
-            throw std::range_error("jsonv::string_ref::remove_prefix");
+            throw std::range_error("jsonv::string_view::remove_prefix");
         }
     }
     
@@ -132,17 +132,17 @@ public:
         }
         else
         {
-            throw std::range_error("jsonv::string_ref::remove_prefix");
+            throw std::range_error("jsonv::string_view::remove_prefix");
         }
     }
     
-    string_ref substr(size_type idx, size_type count = npos) const
+    string_view substr(size_type idx, size_type count = npos) const
     {
         count = count == npos ? (_length - idx) : count;
         if (idx + count <= _length)
-            return string_ref(_base + idx, count);
+            return string_view(_base + idx, count);
         else
-            throw std::range_error("jsonv::string_ref::substr");
+            throw std::range_error("jsonv::string_view::substr");
     }
     
     bool starts_with(value_type val) const
@@ -150,7 +150,7 @@ public:
         return !empty() && front() == val;
     }
     
-    bool starts_with(const string_ref& sub) const
+    bool starts_with(const string_view& sub) const
     {
         return sub.length() <= length() && std::equal(sub.begin(), sub.end(), begin());
     }
@@ -160,12 +160,12 @@ public:
         return !empty() && back() == val;
     }
     
-    bool ends_with(const string_ref& sub) const
+    bool ends_with(const string_view& sub) const
     {
         return sub.length() <= length() && std::equal(sub.rbegin(), sub.rend(), rbegin());
     }
     
-    size_type find(const string_ref& sub) const
+    size_type find(const string_view& sub) const
     {
         auto iter = std::search(begin(), end(), sub.begin(), sub.end());
         return iter == end() ? npos : std::distance(begin(), iter);
@@ -177,7 +177,7 @@ public:
         return iter == end() ? npos : std::distance(begin(), iter);
     }
     
-    size_type rfind(const string_ref& sub) const
+    size_type rfind(const string_view& sub) const
     {
         auto iter = std::search(rbegin(), rend(), sub.rbegin(), sub.rend());
         return iter == rend() ? npos : std::distance(iter, rend());
@@ -194,7 +194,7 @@ public:
         return find(val);
     }
     
-    size_type find_first_of(const string_ref& chars) const
+    size_type find_first_of(const string_view& chars) const
     {
         auto iter = std::find_first_of(begin(), end(), chars.begin(), chars.end());
         return iter == end() ? npos : std::distance(begin(), iter);
@@ -206,7 +206,7 @@ public:
         return iter == end() ? npos : std::distance(begin(), iter);
     }
     
-    size_type find_first_not_of(const string_ref& chars) const
+    size_type find_first_not_of(const string_view& chars) const
     {
         auto iter = std::find_if(begin(), end(),
                                  [&chars] (value_type x)
@@ -222,7 +222,7 @@ public:
         return rfind(val);
     }
     
-    size_type find_last_of(const string_ref& chars) const
+    size_type find_last_of(const string_view& chars) const
     {
         auto iter = std::find_first_of(rbegin(), rend(), chars.begin(), chars.end());
         return iter == rend() ? npos : std::distance(iter, rend());
@@ -234,7 +234,7 @@ public:
         return iter == rend() ? npos : std::distance(iter, rend());
     }
     
-    size_type find_last_not_of(const string_ref& chars) const
+    size_type find_last_not_of(const string_view& chars) const
     {
         auto iter = std::find_if(rbegin(), rend(),
                                  [&chars] (value_type x)
@@ -245,39 +245,39 @@ public:
         return iter == rend() ? npos : std::distance(iter, rend());
     }
     
-    bool operator==(const string_ref& other) const
+    bool operator==(const string_view& other) const
     {
         return _length == other._length
             && (_base == other._base || std::equal(begin(), end(), other.begin()));
     }
     
-    bool operator!=(const string_ref& other) const
+    bool operator!=(const string_view& other) const
     {
         return _length != other._length
             || (_base != other._base && std::mismatch(begin(), end(), other.begin()).first == end());
     }
     
-    bool operator<(const string_ref& other) const
+    bool operator<(const string_view& other) const
     {
         return std::lexicographical_compare(begin(), end(), other.begin(), other.end());
     }
     
-    bool operator<=(const string_ref& other) const
+    bool operator<=(const string_view& other) const
     {
         return !(other < *this);
     }
     
-    bool operator>(const string_ref& other) const
+    bool operator>(const string_view& other) const
     {
         return other < *this;
     }
     
-    bool operator>=(const string_ref& other) const
+    bool operator>=(const string_view& other) const
     {
         return !(*this < other);
     }
     
-    friend std::ostream& operator<<(std::ostream& os, const string_ref& self)
+    friend std::ostream& operator<<(std::ostream& os, const string_view& self)
     {
         os.write(self.begin(), self.size());
         return os;
@@ -291,4 +291,4 @@ private:
 }
 }
 
-#endif/*__JSONV_DETAIL_STRING_REF_HPP_INCLUDED__*/
+#endif/*__JSONV_DETAIL_STRING_VIEW_HPP_INCLUDED__*/

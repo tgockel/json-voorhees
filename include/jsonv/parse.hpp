@@ -12,7 +12,7 @@
 #define __JSONV_PARSE_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
-#include <jsonv/string_ref.hpp>
+#include <jsonv/string_view.hpp>
 #include <jsonv/value.hpp>
 
 #include <cstddef>
@@ -275,7 +275,7 @@ value JSONV_PUBLIC parse(std::istream& input, const parse_options& = parse_optio
  *   can check the state flags or set the exception mask of the stream (exceptions thrown by \a input while processing
  *   will be propagated out).
 **/
-value JSONV_PUBLIC parse(const string_ref& input, const parse_options& = parse_options());
+value JSONV_PUBLIC parse(const string_view& input, const parse_options& = parse_options());
 
 /** Reads a JSON value from a buffered \c tokenizer. This less convenient function is useful when setting
  *  \c parse_options::complete_parse to \c false.

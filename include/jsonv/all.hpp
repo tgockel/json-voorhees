@@ -226,7 +226,7 @@
 #include "encode.hpp"
 #include "forward.hpp"
 #include "parse.hpp"
-#include "string_ref.hpp"
+#include "string_view.hpp"
 #include "tokenizer.hpp"
 #include "value.hpp"
 

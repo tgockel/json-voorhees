@@ -14,7 +14,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/detail/generic_container.hpp>
-#include <jsonv/string_ref.hpp>
+#include <jsonv/string_view.hpp>
 
 #include <iosfwd>
 #include <memory>
@@ -40,7 +40,7 @@ public:
     path_element(std::size_t idx);
     path_element(int         idx);
     path_element(std::string key);
-    path_element(string_ref  key);
+    path_element(string_view  key);
     path_element(const char* key);
     path_element(const path_element&);
     path_element& operator=(const path_element&);
@@ -89,7 +89,7 @@ public:
     /** Creates a path with the provided \a elements. **/
     path(storage_type elements);
     
-    static path create(string_ref specification);
+    static path create(string_view specification);
     
     path(const path&);
     path& operator=(const path&);

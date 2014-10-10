@@ -74,7 +74,7 @@ path_element::path_element(std::string key) :
         _data(std::move(key))
 { }
 
-path_element::path_element(string_ref key) :
+path_element::path_element(string_view key) :
         path_element(std::string(key))
 { }
 
@@ -261,13 +261,13 @@ path& path::operator=(path&& src) noexcept
 }
 path::~path() noexcept = default;
 
-path path::create(string_ref specification)
+path path::create(string_view specification)
 {
     path out;
-    string_ref remaining = specification;
+    string_view remaining = specification;
     while (!remaining.empty())
     {
-        string_ref match;
+        string_view match;
         if (detail::path_match(remaining, match))
         {
             switch (match.at(0))

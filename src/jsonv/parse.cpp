@@ -302,7 +302,7 @@ private:
     {
         try
         {
-            string_ref text = current().text;
+            string_view text = current().text;
             stream << ": \"" << text << "\"";
         }
         catch (const std::logic_error&)
@@ -357,7 +357,7 @@ static bool parse_null(parse_context& context, value& out)
 static bool parse_number(parse_context& context, value& out)
 {
     JSONV_DBG_STRUCT("#");
-    string_ref characters = context.current().text;
+    string_view characters = context.current().text;
     try
     {
         if (  context.options.number_encoding() == parse_options::numbers::strict
@@ -396,7 +396,7 @@ static std::string parse_string(parse_context& context)
 {
     assert(context.current_kind() == token_kind::string);
     
-    string_ref source = context.current().text;
+    string_view source = context.current().text;
     JSONV_DBG_STRUCT(source);
     // chop off the ""s
     source.remove_prefix(1);
@@ -595,10 +595,10 @@ public:
     
 private:
     virtual void write_null() override                      { }
-    virtual void write_object_key(string_ref) override      { }
+    virtual void write_object_key(string_view) override      { }
     virtual void write_object_delimiter() override          { }
     virtual void write_array_delimiter() override           { }
-    virtual void write_string(string_ref) override          { }
+    virtual void write_string(string_view) override          { }
     virtual void write_integer(std::int64_t) override       { }
     virtual void write_decimal(double) override             { }
     virtual void write_boolean(bool) override               { }
@@ -682,7 +682,7 @@ value parse(std::istream& input, const parse_options& options)
     return parse(tokens, options);
 }
 
-value parse(const string_ref& input, const parse_options& options)
+value parse(const string_view& input, const parse_options& options)
 {
     std::stringstream sstream;
     sstream.write(input.data(), input.size());

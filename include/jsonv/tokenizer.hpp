@@ -14,7 +14,7 @@
 #define __JSONV_TOKENIZER_INCLUDED__
 
 #include <jsonv/config.hpp>
-#include <jsonv/string_ref.hpp>
+#include <jsonv/string_view.hpp>
 
 #include <iosfwd>
 #include <vector>
@@ -106,10 +106,10 @@ public:
     /** A representation of what this tokenizer has. **/
     struct token
     {
-        string_ref text;
+        string_view text;
         token_kind kind;
         
-        operator std::pair<string_ref, token_kind>()
+        operator std::pair<string_view, token_kind>()
         {
             return { text, kind };
         }

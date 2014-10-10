@@ -23,7 +23,7 @@ static std::string string_decode_static(const char (& data)[N],
 {
     auto decoder = jsonv::detail::get_string_decoder(encoding);
     // Use N-1 for length to not include the '\0' at the end
-    return decoder(jsonv::string_ref(data, N-1));
+    return decoder(jsonv::string_view(data, N-1));
 }
 
 TEST(string_decode_invalid_escape_sequence)

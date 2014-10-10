@@ -13,7 +13,7 @@
 #define __JSONV_DETAIL_TOKEN_PATTERNS_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
-#include <jsonv/string_ref.hpp>
+#include <jsonv/string_view.hpp>
 #include <jsonv/tokenizer.hpp>
 
 namespace jsonv
@@ -53,8 +53,8 @@ match_result attempt_match(const char*  begin,
  *  \param input The input to match
  *  \param[out] match_contents The full contents of a match
 **/
-bool path_match(string_ref  input,
-                string_ref& match_contents
+bool path_match(string_view  input,
+                string_view& match_contents
                );
 
 }

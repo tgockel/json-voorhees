@@ -74,13 +74,13 @@ BOOST_FILESYSTEM_LIB ?= -lboost_filesystem
 # The library flag used to link to Boost.System. This is always used in unit testing.
 BOOST_SYSTEM_LIB ?= -lboost_system
 
-# def: USE_BOOST_STRING_REF
-# Controls the variable JSONV_STRING_REF_USE_BOOST (see C++ documentation).
-USE_BOOST_STRING_REF ?= 0
+# def: USE_BOOST_STRING_VIEW
+# Controls the variable JSONV_STRING_VIEW_USE_BOOST (see C++ documentation).
+USE_BOOST_STRING_VIEW ?= 0
 
-# def: USE_STD_STRING_REF
-# Controls the variable JSONV_STRING_REF_USE_STD (see C++ documentation).
-USE_STD_STRING_REF ?= 0
+# def: USE_STD_STRING_VIEW
+# Controls the variable JSONV_STRING_VIEW_USE_STD (see C++ documentation).
+USE_STD_STRING_VIEW ?= 0
 
 # def: VERSION_STYLE
 # For the strongly-versioned shared objects, how should the version be styled? There are a few options...
@@ -165,9 +165,9 @@ CXX_COMPILER  ?= c++
 CXX_FLAGS     ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
 CXX_INCLUDES  ?= -I$(SRC_DIR) -I$(HEADER_DIR)
 CXX_STANDARD  ?= --std=c++11
-CXX_DEFINES   ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)            \
-                 -DJSONV_STRING_REF_USE_BOOST=$(USE_BOOST_STRING_REF)  \
-                 -DJSONV_STRING_REF_USE_STD=$(USE_STD_STRING_REF)
+CXX_DEFINES   ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)              \
+                 -DJSONV_STRING_VIEW_USE_BOOST=$(USE_BOOST_STRING_VIEW)  \
+                 -DJSONV_STRING_VIEW_USE_STD=$(USE_STD_STRING_VIEW)
 CXX_WARNINGS  ?= -Werror -Wall -Wextra
 LD             = $(CXX_COMPILER) $(LD_PATHS) $(LD_FLAGS)
 LD_FLAGS      ?= 
