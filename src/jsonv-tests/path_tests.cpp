@@ -93,7 +93,14 @@ TEST(path_traverse)
     }
     
     traverse(tree,
-             [this] (const path& p, const value& x) { ensure_eq(to_string(p), x.as_string()); },
+             [this, &tree] (const path& p, const value& x)
+             {
+                 ensure_eq(to_string(p), x.as_string());
+                 auto q = path::create(x.as_string());
+                 ensure_eq(p, q);
+                 ensure_eq(x, tree.at_path(p));
+                 ensure_eq(x, tree.at_path(q));
+             },
              true
             );
 }
