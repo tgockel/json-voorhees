@@ -268,8 +268,9 @@ public:
     /** If \c kind is \c kind::array, an \c array_view allows you to access a value as a sequence container. This is
      *  most useful for range-based for loops.
     **/
-    typedef detail::basic_view<array_iterator, const_array_iterator> array_view;
-    typedef detail::basic_view<const_array_iterator>                 const_array_view;
+    typedef detail::basic_view<array_iterator, const_array_iterator>               array_view;
+    typedef detail::basic_view<const_array_iterator>                               const_array_view;
+    typedef detail::basic_owning_view<value, array_iterator, const_array_iterator> owning_array_view;
     
     /** \} **/
     
@@ -373,8 +374,9 @@ public:
     /** If \c kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
      *  This is most useful for range-based for loops.
     **/
-    typedef detail::basic_view<object_iterator, const_object_iterator> object_view;
-    typedef detail::basic_view<const_object_iterator>                  const_object_view;
+    typedef detail::basic_view<object_iterator, const_object_iterator>               object_view;
+    typedef detail::basic_view<const_object_iterator>                                const_object_view;
+    typedef detail::basic_owning_view<value, object_iterator, const_object_iterator> owning_object_view;
     
     /** \} **/
     
@@ -588,8 +590,9 @@ public:
      * 
      *  \throws kind_error if the kind is not an array.
     **/
-    array_view       as_array();
-    const_array_view as_array() const;
+    array_view        as_array() &;
+    const_array_view  as_array() const &;
+    owning_array_view as_array() &&;
     
     /** Get the value in this array at the given \a idx. The overloads which accept an \c int are required to resolve
      *  the type ambiguity of the literal \c 0 between a size_type and a char*.
@@ -709,8 +712,9 @@ public:
      *  
      *  \throws kind_error if the kind is not an object.
     **/
-    object_view       as_object();
-    const_object_view as_object() const;
+    object_view        as_object() &;
+    const_object_view  as_object() const &;
+    owning_object_view as_object() &&;
     
     /** Get the value associated with the given \a key of this object. If the \a key does not exist, it will be created.
      *  

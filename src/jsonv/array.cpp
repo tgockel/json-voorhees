@@ -72,14 +72,23 @@ value::const_array_iterator value::end_array() const
     return const_array_iterator(this, _data.array->_values.size());
 }
 
-value::array_view value::as_array()
+value::array_view value::as_array() &
 {
     return array_view(begin_array(), end_array());
 }
 
-value::const_array_view value::as_array() const
+value::const_array_view value::as_array() const &
 {
     return const_array_view(begin_array(), end_array());
+}
+
+value::owning_array_view value::as_array() &&
+{
+    check_type(jsonv::kind::array, kind());
+    return owning_array_view(std::move(*this),
+                             [] (value& x) { return x.begin_array(); },
+                             [] (value& x) { return x.end_array(); }
+                            );
 }
 
 value& value::operator[](size_type idx)

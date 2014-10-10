@@ -14,6 +14,7 @@
 #include <jsonv/config.hpp>
 
 #include <iterator>
+#include <utility>
 
 namespace jsonv
 {
@@ -56,6 +57,40 @@ public:
 private:
     iterator _begin;
     iterator _end;
+};
+
+/** Something that owns an object. Used in basic_owning_view to move the value somewhere fixed before getting the
+ *  itertors and constructing the base.
+**/
+template <typename T>
+class basic_owner
+{
+public:
+    explicit basic_owner(T&& x) :
+            _value(std::move(x))
+    { }
+    
+protected:
+    T _value;
+};
+
+/** A form of basic_view that owns the object it is iterating over. **/
+template <typename TContainer,
+          typename TIterator,
+          typename TConstIterator = TIterator
+         >
+class basic_owning_view :
+        private basic_owner<TContainer>,
+        public basic_view<TIterator, TConstIterator>
+{
+    using basic_owner<TContainer>::_value;
+    
+public:
+    template <typename FBegin, typename FEnd>
+    basic_owning_view(TContainer&& container, FBegin begin, FEnd end) :
+            basic_owner<TContainer>(std::move(container)),
+            basic_view<TIterator, TConstIterator>(begin(_value), end(_value))
+    { }
 };
 
 }
