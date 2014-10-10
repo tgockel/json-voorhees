@@ -134,8 +134,8 @@ Protected Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the opening of an object value.  <a href="#a1be23444dc5618d49eb3dc731b09189f"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a87379e446c9882bbef43ba07eaa79921">write_object_end</a> ()=0</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the closing of an object value.  <a href="#a87379e446c9882bbef43ba07eaa79921"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a6a0f98ffb520c04a395527f5ef8d1374">write_object_key</a> (string_ref key)=0</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the key for an object, including the separator.  <a href="#a6a0f98ffb520c04a395527f5ef8d1374"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#ace3ca4df06ca8d7db6ec87ff17d26964">write_object_key</a> (string_view key)=0</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the key for an object, including the separator.  <a href="#ace3ca4df06ca8d7db6ec87ff17d26964"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#aec505c124a25aca218bd0f437383f701">write_object_delimiter</a> ()=0</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the delimiter between two entries in an object.  <a href="#aec505c124a25aca218bd0f437383f701"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a5b374633ecbb5110134692c822e8f67b">write_array_begin</a> ()=0</td></tr>
@@ -144,8 +144,8 @@ Protected Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the closing of an array value.  <a href="#afda594035074b4d790a16be1531802ac"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a634622f324003dcc978d91d103dd253e">write_array_delimiter</a> ()=0</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the delimiter between two entries in an array.  <a href="#a634622f324003dcc978d91d103dd253e"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a763234d5152604691aaa66d2c9e20bc9">write_string</a> (string_ref <a class="el" href="classjsonv_1_1value.html">value</a>)=0</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a string value.  <a href="#a763234d5152604691aaa66d2c9e20bc9"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a0bf6951a13172eab70dceef664c27937">write_string</a> (string_view <a class="el" href="classjsonv_1_1value.html">value</a>)=0</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a string value.  <a href="#a0bf6951a13172eab70dceef664c27937"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#ad161a2185b4afd5b140fffa1b1750bae">write_integer</a> (std::int64_t <a class="el" href="classjsonv_1_1value.html">value</a>)=0</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an integer value.  <a href="#ad161a2185b4afd5b140fffa1b1750bae"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a3fd4323f1d9a1437af2ca167d1beae49">write_decimal</a> (double <a class="el" href="classjsonv_1_1value.html">value</a>)=0</td></tr>
@@ -397,14 +397,14 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a6a0f98ffb520c04a395527f5ef8d1374"></a><!-- doxytag: member="jsonv::encoder::write_object_key" ref="a6a0f98ffb520c04a395527f5ef8d1374" args="(string_ref key)=0" -->
+<a class="anchor" id="ace3ca4df06ca8d7db6ec87ff17d26964"></a><!-- doxytag: member="jsonv::encoder::write_object_key" ref="ace3ca4df06ca8d7db6ec87ff17d26964" args="(string_view key)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="classjsonv_1_1encoder.html#a6a0f98ffb520c04a395527f5ef8d1374">jsonv::encoder::write_object_key</a> </td>
+          <td class="memname">virtual void <a class="el" href="classjsonv_1_1encoder.html#ace3ca4df06ca8d7db6ec87ff17d26964">jsonv::encoder::write_object_key</a> </td>
           <td>(</td>
-          <td class="paramtype">string_ref&#160;</td>
+          <td class="paramtype">string_view&#160;</td>
           <td class="paramname"><em>key</em></td><td>)</td>
           <td><code> [protected, pure virtual]</code></td>
         </tr>
@@ -415,18 +415,18 @@ Protected Member Functions</h2></td></tr>
 <p>Write the key for an object, including the separator. </p>
 <div class="fragment"><pre class="fragment">  <span class="stringliteral">&quot;key&quot;</span>:
 </pre></div> 
-<p>Implemented in <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a6b1b4773e02021ec80173f90a175081a">jsonv::ostream_pretty_encoder</a>, and <a class="el" href="classjsonv_1_1ostream__encoder.html#aca2d298309b041dce886aed8c76b2289">jsonv::ostream_encoder</a>.</p>
+<p>Implemented in <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a3cea9227a05d549f9c72452c153bc9bf">jsonv::ostream_pretty_encoder</a>, and <a class="el" href="classjsonv_1_1ostream__encoder.html#a6ff540fdc4296437462aca3eb36f1baa">jsonv::ostream_encoder</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a763234d5152604691aaa66d2c9e20bc9"></a><!-- doxytag: member="jsonv::encoder::write_string" ref="a763234d5152604691aaa66d2c9e20bc9" args="(string_ref value)=0" -->
+<a class="anchor" id="a0bf6951a13172eab70dceef664c27937"></a><!-- doxytag: member="jsonv::encoder::write_string" ref="a0bf6951a13172eab70dceef664c27937" args="(string_view value)=0" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="classjsonv_1_1encoder.html#a763234d5152604691aaa66d2c9e20bc9">jsonv::encoder::write_string</a> </td>
+          <td class="memname">virtual void <a class="el" href="classjsonv_1_1encoder.html#a0bf6951a13172eab70dceef664c27937">jsonv::encoder::write_string</a> </td>
           <td>(</td>
-          <td class="paramtype">string_ref&#160;</td>
+          <td class="paramtype">string_view&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td><code> [protected, pure virtual]</code></td>
         </tr>
@@ -443,7 +443,7 @@ Protected Member Functions</h2></td></tr>
 </dl>
 <div class="fragment"><pre class="fragment">  <span class="stringliteral">&quot;value&quot;</span>
 </pre></div> 
-<p>Implemented in <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a4ac5cb63a18cfe0b322db77854245fcf">jsonv::ostream_pretty_encoder</a>, and <a class="el" href="classjsonv_1_1ostream__encoder.html#addaa13807f1ee5d951677aca58bbe115">jsonv::ostream_encoder</a>.</p>
+<p>Implemented in <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#ab97601528b1dfff7abb784a52c9691ff">jsonv::ostream_pretty_encoder</a>, and <a class="el" href="classjsonv_1_1ostream__encoder.html#acfe6796877d22dcaea60d9ab7c3e58d5">jsonv::ostream_encoder</a>.</p>
 
 </div>
 </div>

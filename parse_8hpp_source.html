@@ -104,7 +104,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00012"></a>00012 <span class="preprocessor"></span><span class="preprocessor">#define __JSONV_PARSE_HPP_INCLUDED__</span>
 <a name="l00013"></a>00013 <span class="preprocessor"></span>
 <a name="l00014"></a>00014 <span class="preprocessor">#include &lt;<a class="code" href="config_8hpp.html" title="Copyright (c) 2014 by Travis Gockel.">jsonv/config.hpp</a>&gt;</span>
-<a name="l00015"></a>00015 <span class="preprocessor">#include &lt;<a class="code" href="string__ref_8hpp.html" title="Pulls in an implementation of string_ref.">jsonv/string_ref.hpp</a>&gt;</span>
+<a name="l00015"></a>00015 <span class="preprocessor">#include &lt;<a class="code" href="string__view_8hpp.html" title="Pulls in an implementation of string_view.">jsonv/string_view.hpp</a>&gt;</span>
 <a name="l00016"></a>00016 <span class="preprocessor">#include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <a name="l00017"></a>00017 
 <a name="l00018"></a>00018 <span class="preprocessor">#include &lt;cstddef&gt;</span>
@@ -249,7 +249,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00255"></a>00255 
 <a name="l00269"></a>00269 <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> parse(std::istream&amp; input, const parse_options&amp; = parse_options());
 <a name="l00270"></a>00270 
-<a name="l00278"></a>00278 <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> parse(const string_ref&amp; input, const parse_options&amp; = parse_options());
+<a name="l00278"></a>00278 <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> parse(const string_view&amp; input, const parse_options&amp; = parse_options());
 <a name="l00279"></a>00279 
 <a name="l00294"></a>00294 <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> parse(<a class="code" href="classjsonv_1_1tokenizer.html" title="Splits input into tokens, allowing traversal of JSON without verification.">tokenizer</a>&amp; input, const parse_options&amp; = parse_options());
 <a name="l00295"></a>00295 

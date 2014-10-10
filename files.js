@@ -8,10 +8,10 @@ var files =
     [ "jsonv/forward.hpp", "forward_8hpp.html", null ],
     [ "jsonv/parse.hpp", "parse_8hpp.html", "parse_8hpp" ],
     [ "jsonv/path.hpp", "path_8hpp.html", "path_8hpp" ],
-    [ "jsonv/string_ref.hpp", "string__ref_8hpp.html", null ],
+    [ "jsonv/string_view.hpp", "string__view_8hpp.html", null ],
     [ "jsonv/tokenizer.hpp", "tokenizer_8hpp.html", "tokenizer_8hpp" ],
     [ "jsonv/value.hpp", "value_8hpp.html", "value_8hpp" ],
     [ "jsonv/detail/basic_view.hpp", "basic__view_8hpp.html", null ],
     [ "jsonv/detail/generic_container.hpp", "generic__container_8hpp.html", "generic__container_8hpp" ],
-    [ "jsonv/detail/string_ref.hpp", "detail_2string__ref_8hpp.html", null ]
+    [ "jsonv/detail/string_view.hpp", "detail_2string__view_8hpp.html", null ]
 ];

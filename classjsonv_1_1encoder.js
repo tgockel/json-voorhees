@@ -12,6 +12,6 @@ var classjsonv_1_1encoder =
     [ "write_object_begin", "classjsonv_1_1encoder.html#a1be23444dc5618d49eb3dc731b09189f", null ],
     [ "write_object_delimiter", "classjsonv_1_1encoder.html#aec505c124a25aca218bd0f437383f701", null ],
     [ "write_object_end", "classjsonv_1_1encoder.html#a87379e446c9882bbef43ba07eaa79921", null ],
-    [ "write_object_key", "classjsonv_1_1encoder.html#a6a0f98ffb520c04a395527f5ef8d1374", null ],
-    [ "write_string", "classjsonv_1_1encoder.html#a763234d5152604691aaa66d2c9e20bc9", null ]
+    [ "write_object_key", "classjsonv_1_1encoder.html#ace3ca4df06ca8d7db6ec87ff17d26964", null ],
+    [ "write_string", "classjsonv_1_1encoder.html#a0bf6951a13172eab70dceef664c27937", null ]
 ];

@@ -13,6 +13,6 @@ var classjsonv_1_1ostream__encoder =
     [ "write_object_begin", "classjsonv_1_1ostream__encoder.html#ae4fe933ef1fc399fb6609c0c3eeee965", null ],
     [ "write_object_delimiter", "classjsonv_1_1ostream__encoder.html#a8225c69ef08c78e6fa3904cd2690d418", null ],
     [ "write_object_end", "classjsonv_1_1ostream__encoder.html#ac63cf8990ea6027ac05ccfe2b593bd40", null ],
-    [ "write_object_key", "classjsonv_1_1ostream__encoder.html#aca2d298309b041dce886aed8c76b2289", null ],
-    [ "write_string", "classjsonv_1_1ostream__encoder.html#addaa13807f1ee5d951677aca58bbe115", null ]
+    [ "write_object_key", "classjsonv_1_1ostream__encoder.html#a6ff540fdc4296437462aca3eb36f1baa", null ],
+    [ "write_string", "classjsonv_1_1ostream__encoder.html#acfe6796877d22dcaea60d9ab7c3e58d5", null ]
 ];

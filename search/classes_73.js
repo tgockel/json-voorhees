@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['string_5fref',['string_ref',['../classjsonv_1_1detail_1_1string__ref.html',1,'jsonv::detail']]]
+  ['string_5fview',['string_view',['../classjsonv_1_1detail_1_1string__view.html',1,'jsonv::detail']]]
 ];

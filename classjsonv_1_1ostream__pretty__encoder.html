@@ -129,8 +129,8 @@ Protected Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the opening of an object value.  <a href="#a31e35cb5b832e30281d84de9b13a950e"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a854bb2c1b3460577b4ff51414ce2d23b">write_object_end</a> () override</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the closing of an object value.  <a href="#a854bb2c1b3460577b4ff51414ce2d23b"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a6b1b4773e02021ec80173f90a175081a">write_object_key</a> (string_ref key) override</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the key for an object, including the separator.  <a href="#a6b1b4773e02021ec80173f90a175081a"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a3cea9227a05d549f9c72452c153bc9bf">write_object_key</a> (string_view key) override</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the key for an object, including the separator.  <a href="#a3cea9227a05d549f9c72452c153bc9bf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a7afa27eea2b3bbe37ca30bf15c5a8fb9">write_object_delimiter</a> () override</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the delimiter between two entries in an object.  <a href="#a7afa27eea2b3bbe37ca30bf15c5a8fb9"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#ae683f58640398a3a302b569fd82fa9b3">write_array_begin</a> () override</td></tr>
@@ -139,8 +139,8 @@ Protected Member Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the closing of an array value.  <a href="#a448c4f728a09d9a9861ee040cb9ed584"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a6b1c561f03c7fe8c311a481720203306">write_array_delimiter</a> () override</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write the delimiter between two entries in an array.  <a href="#a6b1c561f03c7fe8c311a481720203306"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a4ac5cb63a18cfe0b322db77854245fcf">write_string</a> (string_ref <a class="el" href="classjsonv_1_1value.html">value</a>) override</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a string value.  <a href="#a4ac5cb63a18cfe0b322db77854245fcf"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#ab97601528b1dfff7abb784a52c9691ff">write_string</a> (string_view <a class="el" href="classjsonv_1_1value.html">value</a>) override</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write a string value.  <a href="#ab97601528b1dfff7abb784a52c9691ff"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#ab7617fde174f829061516c3177830fdc">write_integer</a> (std::int64_t <a class="el" href="classjsonv_1_1value.html">value</a>) override</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Write an integer value.  <a href="#ab7617fde174f829061516c3177830fdc"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#abb924c5f1332eede93205ac572af7275">write_decimal</a> (double <a class="el" href="classjsonv_1_1value.html">value</a>) override</td></tr>
@@ -395,14 +395,14 @@ Protected Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a6b1b4773e02021ec80173f90a175081a"></a><!-- doxytag: member="jsonv::ostream_pretty_encoder::write_object_key" ref="a6b1b4773e02021ec80173f90a175081a" args="(string_ref key) override" -->
+<a class="anchor" id="a3cea9227a05d549f9c72452c153bc9bf"></a><!-- doxytag: member="jsonv::ostream_pretty_encoder::write_object_key" ref="a3cea9227a05d549f9c72452c153bc9bf" args="(string_view key) override" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a6b1b4773e02021ec80173f90a175081a">jsonv::ostream_pretty_encoder::write_object_key</a> </td>
+          <td class="memname">virtual void <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a3cea9227a05d549f9c72452c153bc9bf">jsonv::ostream_pretty_encoder::write_object_key</a> </td>
           <td>(</td>
-          <td class="paramtype">string_ref&#160;</td>
+          <td class="paramtype">string_view&#160;</td>
           <td class="paramname"><em>key</em></td><td>)</td>
           <td><code> [override, protected, virtual]</code></td>
         </tr>
@@ -413,18 +413,18 @@ Protected Member Functions</h2></td></tr>
 <p>Write the key for an object, including the separator. </p>
 <div class="fragment"><pre class="fragment">  <span class="stringliteral">&quot;key&quot;</span>:
 </pre></div> 
-<p>Reimplemented from <a class="el" href="classjsonv_1_1ostream__encoder.html#aca2d298309b041dce886aed8c76b2289">jsonv::ostream_encoder</a>.</p>
+<p>Reimplemented from <a class="el" href="classjsonv_1_1ostream__encoder.html#a6ff540fdc4296437462aca3eb36f1baa">jsonv::ostream_encoder</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a4ac5cb63a18cfe0b322db77854245fcf"></a><!-- doxytag: member="jsonv::ostream_pretty_encoder::write_string" ref="a4ac5cb63a18cfe0b322db77854245fcf" args="(string_ref value) override" -->
+<a class="anchor" id="ab97601528b1dfff7abb784a52c9691ff"></a><!-- doxytag: member="jsonv::ostream_pretty_encoder::write_string" ref="ab97601528b1dfff7abb784a52c9691ff" args="(string_view value) override" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#a4ac5cb63a18cfe0b322db77854245fcf">jsonv::ostream_pretty_encoder::write_string</a> </td>
+          <td class="memname">virtual void <a class="el" href="classjsonv_1_1ostream__pretty__encoder.html#ab97601528b1dfff7abb784a52c9691ff">jsonv::ostream_pretty_encoder::write_string</a> </td>
           <td>(</td>
-          <td class="paramtype">string_ref&#160;</td>
+          <td class="paramtype">string_view&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td><code> [override, protected, virtual]</code></td>
         </tr>
@@ -441,7 +441,7 @@ Protected Member Functions</h2></td></tr>
 </dl>
 <div class="fragment"><pre class="fragment">  <span class="stringliteral">&quot;value&quot;</span>
 </pre></div> 
-<p>Reimplemented from <a class="el" href="classjsonv_1_1ostream__encoder.html#addaa13807f1ee5d951677aca58bbe115">jsonv::ostream_encoder</a>.</p>
+<p>Reimplemented from <a class="el" href="classjsonv_1_1ostream__encoder.html#acfe6796877d22dcaea60d9ab7c3e58d5">jsonv::ostream_encoder</a>.</p>
 
 </div>
 </div>
