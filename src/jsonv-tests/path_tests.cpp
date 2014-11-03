@@ -116,7 +116,7 @@ TEST(path_append_key)
 TEST(path_create_simplestring)
 {
     path p = path::create(".a.b.c");
-    path q({ path_element("a"), path_element("b"), path_element("c") });
+    path q({ "a", "b", "c" });
     ensure_eq(p, q);
 }
 
@@ -125,10 +125,11 @@ TEST(path_value_construction)
     value tree;
     tree.path(".a.b[2]") = "Hello!";
     tree.path(".a[\"b\"][3]") = 3;
+    tree.path(".a[\"b\"][1]") = "Yo";
     
     value expected = object({
                              { "a", object({
-                                            { "b", array({ nullptr, nullptr, "Hello!", 3 }) }
+                                            { "b", array({ nullptr, "Yo", "Hello!", 3 }) }
                                           })
                              }
                            });
