@@ -160,8 +160,8 @@ TESTS       = $(filter %-tests,$(LIBRARIES))
 # Compiler Settings                                                            #
 ################################################################################
 
-CXX            = $(CXX_COMPILER) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
-CXX_COMPILER  ?= c++
+CXXC           = $(CXX) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
+CXX           ?= c++
 CXX_FLAGS     ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
 CXX_INCLUDES  ?= -I$(SRC_DIR) -I$(HEADER_DIR)
 CXX_STANDARD  ?= --std=c++11
@@ -169,11 +169,11 @@ CXX_DEFINES   ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)              \
                  -DJSONV_STRING_VIEW_USE_BOOST=$(USE_BOOST_STRING_VIEW)  \
                  -DJSONV_STRING_VIEW_USE_STD=$(USE_STD_STRING_VIEW)
 CXX_WARNINGS  ?= -Werror -Wall -Wextra
-LD             = $(CXX_COMPILER) $(LD_PATHS) $(LD_FLAGS)
+LD             = $(CXX) $(LD_PATHS) $(LD_FLAGS)
 LD_FLAGS      ?= 
 LD_PATHS      ?= 
 LD_LIBRARIES  ?= 
-SO             = $(CXX_COMPILER) $(SO_PATHS) $(SO_FLAGS)
+SO             = $(CXX) $(SO_PATHS) $(SO_FLAGS)
 SO_FLAGS      ?= 
 SO_PATHS      ?= 
 SO_LIBRARIES  ?= 
@@ -213,7 +213,7 @@ $(OBJ_DIR)/%.cpp.o : $(SRC_DIR)/%.cpp
 	$(QQ)echo " CXX   $*.cpp"
 	$(QQ)mkdir -p $(@D)
 	$(QQ)mkdir -p $(dir $(patsubst $(SRC_DIR)/%,$(DEP_DIR)/%,$<))
-	$Q$(CXX) $< -o $@ -D$($(shell echo $* | grep -Po '^[^/]+')_SYMBOL)_COMPILING=1                                 \
+	$Q$(CXXC) $< -o $@ -D$($(shell echo $* | grep -Po '^[^/]+')_SYMBOL)_COMPILING=1                                 \
 	        -MF $(patsubst $(SRC_DIR)/%.cpp,$(DEP_DIR)/%.cpp.dep,$<) -MMD
 
 .SECONDEXPANSION:
