@@ -129,7 +129,8 @@ OBJ_DIR     ?= $(BUILD_DIR)/obj
 DEP_DIR     ?= $(BUILD_DIR)/dep
 LIB_DIR     ?= $(BUILD_DIR)/lib
 BIN_DIR     ?= $(BUILD_DIR)/bin
-DESTDIR     ?= /usr
+DESTDIR     ?= /
+INSTALL_DIR ?= $(DESTDIR)/usr/local
 
 ifeq ($(VERBOSE),)
   Q  := @
@@ -255,10 +256,10 @@ define INSTALL_TEMPLATE
   .PHONY: install_$(1)
   install_$(1) : $$(LIB_DIR)/$$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so
 	$$(QQ)echo " INSTL $1 -> $$(DESTDIR)"
-	$$(QQ)mkdir -p $$(DESTDIR)/lib
-	$$Q$(INSTALL) $$(LIB_DIR)/$$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so $$(DESTDIR)/lib
-	$$(QQ)mkdir -p $$(DESTDIR)/include
-	$$Q$(INSTALL) --recursive $$(HEADER_DIR)/$(1) $$(DESTDIR)/include/$(1)
+	$$(QQ)mkdir -p $$(INSTALL_DIR)/lib
+	$$Q$(INSTALL) $$(LIB_DIR)/$$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so $$(INSTALL_DIR)/lib
+	$$(QQ)mkdir -p $$(INSTALL_DIR)/include
+	$$Q$(INSTALL) --recursive $$(HEADER_DIR)/$(1) $$(INSTALL_DIR)/include/$(1)
   
   install : install_$(1)
 endef
