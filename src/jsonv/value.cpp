@@ -170,12 +170,15 @@ value::value(value&& other) noexcept :
 
 value& value::operator=(value&& source) noexcept
 {
-    clear();
-    
-    _data = source._data;
-    _kind = source._kind;
-    source._data.object = 0;
-    source._kind = jsonv::kind::null;
+    if (this != &source)
+    {
+        clear();
+        
+        _data = source._data;
+        _kind = source._kind;
+        source._data.object = 0;
+        source._kind = jsonv::kind::null;
+    }
     
     return *this;
 }

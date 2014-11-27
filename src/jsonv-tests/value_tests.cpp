@@ -16,6 +16,15 @@
 #include <tuple>
 #include <unordered_map>
 
+TEST(move_to_self)
+{
+    const jsonv::value orig = jsonv::object({ {"a", 5} });
+    jsonv::value x(orig);
+    ensure_eq(orig, x);
+    x = std::move(x);
+    ensure_eq(orig, x);
+}
+
 TEST(compare_bools)
 {
     jsonv::value t1(true),
