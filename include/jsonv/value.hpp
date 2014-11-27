@@ -500,7 +500,9 @@ public:
     
     /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
      *  no value exists at the path, a new one is created as the default (\c null) value. If any path along the way
-     *  either does not exist or is \c null, it is created for you.
+     *  either does not exist or is \c null, it is created for you, based on the \e implications of the specification
+     *  \a p. Unlike \c at_path, which will throw if accessing a non-existent key of an \c object or going past the end
+     *  of an \c array, this will simply create that path and fill in the blanks with \c null values.
      *  
      *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
      *                     index when the value is a string).
