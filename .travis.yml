@@ -19,7 +19,7 @@ script:
   - make CONF=${CONF}
          BUILD_DIR=build/${CONF}-${STRING_REF_NAME}-string-ref
          VERBOSE=1
-         CXX_COMPILER=${COMPILER}
+         CXX=${COMPILER}
          USE_BOOST_REGEX=1
          USE_BOOST_STRING_VIEW=${USE_BOOST_STRING_VIEW}
          CXX_WARNINGS='-Wall -Wextra'
