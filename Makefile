@@ -129,7 +129,8 @@ OBJ_DIR     ?= $(BUILD_DIR)/obj
 DEP_DIR     ?= $(BUILD_DIR)/dep
 LIB_DIR     ?= $(BUILD_DIR)/lib
 BIN_DIR     ?= $(BUILD_DIR)/bin
-INSTALL_DIR ?= /usr
+DESTDIR     ?= /
+INSTALL_DIR ?= $(DESTDIR)/usr/local
 
 ifeq ($(VERBOSE),)
   Q  := @
@@ -254,7 +255,7 @@ $(foreach test,$(TESTS),$(eval $(call TEST_TEMPLATE,$(test))))
 define INSTALL_TEMPLATE
   .PHONY: install_$(1)
   install_$(1) : $$(LIB_DIR)/$$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so
-	$$(QQ)echo " INSTL $1 -> $$(INSTALL_DIR)"
+	$$(QQ)echo " INSTL $1 -> $$(DESTDIR)"
 	$$(QQ)mkdir -p $$(INSTALL_DIR)/lib
 	$$Q$(INSTALL) $$(LIB_DIR)/$$(call VERSIONED_SO,$1,$$(JSONV_VERSION)) $$(LIB_DIR)/lib$1.so $$(INSTALL_DIR)/lib
 	$$(QQ)mkdir -p $$(INSTALL_DIR)/include

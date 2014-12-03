@@ -2,7 +2,7 @@
 # mkaurball
 _pkgbase=json-voorhees
 pkgname=${_pkgbase}-git
-pkgver=0.4.0.r0.g06a0209
+pkgver=0.4.0.r0.g4d173a4
 pkgver() {
 	cd "${srcdir}/${_pkgbase}"
 	git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g' | cut -c2-
@@ -41,5 +41,5 @@ check() {
 
 package() {
 	cd "${srcdir}/${_pkgbase}"
-	make install INSTALL_DIR="${pkgdir}/" JSONV_VERSION=${pkgver} VERBOSE=2
+	make install DESTDIR="${pkgdir}/" JSONV_VERSION=${pkgver} VERBOSE=2
 }
