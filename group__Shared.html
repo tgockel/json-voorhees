@@ -343,7 +343,7 @@ Friends</h2></td></tr>
 <div class="memdoc">
 
 <p>Get or create the value specified by the path <em>p</em>. </p>
-<p>This is the moral equivalent to <code>operator</code>[] for paths. If no value exists at the path, a new one is created as the default (<code>null</code>) value. If any path along the way either does not exist or is <code>null</code>, it is created for you.</p>
+<p>This is the moral equivalent to <code>operator</code>[] for paths. If no value exists at the path, a new one is created as the default (<code>null</code>) value. If any path along the way either does not exist or is <code>null</code>, it is created for you, based on the <em>implications</em> of the specification <em>p</em>. Unlike <code>at_path</code>, which will throw if accessing a non-existent key of an <code>object</code> or going past the end of an <code>array</code>, this will simply create that path and fill in the blanks with <code>null</code> values.</p>
 <dl class="exception"><dt><b>Exceptions:</b></dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the path traversal is not valid for the value (for example: if the path specifies an array index when the value is a string). </td></tr>
