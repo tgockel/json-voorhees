@@ -161,7 +161,7 @@ TESTS       = $(filter %-tests,$(LIBRARIES))
 # Compiler Settings                                                            #
 ################################################################################
 
-CXXC           = $(CXX) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
+CXXC          ?= $(CXX) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
 CXX           ?= c++
 CXX_FLAGS     ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
 CXX_INCLUDES  ?= -I$(SRC_DIR) -I$(HEADER_DIR)
