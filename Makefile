@@ -171,7 +171,7 @@ CXX_DEFINES   ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)              \
                  -DJSONV_STRING_VIEW_USE_STD=$(USE_STD_STRING_VIEW)
 CXX_WARNINGS  ?= -Werror -Wall -Wextra
 LD             = $(CXX) $(LD_PATHS) $(LD_FLAGS)
-LD_FLAGS      ?= 
+LD_FLAGS      ?= $(LD_FLAGS_$(CONF))
 LD_PATHS      ?= 
 LD_LIBRARIES  ?= 
 SO             = $(CXX) $(SO_PATHS) $(SO_FLAGS)
@@ -181,6 +181,8 @@ SO_LIBRARIES  ?=
 INSTALL        = cp $(INSTALL_FLAGS)
 INSTALL_FLAGS ?= --no-dereference
 
+CXX_FLAGS_cov     = -O3 -fprofile-arcs -ftest-coverage
+LD_FLAGS_cov      = -fprofile-arcs
 CXX_FLAGS_release = -O3
 
 ################################################################################
@@ -206,6 +208,11 @@ endif
 
 jsonv-tests_LD_LIBRARIES += $(BOOST_FILESYSTEM_LIB) $(BOOST_SYSTEM_LIB)
 
+ifeq ($(CONF),cov)
+  jsonv_STATIC_LIBRARIES += -lgcov
+  jsonv-tests_STATIC_LIBRARIES += -lgcov
+endif
+
 ################################################################################
 # Build Recipes                                                                #
 ################################################################################
@@ -227,7 +234,7 @@ $(LIB_DIR)/lib%.a : $$($$*_OBJS)
 $(LIB_DIR)/$(call VERSIONED_SO,%,$(JSONV_VERSION)) : $$($$*_OBJS)
 	$(QQ)echo " SO    lib$*.so.$(JSONV_VERSION)"
 	$(QQ)mkdir -p $(@D)
-	$Q$(SO) -shared -Wl,-soname,$(call VERSIONED_SO,$*,$(JSONV_VERSION)) $^ -o $@
+	$Q$(SO) -shared -Wl,-soname,$(call VERSIONED_SO,$*,$(JSONV_VERSION)) $^ $($*_STATIC_LIBRARIES) -o $@
 
 $(LIB_DIR)/lib%.so : $(LIB_DIR)/$(call VERSIONED_SO,%,$(JSONV_VERSION))
 	$(QQ)echo " LN    $< -> $@"
@@ -271,6 +278,14 @@ $(foreach lib,$(DEPLOY_LIBS),$(eval $(call INSTALL_TEMPLATE,$(lib))))
 ################################################################################
 
 test : $(TESTS)
+
+coverage : test
+	$Qcoveralls                                \
+          --build-root .                           \
+          --exclude-pattern jsonv-tests            \
+          --exclude-pattern bits                   \
+          --exclude-pattern boost                  \
+          --gcov-options '\-lp' --gcov 'gcov-4.8'
 
 clean :
 	$(QQ)echo " RM    $(BUILD_ROOT)"
