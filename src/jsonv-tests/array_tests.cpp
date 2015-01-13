@@ -159,6 +159,32 @@ TEST(array_view)
     ensure_eq(arr1, arr2);
 }
 
+TEST(array_insertion)
+{
+    using namespace jsonv;
+    
+    value arr = array({ 1, 2, 3, 4 });
+    auto iter = arr.insert(arr.begin_array(), 0);
+    ensure(arr.begin_array() == iter);
+    ensure_eq(arr[0], 0);
+    ensure_eq(arr, array({ 0, 1, 2, 3, 4 }));
+    iter = arr.insert(arr.end_array(), 5);
+    ensure((arr.end_array() - 1) == iter);
+    ensure_eq(arr[5], 5);
+    ensure_eq(arr, array({ 0, 1, 2, 3, 4, 5 }));
+}
+
+TEST(array_multi_insertion)
+{
+    using namespace jsonv;
+    
+    value arr = array({ 0, 1, 4, 5 });
+    std::vector<std::size_t> to_add({ 2, 3 });
+    auto iter = arr.insert(arr.begin_array() + 2, to_add.begin(), to_add.end());
+    ensure((arr.begin_array() + 2) == iter);
+    ensure_eq(arr, array({ 0, 1, 2, 3, 4, 5 }));
+}
+
 TEST(array_iterate_over_temp)
 {
     using namespace jsonv;

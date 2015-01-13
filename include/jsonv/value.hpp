@@ -640,6 +640,26 @@ public:
     **/
     void pop_front();
     
+    /** Insert an item into \a position on this array.
+     *  
+     *  \throws kind_error if the kind is not an array.
+    **/
+    array_iterator insert(const_array_iterator position, value item);
+    
+    /** Insert the range defined by [\a first, \a last) at \a position in this array.
+     *  
+     *  \throws kind_error if the kind is not an array.
+    **/
+    template <typename TForwardIterator>
+    array_iterator insert(const_array_iterator position, TForwardIterator first, TForwardIterator last)
+    {
+        difference_type orig_offset = std::distance(const_array_iterator(begin_array()), position);
+        
+        for (difference_type offset = orig_offset ; first != last; ++first, ++offset)
+            insert(begin_array() + offset, *first);
+        return begin_array() + orig_offset;
+    }
+    
     /** Assign \a count elements to this array with \a val.
      *  
      *  \throws kind_error if the kind is not an array.

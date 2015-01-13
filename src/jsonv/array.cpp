@@ -143,6 +143,14 @@ void value::pop_front()
     _data.array->_values.pop_front();
 }
 
+value::array_iterator value::insert(const_array_iterator position, value item)
+{
+    check_type(jsonv::kind::array, kind());
+    auto iter = _data.array->_values.begin() + std::distance(const_array_iterator(begin_array()), position);
+    iter = _data.array->_values.insert(iter, std::move(item));
+    return begin_array() + std::distance(_data.array->_values.begin(), iter);
+}
+
 void value::assign(size_type count, const value& val)
 {
     check_type(jsonv::kind::array, kind());
