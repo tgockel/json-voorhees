@@ -158,6 +158,11 @@ const value &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::v
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Push <em>item</em> to the front of this array.  <a href="#ga94242bf7d37ef7ae32abe4b3fb553f2a"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gad7cec4c8d1d57aa153605b321dd1b0e9">jsonv::value::pop_front</a> ()</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Pop an item from the front of this array.  <a href="#gad7cec4c8d1d57aa153605b321dd1b0e9"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">array_iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a">jsonv::value::insert</a> (const_array_iterator position, value item)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert an item into <em>position</em> on this array.  <a href="#gae19ed935e84e274c0cc93fd397498d3a"></a><br/></td></tr>
+<tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
+<tr><td class="memTemplItemLeft" align="right" valign="top">array_iterator&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Array.html#ga80ba8ef75cdb0a1b64b9d7ab9df5f723">jsonv::value::insert</a> (const_array_iterator position, TForwardIterator first, TForwardIterator last)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Insert the range defined by [<em>first</em>, <em>last</em>) at <em>position</em> in this array.  <a href="#ga80ba8ef75cdb0a1b64b9d7ab9df5f723"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Array.html#ga34cbe426ef55efe31111bed84c3f6dba">jsonv::value::assign</a> (size_type count, const value &amp;val)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign <em>count</em> elements to this array with <em>val</em>.  <a href="#ga34cbe426ef55efe31111bed84c3f6dba"></a><br/></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
@@ -307,7 +312,7 @@ template&lt;typename TForwardIterator &gt; </div>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00654">654</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00674">674</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -467,6 +472,86 @@ template&lt;typename TForwardIterator &gt; </div>
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a class="anchor" id="gae19ed935e84e274c0cc93fd397498d3a"></a><!-- doxytag: member="jsonv::value::insert" ref="gae19ed935e84e274c0cc93fd397498d3a" args="(const_array_iterator position, value item)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">array_iterator <a class="el" href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a">jsonv::value::insert</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a>&#160;</td>
+          <td class="paramname"><em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td>
+          <td class="paramname"><em>item</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Insert an item into <em>position</em> on this array. </p>
+<dl class="exception"><dt><b>Exceptions:</b></dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga80ba8ef75cdb0a1b64b9d7ab9df5f723"></a><!-- doxytag: member="jsonv::value::insert" ref="ga80ba8ef75cdb0a1b64b9d7ab9df5f723" args="(const_array_iterator position, TForwardIterator first, TForwardIterator last)" -->
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TForwardIterator &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">array_iterator <a class="el" href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a">jsonv::value::insert</a> </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structjsonv_1_1value_1_1basic__array__iterator.html">const_array_iterator</a>&#160;</td>
+          <td class="paramname"><em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TForwardIterator&#160;</td>
+          <td class="paramname"><em>first</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">TForwardIterator&#160;</td>
+          <td class="paramname"><em>last</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td><code> [inline]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Insert the range defined by [<em>first</em>, <em>last</em>) at <em>position</em> in this array. </p>
+<dl class="exception"><dt><b>Exceptions:</b></dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an array. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00654">654</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>

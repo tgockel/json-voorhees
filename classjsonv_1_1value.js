@@ -67,6 +67,8 @@ var classjsonv_1_1value =
     [ "erase", "group__Object.html#gadff0cf180eac1aaa3e95972a4a1671ab", null ],
     [ "find", "group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a", null ],
     [ "find", "group__Object.html#gafbb3346e65eef447f22db3c9509f98f8", null ],
+    [ "insert", "group__Array.html#gae19ed935e84e274c0cc93fd397498d3a", null ],
+    [ "insert", "group__Array.html#ga80ba8ef75cdb0a1b64b9d7ab9df5f723", null ],
     [ "insert", "group__Object.html#gab1bb3e772366da9b594e58fdf8e8aa57", null ],
     [ "insert", "group__Object.html#gaabc202669d43c8031521c54e043f32f7", null ],
     [ "insert", "group__Object.html#ga5b86bbeebd1d761d9a4598ee4baabe42", null ],
