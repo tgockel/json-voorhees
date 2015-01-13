@@ -112,7 +112,7 @@ Using the library</h2>
 The jsonv::value</h3>
 <p>The central class of JSON Voorhees is the <code>value</code>. This class represents a JSON AST and is somewhat of a dynamic type. This can make things a little bit awkward for C++ programmers who are used to static typing. Don't worry about it -- you can learn to love it.</p>
 <p>Putting values of different types is super-easy.</p>
-<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;iostream&gt;</span>
   
   <span class="keywordtype">int</span> main()
@@ -138,7 +138,7 @@ The jsonv::value</h3>
       std::cout &lt;&lt; x &lt;&lt; std::endl;
   }
 </pre></div><p>JSON is dynamic, which makes value access a bit more of a hassle, but JSON Voorhees aims to make it not too horrifying for you. A <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> has a number of accessor methods named things like <code>as_integer</code> and <code>as_string</code> which let you access the value as if it was that type. But what if it isn't that type? In that case, the function will throw a <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">jsonv::kind_error</a></code> with a bit more information as to what rule you violated.</p>
-<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;iostream&gt;</span>
   
   <span class="keywordtype">int</span> main()
@@ -158,7 +158,7 @@ The jsonv::value</h3>
       std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9" title="Get this value as a string.">as_string</a>() &lt;&lt; <span class="stringliteral">&quot;\tis the same as\t&quot;</span> &lt;&lt; x &lt;&lt; std::endl;
   }
 </pre></div><p>You can also deal with container types in a similar manner that you would deal with the equivalent STL container type, with some minor caveats. Because the <code>value_type</code> of a JSON object and JSON array are different, they have different iterator types in JSON Voorhees. They are aptly-named <code>object_iterator</code> and <code>array_iterator</code>. The access methods for these iterators are <code>begin_object</code> / <code>end_object</code> and <code>begin_array</code> / <code>end_array</code>, respectively. The object interface behaves exactly like you would expect a <code>std::map&lt;std::string,jsonv::value&gt;</code> to, while the array interface behaves just like a <code>std::deque&lt;jsonv::value&gt;</code> would.</p>
-<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;iostream&gt;</span>
   
   <span class="keywordtype">int</span> main()
@@ -198,7 +198,7 @@ The jsonv::value</h3>
           std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;
   }
 </pre></div><p>The iterator types <em>work</em>. This means you are free to use all of the C++ things just like you would a regular container. To use a ranged-based for, simply call <code>as_array</code> or <code>as_object</code>. Everything from <code></code> &lt;algorithm&gt; and <code></code> &lt;iterator&gt; or any other library works great with JSON Voorhees. Bring those templates on!</p>
-<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;algorithm&gt;</span>
 <span class="preprocessor">  #include &lt;iostream&gt;</span>
   
@@ -219,7 +219,7 @@ The jsonv::value</h3>
 </pre></div><h3><a class="anchor" id="demo_parsing"></a>
 Encoding and decoding</h3>
 <p>Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services or storing things in a file or a database. JSON Voorhees makes this very easy for you.</p>
-<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;<a class="code" href="encode_8hpp.html" title="Classes and functions for encoding JSON values to various representations.">jsonv/encode.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;<a class="code" href="parse_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/parse.hpp</a>&gt;</span>
   

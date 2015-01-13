@@ -132,11 +132,13 @@ Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Coerce <em>from</em> into a <code>double</code>.  <a href="group__Coercion.html#gab8622e02fd1f38c93d11bc9680815627"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16">jsonv::coerce_boolean</a> (const value &amp;from)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Coerce <em>from</em> into a <code>bool</code>.  <a href="group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Coercion.html#ga98485441d78ea2cdfc00ce97b2563b73">jsonv::coerce_merge</a> (value a, value b)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Combines <em>a</em> and <em>b</em> in any way possible.  <a href="group__Coercion.html#ga98485441d78ea2cdfc00ce97b2563b73"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>A <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> has a number of <code>as_X</code> operators, which strictly performs a transformation to a C++ data type. </p>
 <p>However, sometimes when working with things like user input, you would like to be more free-form in what you accept as "valid."</p>
-<p>Copyright (c) 2014 by Travis Gockel. All rights reserved.</p>
+<p>Copyright (c) 2014-2015 by Travis Gockel. All rights reserved.</p>
 <p>This program is free software: you can redistribute it and/or modify it under the terms of the Apache License as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later version.</p>
 <dl class="author"><dt><b>Author:</b></dt><dd>Travis Gockel (<a href="mailto:travis@gockelhut.com">travis@gockelhut.com</a>) </dd></dl>
 

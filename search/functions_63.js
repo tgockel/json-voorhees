@@ -7,6 +7,7 @@ var searchData=
   ['coerce_5fboolean',['coerce_boolean',['../group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16',1,'jsonv']]],
   ['coerce_5fdecimal',['coerce_decimal',['../group__Coercion.html#gab8622e02fd1f38c93d11bc9680815627',1,'jsonv']]],
   ['coerce_5finteger',['coerce_integer',['../group__Coercion.html#ga202340832fcd5dc84ed142954bf4e85c',1,'jsonv']]],
+  ['coerce_5fmerge',['coerce_merge',['../group__Coercion.html#ga98485441d78ea2cdfc00ce97b2563b73',1,'jsonv']]],
   ['coerce_5fnull',['coerce_null',['../group__Coercion.html#ga82b464dbe1081e60ddcd82c434b28c34',1,'jsonv']]],
   ['coerce_5fobject',['coerce_object',['../group__Coercion.html#gae9a1f603c9ce75f7bd479f022e43dc91',1,'jsonv']]],
   ['coerce_5fstring',['coerce_string',['../group__Coercion.html#ga7e3fd5c6922f9ead68a46031b0af3e49',1,'jsonv']]],

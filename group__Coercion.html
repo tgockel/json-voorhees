@@ -117,6 +117,8 @@ Functions</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Coerce <em>from</em> into a <code>double</code>.  <a href="#gab8622e02fd1f38c93d11bc9680815627"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16">jsonv::coerce_boolean</a> (const value &amp;from)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Coerce <em>from</em> into a <code>bool</code>.  <a href="#ga7ef79a40e8ad18e599287552546fca16"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Coercion.html#ga98485441d78ea2cdfc00ce97b2563b73">jsonv::coerce_merge</a> (value a, value b)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Combines <em>a</em> and <em>b</em> in any way possible.  <a href="#ga98485441d78ea2cdfc00ce97b2563b73"></a><br/></td></tr>
 </table>
 <hr/><h2>Function Documentation</h2>
 <a class="anchor" id="gaf20cb82e10e2201d983e217c47e26ba6"></a><!-- doxytag: member="jsonv::can_coerce" ref="gaf20cb82e10e2201d983e217c47e26ba6" args="(const kind &amp;from, const kind &amp;to)" -->
@@ -265,6 +267,36 @@ Functions</h2></td></tr>
 <p>Coerce <em>from</em> into an integer. </p>
 <p>If <em>from</em> is a <code>decimal</code> lower than the minimum of <code>std::int64_t</code> or higher than the maximum of <code>std::int64_t</code>, it is clamped to the lowest or highest value, respectively.</p>
 <dl class="return"><dt><b>Returns:</b></dt><dd><code>kind</code> is... | Rules ------------- | ------------------------------------------------- <code>null</code> | throws <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></code> <code>object</code> | throws <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></code> <code>array</code> | throws <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></code> <code>string</code> | <code>parse</code>(from.as_string()).as_integer() <code>integer</code> | <code>from.as_integer()</code> <code>decimal</code> | <code>std::int64_t</code>(from.as_decimal()) <code>boolean</code> | <code>from.as_boolean()</code> ? 1 : 0 </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga98485441d78ea2cdfc00ce97b2563b73"></a><!-- doxytag: member="jsonv::coerce_merge" ref="ga98485441d78ea2cdfc00ce97b2563b73" args="(value a, value b)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value jsonv::coerce_merge </td>
+          <td>(</td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>a</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>b</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Combines <em>a</em> and <em>b</em> in any way possible. </p>
+<p>The result kind is <em>usually</em> based on the kind of <em>a</em> and loosely follows what ECMAScript does when you call <code>+</code> on two values (sort of). If you are looking for "predictable", this is not the function for you. If you are looking for convenience, this is it. </p>
 
 </div>
 </div>

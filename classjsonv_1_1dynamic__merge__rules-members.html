@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>JSON Voorhees: jsonv/all.hpp Source File</title>
+<title>JSON Voorhees: Member List</title>
 
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
@@ -53,8 +53,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
-      <li><a href="annotated.html"><span>Classes</span></a></li>
-      <li class="current"><a href="files.html"><span>Files</span></a></li>
+      <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
+      <li><a href="files.html"><span>Files</span></a></li>
       <li><a href="examples.html"><span>Examples</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -76,8 +76,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
-      <li><a href="files.html"><span>File&#160;List</span></a></li>
-      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
+      <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
+      <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
+      <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -91,30 +93,23 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-  initNavTree('all_8hpp.html','');
+  initNavTree('classjsonv_1_1dynamic__merge__rules.html','');
 </script>
 <div id="doc-content">
 <div class="header">
   <div class="headertitle">
-<div class="title">jsonv/all.hpp</div>  </div>
+<div class="title">jsonv::dynamic_merge_rules Member List</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="all_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 
-<a name="l00012"></a>00012 <span class="preprocessor">#ifndef __JSONV_ALL_HPP_INCLUDED__</span>
-<a name="l00013"></a>00013 <span class="preprocessor"></span><span class="preprocessor">#define __JSONV_ALL_HPP_INCLUDED__</span>
-<a name="l00014"></a>00014 <span class="preprocessor"></span>
-<a name="l00224"></a>00224 <span class="preprocessor">#include &quot;<a class="code" href="coerce_8hpp.html" title="A jsonv::value has a number of as_X operators, which strictly performs a transformation to a C++ data...">coerce.hpp</a>&quot;</span>
-<a name="l00225"></a>00225 <span class="preprocessor">#include &quot;<a class="code" href="config_8hpp.html" title="Copyright (c) 2014 by Travis Gockel.">config.hpp</a>&quot;</span>
-<a name="l00226"></a>00226 <span class="preprocessor">#include &quot;<a class="code" href="encode_8hpp.html" title="Classes and functions for encoding JSON values to various representations.">encode.hpp</a>&quot;</span>
-<a name="l00227"></a>00227 <span class="preprocessor">#include &quot;<a class="code" href="forward_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">forward.hpp</a>&quot;</span>
-<a name="l00228"></a>00228 <span class="preprocessor">#include &quot;<a class="code" href="parse_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">parse.hpp</a>&quot;</span>
-<a name="l00229"></a>00229 <span class="preprocessor">#include &quot;<a class="code" href="string__view_8hpp.html" title="Pulls in an implementation of string_view.">string_view.hpp</a>&quot;</span>
-<a name="l00230"></a>00230 <span class="preprocessor">#include &quot;<a class="code" href="tokenizer_8hpp.html" title="A stream-based tokenizer meant to help with creating custom parsers.">tokenizer.hpp</a>&quot;</span>
-<a name="l00231"></a>00231 <span class="preprocessor">#include &quot;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">value.hpp</a>&quot;</span>
-<a name="l00232"></a>00232 
-<a name="l00233"></a>00233 <span class="preprocessor">#endif</span><span class="comment">/*__JSONV_ALL_HPP_INCLUDED__*/</span>
-</pre></div></div><!-- contents -->
-</div>
+This is the complete list of members for <a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a>, including all inherited members.<table>
+  <tr bgcolor="#f0f0f0"><td><b>dynamic_merge_rules</b>(same_key_function same_key, type_conflict_function type_conflict) (defined in <a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a>)</td><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td><td></td></tr>
+  <tr class="memlist"><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html#a058fd362ff4f1e0d2549916b787ac97d">resolve_same_key</a>(path &amp;&amp;current_path, value &amp;&amp;a, value &amp;&amp;b) const override</td><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td><td><code> [virtual]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html#a5aa7e53481c06ba09f9c166aaf833f50">resolve_type_conflict</a>(path &amp;&amp;current_path, value &amp;&amp;a, value &amp;&amp;b) const override</td><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>same_key</b> (defined in <a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a>)</td><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>type_conflict</b> (defined in <a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a>)</td><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>~dynamic_merge_rules</b>() noexcept (defined in <a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a>)</td><td><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td><td><code> [virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>~merge_rules</b>() noexcept (defined in <a class="el" href="classjsonv_1_1merge__rules.html">jsonv::merge_rules</a>)</td><td><a class="el" href="classjsonv_1_1merge__rules.html">jsonv::merge_rules</a></td><td><code> [virtual]</code></td></tr>
+</table></div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -129,9 +124,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
+</div>
   <div id="nav-path" class="navpath">
     <ul>
-      <li class="navelem"><a class="el" href="all_8hpp.html">all.hpp</a>      </li>
 
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">

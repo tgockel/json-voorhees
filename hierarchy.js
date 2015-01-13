@@ -20,6 +20,11 @@ var hierarchy =
     ] ],
     [ "std::hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", null ],
     [ "jsonv::kind_error", "classjsonv_1_1kind__error.html", null ],
+    [ "jsonv::merge_rules", "classjsonv_1_1merge__rules.html", [
+      [ "jsonv::dynamic_merge_rules", "classjsonv_1_1dynamic__merge__rules.html", null ],
+      [ "jsonv::recursive_merge_rules", "classjsonv_1_1recursive__merge__rules.html", null ],
+      [ "jsonv::throwing_merge_rules", "classjsonv_1_1throwing__merge__rules.html", null ]
+    ] ],
     [ "jsonv::parse_error", "classjsonv_1_1parse__error.html", null ],
     [ "jsonv::parse_options", "classjsonv_1_1parse__options.html", null ],
     [ "jsonv::path_element", "classjsonv_1_1path__element.html", null ],
