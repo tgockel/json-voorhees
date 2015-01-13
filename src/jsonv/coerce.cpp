@@ -184,6 +184,8 @@ value coerce_merge(value a, value b)
 {
     if (a.kind() == b.kind())
         return merge_recursive(std::move(a), std::move(b));
+    else if (b.kind() == kind::null)
+        return a;
     else switch (a.kind())
     {
     case kind::array:
