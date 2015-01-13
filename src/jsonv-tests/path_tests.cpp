@@ -22,6 +22,14 @@ namespace jsonv_test
 
 using namespace jsonv;
 
+TEST(path_kind_encoding)
+{
+    ensure_eq(to_string(path_element_kind::array_index), "array_index");
+    ensure_eq(to_string(path_element_kind::object_key),  "object_key");
+    
+    to_string(static_cast<path_element_kind>(~0));
+}
+
 TEST(path_element_copy_compares)
 {
     path_element elem1("hi");
@@ -154,6 +162,18 @@ TEST(value_path_array_construct)
     arr.path(1) = 1;
     arr.path(2) = 2;
     ensure_eq(arr, array({ 0, 1, 2 }));
+}
+
+TEST(path_element_access)
+{
+    path p = path::create(".a.b[5]");
+    ensure_throws(std::out_of_range, p.at(4));
+    ensure_throws(kind_error, p.at(0).index());
+    ensure_throws(kind_error, p.at(2).key());
+    
+    path q = std::move(p);
+    p = q;
+    ensure_eq(p, q);
 }
 
 }

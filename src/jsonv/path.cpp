@@ -111,13 +111,13 @@ path_element& path_element::operator=(const path_element& src)
     {
         if (_kind == path_element_kind::array_index)
         {
-            // place a moved string into our data
+            // place a copied string into our data
             new(static_cast<void*>(&_data.key)) std::string(src._data.key);
             _kind = path_element_kind::object_key;
         }
         else
         {
-            _data.key = std::move(src._data.key);
+            _data.key = src._data.key;
         }
     }
     
