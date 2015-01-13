@@ -120,6 +120,10 @@ JSONV_PUBLIC double coerce_decimal(const value& from);
 **/
 JSONV_PUBLIC bool coerce_boolean(const value& from);
 
+/** Combines \a a and \a b in any way possible. The result kind is \e usually based on the kind of \a a and loosely
+ *  follows what ECMAScript does when you call \c + on two values (sort of). If you are looking for "predictable", this
+ *  is not the function for you. If you are looking for convenience, this is it.
+**/
 JSONV_PUBLIC value coerce_merge(value a, value b);
 
 /** \} **/
