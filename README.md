@@ -22,6 +22,8 @@ Features include (but are not necessarily limited to):
      - Clang++ (3.3+)
 
 [![Build Status](https://travis-ci.org/tgockel/json-voorhees.svg?branch=master)](https://travis-ci.org/tgockel/json-voorhees)
+[![Code Coverage](https://img.shields.io/coveralls/tgockel/json-voorhees.svg)](https://coveralls.io/r/tgockel/json-voorhees)
+[![Github Issues](https://img.shields.io/github/issues/tgockel/json-voorhees.svg)](http://github.com/tgockel/json-voorhees/issues)
 
 Compile and Install
 -------------------
