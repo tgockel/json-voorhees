@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2014-2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -11,6 +11,7 @@
 #include <jsonv/coerce.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
+#include <jsonv/util.hpp>
 
 #include <limits>
 
@@ -176,6 +177,38 @@ bool coerce_boolean(const value& from)
         return from.as_boolean();
     default:
         throw kind_error(std::string("Invalid kind for boolean: ") + to_string(from.kind()));
+    }
+}
+
+value coerce_merge(value a, value b)
+{
+    if (a.kind() == b.kind())
+        return merge_recursive(std::move(a), std::move(b));
+    else switch (a.kind())
+    {
+    case kind::array:
+        a.push_back(std::move(b));
+        return a;
+    case kind::boolean:
+        return a.as_boolean() || coerce_boolean(b);
+    case kind::integer:
+        if (can_coerce(b, kind::integer))
+            return a.as_integer() + coerce_integer(b);
+        // fall through to see if we can coerce a decimal
+    case kind::decimal:
+        if (can_coerce(b, kind::decimal))
+            return a.as_decimal() + coerce_decimal(b);
+        else
+            return coerce_merge(std::move(b), std::move(a));
+    case kind::null:
+        return b;
+    case kind::object:
+        a["undefined"] = std::move(b);
+        return a;
+    case kind::string:
+        return a.as_string() + coerce_string(b);
+    default:
+        throw kind_error(to_string(a.kind()));
     }
 }
 

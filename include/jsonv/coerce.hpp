@@ -3,7 +3,7 @@
  *  However, sometimes when working with things like user input, you would like to be more free-form in what you accept
  *  as "valid."
  *  
- *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2014-2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -119,6 +119,8 @@ JSONV_PUBLIC double coerce_decimal(const value& from);
  *   \c boolean    | \c from.as_boolean()
 **/
 JSONV_PUBLIC bool coerce_boolean(const value& from);
+
+JSONV_PUBLIC value coerce_merge(value a, value b);
 
 /** \} **/
 
