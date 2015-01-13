@@ -110,7 +110,8 @@
 #ifndef JSONV_INTEGER_ALTERNATES_LIST
 #   define JSONV_INTEGER_ALTERNATES_LIST(item) \
         item(int)                              \
-        item(unsigned int)
+        item(unsigned int)                     \
+        item(unsigned long)
 #endif
 
 /** \def JSONV_STRING_VIEW_TYPE
