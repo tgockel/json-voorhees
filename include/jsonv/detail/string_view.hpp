@@ -27,6 +27,10 @@ namespace jsonv
 namespace detail
 {
 
+/** A non-owning reference to an \c std::string, as proposed to the C++ Standard Committee by Jeffrey Yasskin in N3921
+ *  (http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html). Unlike the one proposed, this is not templated
+ *  over the \c char type, as this project only deals with UTF-8 encoded strings.
+**/
 class string_view
 {
 public:
