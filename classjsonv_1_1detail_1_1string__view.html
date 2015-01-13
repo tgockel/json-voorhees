@@ -106,6 +106,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <!-- doxytag: class="jsonv::detail::string_view" -->
+<p>A non-owning reference to an <code>std::string</code>, as proposed to the C++ Standard Committee by Jeffrey Yasskin in N3921 (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html</a>).  
+ <a href="classjsonv_1_1detail_1_1string__view.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="detail_2string__view_8hpp_source.html">jsonv/detail/string_view.hpp</a>&gt;</code></p>
+
 <p><a href="classjsonv_1_1detail_1_1string__view-members.html">List of all members.</a></p>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
@@ -220,8 +225,10 @@ Friends</h2></td></tr>
 std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;&lt;</b> (std::ostream &amp;os, const <a class="el" href="classjsonv_1_1detail_1_1string__view.html">string_view</a> &amp;self)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock">
-<p>Definition at line <a class="el" href="detail_2string__view_8hpp_source.html#l00030">30</a> of file <a class="el" href="detail_2string__view_8hpp_source.html">string_view.hpp</a>.</p>
+<div class="textblock"><p>A non-owning reference to an <code>std::string</code>, as proposed to the C++ Standard Committee by Jeffrey Yasskin in N3921 (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3921.html</a>). </p>
+<p>Unlike the one proposed, this is not templated over the <code>char</code> type, as this project only deals with UTF-8 encoded strings. </p>
+
+<p>Definition at line <a class="el" href="detail_2string__view_8hpp_source.html#l00034">34</a> of file <a class="el" href="detail_2string__view_8hpp_source.html">string_view.hpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/detail/<a class="el" href="detail_2string__view_8hpp_source.html">string_view.hpp</a></li>
 </ul>
