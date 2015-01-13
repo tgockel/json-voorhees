@@ -15,6 +15,8 @@
 #include <jsonv/value.hpp>
 
 #include <iostream>
+#include <locale>
+#include <sstream>
 
 static const char k_some_json[] = R"({
   "a": [ 4, 5, 6, [7, 8, 9, {"something": 5, "else": 6}]],
@@ -29,4 +31,23 @@ TEST(encode_pretty_print)
     auto val = jsonv::parse(k_some_json);
     jsonv::ostream_pretty_encoder encoder(std::cout);
     encoder.encode(val);
+}
+
+TEST(encode_locale_comma_numbers)
+{
+    std::ostringstream os;
+    try
+    {
+        os.imbue(std::locale("de_DE.utf8"));
+    }
+    catch (std::runtime_error&)
+    {
+        // skip the test if German isn't available...
+        return;
+    }
+    jsonv::value val = 3.14;
+    os << val;
+    std::string encoded = os.str();
+    jsonv::value decoded = jsonv::parse(encoded);
+    ensure_eq(val, decoded);
 }
