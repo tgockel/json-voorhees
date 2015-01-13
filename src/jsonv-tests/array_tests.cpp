@@ -159,6 +159,32 @@ TEST(array_view)
     ensure_eq(arr1, arr2);
 }
 
+TEST(array_push_pop)
+{
+    using namespace jsonv;
+    
+    value arr = array({ 1, 2, 3 });
+    ensure(!arr.empty());
+    arr.push_front(0);
+    {
+        std::int64_t exp = 0;
+        for (const value& x : arr.as_array())
+        {
+            ensure_eq(exp, x.as_integer());
+            ensure_eq(x, arr.at(exp));
+            ++exp;
+        }
+    }
+    ensure_throws(std::out_of_range, arr.at(10));
+    ensure_eq(4U, arr.size());
+    arr.pop_front();
+    ensure_eq(3U, arr.size());
+    arr.pop_back();
+    ensure_eq(2U, arr.size());
+    arr.assign(5, nullptr);
+    ensure_eq(array({ nullptr, nullptr, nullptr, nullptr, nullptr }), arr);
+}
+
 TEST(array_insertion)
 {
     using namespace jsonv;

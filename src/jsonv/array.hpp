@@ -35,9 +35,6 @@ public:
     
     int compare(const array_impl& other) const;
     
-    bool operator==(const array_impl& other) const;
-    bool operator!=(const array_impl& other) const;
-    
 public:
     array_type _values;
 };
