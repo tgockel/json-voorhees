@@ -16,9 +16,7 @@
 #include <fstream>
 #include <memory>
 
-#include <boost/filesystem.hpp>
-
-namespace fs = boost::filesystem;
+#include <jsonv-tests/filesystem_util.hpp>
 
 namespace jsonv_test
 {
@@ -27,12 +25,12 @@ class json_checker_test :
         public unit_test
 {
 public:
-    explicit json_checker_test(const fs::path&             datapath,
+    explicit json_checker_test(const std::string&          datapath,
                                const std::string&          test_name_post,
                                bool                        expect_failure,
                                const jsonv::parse_options& options
                               ) :
-            unit_test(std::string("json_checker_test/") + datapath.filename().string() + test_name_post),
+            unit_test(std::string("json_checker_test/") + filename(datapath) + test_name_post),
             _datapath(datapath),
             _expect_failure(expect_failure),
             _options(options)
@@ -53,7 +51,7 @@ private:
     }
     
 private:
-    fs::path             _datapath;
+    std::string          _datapath;
     bool                 _expect_failure;
     jsonv::parse_options _options;
 };
@@ -63,33 +61,28 @@ class json_checker_test_initializer
 public:
     explicit json_checker_test_initializer(const std::string& rootpathname)
     {
-        fs::path rootpath(rootpathname);
-        for (fs::directory_iterator iter(rootpath); iter != fs::directory_iterator(); ++iter)
+        recursive_directory_for_each(rootpathname, ".json", [this] (const std::string& p)
         {
-            fs::path p = *iter;
-            if (p.extension() == ".json")
+            bool expect_failure = filename(p).find("fail") == 0;
+            std::unique_ptr<json_checker_test> test(new json_checker_test(p,
+                                                                          "",
+                                                                          expect_failure,
+                                                                          jsonv::parse_options::create_default()
+                                                                          )
+                                                   );
+            _tests.emplace_back(std::move(test));
+            
+            if (filename(p).find("pass-but-fail-strict") == 0)
             {
-                bool expect_failure = p.filename().string().find("fail") == 0;
-                std::unique_ptr<json_checker_test> test(new json_checker_test(p,
-                                                                              "",
-                                                                              expect_failure,
-                                                                              jsonv::parse_options::create_default()
-                                                                             )
-                                                       );
-                _tests.emplace_back(std::move(test));
-                
-                if (p.filename().string().find("pass-but-fail-strict") == 0)
-                {
-                    std::unique_ptr<json_checker_test> strict(new json_checker_test(p,
-                                                                                    "+strict",
-                                                                                    true,
-                                                                                    jsonv::parse_options::create_strict()
-                                                                                   )
-                                                             );
-                    _tests.emplace_back(std::move(strict));
-                }
+                std::unique_ptr<json_checker_test> strict(new json_checker_test(p,
+                                                                                "+strict",
+                                                                                true,
+                                                                                jsonv::parse_options::create_strict()
+                                                                               )
+                                                         );
+                _tests.emplace_back(std::move(strict));
             }
-        }
+        });
     }
     
 private:
