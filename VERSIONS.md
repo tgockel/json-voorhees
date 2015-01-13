@@ -6,6 +6,21 @@
 0._ Series
 ==========
 
+[0.4](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.4)
+-------------------------------------------------------------------------
+
+The focus of this release was the creation of tools to traverse and manipulate the JSON AST.
+
+ - [0.4.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.0): 2015 January 13
+   - Creates a generic visitor system for `jsonv::value`
+   - Creates the `path` system, which is a very simplified version of JSONPath
+   - Creates the `merge` and `traverse` families of algorithms
+   - Creates the *coerce* library for non-strict conversion
+   - Extends `array_view` and `object_view` to have *owning* versions, so calling `value::as_array` and
+     `value::as_object` on rvalues works as you would expect (safely)
+   - Make `kind::decimal` and `kind::integer` equivalent in almost all cases
+   - Various bugfixes
+
 [0.3](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.3)
 -------------------------------------------------------------------------
 
