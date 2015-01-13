@@ -25,6 +25,7 @@ TEST(parse_single_backslash)
     jsonv::value val = jsonv::parse("\"\\\\\""); // "\\"
     const std::string& str = val.as_string();
     ensure(str == "\\");
+    ensure_eq(1, val.size());
 }
 
 TEST(parse_bogus_string_throws)

@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -15,6 +15,7 @@
 #include <cstdint>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 
 TEST(move_to_self)
 {
@@ -38,6 +39,11 @@ TEST(compare_bools)
     ensure_eq(f1.compare(f2),  0);
     ensure_eq(t1.compare(f1),  1);
     ensure_eq(f1.compare(t2), -1);
+    
+    ensure(t1 <= t2);
+    ensure(t1 >= t2);
+    ensure(t1 >  f1);
+    ensure(t1 >= f1);
 }
 
 TEST(compare_arrs)
@@ -55,6 +61,11 @@ TEST(value_equal_integer_decimal)
 {
     ensure_eq(jsonv::value(2), jsonv::value(2.0));
     ensure_eq(jsonv::value(2.0), jsonv::value(2));
+}
+
+TEST(value_equal_float_decimal)
+{
+    ensure_eq(jsonv::value(2.5f), jsonv::value(2.5));
 }
 
 TEST(value_store_unordered_map)
@@ -80,4 +91,37 @@ TEST(value_decimal_denorm_min_compares)
     ensure_ne(x.as_decimal(), y.as_decimal());
     ensure_eq(x, y);
     ensure_eq(0, x.compare(y));
+}
+
+TEST(swap)
+{
+    jsonv::value x = jsonv::array({ 1, 2, 3 });
+    jsonv::value y = "SOMETHING";
+    swap(x, y);
+    ensure_eq(jsonv::value("SOMETHING"), x);
+    ensure_eq(jsonv::array({ 1, 2, 3 }), y);
+}
+
+TEST(swap_same)
+{
+    jsonv::value x = jsonv::array({ 1, 2, 3 });
+    swap(x, x);
+    ensure_eq(jsonv::array({ 1, 2, 3 }), x);
+}
+
+TEST(hash_set_operations)
+{
+    jsonv::value num = 2.9;
+    jsonv::value arr = jsonv::array({ 1, 2, 3 });
+    jsonv::value obj = jsonv::object({ {"arr", arr } });
+    jsonv::value str = "SOMETHING";
+    jsonv::value bol = true;
+    jsonv::value nul = nullptr;
+    
+    std::unordered_set<jsonv::value> set = { num, arr, obj, str, bol, nul };
+    ensure_eq(6U, set.size());
+    ensure_eq(1U, set.count(arr));
+    set.erase(str);
+    ensure_eq(0U, set.count(str));
+    ensure_eq(5U, set.size());
 }

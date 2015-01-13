@@ -136,4 +136,24 @@ TEST(path_value_construction)
     ensure_eq(expected, tree);
 }
 
+TEST(value_at_path_out_of_range)
+{
+    value tree;
+    tree.path(".a.b[2]") = "Hello!";
+    tree.path(".a[\"b\"][3]") = 3;
+    tree.path(".a[\"b\"][1]") = "Yo";
+    ensure_throws(std::out_of_range, tree.at_path(".does.not.exist"));
+    const value& tree2 = tree;
+    ensure_throws(std::out_of_range, tree2.at_path(".does.not.exist"));
+}
+
+TEST(value_path_array_construct)
+{
+    value arr;
+    arr.path(0) = 0;
+    arr.path(1) = 1;
+    arr.path(2) = 2;
+    ensure_eq(arr, array({ 0, 1, 2 }));
+}
+
 }
