@@ -34,10 +34,7 @@ public:
     value::size_type size() const;
     
     int compare(const object_impl& other) const;
-    
-    bool operator==(const object_impl& other) const;
-    bool operator!=(const object_impl& other) const;
-    
+        
 public:
     map_type _values;
 };

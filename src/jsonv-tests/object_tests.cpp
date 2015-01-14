@@ -14,7 +14,8 @@
 #include <jsonv/object.hpp>
 #include <jsonv/parse.hpp>
 
-#include <map>
+#include <string>
+#include <utility>
 
 TEST(object)
 {
@@ -32,14 +33,34 @@ TEST(object_view_iter_assign)
     using namespace jsonv;
     
     value obj = object({ { "foo", 5 }, { "bar", "wat" } });
-    std::map<std::string, bool> found{ { "foo", false }, { "bar", false } };
+    value found = object({ { "foo", false }, { "bar", false } });
     ensure(obj.size() == 2);
     
     for (auto iter = obj.begin_object(); iter != obj.end_object(); ++iter)
-        found[iter->first] = true;
+    {
+        value::object_iterator fiter;
+        fiter = found.find(iter->first);
+        ensure(!fiter->second.as_boolean());
+        fiter->second = true;
+    }
     
-    for (auto iter = found.begin(); iter != found.end(); ++iter)
-        ensure(iter->second);
+    for (auto iter = found.begin_object(); iter != found.end_object(); ++iter)
+        ensure(iter->second.as_boolean());
+}
+
+TEST(object_view_reverse_iter)
+{
+    using namespace jsonv;
+    
+    value obj = object({ { "a", 1 }, { "b", 2 }, { "c", 3 } });
+    auto riter = obj.as_object().rbegin();
+    ensure_eq(riter->first, "c");
+    ++riter;
+    ensure_eq(riter->first, "b");
+    ++riter;
+    ensure_eq(riter->first, "a");
+    ++riter;
+    ensure(riter == obj.as_object().rend());
 }
 
 TEST(object_compare)
@@ -111,7 +132,7 @@ TEST(object_nested_access)
     jsonv::value v = jsonv::object({ { "x", 0 } });
     jsonv::value* p = &v;
     int depth = 1;
-    for (const char* name : { "a", "b", "c", "d" })
+    for (std::string name : { "a", "b", "c", "d" })
     {
         (*p)[name] = jsonv::object({ { "x", depth } });
         p = &(*p)[name];
@@ -123,6 +144,17 @@ TEST(object_nested_access)
     ensure_eq(v["a"]["b"]["x"],           2);
     ensure_eq(v["a"]["b"]["c"]["x"],      3);
     ensure_eq(v["a"]["b"]["c"]["d"]["x"], 4);
+}
+
+TEST(owning_object_view)
+{
+    auto view = jsonv::object({ { "a", 1 }, { "b", 2 } }).as_object();
+    auto iter = view.begin();
+    ensure_eq("a", iter->first);
+    ++iter;
+    ensure_eq("b", iter->first);
+    ++iter;
+    ensure(iter == view.end());
 }
 
 TEST(parse_empty_object)

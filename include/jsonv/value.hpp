@@ -298,6 +298,19 @@ public:
                               typename std::enable_if<std::is_convertible<U*, T*>::value>::type* = 0
                              );
         
+        basic_object_iterator& operator=(const basic_object_iterator& source)
+        {
+            copy_from(source._storage);
+            return *this;
+        }
+        
+        template <typename U>
+        typename std::enable_if<std::is_convertible<U*, T*>::value, basic_object_iterator&>::type
+        operator=(const basic_object_iterator<U>& source)
+        {
+            return operator=(basic_object_iterator(source));
+        }
+        
         basic_object_iterator& operator++()
         {
             increment();

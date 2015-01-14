@@ -337,20 +337,5 @@ int object_impl::compare(const object_impl& other) const
     return self_iter == _values.end() ? othr_iter == other._values.end() ? 0 : -1 : 1;
 }
 
-bool object_impl::operator==(const object_impl& other) const
-{
-    if (this == &other)
-        return true;
-    if (_values.size() != other._values.size())
-        return false;
-    
-    return std::equal(begin(_values), end(_values), begin(other._values));
-}
-
-bool object_impl::operator!=(const object_impl& other) const
-{
-    return !operator==(other);
-}
-
 }
 }
