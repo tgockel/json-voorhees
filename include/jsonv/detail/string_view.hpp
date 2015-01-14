@@ -257,8 +257,7 @@ public:
     
     bool operator!=(const string_view& other) const
     {
-        return _length != other._length
-            || (_base != other._base && std::mismatch(begin(), end(), other.begin()).first == end());
+        return !operator==(other);
     }
     
     bool operator<(const string_view& other) const
