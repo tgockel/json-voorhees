@@ -282,7 +282,7 @@ test : $(TESTS)
 coverage : test
 	$Qcoveralls                                \
           --build-root .                           \
-          --exclude-pattern jsonv-tests            \
+          --exclude-pattern test                   \
           --exclude-pattern bits                   \
           --exclude-pattern boost                  \
           --gcov-options '\-lp' --gcov 'gcov-4.8'
