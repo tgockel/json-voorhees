@@ -221,13 +221,16 @@
  *  \see http://json.org/
 **/
 
+#include "algorithm.hpp"
 #include "coerce.hpp"
 #include "config.hpp"
 #include "encode.hpp"
 #include "forward.hpp"
 #include "parse.hpp"
+#include "path.hpp"
 #include "string_view.hpp"
 #include "tokenizer.hpp"
+#include "util.hpp"
 #include "value.hpp"
 
 #endif/*__JSONV_ALL_HPP_INCLUDED__*/

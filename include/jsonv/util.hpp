@@ -23,6 +23,11 @@
 namespace jsonv
 {
 
+/** \addtogroup Utility
+ *  \{
+ *  Utility functions useful for manipulating instances of \c jsonv::value.
+**/
+
 /** This class is used in \c merge_explicit for defining what the function should do in the cases of conflicts. **/
 class JSONV_PUBLIC merge_rules
 {
@@ -165,6 +170,8 @@ value merge_recursive(TValue&&... values)
                           std::forward<TValue>(values)...
                          );
 }
+
+/** \} **/
 
 }
 
