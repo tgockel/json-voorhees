@@ -131,3 +131,36 @@ TEST(parse_empty_object)
     
     ensure(obj.size() == 0);
 }
+
+TEST(parse_keyless_object)
+{
+    try
+    {
+        jsonv::parse("{a : 3}", jsonv::parse_options().failure_mode(jsonv::parse_options::on_error::collect_all));
+    }
+    catch (const jsonv::parse_error& err)
+    {
+        ensure_eq(jsonv::object({ { "a", 3 } }), err.partial_result());
+    }
+}
+
+TEST(parse_object_stops)
+{
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah")"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah",)"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah", )"));
+}
+
+TEST(parse_object_value_stops)
+{
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah)"));
+}
+
+TEST(parse_object_duplicate_keys)
+{
+    std::string source = R"({ "a": 1, "a": 2 })";
+    ensure_throws(jsonv::parse_error, jsonv::parse(source));
+    ensure_eq(jsonv::object({ { "a", 2 } }),
+              jsonv::parse(source, jsonv::parse_options().failure_mode(jsonv::parse_options::on_error::ignore))
+             );
+}

@@ -417,6 +417,8 @@ static bool parse_number(parse_context& context, value& out)
         }
         catch (boost::bad_lexical_cast&)
         {
+            // this should be unreachable -- the only way to get here would be if the regular expression for numeric
+            // types was wrong
             context.parse_error("Could not extract number from \"", characters, "\"");
             out = nullptr;
         }
