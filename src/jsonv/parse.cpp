@@ -48,25 +48,9 @@ parse_error::problem::problem(size_type line, size_type column, size_type charac
         _message(std::move(message))
 { }
 
-std::ostream& operator<<(std::ostream& os, const parse_error& p)
-{
-    os << "Encountered " << p.problems().size() << " parse issue" << (p.problems().size() == 1 ? "" : "s") << std::endl;
-    for (const parse_error::problem& prob : p.problems())
-        os << " - " << prob << std::endl;
-    os << "Partial result: " << p.partial_result();
-    return os;
-}
-
-std::string to_string(const parse_error& p)
-{
-    std::ostringstream os;
-    os << p;
-    return os.str();
-}
-
 std::ostream& operator<<(std::ostream& os, const parse_error::problem& p)
 {
-    return os << "At line " << p.line() << ':' << p.column() << " (character " << p.character() << "): " << p.message();
+    return os << "At line " << p.line() << ':' << p.column() << " (char " << p.character() << "): " << p.message();
 }
 
 std::string to_string(const parse_error::problem& p)
@@ -91,10 +75,7 @@ static std::string parse_error_what(const parse_error::problem_list& problems)
         else
             stream << std::endl;
         
-        stream << "On line " << p.line()
-               << " column " << p.column()
-               << " (char " << p.character() << "): "
-               << p.message();
+        stream << p;
     }
     return stream.str();
 }
@@ -116,6 +97,18 @@ const parse_error::problem_list& parse_error::problems() const
 const value& parse_error::partial_result() const
 {
     return _partial_result;
+}
+
+std::ostream& operator<<(std::ostream& os, const parse_error& p)
+{
+    return os << p.what();
+}
+
+std::string to_string(const parse_error& p)
+{
+    std::ostringstream os;
+    os << p;
+    return os.str();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,6 +351,15 @@ private:
 
 static bool parse_generic(parse_context& context, value& out, bool advance = true);
 
+static void check_token(parse_context& context, string_view expected_token)
+{
+    if (context.current().text != expected_token)
+        context.parse_error("Failed to match \"", expected_token, "\""
+            , "\t", context.current().text.length(), " ", expected_token.length(), "\t",
+            std::equal(expected_token.begin(), expected_token.end(), context.current().text.begin())
+        );
+}
+
 static bool parse_boolean(parse_context& context, value& out)
 {
     assert(context.current_kind() == token_kind::boolean);
@@ -365,9 +367,11 @@ static bool parse_boolean(parse_context& context, value& out)
     {
     case 't':
         out = true;
+        check_token(context, "true");
         return true;
     case 'f':
         out = false;
+        check_token(context, "false");
         return true;
     default:
         context.parse_error("Invalid token for boolean.");
@@ -379,6 +383,7 @@ static bool parse_null(parse_context& context, value& out)
 {
     assert(context.current_kind() == token_kind::null);
     out = nullptr;
+    check_token(context, "null");
     return true;
 }
 

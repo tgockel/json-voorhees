@@ -130,6 +130,18 @@ TEST_PARSE(null_in_obj)
     ensure_eq(expected, result);
 }
 
+TEST_PARSE(malformed_bools)
+{
+    ensure_throws(parse_error, parse("truish"));
+    ensure_throws(parse_error, parse("tru"));
+    ensure_throws(parse_error, parse("falsy"));
+}
+
+TEST_PARSE(malformed_nulls)
+{
+    ensure_throws(parse_error, parse("nul"));
+}
+
 TEST_PARSE(object_in_array)
 {
     value result = parse(R"({"a": null, "b": {"c": 1, "d": "e", "f": null, "g": 2, )"
