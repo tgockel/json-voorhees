@@ -48,14 +48,21 @@ match_result attempt_match(const char*  begin,
                            std::size_t& length
                           );
 
+enum class path_match_result : char
+{
+    simple_object = '.',
+    brace         = '[',
+    invalid       = '\x00',
+};
+
 /** Attempt to match a path.
  *  
  *  \param input The input to match
  *  \param[out] match_contents The full contents of a match
 **/
-bool path_match(string_view  input,
-                string_view& match_contents
-               );
+path_match_result path_match(string_view  input,
+                             string_view& match_contents
+                            );
 
 }
 }

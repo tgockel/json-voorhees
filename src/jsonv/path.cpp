@@ -268,30 +268,24 @@ path path::create(string_view specification)
     while (!remaining.empty())
     {
         string_view match;
-        if (detail::path_match(remaining, match))
+        switch (detail::path_match(remaining, match))
         {
-            switch (match.at(0))
-            {
-            case '.':
+        case detail::path_match_result::simple_object:
                 out += match.substr(1);
                 break;
-            case '[':
-                if (match.at(1) == '\"')
-                    out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
-                else
-                    out += boost::lexical_cast<std::size_t>(match.data() + 1, match.size() - 2);
-                break;
-            default:
-                assert(false);
-            }
-            
-            remaining.remove_prefix(match.size());
-        }
-        else
-        {
+        case detail::path_match_result::brace:
+            if (match.at(1) == '\"')
+                out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
+            else
+                out += boost::lexical_cast<std::size_t>(match.data() + 1, match.size() - 2);
+            break;
+        default:
             throw std::invalid_argument(std::string("Invalid specification \"") + std::string(specification) + "\". "
-                                        +"Syntax error at \"" + std::string(remaining) + "\"");
+                                        +"Syntax error at \"" + std::string(remaining) + "\""
+                                       );
         }
+            
+        remaining.remove_prefix(match.size());
     }
     
     return out;

@@ -181,10 +181,10 @@ match_result attempt_match(const char* begin, const char* end, token_kind& kind,
     }
 }
 
-bool path_match(string_view input, string_view& match_contents)
+path_match_result path_match(string_view input, string_view& match_contents)
 {
     if (input.length() < 2)
-        return false;
+        return path_match_result::invalid;
     
     match_result result;
     token_kind kind;
@@ -197,30 +197,30 @@ bool path_match(string_view input, string_view& match_contents)
         if (result == match_result::complete || result == match_result::complete_eof)
         {
             match_contents = input.substr(0, length + 1);
-            return true;
+            return path_match_result::simple_object;
         }
         else
         {
-            return false;
+            return path_match_result::invalid;
         }
     case '[':
         result = attempt_match(input.data() + 1, input.data() + input.length(), kind, length);
         if (result == match_result::complete || result == match_result::complete_eof)
         {
             if (input.length() == length + 1 || input.at(1 + length) != ']')
-                return false;
+                return path_match_result::invalid;
             if (kind != token_kind::string && kind != token_kind::number)
-                return false;
+                return path_match_result::invalid;
             
             match_contents = input.substr(0, length + 2);
-            return true;
+            return path_match_result::brace;
         }
         else
         {
-            return false;
+            return path_match_result::invalid;
         }
     default:
-        return false;
+        return path_match_result::invalid;
     }
 }
 

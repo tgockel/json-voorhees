@@ -84,6 +84,25 @@ TEST(path_element_copy_compares)
     ensure_eq(elem3, elem3);
 }
 
+TEST(path_assign)
+{
+    path p;
+    path q = path::create(".b[5][2].crap[\"blah\"]");
+    p = q;
+    ensure_eq(p, q);
+    
+    q = std::move(p);
+    ensure_eq(0, p.size());
+    ensure_ne(0, q.size());
+    
+    p = std::move(q);
+    ensure_ne(0, p.size());
+    ensure_eq(0, q.size());
+    
+    q = p;
+    ensure_eq(p, q);
+}
+
 TEST(path_concat_key)
 {
     path p({ path_element("a") });
@@ -174,6 +193,28 @@ TEST(path_element_access)
     path q = std::move(p);
     p = q;
     ensure_eq(p, q);
+}
+
+TEST(path_element_kind_to_string_invalid)
+{
+    to_string(static_cast<path_element_kind>(~0));
+}
+
+TEST(path_parse_invalid)
+{
+    ensure_throws(std::invalid_argument, path::create(".a#"));
+    ensure_throws(std::invalid_argument, path::create("2"));
+}
+
+TEST(path_combines)
+{
+    path goal = path::create(".a.b.c[3][4][5]");
+    path a = path::create(".a.b.c");
+    path b = path::create("[3][4][5]");
+    
+    ensure_eq(goal, a + b);
+    a += b;
+    ensure_eq(goal, a);
 }
 
 }
