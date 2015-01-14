@@ -176,8 +176,21 @@ TEST(parse_keyless_object)
     }
 }
 
+TEST(parse_object_wrong_kind_keys)
+{
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({1: "blah")"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({null: "blah")"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({true: "blah")"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({1.3: "blah")"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({["hi"]: "blah")"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({{}: "blah")"));
+}
+
 TEST(parse_object_stops)
 {
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a")"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a" )"));
+    ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a":)"));
     ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah")"));
     ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah",)"));
     ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah", )"));
