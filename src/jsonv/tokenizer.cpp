@@ -213,7 +213,10 @@ bool tokenizer::read_input(bool grow_buffer)
     auto read_count = _input.gcount();
     if (read_count > 0)
     {
-        _buffer.resize(_input.gcount());
+        // check that the resize operation will not change the position of data()
+        std::size_t new_size = (buffer_write_pos - _buffer.data()) + read_count;
+        assert(_buffer.capacity() >= new_size);
+        _buffer.resize(new_size);
         _current.text = string_view(_buffer.data() + old_buffer_pos, _current.text.size());
         return true;
     }
