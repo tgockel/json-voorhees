@@ -48,6 +48,34 @@ parse_error::problem::problem(size_type line, size_type column, size_type charac
         _message(std::move(message))
 { }
 
+std::ostream& operator<<(std::ostream& os, const parse_error& p)
+{
+    os << "Encountered " << p.problems().size() << " parse issue" << (p.problems().size() == 1 ? "" : "s") << std::endl;
+    for (const parse_error::problem& prob : p.problems())
+        os << " - " << prob << std::endl;
+    os << "Partial result: " << p.partial_result();
+    return os;
+}
+
+std::string to_string(const parse_error& p)
+{
+    std::ostringstream os;
+    os << p;
+    return os.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const parse_error::problem& p)
+{
+    return os << "At line " << p.line() << ':' << p.column() << " (character " << p.character() << "): " << p.message();
+}
+
+std::string to_string(const parse_error::problem& p)
+{
+    std::ostringstream os;
+    os << p;
+    return os.str();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parse_error                                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -545,6 +573,34 @@ static bool parse_object(parse_context& context, value& out)
     return false;
 }
 
+/** This function skips over anything that isn't one of the "separator" characters. It is intended to make parse errors
+ *  a little more reasonable.
+**/
+static bool forward_to_separator(parse_context& context)
+{
+    while (context.next()) switch (context.current().kind)
+    {
+    case token_kind::boolean:
+    case token_kind::null:
+    case token_kind::number:
+    case token_kind::string:
+    case token_kind::parse_error_indicator:
+    case token_kind::unknown:
+        continue;
+    case token_kind::array_begin:
+    case token_kind::object_begin:
+    case token_kind::comment:
+    case token_kind::object_key_delimiter:
+    case token_kind::array_end:
+    case token_kind::object_end:
+    case token_kind::separator:
+    case token_kind::whitespace:
+        return true;
+    }
+    
+    return false;
+}
+
 static bool parse_generic(parse_context& context, value& out, bool advance)
 {
     if (advance && !context.next())
@@ -574,9 +630,10 @@ static bool parse_generic(parse_context& context, value& out, bool advance)
     case token_kind::object_key_delimiter:
     case token_kind::separator:
     case token_kind::parse_error_indicator:
+    default:
         context.parse_error("Encountered invalid token ", context.current().kind, ": \"", context.current().text, "\"");
+        return forward_to_separator(context);
     }
-    return true;
 }
 
 class JSONV_LOCAL depth_checker :

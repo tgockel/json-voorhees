@@ -201,3 +201,22 @@ TEST_PARSE(option_complete_parse_false)
         ensure_eq(expected, entry);
     }
 }
+
+TEST_PARSE(partial_array)
+{
+    try
+    {
+        parse_options options = parse_options()
+                                .failure_mode(parse_options::on_error::collect_all)
+                                .max_failures(1);
+        parse("[1, 2, bogus]", options);
+        ensure(false);
+    }
+    catch (const jsonv::parse_error& err)
+    {
+        // just check that we can...
+        to_string(err);
+        value expected = array({ 1, 2, nullptr });
+        ensure_eq(expected, err.partial_result());
+    }
+}

@@ -96,6 +96,18 @@ private:
     value        _partial_result;
 };
 
+/** Get a string representation of a problem. **/
+JSONV_PUBLIC std::ostream& operator<<(std::ostream& os, const parse_error::problem& p);
+
+/** Get a string representation of a problem. **/
+JSONV_PUBLIC std::string to_string(const parse_error::problem& p);
+
+/** Get a string representation of a \c parse_error. **/
+JSONV_PUBLIC std::ostream& operator<<(std::ostream& os, const parse_error& p);
+
+/** Get a string representation of a \c parse_error. **/
+JSONV_PUBLIC std::string to_string(const parse_error& p);
+
 /** Configuration for various parsing options. All parse functions should take in a \c parse_options as a paramter and
  *  should respect your settings.
 **/
