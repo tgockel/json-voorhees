@@ -10,6 +10,8 @@ var structjsonv_1_1value_1_1basic__object__iterator =
     [ "operator--", "structjsonv_1_1value_1_1basic__object__iterator.html#a6d98d170024ebb32f80d7c570f5060ae", null ],
     [ "operator--", "structjsonv_1_1value_1_1basic__object__iterator.html#a62cfd9b42ce34a15250ec23b704ae7f8", null ],
     [ "operator->", "structjsonv_1_1value_1_1basic__object__iterator.html#a5dc3137039281f10bba500b5353938a7", null ],
+    [ "operator=", "structjsonv_1_1value_1_1basic__object__iterator.html#abab16110537d404658c6a032f5c6c0c8", null ],
+    [ "operator=", "structjsonv_1_1value_1_1basic__object__iterator.html#a20344fceeec5e65a409812d27e2b79cf", null ],
     [ "operator==", "structjsonv_1_1value_1_1basic__object__iterator.html#a463dfea3285fb7b66c3e1610e715950e", null ],
     [ "value", "structjsonv_1_1value_1_1basic__object__iterator.html#ae5cda98fa74051d037c0c444c67efb15", null ]
 ];

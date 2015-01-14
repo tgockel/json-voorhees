@@ -127,6 +127,12 @@ Public Types</h2></td></tr>
 typedef TIterator&#160;</td><td class="memItemRight" valign="bottom"><b>iterator</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afb5430013851f448b69bf4b6450f7fcb"></a><!-- doxytag: member="jsonv::detail::basic_view::const_iterator" ref="afb5430013851f448b69bf4b6450f7fcb" args="" -->
 typedef TConstIterator&#160;</td><td class="memItemRight" valign="bottom"><b>const_iterator</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3287c366ba50a16edc75552a011d48ab"></a><!-- doxytag: member="jsonv::detail::basic_view::reverse_iterator" ref="a3287c366ba50a16edc75552a011d48ab" args="" -->
+typedef std::reverse_iterator<br class="typebreak"/>
+&lt; iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>reverse_iterator</b></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa028d75e44ecb138b9d60b48c3c3e383"></a><!-- doxytag: member="jsonv::detail::basic_view::const_reverse_iterator" ref="aa028d75e44ecb138b9d60b48c3c3e383" args="" -->
+typedef std::reverse_iterator<br class="typebreak"/>
+&lt; const_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>const_reverse_iterator</b></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae741d68a51d37185288462bb8527aa2a"></a><!-- doxytag: member="jsonv::detail::basic_view::value_type" ref="ae741d68a51d37185288462bb8527aa2a" args="" -->
 typedef std::iterator_traits<br class="typebreak"/>
 &lt; iterator &gt;::value_type&#160;</td><td class="memItemRight" valign="bottom"><b>value_type</b></td></tr>
@@ -152,6 +158,18 @@ const_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>end</b> () 
 const_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>cbegin</b> () const </td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2f1ee9dc013291bb9f3f21bc98c2a7b4"></a><!-- doxytag: member="jsonv::detail::basic_view::cend" ref="a2f1ee9dc013291bb9f3f21bc98c2a7b4" args="() const " -->
 const_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>cend</b> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7b4a92c3f680ec91a526e7d0f421c7ef"></a><!-- doxytag: member="jsonv::detail::basic_view::rbegin" ref="a7b4a92c3f680ec91a526e7d0f421c7ef" args="()" -->
+reverse_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>rbegin</b> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8af05c38b2dcc07ffe9ba3446042e17f"></a><!-- doxytag: member="jsonv::detail::basic_view::rbegin" ref="a8af05c38b2dcc07ffe9ba3446042e17f" args="() const " -->
+const_reverse_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>rbegin</b> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a232b2e0576f23a0902f0bed4c074486b"></a><!-- doxytag: member="jsonv::detail::basic_view::rend" ref="a232b2e0576f23a0902f0bed4c074486b" args="()" -->
+reverse_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>rend</b> ()</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abd5389b118d3946614d91460bc444eca"></a><!-- doxytag: member="jsonv::detail::basic_view::rend" ref="abd5389b118d3946614d91460bc444eca" args="() const " -->
+const_reverse_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>rend</b> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a07c9df6679320caae549de72bde0978b"></a><!-- doxytag: member="jsonv::detail::basic_view::crbegin" ref="a07c9df6679320caae549de72bde0978b" args="() const " -->
+const_reverse_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>crbegin</b> () const </td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3aa2dd364fd18ba4e764f9d8212d85dd"></a><!-- doxytag: member="jsonv::detail::basic_view::crend" ref="a3aa2dd364fd18ba4e764f9d8212d85dd" args="() const " -->
+const_reverse_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>crend</b> () const </td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename TIterator, typename TConstIterator = TIterator&gt;<br/>
