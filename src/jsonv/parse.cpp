@@ -374,8 +374,7 @@ static bool parse_boolean(parse_context& context, value& out)
         check_token(context, "false");
         return true;
     default:
-        context.parse_error("Invalid token for boolean.");
-        return true;
+        assert(false);
     }
 }
 
