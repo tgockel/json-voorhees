@@ -19,8 +19,14 @@ namespace jsonv_test
 
 using namespace jsonv;
 
+TEST(cant_coerce_corrupt)
+{
+    ensure(!can_coerce(static_cast<kind>(~0), kind::null));
+}
+
 TEST(coerce_object_valid)
 {
+    ensure(can_coerce(kind::object, kind::object));
     std::map<std::string, value> input = { { "x", 1 },
                                            { "y", 2 },
                                            { "z", "3" }
@@ -32,6 +38,7 @@ TEST(coerce_object_valid)
 
 TEST(coerce_object_invalid)
 {
+    ensure(!can_coerce(kind::array, kind::object));
     ensure_throws(kind_error, coerce_object(array()));
     ensure_throws(kind_error, coerce_object("x"));
     ensure_throws(kind_error, coerce_object(1));
@@ -81,6 +88,7 @@ TEST(coerce_integer_integer)
 
 TEST(coerce_integer_decimal)
 {
+    ensure(can_coerce(kind::decimal, kind::integer));
     ensure_eq(0, coerce_integer(-0.2));
     ensure_eq(7, coerce_integer(7.8));
 }
@@ -102,12 +110,17 @@ TEST(coerce_integer_string_null)
 
 TEST(coerce_integer_string_integer)
 {
+    ensure(can_coerce("0", kind::integer));
     ensure_eq(0, coerce_integer("0"));
     ensure_eq(1, coerce_integer("1"));
+    
+    ensure(!can_coerce("foo", kind::integer));
+    ensure_throws(kind_error, coerce_integer("foo"));
 }
 
 TEST(coerce_integer_string_decimal)
 {
+    ensure(can_coerce("-0.2", kind::integer));
     ensure_eq(0, coerce_integer("-0.2"));
     ensure_eq(7, coerce_integer("7.8"));
 }
@@ -140,6 +153,7 @@ TEST(coerce_decimal_boolean)
 
 TEST(coerce_decimal_integer)
 {
+    ensure(can_coerce(kind::integer, kind::decimal));
     ensure_eq(0.0, coerce_decimal(0));
     ensure_eq(1.0, coerce_decimal(1));
 }
@@ -157,14 +171,19 @@ TEST(coerce_decimal_string_null)
 
 TEST(coerce_decimal_string_integer)
 {
+    ensure(can_coerce("0", kind::decimal));
     ensure_eq(0.0, coerce_decimal("0"));
     ensure_eq(1.0, coerce_decimal("1"));
 }
 
 TEST(coerce_decimal_string_decimal)
 {
+    ensure(can_coerce("-0.2", kind::decimal));
     ensure_eq(-0.2, coerce_decimal("-0.2"));
     ensure_eq(7.8, coerce_decimal("7.8"));
+    
+    ensure(!can_coerce("foo", kind::decimal));
+    ensure_throws(kind_error, coerce_decimal("foo"));
 }
 
 TEST(coerce_decimal_string_nested_valid)
