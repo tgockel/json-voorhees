@@ -11,8 +11,9 @@
 
 The focus of this release was the creation of tools to traverse and manipulate the JSON AST.
 
- - [0.4.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.0): *FUTURE*
+ - [0.4.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.1): *FUTURE*
    - Adds reverse iteration to `array_view` and `object_view`
+   - Fixes issue in parsing where large inputs would buffer incorrectly
 
  - [0.4.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.0): 2015 January 13
    - Creates a generic visitor system for `jsonv::value`
