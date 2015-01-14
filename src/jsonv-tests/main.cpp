@@ -46,6 +46,11 @@ int benchmark(const std::string& filename)
     return 0;
 }
 
+TEST(benchmark)
+{
+    benchmark("src/jsonv-tests/data/generated.json");
+}
+
 TEST(demo)
 {
     std::string src = "{ \"blazing\": [ 3, \"\\\"\\n\", 4.5, 5.123, 4.10921e19 ], "
