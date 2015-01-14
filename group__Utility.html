@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
-<title>JSON Voorhees: jsonv/util.hpp File Reference</title>
+<title>JSON Voorhees: Utility</title>
 
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
@@ -54,7 +54,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Classes</span></a></li>
-      <li class="current"><a href="files.html"><span>Files</span></a></li>
+      <li><a href="files.html"><span>Files</span></a></li>
       <li><a href="examples.html"><span>Examples</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
@@ -74,12 +74,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
-  <div id="navrow2" class="tabs2">
-    <ul class="tablist">
-      <li><a href="files.html"><span>File&#160;List</span></a></li>
-      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
-    </ul>
-  </div>
 </div>
 <div id="side-nav" class="ui-resizable side-nav-resizable">
   <div id="nav-tree">
@@ -91,7 +85,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-  initNavTree('util_8hpp.html','');
+  initNavTree('group__Utility.html','');
 </script>
 <div id="doc-content">
 <div class="header">
@@ -99,20 +93,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">jsonv/util.hpp File Reference</div>  </div>
+<div class="title">Utility</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A collection of utility functions for manipulating one or more instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>.  
+<p>Utility functions useful for manipulating instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;<a class="el" href="config_8hpp_source.html">jsonv/config.hpp</a>&gt;</code><br/>
-<code>#include &lt;<a class="el" href="path_8hpp_source.html">jsonv/path.hpp</a>&gt;</code><br/>
-<code>#include &lt;<a class="el" href="value_8hpp_source.html">jsonv/value.hpp</a>&gt;</code><br/>
-<code>#include &lt;functional&gt;</code><br/>
-<code>#include &lt;string&gt;</code><br/>
-<code>#include &lt;utility&gt;</code><br/>
-</div>
-<p><a href="util_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -127,30 +113,136 @@ Classes</h2></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1">jsonv::merge_explicit</a> (const merge_rules &amp;rules, path current_path, value a, value b)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges two <code>values</code>, <em>a</em> and <em>b</em> into a single <code>value</code>.  <a href="group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1"></a><br/></td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga953ea8225a035f7dd1dbb88285f980d4"></a><!-- doxytag: member="util.hpp::merge_explicit" ref="ga953ea8225a035f7dd1dbb88285f980d4" args="(const merge_rules &amp;, const path &amp;, value a)" -->
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges two <code>values</code>, <em>a</em> and <em>b</em> into a single <code>value</code>.  <a href="#ga5f3d51f2832841e7c90ba1eb9b9b93a1"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga953ea8225a035f7dd1dbb88285f980d4"></a><!-- doxytag: member="Utility::merge_explicit" ref="ga953ea8225a035f7dd1dbb88285f980d4" args="(const merge_rules &amp;, const path &amp;, value a)" -->
 <a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;, const path &amp;, value a)</td></tr>
-<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga77f008513377f09e7d66e046bef67747"></a><!-- doxytag: member="util.hpp::merge_explicit" ref="ga77f008513377f09e7d66e046bef67747" args="(const merge_rules &amp;, const path &amp;)" -->
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga77f008513377f09e7d66e046bef67747"></a><!-- doxytag: member="Utility::merge_explicit" ref="ga77f008513377f09e7d66e046bef67747" args="(const merge_rules &amp;, const path &amp;)" -->
 <a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;, const path &amp;)</td></tr>
-<tr><td class="memTemplParams" colspan="2"><a class="anchor" id="gab37af0937ad26c2817106dc21446f104"></a><!-- doxytag: member="util.hpp::merge_explicit" ref="gab37af0937ad26c2817106dc21446f104" args="(const merge_rules &amp;rules, path current_path, value a, value b, value c, TValue &amp;&amp;...rest)" -->
+<tr><td class="memTemplParams" colspan="2"><a class="anchor" id="gab37af0937ad26c2817106dc21446f104"></a><!-- doxytag: member="Utility::merge_explicit" ref="gab37af0937ad26c2817106dc21446f104" args="(const merge_rules &amp;rules, path current_path, value a, value b, value c, TValue &amp;&amp;...rest)" -->
 template&lt;typename... TValue&gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;rules, path current_path, value a, value b, value c, TValue &amp;&amp;...rest)</td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f">jsonv::merge</a> (TValue &amp;&amp;...values)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="#gaf7084b1883a32bab8378bd8aab6ae71f"></a><br/></td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42">jsonv::merge_recursive</a> (TValue &amp;&amp;...values)</td></tr>
-<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42"></a><br/></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="#gafbfed07c06da7ed1b28e64907aefea42"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock"><p>A collection of utility functions for manipulating one or more instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>. </p>
-<p>Copyright (c) 2015 by Travis Gockel. All rights reserved.</p>
-<p>This program is free software: you can redistribute it and/or modify it under the terms of the Apache License as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later version.</p>
-<dl class="author"><dt><b>Author:</b></dt><dd>Travis Gockel (<a href="mailto:travis@gockelhut.com">travis@gockelhut.com</a>) </dd></dl>
-
-<p>Definition in file <a class="el" href="util_8hpp_source.html">util.hpp</a>.</p>
-</div></div><!-- contents -->
+<p>Utility functions useful for manipulating instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>. </p>
+<hr/><h2>Function Documentation</h2>
+<a class="anchor" id="gaf7084b1883a32bab8378bd8aab6ae71f"></a><!-- doxytag: member="jsonv::merge" ref="gaf7084b1883a32bab8378bd8aab6ae71f" args="(TValue &amp;&amp;...values)" -->
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename... TValue&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">value jsonv::merge </td>
+          <td>(</td>
+          <td class="paramtype">TValue &amp;&amp;...&#160;</td>
+          <td class="paramname"><em>values</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
 </div>
+<div class="memdoc">
+
+<p>Merges all the provided <em>values</em> into a single <code>value</code>. </p>
+<p>If there are any key or type conflicts, an exception will be thrown. </p>
+
+<p>Definition at line <a class="el" href="util_8hpp_source.html#l00154">154</a> of file <a class="el" href="util_8hpp_source.html">util.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ga5f3d51f2832841e7c90ba1eb9b9b93a1"></a><!-- doxytag: member="jsonv::merge_explicit" ref="ga5f3d51f2832841e7c90ba1eb9b9b93a1" args="(const merge_rules &amp;rules, path current_path, value a, value b)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value jsonv::merge_explicit </td>
+          <td>(</td>
+          <td class="paramtype">const merge_rules &amp;&#160;</td>
+          <td class="paramname"><em>rules</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">path&#160;</td>
+          <td class="paramname"><em>current_path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>a</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>b</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Merges two <code>values</code>, <em>a</em> and <em>b</em> into a single <code>value</code>. </p>
+<p>The merging follows a few simple rules:</p>
+<ul>
+<li>If <em>a.kind()</em> != <em>b.kind()</em> and they are not <code>kind::integer</code> and <code>kind::decimal</code>, call <em>on_type_conflict</em> and return the result.</li>
+<li>Otherwise, branch based on the (shared) type:<ul>
+<li><code>kind::object</code> - Return a new object with all the values from <em>a</em> and <em>b</em> for the keys which are unique per object. For the keys which are shared, the value is the result of <em>on_same_key</em>.</li>
+<li><code>kind::array</code> - Return a new array with the values of <em>b</em> appended to <em>a</em>.</li>
+<li><code>kind::string</code> - Return a new string with <em>b</em> appended to <em>a</em>.</li>
+<li><code>kind::boolean</code> - Return `a.as_boolean() || b.as_boolean()`</li>
+<li><code>kind::integer</code> - If <b>is</b> <code>kind::integer</code>, return `a + b` as an integer; otherwise, return it as a decimal.</li>
+<li><code>kind::decimal</code> - Return `a + b` as a decimal.</li>
+</ul>
+</li>
+</ul>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rules</td><td>are the rules to merge with (see <code><a class="el" href="classjsonv_1_1merge__rules.html" title="This class is used in merge_explicit for defining what the function should do in the cases of conflic...">merge_rules</a></code>). </td></tr>
+    <tr><td class="paramname">current_path</td><td>The current <code>path</code> into the <code>value</code> that we are merging. This can be used to give more useful error information if we are merging recursively. </td></tr>
+    <tr><td class="paramname">a</td><td>is a <code>value</code> to merge. </td></tr>
+    <tr><td class="paramname">b</td><td>is a <code>value</code> to merge. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gafbfed07c06da7ed1b28e64907aefea42"></a><!-- doxytag: member="jsonv::merge_recursive" ref="gafbfed07c06da7ed1b28e64907aefea42" args="(TValue &amp;&amp;...values)" -->
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename... TValue&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">value jsonv::merge_recursive </td>
+          <td>(</td>
+          <td class="paramtype">TValue &amp;&amp;...&#160;</td>
+          <td class="paramname"><em>values</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Merges all the provided <em>values</em> into a single <code>value</code>. </p>
+<p>If there are any keys which are shared, their values are also merged. </p>
+
+<p>Definition at line <a class="el" href="util_8hpp_source.html#l00166">166</a> of file <a class="el" href="util_8hpp_source.html">util.hpp</a>.</p>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -165,9 +257,9 @@ template&lt;typename... TValue&gt; </td></tr>
 </iframe>
 </div>
 
+</div>
   <div id="nav-path" class="navpath">
     <ul>
-      <li class="navelem"><a class="el" href="util_8hpp.html">util.hpp</a>      </li>
 
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">

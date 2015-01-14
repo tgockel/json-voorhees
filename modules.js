@@ -6,5 +6,6 @@ var modules =
     [ "Conversions", "group__Conversions.html", null ],
     [ "Creation", "group__Creation.html", null ],
     [ "Object", "group__Object.html", null ],
-    [ "Shared", "group__Shared.html", null ]
+    [ "Shared", "group__Shared.html", null ],
+    [ "Utility", "group__Utility.html", null ]
 ];

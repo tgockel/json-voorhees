@@ -10,6 +10,7 @@ var NAVTREEINDEX =
 "group__Creation.html":[1,4],
 "group__Object.html":[1,5],
 "group__Shared.html":[1,6],
+"group__Utility.html":[1,7],
 "annotated.html":[2,0],
 "structjsonv_1_1value_1_1basic__array__iterator.html":[2,0,0],
 "structjsonv_1_1value_1_1basic__object__iterator.html":[2,0,1],
