@@ -33,3 +33,14 @@ TEST(parse_bogus_string_throws)
     // Specify a Unicode escape that isn't long enough and doesn't use hex.
     ensure_throws(jsonv::parse_error, jsonv::parse("\"\\uTT\""));
 }
+
+TEST(parse_strict_string_unprintables)
+{
+    auto options = jsonv::parse_options::create_strict();
+    ensure_throws(jsonv::parse_error, jsonv::parse("\"\t\"",   options));
+    ensure_throws(jsonv::parse_error, jsonv::parse("\"\b\"",   options));
+    ensure_throws(jsonv::parse_error, jsonv::parse("\"\f\"",   options));
+    ensure_throws(jsonv::parse_error, jsonv::parse("\"\n\"",   options));
+    ensure_throws(jsonv::parse_error, jsonv::parse("\"\r\"",   options));
+    ensure_throws(jsonv::parse_error, jsonv::parse("\"\x01\"", options));
+}

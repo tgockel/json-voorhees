@@ -36,6 +36,11 @@ TEST(string_decode_unchanged)
     ensure_eq("Hello!", string_decode_static("Hello!"));
 }
 
+TEST(string_decode_sigils)
+{
+    ensure_eq("\t\b\f\n\r", string_decode_static("\\t\\b\\f\\n\\r"));
+}
+
 TEST(string_decode_utf_one_char)
 {
     ensure_eq("\xe2\x98\xa2", string_decode_static("\\u2622"));
@@ -244,4 +249,24 @@ TEST(string_decode_cesu8)
         ensure_eq(string_decode_static(jsonencoding_, jsonv::parse_options::encoding::cesu8), cesu8encoding_); \
     
     JSONV_TEST_CESU8_ENCODINGS(JSONV_TEST_GEN_ENCODE_CESU8_EQ)
+}
+
+TEST(string_decode_long_utf8_sequences)
+{
+    // A couple of very long, but valid UTF-8 sequences
+    string_decode_static("\xf8\x80\x80\x80\x80");
+    string_decode_static("\xfc\x80\x80\x80\x80\x80");
+}
+
+TEST(string_decode_short_utf8_sequence)
+{
+    ensure_throws(decode_error, string_decode_static("\x80 is not 1 byte long"));
+    ensure_throws(decode_error, string_decode_static("\xc0 is not 2 bytes long"));
+    ensure_throws(decode_error, string_decode_static("\xe0\x80 is not 3 bytes long"));
+    ensure_throws(decode_error, string_decode_static("\xf0\x80 is not 4 bytes long"));
+}
+
+TEST(string_decode_invalid_utf8_start)
+{
+    ensure_throws(decode_error, string_decode_static("\xfe is not a UTF-8 start"));
 }
