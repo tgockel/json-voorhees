@@ -9,6 +9,7 @@ install:
   - sudo apt-get purge --yes clang-3.4
   - sudo apt-get autoremove --yes
   - sudo apt-get install --yes --force-yes g++-4.8 g++-4.9 clang-3.6 libboost1.55-all-dev
+  - dpkg-query -L clang-3.6
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
   - sudo pip install cpp-coveralls pyyaml
 env:
