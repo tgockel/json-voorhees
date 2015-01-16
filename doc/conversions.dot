@@ -1,0 +1,15 @@
+digraph jsonv {
+  label="Conversions"
+  labelloc="t"
+  
+  str     [label="std::string"]
+  istream [label="std::istream"]
+  ostream [label="std::ostream"]
+  value   [label="value"]
+  
+  value   -> str     [label="to_string"]
+  value   -> ostream [label="operator<<"]
+  str     -> value   [label="parse"]
+  istream -> value   [label="parse"]
+  value   -> value   [label="map, merge, diff, ..."]
+}

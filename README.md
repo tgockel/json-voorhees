@@ -34,6 +34,8 @@ Features include (but are not necessarily limited to):
 [![Code Coverage](https://img.shields.io/coveralls/tgockel/json-voorhees.svg)](https://coveralls.io/r/tgockel/json-voorhees)
 [![Github Issues](https://img.shields.io/github/issues/tgockel/json-voorhees.svg)](http://github.com/tgockel/json-voorhees/issues)
 
+![JSON Conversions](https://raw.githubusercontent.com/tgockel/json-voorhees/master/doc/conversions.png)
+
 Compile and Install
 -------------------
 
