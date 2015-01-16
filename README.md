@@ -1,22 +1,31 @@
 JSON Voorhees
 =============
 
-Yet another [JSON](http://www.json.org/) library for C++.
+Yet another [JSON][JSON] library for C++.
 This one touts new C++11 features for developer-friendliness, an extremely high-speed parser and no dependencies beyond
  a compliant compiler.
 If you love Doxygen, check out the [documentation](http://tgockel.github.io/json-voorhees/).
 
 Features include (but are not necessarily limited to):
 
- - A simple system for the representation of JSON values
- - Documentation consumable by human beings that answers questions you might actually ask
- - Simple JSON parsing with `jsonv::parse`
- - Write a JSON value with `operator<<`
- - Reasonable error messages when parsing fails
- - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
- - Safe: in the best case, illegal code should fail to compile; in the worst case, an illegal action should throw an
-   exception
- - Stable: worry less about upgrading -- the API and ABI will not change out from under you
+ - Simple
+   - A `value` should not feel terribly different from a C++ Standard Library container
+   - Write valid JSON with `operator<<`
+   - Simple JSON parsing with `parse`
+   - Reasonable error messages when parsing fails
+   - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
+ - Efficient
+   - Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)
+   - No-throw move semantics wherever possible
+ - Safe
+   - In the best case, illegal code should fail to compile
+   - An illegal action should throw an exception
+   - Almost all utility functions have a [strong exception guarantee](http://www.gotw.ca/gotw/082.htm)
+ - Stable
+   - Worry less about upgrading -- the API and ABI will not change out from under you
+ - Documented
+   - Consumable by human beings
+   - Answers questions you might actually ask
  - Compiler support
      - GCC (4.8+)
      - Clang++ (3.3+)
@@ -45,7 +54,7 @@ This library is still in a "working prototype" stage, so there are a number of t
 Future planned features can be found on the [issue tracker][future-features], but here is a list of things that matter
  most to me:
 
- - [A visitor system with JSON Path support](https://github.com/tgockel/json-voorhees/issues/3)
+ - [A system for converting between JSON and C++ types](https://github.com/tgockel/json-voorhees/issues/8)
  - Compiler support
      - [MSVC](https://github.com/tgockel/json-voorhees/issues/7)
 
@@ -140,6 +149,68 @@ The drawback to this route is a needlessly lengthened resultant encoding if all 
  deal with UTF-8.
 There is an [outstanding issue][encode-utf8] to address this shortcoming.
 
+F.A.Q.
+------
+
+### Why are `integer` and `decimal` distinct types?
+
+The [JSON specification][JSON] only has a *number* type, whereas this library has `kind::integer` and `kind::decimal`.
+Behavior between the two types should be fairly consistent -- comparisons between two different `kind`s should behave as
+ you would expect (assuming you expect things like `value(1) == value(1.0)` and `value(2.0) < value(10)`).
+If you wish for behavior more like JavaScript, feel free to only use `as_decimal()`.
+
+The reason integer and decimal are not a single type is because of how people tend to use JSON in C++.
+If you look at projects that consume JSON, they make a distinction between integer and decimal values.
+Even in specification land, a distinction between the numeric type is pretty normal (for example:
+ [Swagger](http://swagger.io/)).
+To ultimately answer the question: integer and decimal are distinct types for the convenience of users.
+
+### Why are `NaN` and `INFINITY` serialized as a `null`?
+
+The [JSON specification][JSON] does *not* have support for non-finite floating-point numbers like `NaN` and infinity.
+This means the `value` defined with `object({ { "nan", std::nan("") }, { "infinity", INFINITY } })` to get serialized as
+ `{ "nan": null, "infinity": null }`.
+While this seems to constitute a loss of information, not doing this would lead to the encoder outputting invalid JSON
+ text, which is completely unacceptable (unfortunately, this is a *very common* mistake in JSON libraries).
+If you want to check that there will be no information loss when encoding, use the utility funciton `validate`.
+
+*Why not throw when encoding?*
+One could imagine the `encoder::encode` throwing something like an `encode_error` instead of outputting `null` to the
+ stream.
+However, that would make `operator<<` a potentially-throwing operation, which is extremely uncommon and would be very
+ surprizing (imagine if you tried to log a `value` and it threw).
+The `ostream_encoder` sets `failbit` on the stream, which is (unfortunately) the standard way to communicate errors when
+ writing to an `std::ostream`.
+Since `operator<<` users `ostream_encoder`, the regular encoding of `value`s has this behavior.
+
+*Why not throw when constructing the `value`?*
+Instead of waiting for encoding time to do anything about the problem, the library could attack the issue at the source
+ and throw an exception if someone says `value(INFINITY)`.
+This was not chosen as the behavior, because non-finite values are only an issue in the string representation, which is
+ not a problem if the `value` is never encoded.
+You are free to use this JSON library without `parse` and `encode`, so it should not prevent an action simply because
+ someone *might* use `encode`.
+
+### Why are there so many corruption checks?
+
+If you are looking through the implementation, you will find a ton of places where there are `default` cases in `switch`
+ statements that should be impossible to hit without memory corruption.
+This is because it is unclear what should happen when the library detects something like an invalid `kind`.
+The library could `assert`, but that seems overbearing when there is a reasonable option to fall back to.
+Alternatively, the library could throw in these cases, but that leads to innocuous-looking operations like `x == y`
+ being able to throw, which is somewhat disconcerning.
+
+### Why do you use GNU Make instead of a modern build system?
+
+There are a lot of build automation tools that can work with C++ code, from [CMake](http://www.cmake.org/) to
+ [SCons](http://www.scons.org/), yet this project uses GNU Make.
+This is done so all you have to do to build the project is type `make`.
+I personally do not understand what these alternative build systems give me that GNU Make does not already do, so I will
+ stick with my plain old `Makefile` until I see a benefit to changing.
+Yes, I am a luddite who does not understand the fancy things the kids are using these days.
+Get off my lawn.
+
+
  [Boost.Regex]: http://www.boost.org/doc/libs/1_56_0/libs/regex/doc/html/index.html
     "The Boost.Regex library"
  [decode-non-utf8]: https://github.com/tgockel/json-voorhees/issues/10
@@ -148,3 +219,5 @@ There is an [outstanding issue][encode-utf8] to address this shortcoming.
     "Issue 21: String encoding should allow UTF-8 output"
  [future-features]: https://github.com/tgockel/json-voorhees/issues?q=is%3Aopen+is%3Aissue+no%3Amilestone
     "Future features"
+ [JSON]: http://www.json.org/
+    "JSON Specification"
