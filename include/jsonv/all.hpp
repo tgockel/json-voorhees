@@ -1,7 +1,7 @@
 /** \file jsonv/all.hpp
  *  A head which includes all other JSON Voorhees headers.
  *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -14,19 +14,32 @@
 
 /** \mainpage JSON Voorhees
  *  JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for
- *  developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler.
+ *  developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler. It is hosted on
+ *  <a href="https://github.com/tgockel/json-voorhees">GitHub</a> and sports an Apache License, so use it anywhere you
+ *  need.
  * 
  *  Features include (but are not necessarily limited to):
  *  
- *   - A simple system for the representation of JSON values
- *   - Documentation consumable by human beings that answers questions you might actually ask
- *   - Simple JSON parsing with \c parse or use the \c tokenizer system and customize to your heart's desires
- *   - Write a JSON value with \c operator<< or use the \c encoder API for advanced output options
- *   - Reasonable error messages when parsing fails
- *   - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
- *   - Safe: in the best case, illegal code should fail to compile; in the worst case, an illegal action should throw an
- *     exception
- *   - Stable: worry less about upgrading -- the API and ABI will not change out from under you
+ *   - Simple
+ *     - A `value` should not feel terribly different from a C++ Standard Library container
+ *     - Write valid JSON with `operator<<`
+ *     - Simple JSON parsing with `parse`
+ *     - Reasonable error messages when parsing fails
+ *     - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
+ *   - Efficient
+ *     - Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)
+ *     - No-throw move semantics wherever possible
+ *   - Safe
+ *     - In the best case, illegal code should fail to compile
+ *     - An illegal action should throw an exception
+ *     - Almost all utility functions have a [strong exception guarantee](http://www.gotw.ca/gotw/082.htm)
+ *   - Stable
+ *     - Worry less about upgrading -- the API and ABI will not change out from under you
+ *   - Documented
+ *     - Consumable by human beings
+ *     - Answers questions you might actually ask
+ *  
+ *  \dotfile doc/conversions.dot
  *  
  *  \section usage Using the library
  *  
@@ -68,6 +81,17 @@
  *  }
  *  \endcode
  *  
+ *  Output:
+ *  
+ *  \code
+ *  null
+ *  5.9
+ *  -100
+ *  "something else"
+ *  ["arrays","of","the",7,"different","types"]
+ *  {"compose like":"standard library maps","objects":["Are fun, too.","Do what you want."]}
+ *  \endcode
+ *  
  *  JSON is dynamic, which makes value access a bit more of a hassle, but JSON Voorhees aims to make it not too
  *  horrifying for you. A \c jsonv::value has a number of accessor methods named things like \c as_integer and
  *  \c as_string which let you access the value as if it was that type. But what if it isn't that type? In that case,
@@ -91,8 +115,16 @@
  *      
  *      x = "now make it a string";
  *      std::cout << x.as_string().size() << std::endl;
- *      std::cout << x.as_string() << "\tis the same as\t" << x << std::endl;
+ *      std::cout << x.as_string() << "\tis not the same as\t" << x << std::endl;
  *  }
+ *  \endcode
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  Unexpected type: expected string but found null.
+ *  20
+ *  now make it a string    is not the same as  "now make it a string"
  *  \endcode
  *  
  *  You can also deal with container types in a similar manner that you would deal with the equivalent STL container
@@ -144,6 +176,16 @@
  *  }
  *  \endcode
  *  
+ *  Output:
+ *  
+ *  \code
+ *  one: 1
+ *  Nothing...
+ *  two: 2
+ *  two: ["one","+",1]
+ *  Nothing...
+ *  \endcode
+ *  
  *  The iterator types \e work. This means you are free to use all of the C++ things just like you would a regular
  *  container. To use a ranged-based for, simply call \c as_array or \c as_object. Everything from \c <algorithm> and
  *  \c <iterator> or any other library works great with JSON Voorhees. Bring those templates on!
@@ -168,7 +210,14 @@
  *      std::cout << std::endl;
  *  }
  *  \endcode
- * 
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  Initial: "taco" "cat"   3   -2  null    "beef"  4.8   5
+ *  Sorted:  null   -2  3   4.8 5   "beef"  "cat"   "taco"
+ *  \endcode
+ *  
  *  \subsection demo_parsing Encoding and decoding
  *  
  *  Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services
@@ -191,7 +240,7 @@
  *      obj["infinity"] = std::numeric_limits<double>::infinity();
  *      
  *      {
- *          std::cout << "Saving \"file.json\"..." << obj << std::endl;
+ *          std::cout << "Saving \"file.json\"... " << obj << std::endl;
  *          std::ofstream file("file.json");
  *          file << obj;
  *      }
@@ -201,11 +250,18 @@
  *          std::cout << "Loading \"file.json\"...";
  *          std::ifstream file("file.json");
  *          loaded = jsonv::parse(file);
- *          std::cout << loaded << std::endl;
  *      }
+ *      std::cout << loaded << std::endl;
  *      
  *      return obj == loaded ? 0 : 1;
  *  }
+ *  \endcode
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  Saving "file.json"... {"array":[1,2,3,4,5],"infinity":null,"taco":"cat"}
+ *  Loading "file.json"...{"array":[1,2,3,4,5],"infinity":null,"taco":"cat"}
  *  \endcode
  *  
  *  If you are paying close attention, you might have notice that the value for the \c "infinity" looks a little bit
@@ -216,6 +272,145 @@
  *  the example program, you might have noticed that the return code was 1, meaning the value you put into the file and
  *  what you got from it were not equal. This is because all the type and value information is still kept around in the
  *  in-memory \c obj. It is only upon encoding that information is lost.
+ *  
+ *  Getting tired of all this compact rendering of your JSON strings? Want a little more whitespace in your life? Then
+ *  \c jsonv::ostream_pretty_encoder is the class for you! Unlike our standard \e compact encoder, this guy will put
+ *  newlines and indentation in your JSON so you can present it in a way more readable format.
+ *  
+ *  \code
+ *  #include <jsonv/encode.hpp>
+ *  #include <jsonv/parse.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  int main()
+ *  {
+ *      // Make a pretty encoder and point to std::cout
+ *      jsonv::ostream_pretty_encoder prettifier(std::cout);
+ *      prettifier.encode(jsonv::parse(std::cin));
+ *  }
+ *  \endcode
+ *  
+ *  Compile that code and you now have your own little JSON prettification program!
+ *  
+ *  \subsection demo_algorithm Algorithms
+ *  
+ *  JSON Voorhees takes a "batteries included" approach. A few building blocks for powerful operations can be found in
+ *  the \c algorithm.hpp header file.
+ *  
+ *  One of the simplest operations you can perform is the \c map operation. This operation takes in some \c jsonv::value
+ *  and returns another. Let's try it.
+ *  
+ *  \code
+ *  #include <jsonv/algorithm.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  int main()
+ *  {
+ *      jsonv::value x = 5;
+ *      std::cout << jsonv::map([] (const jsonv::value& y) { return y.as_integer() * 2; }, x) << std::endl;
+ *  }
+ *  \endcode
+ *  
+ *  If everything went right, you should see a number:
+ *  
+ *  \code
+ *  10
+ *  \endcode
+ *  
+ *  Okay, so that was not very interesting. To be fair, that is not the most interesting example of using \c map, but it
+ *  is enough to get the general idea of what is going on. This operation is so common that it is a member function of
+ *  \c value as \c jsonv::value::map. Let's make things a bit more interesting and \c map an \c array...
+ *  
+ *  \code
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  int main()
+ *  {
+ *      std::cout << jsonv::array({ 1, 2, 3, 4, 5 })
+ *                          .map([] (const jsonv::value& y) { return y.as_integer() * 2; })
+ *                << std::endl;
+ *  }
+ *  \endcode
+ *  
+ *  Now we're starting to get somewhere!
+ *  
+ *  \code
+ *  [2,4,6,8,10]
+ *  \endcode
+ *  
+ *  The \c map function maps over whatever the contents of the \c jsonv::value happens to be and returns something for
+ *  you based on the \c kind. This simple concept is so ubiquitous that <a href="http://www.disi.unige.it/person/MoggiE/">
+ *  Eugenio Moggi</a> named it a <a href="http://stackoverflow.com/questions/44965/what-is-a-monad">monad</a>. If you're
+ *  feeling adventurous, try using \c map with an \c object or chaining multiple \c map operations together.
+ *  
+ *  Another common building block is the function \c jsonv::traverse. This function walks a JSON structure and calls a
+ *  some user-provided function.
+ *  
+ *  \code
+ *  #include <jsonv/algorithm.hpp>
+ *  #include <jsonv/parse.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  int main()
+ *  {
+ *      jsonv::traverse(jsonv::parse(std::cin),
+ *                      [] (const jsonv::path& path, const jsonv::value& value)
+ *                      {
+ *                          std::cout << path << "=" << value << std::endl;
+ *                      },
+ *                      true
+ *                     );
+ *  }
+ *  \endcode
+ *  
+ *  Now we have a tiny little program! Here's what happens when I pipe <tt>{ "bar": [1, 2, 3], "foo": "hello" }</tt>
+ *  into the program:
+ *  
+ *  \code
+ *  .bar[0]=1
+ *  .bar[1]=2
+ *  .bar[2]=3
+ *  .foo="hello"
+ *  \endcode
+ *  
+ *  Imagine the possibilities!
+ *  
+ *  All of the \e really powerful functions can be found in \c util.hpp. My personal favorite is \c jsonv::merge. The
+ *  idea is simple: it merges two (or more) JSON values into one.
+ *  
+ *  \code
+ *  #include <jsonv/util.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  int main()
+ *  {
+ *      jsonv::value a = jsonv::object({ { "a", "taco" }, { "b", "cat" } });
+ *      jsonv::value b = jsonv::object({ { "c", "burrito" }, { "d", "dog" } });
+ *      jsonv::value merged = jsonv::merge(std::move(a), std::move(b));
+ *      std::cout << merged << std::endl;
+ *  }
+ *  \endcode
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  {"a":"taco","b":"cat","c":"burrito","d":"dog"}
+ *  \endcode
+ *  
+ *  You might have noticed the use of \c std::move into the \c merge function. \c merge, like most functions in JSON
+ *  Voorees, takes advantage of move semantics. In this case, the implementation will move the contents of the values
+ *  instead of copying them around. While it may not matter in this simple case, if you have large JSON structures, the
+ *  support for movement will save you a ton of memory.
  *  
  *  \see https://github.com/tgockel/json-voorhees
  *  \see http://json.org/

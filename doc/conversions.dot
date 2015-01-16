@@ -5,7 +5,7 @@ digraph jsonv {
   str     [label="std::string"]
   istream [label="std::istream"]
   ostream [label="std::ostream"]
-  value   [label="value"]
+  value   [label="value", URL="\ref jsonv::value"]
   
   value   -> str     [label="to_string"]
   value   -> ostream [label="operator<<"]

@@ -17,7 +17,7 @@
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "JSON Voorhees"
 PROJECT_NUMBER         =
-PROJECT_BRIEF          = "A C++ library for parsing JSON."
+PROJECT_BRIEF          = "Killer JSON for C++"
 PROJECT_LOGO           =
 OUTPUT_DIRECTORY       = build/doc
 CREATE_SUBDIRS         = NO
@@ -318,7 +318,7 @@ DIRECTORY_GRAPH        = YES
 DOT_IMAGE_FORMAT       = svg
 INTERACTIVE_SVG        = YES
 DOT_PATH               =
-DOTFILE_DIRS           =
+DOTFILE_DIRS           = .
 MSCFILE_DIRS           =
 DOT_GRAPH_MAX_NODES    = 50
 MAX_DOT_GRAPH_DEPTH    = 0
