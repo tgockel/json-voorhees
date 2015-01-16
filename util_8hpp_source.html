@@ -206,39 +206,50 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00171"></a>00171                          );
 <a name="l00172"></a>00172 }
 <a name="l00173"></a>00173 
-<a name="l00178"></a><a class="code" href="classjsonv_1_1validation__error.html">00178</a> <span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a> :
-<a name="l00179"></a>00179         <span class="keyword">public</span> std::runtime_error
-<a name="l00180"></a>00180 {
-<a name="l00181"></a>00181 <span class="keyword">public</span>:
-<a name="l00183"></a><a class="code" href="classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bf">00183</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bf" title="Special code for describing the error encountered.">code</a>
-<a name="l00184"></a>00184     {
-<a name="l00186"></a><a class="code" href="classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bfa4bc24b40d057da82b24dff9d4e5df3b9">00186</a>         non_finite_number
-<a name="l00187"></a>00187     };
-<a name="l00188"></a>00188     
-<a name="l00189"></a>00189 <span class="keyword">public</span>:
-<a name="l00190"></a>00190     <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a>(code code_, <a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">jsonv::path</a> path_, <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> value_);
-<a name="l00191"></a>00191     
-<a name="l00192"></a>00192     <span class="keyword">virtual</span> ~<a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a>() noexcept;
-<a name="l00193"></a>00193     
-<a name="l00195"></a>00195     code error_code() const;
-<a name="l00196"></a>00196     
-<a name="l00198"></a>00198     const jsonv::<a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">path</a>&amp; <a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">path</a>() const;
-<a name="l00199"></a>00199     
-<a name="l00201"></a>00201     const jsonv::<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>() const;
-<a name="l00202"></a>00202     
-<a name="l00203"></a>00203 private:
-<a name="l00204"></a>00204     code         _code;
-<a name="l00205"></a>00205     jsonv::<a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">path</a>  _path;
-<a name="l00206"></a>00206     jsonv::<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> _value;
-<a name="l00207"></a>00207 };
-<a name="l00208"></a>00208 
-<a name="l00209"></a>00209 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const <a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a>::code&amp; code);
-<a name="l00210"></a>00210 
-<a name="l00219"></a>00219 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">void</span> <a class="code" href="group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6" title="Check that the provided val is perfectly representable as a JSON string.">validate</a>(const <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; val);
-<a name="l00220"></a>00220 
-<a name="l00223"></a>00223 }
-<a name="l00224"></a>00224 
-<a name="l00225"></a>00225 <span class="preprocessor">#endif</span><span class="comment">/*__JSONV_UTIL_HPP_INCLUDED__*/</span>
+<a name="l00175"></a><a class="code" href="structjsonv_1_1diff__result.html">00175</a> <span class="keyword">struct </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="structjsonv_1_1diff__result.html" title="The results of the diff operation.">diff_result</a>
+<a name="l00176"></a>00176 {
+<a name="l00178"></a><a class="code" href="structjsonv_1_1diff__result.html#a9b97bd901a23e479ed482ed56184f86a">00178</a>     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="structjsonv_1_1diff__result.html#a9b97bd901a23e479ed482ed56184f86a" title="Elements that were the same between the two halves of the diff.">same</a>;
+<a name="l00179"></a>00179     
+<a name="l00181"></a><a class="code" href="structjsonv_1_1diff__result.html#af1285a35bafce2c3e6943e8a6204f28f">00181</a>     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="structjsonv_1_1diff__result.html#af1285a35bafce2c3e6943e8a6204f28f" title="Elements that were unique to the left hand side of the diff.">left</a>;
+<a name="l00182"></a>00182     
+<a name="l00184"></a><a class="code" href="structjsonv_1_1diff__result.html#aea2653c65f11342d8fcfae4e4a8ac9d3">00184</a>     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> <a class="code" href="structjsonv_1_1diff__result.html#aea2653c65f11342d8fcfae4e4a8ac9d3" title="Elements that were unique to the right hand side of the diff.">right</a>;
+<a name="l00185"></a>00185 };
+<a name="l00186"></a>00186 
+<a name="l00194"></a>00194 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="structjsonv_1_1diff__result.html" title="The results of the diff operation.">diff_result</a> <a class="code" href="group__Utility.html#ga2480514da0048b025804fd95635dbc79" title="Find the differences and similarities between the structures of left and right.">diff</a>(<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> left, <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> right);
+<a name="l00195"></a>00195 
+<a name="l00200"></a><a class="code" href="classjsonv_1_1validation__error.html">00200</a> <span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a> :
+<a name="l00201"></a>00201         <span class="keyword">public</span> std::runtime_error
+<a name="l00202"></a>00202 {
+<a name="l00203"></a>00203 <span class="keyword">public</span>:
+<a name="l00205"></a><a class="code" href="classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bf">00205</a>     <span class="keyword">enum class</span> <a class="code" href="classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bf" title="Special code for describing the error encountered.">code</a>
+<a name="l00206"></a>00206     {
+<a name="l00208"></a><a class="code" href="classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bfa4bc24b40d057da82b24dff9d4e5df3b9">00208</a>         non_finite_number
+<a name="l00209"></a>00209     };
+<a name="l00210"></a>00210     
+<a name="l00211"></a>00211 <span class="keyword">public</span>:
+<a name="l00212"></a>00212     <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a>(code code_, <a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">jsonv::path</a> path_, <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> value_);
+<a name="l00213"></a>00213     
+<a name="l00214"></a>00214     <span class="keyword">virtual</span> ~<a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a>() noexcept;
+<a name="l00215"></a>00215     
+<a name="l00217"></a>00217     code error_code() const;
+<a name="l00218"></a>00218     
+<a name="l00220"></a>00220     const jsonv::<a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">path</a>&amp; <a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">path</a>() const;
+<a name="l00221"></a>00221     
+<a name="l00223"></a>00223     const jsonv::<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>() const;
+<a name="l00224"></a>00224     
+<a name="l00225"></a>00225 private:
+<a name="l00226"></a>00226     code         _code;
+<a name="l00227"></a>00227     jsonv::<a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">path</a>  _path;
+<a name="l00228"></a>00228     jsonv::<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> _value;
+<a name="l00229"></a>00229 };
+<a name="l00230"></a>00230 
+<a name="l00231"></a>00231 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::ostream&amp; operator&lt;&lt;(std::ostream&amp; os, const <a class="code" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST.">validation_error</a>::code&amp; code);
+<a name="l00232"></a>00232 
+<a name="l00241"></a>00241 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">void</span> <a class="code" href="group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6" title="Check that the provided val is perfectly representable as a JSON string.">validate</a>(const <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; val);
+<a name="l00242"></a>00242 
+<a name="l00245"></a>00245 }
+<a name="l00246"></a>00246 
+<a name="l00247"></a>00247 <span class="preprocessor">#endif</span><span class="comment">/*__JSONV_UTIL_HPP_INCLUDED__*/</span>
 </pre></div></div><!-- contents -->
 </div>
 <!-- window showing the filter options -->

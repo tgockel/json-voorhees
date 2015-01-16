@@ -110,6 +110,8 @@ Classes</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules throw an exception on all conflicts.  <a href="classjsonv_1_1throwing__merge__rules.html#details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1recursive__merge__rules.html">jsonv::recursive_merge_rules</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules will recursively merge everything they can and coerce all values.  <a href="classjsonv_1_1recursive__merge__rules.html#details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1diff__result.html">jsonv::diff_result</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">The results of the <code>diff</code> operation.  <a href="structjsonv_1_1diff__result.html#details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1validation__error.html">jsonv::validation_error</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Error thrown when an unrepresentable value is encountered in a JSON AST.  <a href="classjsonv_1_1validation__error.html#details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
@@ -129,6 +131,8 @@ template&lt;typename... TValue&gt; </td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42">jsonv::merge_recursive</a> (TValue &amp;&amp;...values)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="#gafbfed07c06da7ed1b28e64907aefea42"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> diff_result&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga2480514da0048b025804fd95635dbc79">jsonv::diff</a> (value left, value right)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the differences and similarities between the structures of <em>left</em> and <em>right</em>.  <a href="#ga2480514da0048b025804fd95635dbc79"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga996c1ddc2732999a8bcd5212403ce2a5"></a><!-- doxytag: member="Utility::operator&lt;&lt;" ref="ga996c1ddc2732999a8bcd5212403ce2a5" args="(std::ostream &amp;os, const validation_error::code &amp;code)" -->
 <a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator&lt;&lt;</b> (std::ostream &amp;os, const validation_error::code &amp;code)</td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6">jsonv::validate</a> (const value &amp;val)</td></tr>
@@ -137,6 +141,36 @@ template&lt;typename... TValue&gt; </td></tr>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <p>Utility functions useful for manipulating instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>. </p>
 <hr/><h2>Function Documentation</h2>
+<a class="anchor" id="ga2480514da0048b025804fd95635dbc79"></a><!-- doxytag: member="jsonv::diff" ref="ga2480514da0048b025804fd95635dbc79" args="(value left, value right)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> diff_result jsonv::diff </td>
+          <td>(</td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>left</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>right</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Find the differences and similarities between the structures of <em>left</em> and <em>right</em>. </p>
+<p>If <em>left</em> and <em>right</em> have a different <code>kind</code> (and the kind difference is not <code>kind::integer</code> and <code>kind::decimal</code>), <em>left</em> and <em>right</em> will be placed directly in the result. If they have the same <code>kind</code> and it is scalar, the values get a direct comparison. If they are the same, the result is moved to <code><a class="el" href="structjsonv_1_1diff__result.html#a9b97bd901a23e479ed482ed56184f86a" title="Elements that were the same between the two halves of the diff.">diff_result::same</a></code>. If they are different, <em>left</em> and <em>right</em> are moved to <code><a class="el" href="structjsonv_1_1diff__result.html#af1285a35bafce2c3e6943e8a6204f28f" title="Elements that were unique to the left hand side of the diff.">diff_result::left</a></code> and <code><a class="el" href="structjsonv_1_1diff__result.html#aea2653c65f11342d8fcfae4e4a8ac9d3" title="Elements that were unique to the right hand side of the diff.">diff_result::right</a></code>, respectively. For <code>kind::array</code> and <code>kind::object</code>, the <code>value</code> elements are compared recursively. </p>
+
+</div>
+</div>
 <a class="anchor" id="gaf7084b1883a32bab8378bd8aab6ae71f"></a><!-- doxytag: member="jsonv::merge" ref="gaf7084b1883a32bab8378bd8aab6ae71f" args="(TValue &amp;&amp;...values)" -->
 <div class="memitem">
 <div class="memproto">

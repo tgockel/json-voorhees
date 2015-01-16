@@ -5,6 +5,7 @@ var annotated =
     [ "jsonv::detail::basic_owner< T >", "classjsonv_1_1detail_1_1basic__owner.html", "classjsonv_1_1detail_1_1basic__owner" ],
     [ "jsonv::detail::basic_owning_view< TContainer, TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__owning__view.html", "classjsonv_1_1detail_1_1basic__owning__view" ],
     [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", "classjsonv_1_1detail_1_1basic__view" ],
+    [ "jsonv::diff_result", "structjsonv_1_1diff__result.html", "structjsonv_1_1diff__result" ],
     [ "jsonv::dynamic_merge_rules", "classjsonv_1_1dynamic__merge__rules.html", "classjsonv_1_1dynamic__merge__rules" ],
     [ "jsonv::encoder", "classjsonv_1_1encoder.html", "classjsonv_1_1encoder" ],
     [ "jsonv::detail::generic_container< TStorage >", "classjsonv_1_1detail_1_1generic__container.html", "classjsonv_1_1detail_1_1generic__container" ],

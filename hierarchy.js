@@ -9,6 +9,7 @@ var hierarchy =
     [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", [
       [ "jsonv::detail::basic_owning_view< TContainer, TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__owning__view.html", null ]
     ] ],
+    [ "jsonv::diff_result", "structjsonv_1_1diff__result.html", null ],
     [ "jsonv::encoder", "classjsonv_1_1encoder.html", [
       [ "jsonv::ostream_encoder", "classjsonv_1_1ostream__encoder.html", [
         [ "jsonv::ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", null ]

@@ -1,5 +1,6 @@
 var util_8hpp =
 [
+    [ "diff", "group__Utility.html#ga2480514da0048b025804fd95635dbc79", null ],
     [ "merge", "group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f", null ],
     [ "merge_explicit", "group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1", null ],
     [ "merge_explicit", "group__Utility.html#ga953ea8225a035f7dd1dbb88285f980d4", null ],
