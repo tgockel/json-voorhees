@@ -25,6 +25,7 @@ namespace jsonv
 
 /** \addtogroup Coercion
  *  \{
+ *  Looser conversion functions to behave more like ECMAScript.
 **/
 
 /** Can the given \c kind be converted \a from a kind \a to another?
