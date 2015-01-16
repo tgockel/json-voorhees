@@ -288,7 +288,7 @@ Functions</h2></td></tr>
     <tr><td class="paramname">tree</td><td>The JSON value to traverse. </td></tr>
     <tr><td class="paramname">func</td><td>The function to call for each element in the tree. </td></tr>
     <tr><td class="paramname">base_path</td><td>The path to prepend to each output path to <em>func</em>. This can be useful if beginning traversal from inside of some JSON structure. </td></tr>
-    <tr><td class="paramname">leafs_only</td><td>If true, call <em>func</em> only when the current path is a "leaf" value (<code>string</code>, <code>integer</code>, <code>decimal</code>, <code>boolean</code> or <code>null</code>); if false, call <em>func</em> for all entries in the tree. </td></tr>
+    <tr><td class="paramname">leafs_only</td><td>If true, call <em>func</em> only when the current path is a "leaf" value (<code>string</code>, <code>integer</code>, <code>decimal</code>, <code>boolean</code>, or <code>null</code> <em>or</em> an empty <code>array</code> or <code>object</code>); if false, call <em>func</em> for all entries in the tree. </td></tr>
   </table>
   </dd>
 </dl>
@@ -331,7 +331,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">tree</td><td>The JSON value to traverse. </td></tr>
     <tr><td class="paramname">func</td><td>The function to call for each element in the tree. </td></tr>
-    <tr><td class="paramname">leafs_only</td><td>If true, call <em>func</em> only when the current path is a "leaf" value (<code>string</code>, <code>integer</code>, <code>decimal</code>, <code>boolean</code> or <code>null</code>); if false, call <em>func</em> for all entries in the tree. </td></tr>
+    <tr><td class="paramname">leafs_only</td><td>If true, call <em>func</em> only when the current path is a "leaf" value (<code>string</code>, <code>integer</code>, <code>decimal</code>, <code>boolean</code>, or <code>null</code> <em>or</em> an empty <code>array</code> or <code>object</code>); if false, call <em>func</em> for all entries in the tree. </td></tr>
   </table>
   </dd>
 </dl>
