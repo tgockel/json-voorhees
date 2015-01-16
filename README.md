@@ -179,9 +179,6 @@ One could imagine the `encoder::encode` throwing something like an `encode_error
  stream.
 However, that would make `operator<<` a potentially-throwing operation, which is extremely uncommon and would be very
  surprizing (imagine if you tried to log a `value` and it threw).
-The `ostream_encoder` sets `failbit` on the stream, which is (unfortunately) the standard way to communicate errors when
- writing to an `std::ostream`.
-Since `operator<<` users `ostream_encoder`, the regular encoding of `value`s has this behavior.
 
 *Why not throw when constructing the `value`?*
 Instead of waiting for encoding time to do anything about the problem, the library could attack the issue at the source
