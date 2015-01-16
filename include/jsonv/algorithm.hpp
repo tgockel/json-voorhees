@@ -27,6 +27,38 @@ class value;
  *  A collection of useful free functions a la \c <algorithm>.
 **/
 
+/** Run a function over the values in the \a input. The behavior of this function is different, depending on the \c kind
+ *  of \a input. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If
+ *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
+ *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
+ *  transformed by \a func.
+ *  
+ *  \param func The function to apply to the element or elements of \a input.
+ *  \param input The value to transform.
+**/
+JSONV_PUBLIC value map(const std::function<value (const value&)>& func,
+                       const value&                               input
+                      );
+
+/** Run a function over the values in the \a input. The behavior of this function is different, depending on the \c kind
+ *  of \a input. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If
+ *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
+ *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
+ *  transformed by \a func.
+ *  
+ *  \param func The function to apply to the element or elements of \a input.
+ *  \param input The value to transform.
+ *  
+ *  \note
+ *  This version of \c map provides only a basic exception-safety guarantee. If an exception is thrown while
+ *  transforming a non-scalar \c kind, there is no rollback action, so \a input is left in a usable, but
+ *  \e unpredictable state. If you need a strong exception guarantee, use the version of \c map that takes a constant
+ *  reference to a \c value.
+**/
+JSONV_PUBLIC value map(const std::function<value (value)>& func,
+                       value&&                             input
+                      );
+
 /** Recursively walk the provided \a tree and call \a func for each item in the tree.
  *  
  *  \param tree The JSON value to traverse.

@@ -20,6 +20,7 @@
 #include <initializer_list>
 #include <iosfwd>
 #include <iterator>
+#include <functional>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -853,8 +854,38 @@ public:
     **/
     size_type size() const;
     
-    /** \}
+    /** \} **/
+    
+    /** \addtogroup Algorithm
+     *  \{
     **/
+    
+    /** Run a function over the values of this instance. The behavior of this function is different, depending on the
+     *  \c kind. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If this
+     *  is \c kind::array, \c func is called for every value in the array and the output will be an array with each
+     *  element transformed by \a func. If this is \c kind::object, the result will be an object with each key
+     *  transformed by \a func.
+     *  
+     *  \param func The function to apply to the element or elements of this instance.
+    **/
+    value map(const std::function<value (const value&)>& func) const&;
+    
+    /** Run a function over the values of this instance. The behavior of this function is different, depending on the
+     *  \c kind. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If this
+     *  is \c kind::array, \c func is called for every value in the array and the output will be an array with each
+     *  element transformed by \a func. If this is \c kind::object, the result will be an object with each key
+     *  transformed by \a func.
+     *  
+     *  \param func The function to apply to the element or elements of this instance.
+     * 
+     *  \note
+     *  This version of \c map provides only a basic exception-safety guarantee. If an exception is thrown while
+     *  transforming a non-scalar \c kind, there is no rollback action, so \c this is left in a usable, but
+     *  \e unpredictable state. If you need a strong exception guarantee, use the constant reference version of \c map.
+    **/
+    value map(const std::function<value (value)>& func) &&;
+    
+    /** \} **/
     
 private:
     friend value array();

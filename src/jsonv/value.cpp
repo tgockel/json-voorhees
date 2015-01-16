@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/value.hpp>
+#include <jsonv/algorithm.hpp>
 #include <jsonv/encode.hpp>
 #include <jsonv/path.hpp>
 
@@ -519,6 +520,16 @@ value::size_type value::size() const
         // Should never hit this...
         return false;
     }
+}
+
+value value::map(const std::function<value (const value&)>& func) const&
+{
+    return jsonv::map(func, *this);
+}
+
+value value::map(const std::function<value (value)>& func) &&
+{
+    return jsonv::map(func, std::move(*this));
 }
 
 void swap(value& a, value& b) noexcept
