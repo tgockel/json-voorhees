@@ -123,7 +123,7 @@ struct std::hash&lt; jsonv::value &gt;</h3>
 <p>Explicit specialization of <code>std::hash</code> for <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> types so you can store a <code>value</code> in an unordered container. </p>
 <p>Hashing results depend on the <code>kind</code> for the provided value -- most kinds directly use the hasher for their kind (hashing a <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> for integer <code>5</code> should have the same hash value as directly hashing the same integer). For aggregate kinds <code>array</code> and <code>object</code>, hashing visits every sub-element recursively. This might be expensive, but is required when storing multiple values with similar layouts in the a set (which is the most common use case). </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00921">921</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00952">952</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 </div><hr/>The documentation for this struct was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="value_8hpp_source.html">value.hpp</a></li>
 </ul>

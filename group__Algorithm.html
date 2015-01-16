@@ -101,14 +101,150 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">jsonv::map</a> (const std::function&lt; value(const value &amp;)&gt; &amp;func, const value &amp;input)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function over the values in the <em>input</em>.  <a href="#ga6f0abfde4a15bb3d727727d17e055d4d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga20a92faf8b28a6ec0ea0360cdf475f43">jsonv::map</a> (const std::function&lt; value(value)&gt; &amp;func, value &amp;&amp;input)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function over the values in the <em>input</em>.  <a href="#ga20a92faf8b28a6ec0ea0360cdf475f43"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#gaf74e9854143e94b2b014efe15eb63fdf">jsonv::traverse</a> (const value &amp;tree, const std::function&lt; void(const path &amp;, const value &amp;)&gt; &amp;func, const path &amp;base_path, bool leafs_only=false)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursively walk the provided <em>tree</em> and call <em>func</em> for each item in the tree.  <a href="#gaf74e9854143e94b2b014efe15eb63fdf"></a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#gacc870c7f69dc8731b6a97afa97df43cc">jsonv::traverse</a> (const value &amp;tree, const std::function&lt; void(const path &amp;, const value &amp;)&gt; &amp;func, bool leafs_only=false)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursively walk the provided <em>tree</em> and call <em>func</em> for each item in the tree.  <a href="#gacc870c7f69dc8731b6a97afa97df43cc"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga9e2e68ce801ca3c29f80f104dd12c99d">jsonv::value::map</a> (const std::function&lt; value(const value &amp;)&gt; &amp;func) const &amp;</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function over the values of this instance.  <a href="#ga9e2e68ce801ca3c29f80f104dd12c99d"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga8801c26b1bb92cf42203aea4284f82be">jsonv::value::map</a> (const std::function&lt; value(value)&gt; &amp;func)&amp;&amp;</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function over the values of this instance.  <a href="#ga8801c26b1bb92cf42203aea4284f82be"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <p>A collection of useful free functions a la <code></code> &lt;algorithm&gt;. </p>
 <hr/><h2>Function Documentation</h2>
+<a class="anchor" id="ga6f0abfde4a15bb3d727727d17e055d4d"></a><!-- doxytag: member="jsonv::map" ref="ga6f0abfde4a15bb3d727727d17e055d4d" args="(const std::function&lt; value(const value &amp;)&gt; &amp;func, const value &amp;input)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value jsonv::map </td>
+          <td>(</td>
+          <td class="paramtype">const std::function&lt; value(const value &amp;)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>func</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const value &amp;&#160;</td>
+          <td class="paramname"><em>input</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Run a function over the values in the <em>input</em>. </p>
+<p>The behavior of this function is different, depending on the <code>kind</code> of <em>input</em>. For scalar kinds (<code>kind::integer</code>, <code>kind::null</code>, etc), <em>func</em> is called once with the value. If <em>input</em> is <code>kind::array</code>, <code>func</code> is called for every value in the array and the output will be an array with each element transformed by <em>func</em>. If <em>input</em> is <code>kind::object</code>, the result will be an object with each key transformed by <em>func</em>.</p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">func</td><td>The function to apply to the element or elements of <em>input</em>. </td></tr>
+    <tr><td class="paramname">input</td><td>The value to transform. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga20a92faf8b28a6ec0ea0360cdf475f43"></a><!-- doxytag: member="jsonv::map" ref="ga20a92faf8b28a6ec0ea0360cdf475f43" args="(const std::function&lt; value(value)&gt; &amp;func, value &amp;&amp;input)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value jsonv::map </td>
+          <td>(</td>
+          <td class="paramtype">const std::function&lt; value(value)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>func</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value &amp;&amp;&#160;</td>
+          <td class="paramname"><em>input</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Run a function over the values in the <em>input</em>. </p>
+<p>The behavior of this function is different, depending on the <code>kind</code> of <em>input</em>. For scalar kinds (<code>kind::integer</code>, <code>kind::null</code>, etc), <em>func</em> is called once with the value. If <em>input</em> is <code>kind::array</code>, <code>func</code> is called for every value in the array and the output will be an array with each element transformed by <em>func</em>. If <em>input</em> is <code>kind::object</code>, the result will be an object with each key transformed by <em>func</em>.</p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">func</td><td>The function to apply to the element or elements of <em>input</em>. </td></tr>
+    <tr><td class="paramname">input</td><td>The value to transform.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>This version of <code>map</code> provides only a basic exception-safety guarantee. If an exception is thrown while transforming a non-scalar <code>kind</code>, there is no rollback action, so <em>input</em> is left in a usable, but <em>unpredictable</em> state. If you need a strong exception guarantee, use the version of <code>map</code> that takes a constant reference to a <code>value</code>. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga9e2e68ce801ca3c29f80f104dd12c99d"></a><!-- doxytag: member="jsonv::value::map" ref="ga9e2e68ce801ca3c29f80f104dd12c99d" args="(const std::function&lt; value(const value &amp;)&gt; &amp;func) const &amp;" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">value <a class="el" href="group__Algorithm.html#ga9e2e68ce801ca3c29f80f104dd12c99d">jsonv::value::map</a> </td>
+          <td>(</td>
+          <td class="paramtype">const std::function&lt; <a class="el" href="classjsonv_1_1value.html">value</a>(const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Run a function over the values of this instance. </p>
+<p>The behavior of this function is different, depending on the <code>kind</code>. For scalar kinds (<code>kind::integer</code>, <code>kind::null</code>, etc), <em>func</em> is called once with the value. If this is <code>kind::array</code>, <code>func</code> is called for every value in the array and the output will be an array with each element transformed by <em>func</em>. If this is <code>kind::object</code>, the result will be an object with each key transformed by <em>func</em>.</p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">func</td><td>The function to apply to the element or elements of this instance. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga8801c26b1bb92cf42203aea4284f82be"></a><!-- doxytag: member="jsonv::value::map" ref="ga8801c26b1bb92cf42203aea4284f82be" args="(const std::function&lt; value(value)&gt; &amp;func)&amp;&amp;" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">value <a class="el" href="group__Algorithm.html#ga9e2e68ce801ca3c29f80f104dd12c99d">jsonv::value::map</a> </td>
+          <td>(</td>
+          <td class="paramtype">const std::function&lt; <a class="el" href="classjsonv_1_1value.html">value</a>(<a class="el" href="classjsonv_1_1value.html">value</a>)&gt; &amp;&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>Run a function over the values of this instance. </p>
+<p>The behavior of this function is different, depending on the <code>kind</code>. For scalar kinds (<code>kind::integer</code>, <code>kind::null</code>, etc), <em>func</em> is called once with the value. If this is <code>kind::array</code>, <code>func</code> is called for every value in the array and the output will be an array with each element transformed by <em>func</em>. If this is <code>kind::object</code>, the result will be an object with each key transformed by <em>func</em>.</p>
+<dl class="params"><dt><b>Parameters:</b></dt><dd>
+  <table class="params">
+    <tr><td class="paramname">func</td><td>The function to apply to the element or elements of this instance.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="note"><dt><b>Note:</b></dt><dd>This version of <code>map</code> provides only a basic exception-safety guarantee. If an exception is thrown while transforming a non-scalar <code>kind</code>, there is no rollback action, so <code>this</code> is left in a usable, but <em>unpredictable</em> state. If you need a strong exception guarantee, use the constant reference version of <code>map</code>. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="gaf74e9854143e94b2b014efe15eb63fdf"></a><!-- doxytag: member="jsonv::traverse" ref="gaf74e9854143e94b2b014efe15eb63fdf" args="(const value &amp;tree, const std::function&lt; void(const path &amp;, const value &amp;)&gt; &amp;func, const path &amp;base_path, bool leafs_only=false)" -->
 <div class="memitem">
 <div class="memproto">

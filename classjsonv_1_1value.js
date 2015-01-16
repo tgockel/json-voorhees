@@ -74,6 +74,8 @@ var classjsonv_1_1value =
     [ "insert", "group__Object.html#ga5b86bbeebd1d761d9a4598ee4baabe42", null ],
     [ "insert", "group__Object.html#ga7c7c41413bcfcfebde5f2968458fc725", null ],
     [ "kind", "group__Shared.html#ga2d25930b6dc2644203361da27a1fef2b", null ],
+    [ "map", "group__Algorithm.html#ga9e2e68ce801ca3c29f80f104dd12c99d", null ],
+    [ "map", "group__Algorithm.html#ga8801c26b1bb92cf42203aea4284f82be", null ],
     [ "operator!=", "group__Shared.html#ga5a94bbcbaa79b35a4a24c0ceeb3ca7be", null ],
     [ "operator<", "group__Shared.html#ga20e0a977720b5083be3ec231450509c8", null ],
     [ "operator<=", "group__Shared.html#ga8475093f510f162185b933ba4a44bcd5", null ],
