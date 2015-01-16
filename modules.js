@@ -1,11 +1,16 @@
 var modules =
 [
-    [ "Algorithm", "group__Algorithm.html", null ],
-    [ "Array", "group__Array.html", null ],
-    [ "Coercion", "group__Coercion.html", null ],
-    [ "Conversions", "group__Conversions.html", null ],
-    [ "Creation", "group__Creation.html", null ],
-    [ "Object", "group__Object.html", null ],
-    [ "Shared", "group__Shared.html", null ],
-    [ "Utility", "group__Utility.html", null ]
+    [ "Using the library", "index.html#usage", [
+      [ "The jsonv::value", "index.html#demo_value", null ],
+      [ "Encoding and decoding", "index.html#demo_parsing", null ],
+      [ "Algorithms", "index.html#demo_algorithm", null ]
+    ] ],
+    [ "Algorithm", "group__Algorithm.html", "group__Algorithm" ],
+    [ "Array", "group__Array.html", "group__Array" ],
+    [ "Coercion", "group__Coercion.html", "group__Coercion" ],
+    [ "Conversions", "group__Conversions.html", "group__Conversions" ],
+    [ "Creation", "group__Creation.html", "group__Creation" ],
+    [ "Object", "group__Object.html", "group__Object" ],
+    [ "Shared", "group__Shared.html", "group__Shared" ],
+    [ "Utility", "group__Utility.html", "group__Utility" ]
 ];

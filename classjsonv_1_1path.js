@@ -5,7 +5,6 @@ var classjsonv_1_1path =
     [ "path", "classjsonv_1_1path.html#afa6721c123344a7931be1895d557b8b4", null ],
     [ "path", "classjsonv_1_1path.html#af7f3aeffc150f7fa6497f4e8bed73442", null ],
     [ "~path", "classjsonv_1_1path.html#a17f916b3b2dfbf285c3512849da14bb1", null ],
-    [ "create", "classjsonv_1_1path.html#aafa798395256d7ea06e3cbe2de5f940b", null ],
     [ "operator+", "classjsonv_1_1path.html#ad81ff4e324bfcc8f9ff39299d781392f", null ],
     [ "operator+", "classjsonv_1_1path.html#aca9bb43bbceee6941ad35c219b49c787", null ],
     [ "operator+=", "classjsonv_1_1path.html#a8ad93a98219a30e4f7cf9349252d73d5", null ],
