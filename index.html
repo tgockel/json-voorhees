@@ -35,7 +35,7 @@
    <div id="projectname">JSON Voorhees
    
    </div>
-   <div id="projectbrief">A C++ library for parsing JSON.</div>
+   <div id="projectbrief">Killer JSON for C++</div>
   </td>
   
   
@@ -93,18 +93,41 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">JSON Voorhees </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler.</p>
+<div class="textblock"><p>JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler. It is hosted on <a href="https://github.com/tgockel/json-voorhees">GitHub</a> and sports an Apache License, so use it anywhere you need.</p>
 <p>Features include (but are not necessarily limited to):</p>
 <ul>
-<li>A simple system for the representation of JSON values</li>
-<li>Documentation consumable by human beings that answers questions you might actually ask</li>
-<li>Simple JSON parsing with <code>parse</code> or use the <code>tokenizer</code> system and customize to your heart's desires</li>
-<li>Write a JSON value with <code>operator&lt;&lt;</code> or use the <code>encoder</code> API for advanced output options</li>
+<li>Simple<ul>
+<li>A `value` should not feel terribly different from a C++ Standard Library container</li>
+<li>Write valid JSON with `operator&lt;&lt;`</li>
+<li>Simple JSON parsing with `parse`</li>
 <li>Reasonable error messages when parsing fails</li>
 <li>Full support for Unicode-filled JSON (encoded in UTF-8 in C++)</li>
-<li>Safe: in the best case, illegal code should fail to compile; in the worst case, an illegal action should throw an exception</li>
-<li>Stable: worry less about upgrading -- the API and ABI will not change out from under you</li>
 </ul>
+</li>
+<li>Efficient<ul>
+<li>Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)</li>
+<li>No-throw move semantics wherever possible</li>
+</ul>
+</li>
+<li>Safe<ul>
+<li>In the best case, illegal code should fail to compile</li>
+<li>An illegal action should throw an exception</li>
+<li>Almost all utility functions have a [strong exception guarantee](<a href="http://www.gotw.ca/gotw/082.htm">http://www.gotw.ca/gotw/082.htm</a>)</li>
+</ul>
+</li>
+<li>Stable<ul>
+<li>Worry less about upgrading -- the API and ABI will not change out from under you</li>
+</ul>
+</li>
+<li>Documented<ul>
+<li>Consumable by human beings</li>
+<li>Answers questions you might actually ask</li>
+</ul>
+</li>
+</ul>
+<p><div class="dotgraph">
+<iframe scrolling="no" frameborder="0" src="dot_conversions.svg" width="430" height="342"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</p>
 <h2><a class="anchor" id="usage"></a>
 Using the library</h2>
 <p>JSON Voorhees is designed with ease-of-use in mind. So let's look at some code!</p>
@@ -137,6 +160,13 @@ The jsonv::value</h3>
                        });
       std::cout &lt;&lt; x &lt;&lt; std::endl;
   }
+</pre></div><p>Output:</p>
+<div class="fragment"><pre class="fragment">  null
+  5.9
+  -100
+  <span class="stringliteral">&quot;something else&quot;</span>
+  [<span class="stringliteral">&quot;arrays&quot;</span>,<span class="stringliteral">&quot;of&quot;</span>,<span class="stringliteral">&quot;the&quot;</span>,7,<span class="stringliteral">&quot;different&quot;</span>,<span class="stringliteral">&quot;types&quot;</span>]
+  {<span class="stringliteral">&quot;compose like&quot;</span>:<span class="stringliteral">&quot;standard library maps&quot;</span>,<span class="stringliteral">&quot;objects&quot;</span>:[<span class="stringliteral">&quot;Are fun, too.&quot;</span>,<span class="stringliteral">&quot;Do what you want.&quot;</span>]}
 </pre></div><p>JSON is dynamic, which makes value access a bit more of a hassle, but JSON Voorhees aims to make it not too horrifying for you. A <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> has a number of accessor methods named things like <code>as_integer</code> and <code>as_string</code> which let you access the value as if it was that type. But what if it isn't that type? In that case, the function will throw a <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">jsonv::kind_error</a></code> with a bit more information as to what rule you violated.</p>
 <div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;iostream&gt;</span>
@@ -155,8 +185,12 @@ The jsonv::value</h3>
       
       x = <span class="stringliteral">&quot;now make it a string&quot;</span>;
       std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9" title="Get this value as a string.">as_string</a>().size() &lt;&lt; std::endl;
-      std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9" title="Get this value as a string.">as_string</a>() &lt;&lt; <span class="stringliteral">&quot;\tis the same as\t&quot;</span> &lt;&lt; x &lt;&lt; std::endl;
+      std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9" title="Get this value as a string.">as_string</a>() &lt;&lt; <span class="stringliteral">&quot;\tis not the same as\t&quot;</span> &lt;&lt; x &lt;&lt; std::endl;
   }
+</pre></div><p>Output:</p>
+<div class="fragment"><pre class="fragment">  Unexpected type: expected <span class="keywordtype">string</span> but found null.
+  20
+  now make it a <span class="keywordtype">string</span>    is not the same as  <span class="stringliteral">&quot;now make it a string&quot;</span>
 </pre></div><p>You can also deal with container types in a similar manner that you would deal with the equivalent STL container type, with some minor caveats. Because the <code>value_type</code> of a JSON object and JSON array are different, they have different iterator types in JSON Voorhees. They are aptly-named <code>object_iterator</code> and <code>array_iterator</code>. The access methods for these iterators are <code>begin_object</code> / <code>end_object</code> and <code>begin_array</code> / <code>end_array</code>, respectively. The object interface behaves exactly like you would expect a <code>std::map&lt;std::string,jsonv::value&gt;</code> to, while the array interface behaves just like a <code>std::deque&lt;jsonv::value&gt;</code> would.</p>
 <div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;iostream&gt;</span>
@@ -197,6 +231,12 @@ The jsonv::value</h3>
       <span class="keywordflow">else</span>
           std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;
   }
+</pre></div><p>Output:</p>
+<div class="fragment"><pre class="fragment">  one: 1
+  Nothing...
+  two: 2
+  two: [<span class="stringliteral">&quot;one&quot;</span>,<span class="stringliteral">&quot;+&quot;</span>,1]
+  Nothing...
 </pre></div><p>The iterator types <em>work</em>. This means you are free to use all of the C++ things just like you would a regular container. To use a ranged-based for, simply call <code>as_array</code> or <code>as_object</code>. Everything from <code></code> &lt;algorithm&gt; and <code></code> &lt;iterator&gt; or any other library works great with JSON Voorhees. Bring those templates on!</p>
 <div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;algorithm&gt;</span>
@@ -216,6 +256,9 @@ The jsonv::value</h3>
           std::cout &lt;&lt; val &lt;&lt; <span class="charliteral">&#39;\t&#39;</span>;
       std::cout &lt;&lt; std::endl;
   }
+</pre></div><p>Output:</p>
+<div class="fragment"><pre class="fragment">  Initial: <span class="stringliteral">&quot;taco&quot;</span> <span class="stringliteral">&quot;cat&quot;</span>   3   -2  null    <span class="stringliteral">&quot;beef&quot;</span>  4.8   5
+  Sorted:  null   -2  3   4.8 5   <span class="stringliteral">&quot;beef&quot;</span>  <span class="stringliteral">&quot;cat&quot;</span>   <span class="stringliteral">&quot;taco&quot;</span>
 </pre></div><h3><a class="anchor" id="demo_parsing"></a>
 Encoding and decoding</h3>
 <p>Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services or storing things in a file or a database. JSON Voorhees makes this very easy for you.</p>
@@ -235,7 +278,7 @@ Encoding and decoding</h3>
       obj[<span class="stringliteral">&quot;infinity&quot;</span>] = std::numeric_limits&lt;double&gt;::infinity();
       
       {
-          std::cout &lt;&lt; <span class="stringliteral">&quot;Saving \&quot;file.json\&quot;...&quot;</span> &lt;&lt; obj &lt;&lt; std::endl;
+          std::cout &lt;&lt; <span class="stringliteral">&quot;Saving \&quot;file.json\&quot;... &quot;</span> &lt;&lt; obj &lt;&lt; std::endl;
           std::ofstream file(<span class="stringliteral">&quot;file.json&quot;</span>);
           file &lt;&lt; obj;
       }
@@ -245,12 +288,98 @@ Encoding and decoding</h3>
           std::cout &lt;&lt; <span class="stringliteral">&quot;Loading \&quot;file.json\&quot;...&quot;</span>;
           std::ifstream file(<span class="stringliteral">&quot;file.json&quot;</span>);
           loaded = jsonv::parse(file);
-          std::cout &lt;&lt; loaded &lt;&lt; std::endl;
       }
+      std::cout &lt;&lt; loaded &lt;&lt; std::endl;
       
       <span class="keywordflow">return</span> obj == loaded ? 0 : 1;
   }
+</pre></div><p>Output:</p>
+<div class="fragment"><pre class="fragment">  Saving <span class="stringliteral">&quot;file.json&quot;</span>... {<span class="stringliteral">&quot;array&quot;</span>:[1,2,3,4,5],<span class="stringliteral">&quot;infinity&quot;</span>:null,<span class="stringliteral">&quot;taco&quot;</span>:<span class="stringliteral">&quot;cat&quot;</span>}
+  Loading <span class="stringliteral">&quot;file.json&quot;</span>...{<span class="stringliteral">&quot;array&quot;</span>:[1,2,3,4,5],<span class="stringliteral">&quot;infinity&quot;</span>:null,<span class="stringliteral">&quot;taco&quot;</span>:<span class="stringliteral">&quot;cat&quot;</span>}
 </pre></div><p>If you are paying close attention, you might have notice that the value for the <code>"infinity"</code> looks a little bit more <code>null</code> than <code>infinity</code>. This is because, much like mathematicians before Anaximander, JSON has no concept of infinity, so it is actually <em>illegal</em> to serialize a token like <code>infinity</code> anywhere. By default, when an encoder encounters an unrepresentable value in the JSON it is trying to encode, it outputs <code>null</code> instead. If you wish to change this behavior, implement your own <code><a class="el" href="classjsonv_1_1encoder.html" title="An encoder is responsible for writing values to some form of output.">jsonv::encoder</a></code> (or derive from <code><a class="el" href="classjsonv_1_1ostream__encoder.html" title="An encoder that outputs to an std::ostream.">jsonv::ostream_encoder</a></code>). If you ran the example program, you might have noticed that the return code was 1, meaning the value you put into the file and what you got from it were not equal. This is because all the type and value information is still kept around in the in-memory <code>obj</code>. It is only upon encoding that information is lost.</p>
+<p>Getting tired of all this compact rendering of your JSON strings? Want a little more whitespace in your life? Then <code><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html">jsonv::ostream_pretty_encoder</a></code> is the class for you! Unlike our standard <em>compact</em> encoder, this guy will put newlines and indentation in your JSON so you can present it in a way more readable format.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="encode_8hpp.html" title="Classes and functions for encoding JSON values to various representations.">jsonv/encode.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="parse_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/parse.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+  
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <span class="comment">// Make a pretty encoder and point to std::cout</span>
+      <a class="code" href="classjsonv_1_1ostream__pretty__encoder.html">jsonv::ostream_pretty_encoder</a> prettifier(std::cout);
+      prettifier.encode(jsonv::parse(std::cin));
+  }
+</pre></div><p>Compile that code and you now have your own little JSON prettification program!</p>
+<h3><a class="anchor" id="demo_algorithm"></a>
+Algorithms</h3>
+<p>JSON Voorhees takes a "batteries included" approach. A few building blocks for powerful operations can be found in the <code><a class="el" href="algorithm_8hpp.html" title="A collection of algorithms a la  &lt;algorithm&gt;.">algorithm.hpp</a></code> header file.</p>
+<p>One of the simplest operations you can perform is the <code>map</code> operation. This operation takes in some <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> and returns another. Let's try it.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="algorithm_8hpp.html" title="A collection of algorithms a la  &lt;algorithm&gt;.">jsonv/algorithm.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+  
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> x = 5;
+      std::cout &lt;&lt; <a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d" title="Run a function over the values in the input.">jsonv::map</a>([] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a>&amp; y) { <span class="keywordflow">return</span> y.<a class="code" href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8" title="Get this value as an integer.">as_integer</a>() * 2; }, x) &lt;&lt; std::endl;
+  }
+</pre></div><p>If everything went right, you should see a number:</p>
+<div class="fragment"><pre class="fragment">  10
+</pre></div><p>Okay, so that was not very interesting. To be fair, that is not the most interesting example of using <code>map</code>, but it is enough to get the general idea of what is going on. This operation is so common that it is a member function of <code>value</code> as <code><a class="el" href="group__Algorithm.html#ga9e2e68ce801ca3c29f80f104dd12c99d" title="Run a function over the values of this instance.">jsonv::value::map</a></code>. Let's make things a bit more interesting and <code>map</code> an <code>array</code>...</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+  
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      std::cout &lt;&lt; <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed" title="Create an array with contents defined by range [first, last).">jsonv::array</a>({ 1, 2, 3, 4, 5 })
+                          .<a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d" title="Run a function over the values in the input.">map</a>([] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a>&amp; y) { <span class="keywordflow">return</span> y.<a class="code" href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8" title="Get this value as an integer.">as_integer</a>() * 2; })
+                &lt;&lt; std::endl;
+  }
+</pre></div><p>Now we're starting to get somewhere!</p>
+<div class="fragment"><pre class="fragment">  [2,4,6,8,10]
+</pre></div><p>The <code>map</code> function maps over whatever the contents of the <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> happens to be and returns something for you based on the <code>kind</code>. This simple concept is so ubiquitous that <a href="http://www.disi.unige.it/person/MoggiE/">Eugenio Moggi</a> named it a <a href="http://stackoverflow.com/questions/44965/what-is-a-monad">monad</a>. If you're feeling adventurous, try using <code>map</code> with an <code>object</code> or chaining multiple <code>map</code> operations together.</p>
+<p>Another common building block is the function <code>jsonv::traverse</code>. This function walks a JSON structure and calls a some user-provided function.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="algorithm_8hpp.html" title="A collection of algorithms a la  &lt;algorithm&gt;.">jsonv/algorithm.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="parse_8hpp.html" title="Copyright (c) 2012-2014 by Travis Gockel.">jsonv/parse.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+  
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="group__Algorithm.html#gaf74e9854143e94b2b014efe15eb63fdf" title="Recursively walk the provided tree and call func for each item in the tree.">jsonv::traverse</a>(jsonv::parse(std::cin),
+                      [] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1path.html" title="Represents an exact path in some JSON structure.">jsonv::path</a>&amp; path, <span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a>&amp; value)
+                      {
+                          std::cout &lt;&lt; path &lt;&lt; <span class="stringliteral">&quot;=&quot;</span> &lt;&lt; value &lt;&lt; std::endl;
+                      },
+                      true
+                     );
+  }
+</pre></div><p>Now we have a tiny little program! Here's what happens when I pipe <code>{ "bar": [1, 2, 3], "foo": "hello" }</code> into the program:</p>
+<div class="fragment"><pre class="fragment">  .bar[0]=1
+  .bar[1]=2
+  .bar[2]=3
+  .foo=<span class="stringliteral">&quot;hello&quot;</span>
+</pre></div><p>Imagine the possibilities!</p>
+<p>All of the <em>really</em> powerful functions can be found in <code><a class="el" href="util_8hpp.html" title="A collection of utility functions for manipulating one or more instances of jsonv::value.">util.hpp</a></code>. My personal favorite is <code>jsonv::merge</code>. The idea is simple: it merges two (or more) JSON values into one.</p>
+<div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="util_8hpp.html" title="A collection of utility functions for manipulating one or more instances of jsonv::value.">jsonv/util.hpp</a>&gt;</span>
+<span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
+  
+<span class="preprocessor">  #include &lt;iostream&gt;</span>
+  
+  <span class="keywordtype">int</span> main()
+  {
+      <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> a = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1" title="Create an object whose contents are defined by range [first, last).">jsonv::object</a>({ { <span class="stringliteral">&quot;a&quot;</span>, <span class="stringliteral">&quot;taco&quot;</span> }, { <span class="stringliteral">&quot;b&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span> } });
+      <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> b = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1" title="Create an object whose contents are defined by range [first, last).">jsonv::object</a>({ { <span class="stringliteral">&quot;c&quot;</span>, <span class="stringliteral">&quot;burrito&quot;</span> }, { <span class="stringliteral">&quot;d&quot;</span>, <span class="stringliteral">&quot;dog&quot;</span> } });
+      <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> merged = <a class="code" href="group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f" title="Merges all the provided values into a single value.">jsonv::merge</a>(std::move(a), std::move(b));
+      std::cout &lt;&lt; merged &lt;&lt; std::endl;
+  }
+</pre></div><p>Output:</p>
+<div class="fragment"><pre class="fragment">  {<span class="stringliteral">&quot;a&quot;</span>:<span class="stringliteral">&quot;taco&quot;</span>,<span class="stringliteral">&quot;b&quot;</span>:<span class="stringliteral">&quot;cat&quot;</span>,<span class="stringliteral">&quot;c&quot;</span>:<span class="stringliteral">&quot;burrito&quot;</span>,<span class="stringliteral">&quot;d&quot;</span>:<span class="stringliteral">&quot;dog&quot;</span>}
+</pre></div><p>You might have noticed the use of <code>std::move</code> into the <code>merge</code> function. <code>merge</code>, like most functions in JSON Voorees, takes advantage of move semantics. In this case, the implementation will move the contents of the values instead of copying them around. While it may not matter in this simple case, if you have large JSON structures, the support for movement will save you a ton of memory.</p>
 <dl class="see"><dt><b>See also:</b></dt><dd><a href="https://github.com/tgockel/json-voorhees">https://github.com/tgockel/json-voorhees</a> </dd>
 <dd>
 <a href="http://json.org/">http://json.org/</a> </dd></dl>
