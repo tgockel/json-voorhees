@@ -81,7 +81,7 @@ value merge_explicit(const merge_rules& rules,
         case kind::object:
         {
             value out = object();
-            for (value::object_iterator iter = a.begin_object(); iter != a.end_object(); ++iter)
+            for (value::object_iterator iter = a.begin_object(); iter != a.end_object(); iter = a.erase(iter))
             {
                 auto iter_b = b.find(iter->first);
                 if (iter_b == b.end_object())
