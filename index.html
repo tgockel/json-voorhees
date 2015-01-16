@@ -169,7 +169,7 @@ The jsonv::value</h3>
   {<span class="stringliteral">&quot;compose like&quot;</span>:<span class="stringliteral">&quot;standard library maps&quot;</span>,<span class="stringliteral">&quot;objects&quot;</span>:[<span class="stringliteral">&quot;Are fun, too.&quot;</span>,<span class="stringliteral">&quot;Do what you want.&quot;</span>]}
 </pre></div><p>If that isn't convenient enough for you, there is a user-defined literal <code>_json</code> in the <code>jsonv</code> namespace you can use</p>
 <div class="fragment"><pre class="fragment">  <span class="comment">// You can use this hideous syntax if you do not want to bring in the whole jsonv namespace:</span>
-  <span class="keyword">using</span> jsonv::operator<span class="stringliteral">&quot;&quot;</span>_json;
+  <span class="keyword">using</span> jsonv::operator<span class="stringliteral">&quot;&quot;</span> _json;
   
   <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> x = R<span class="stringliteral">&quot;({</span>
 <span class="stringliteral">                        &quot;</span>objects<span class="stringliteral">&quot;: [ &quot;</span>Are fun, too.<span class="stringliteral">&quot;,</span>
