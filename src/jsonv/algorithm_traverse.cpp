@@ -21,7 +21,7 @@ void traverse(const value&                                           tree,
               bool                                                   leafs_only
              )
 {
-    if (!leafs_only || (tree.kind() != kind::array && tree.kind() != kind::object))
+    if (!leafs_only || tree.empty() || (tree.kind() != kind::array && tree.kind() != kind::object))
         func(base_path, tree);
     
     if (tree.kind() == kind::object)

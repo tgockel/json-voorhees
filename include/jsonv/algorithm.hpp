@@ -66,7 +66,8 @@ JSONV_PUBLIC value map(const std::function<value (value)>& func,
  *  \param base_path The path to prepend to each output path to \a func. This can be useful if beginning traversal from
  *                   inside of some JSON structure.
  *  \param leafs_only If true, call \a func only when the current path is a "leaf" value (\c string, \c integer,
- *                    \c decimal, \c boolean or \c null); if false, call \a func for all entries in the tree.
+ *                    \c decimal, \c boolean, or \c null \e or an empty \c array or \c object); if false, call \a func
+ *                    for all entries in the tree.
 **/
 JSONV_PUBLIC void traverse(const value&                                           tree,
                            const std::function<void (const path&, const value&)>& func,
@@ -79,7 +80,8 @@ JSONV_PUBLIC void traverse(const value&                                         
  *  \param tree The JSON value to traverse.
  *  \param func The function to call for each element in the tree.
  *  \param leafs_only If true, call \a func only when the current path is a "leaf" value (\c string, \c integer,
- *                    \c decimal, \c boolean or \c null); if false, call \a func for all entries in the tree.
+ *                    \c decimal, \c boolean, or \c null \e or an empty \c array or \c object); if false, call \a func
+ *                    for all entries in the tree.
 **/
 JSONV_PUBLIC void traverse(const value&                                           tree,
                            const std::function<void (const path&, const value&)>& func,
