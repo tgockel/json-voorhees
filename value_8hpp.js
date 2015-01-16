@@ -8,6 +8,7 @@ var value_8hpp =
     [ "object", "group__Creation.html#ga757770053a2714136231e26ec7c74673", null ],
     [ "object", "group__Creation.html#ga0626c41c76cb46a7859de92c1f3bdd68", null ],
     [ "object", "group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1", null ],
+    [ "operator\"\"_json", "namespacejsonv.html#acbd9685699111e35574f44d3793f600c", null ],
     [ "operator<<", "namespacejsonv.html#a28b56e4bcc6db35b78e8a5c075994202", null ],
     [ "swap", "namespacejsonv.html#a6dcde9d9d0ea0a03bde8bcdff760e10f", null ],
     [ "to_string", "namespacejsonv.html#a2d5017f8b832a4b66bd16923ebde1c3d", null ]

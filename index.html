@@ -167,6 +167,17 @@ The jsonv::value</h3>
   <span class="stringliteral">&quot;something else&quot;</span>
   [<span class="stringliteral">&quot;arrays&quot;</span>,<span class="stringliteral">&quot;of&quot;</span>,<span class="stringliteral">&quot;the&quot;</span>,7,<span class="stringliteral">&quot;different&quot;</span>,<span class="stringliteral">&quot;types&quot;</span>]
   {<span class="stringliteral">&quot;compose like&quot;</span>:<span class="stringliteral">&quot;standard library maps&quot;</span>,<span class="stringliteral">&quot;objects&quot;</span>:[<span class="stringliteral">&quot;Are fun, too.&quot;</span>,<span class="stringliteral">&quot;Do what you want.&quot;</span>]}
+</pre></div><p>If that isn't convenient enough for you, there is a user-defined literal <code>_json</code> in the <code>jsonv</code> namespace you can use</p>
+<div class="fragment"><pre class="fragment">  <span class="comment">// You can use this hideous syntax if you do not want to bring in the whole jsonv namespace:</span>
+  <span class="keyword">using</span> jsonv::operator<span class="stringliteral">&quot;&quot;</span>_json;
+  
+  <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a> x = R<span class="stringliteral">&quot;({</span>
+<span class="stringliteral">                        &quot;</span>objects<span class="stringliteral">&quot;: [ &quot;</span>Are fun, too.<span class="stringliteral">&quot;,</span>
+<span class="stringliteral">                                     &quot;</span>Do what you want.<span class="stringliteral">&quot;</span>
+<span class="stringliteral">                                   ],</span>
+<span class="stringliteral">                        &quot;</span>compose like<span class="stringliteral">&quot;: &quot;</span>You are just writing JSON<span class="stringliteral">&quot;,</span>
+<span class="stringliteral">                        &quot;</span>which I guess<span class="stringliteral">&quot;: [&quot;</span>is<span class="stringliteral">&quot;, &quot;</span>also<span class="stringliteral">&quot;, &quot;</span>neat<span class="stringliteral">&quot;]</span>
+<span class="stringliteral">                     })&quot;</span>_json;
 </pre></div><p>JSON is dynamic, which makes value access a bit more of a hassle, but JSON Voorhees aims to make it not too horrifying for you. A <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> has a number of accessor methods named things like <code>as_integer</code> and <code>as_string</code> which let you access the value as if it was that type. But what if it isn't that type? In that case, the function will throw a <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">jsonv::kind_error</a></code> with a bit more information as to what rule you violated.</p>
 <div class="fragment"><pre class="fragment"><span class="preprocessor">  #include &lt;<a class="code" href="value_8hpp.html" title="Copyright (c) 2012-2015 by Travis Gockel.">jsonv/value.hpp</a>&gt;</span>
 <span class="preprocessor">  #include &lt;iostream&gt;</span>

@@ -618,46 +618,48 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00907"></a>00907     jsonv::kind           _kind;
 <a name="l00908"></a>00908 };
 <a name="l00909"></a>00909 
-<a name="l00911"></a>00911 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">void</span> swap(<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; a, <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; b) noexcept;
-<a name="l00912"></a>00912 
-<a name="l00919"></a>00919 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> array();
-<a name="l00920"></a>00920 
-<a name="l00922"></a>00922 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> array(std::initializer_list&lt;<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&gt; source);
-<a name="l00923"></a>00923 
-<a name="l00925"></a>00925 template &lt;typename TForwardIterator&gt;
-<a name="l00926"></a><a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">00926</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> array(TForwardIterator first, TForwardIterator last)
-<a name="l00927"></a>00927 {
-<a name="l00928"></a>00928     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> arr = array();
-<a name="l00929"></a>00929     arr.<a class="code" href="group__Array.html#ga34cbe426ef55efe31111bed84c3f6dba" title="Assign count elements to this array with val.">assign</a>(first, last);
-<a name="l00930"></a>00930     <span class="keywordflow">return</span> arr;
-<a name="l00931"></a>00931 }
+<a name="l00920"></a>00920 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> operator&quot;&quot;_json(const <span class="keywordtype">char</span>* str, std::<span class="keywordtype">size_t</span> len);
+<a name="l00921"></a>00921 
+<a name="l00923"></a>00923 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">void</span> swap(<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; a, <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&amp; b) noexcept;
+<a name="l00924"></a>00924 
+<a name="l00931"></a>00931 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> array();
 <a name="l00932"></a>00932 
-<a name="l00934"></a>00934 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> value object();
+<a name="l00934"></a>00934 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> array(std::initializer_list&lt;<a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a>&gt; source);
 <a name="l00935"></a>00935 
-<a name="l00937"></a>00937 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> value object(std::initializer_list&lt;std::pair&lt;std::string, value&gt;&gt; source);
-<a name="l00938"></a>00938 
-<a name="l00940"></a>00940 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TForwardIterator&gt;
-<a name="l00941"></a><a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">00941</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> object(TForwardIterator first, TForwardIterator last)
-<a name="l00942"></a>00942 {
-<a name="l00943"></a>00943     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> obj = object();
-<a name="l00944"></a>00944     obj.<a class="code" href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a" title="Insert an item into position on this array.">insert</a>(first, last);
-<a name="l00945"></a>00945     <span class="keywordflow">return</span> obj;
-<a name="l00946"></a>00946 }
+<a name="l00937"></a>00937 template &lt;typename TForwardIterator&gt;
+<a name="l00938"></a><a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">00938</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> array(TForwardIterator first, TForwardIterator last)
+<a name="l00939"></a>00939 {
+<a name="l00940"></a>00940     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> arr = array();
+<a name="l00941"></a>00941     arr.<a class="code" href="group__Array.html#ga34cbe426ef55efe31111bed84c3f6dba" title="Assign count elements to this array with val.">assign</a>(first, last);
+<a name="l00942"></a>00942     <span class="keywordflow">return</span> arr;
+<a name="l00943"></a>00943 }
+<a name="l00944"></a>00944 
+<a name="l00946"></a>00946 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> value object();
 <a name="l00947"></a>00947 
-<a name="l00950"></a>00950 }
-<a name="l00951"></a>00951 
-<a name="l00952"></a>00952 <span class="keyword">namespace </span>std
-<a name="l00953"></a>00953 {
-<a name="l00954"></a>00954 
-<a name="l00962"></a>00962 <span class="keyword">template</span> &lt;&gt;
-<a name="l00963"></a><a class="code" href="structstd_1_1hash_3_01jsonv_1_1value_01_4.html">00963</a> <span class="keyword">struct </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> hash&lt;jsonv::value&gt;
-<a name="l00964"></a>00964 {
-<a name="l00965"></a>00965     std::size_t operator()(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a>&amp; val) <span class="keyword">const</span> noexcept;
-<a name="l00966"></a>00966 };
-<a name="l00967"></a>00967 
-<a name="l00968"></a>00968 }
-<a name="l00969"></a>00969 
-<a name="l00970"></a>00970 <span class="preprocessor">#endif</span><span class="comment">/*__JSONV_VALUE_HPP_INCLUDED__*/</span>
+<a name="l00949"></a>00949 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> value object(std::initializer_list&lt;std::pair&lt;std::string, value&gt;&gt; source);
+<a name="l00950"></a>00950 
+<a name="l00952"></a>00952 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TForwardIterator&gt;
+<a name="l00953"></a><a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">00953</a> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> object(TForwardIterator first, TForwardIterator last)
+<a name="l00954"></a>00954 {
+<a name="l00955"></a>00955     <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">value</a> obj = object();
+<a name="l00956"></a>00956     obj.<a class="code" href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a" title="Insert an item into position on this array.">insert</a>(first, last);
+<a name="l00957"></a>00957     <span class="keywordflow">return</span> obj;
+<a name="l00958"></a>00958 }
+<a name="l00959"></a>00959 
+<a name="l00962"></a>00962 }
+<a name="l00963"></a>00963 
+<a name="l00964"></a>00964 <span class="keyword">namespace </span>std
+<a name="l00965"></a>00965 {
+<a name="l00966"></a>00966 
+<a name="l00974"></a>00974 <span class="keyword">template</span> &lt;&gt;
+<a name="l00975"></a><a class="code" href="structstd_1_1hash_3_01jsonv_1_1value_01_4.html">00975</a> <span class="keyword">struct </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> hash&lt;jsonv::value&gt;
+<a name="l00976"></a>00976 {
+<a name="l00977"></a>00977     std::size_t operator()(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a>&amp; val) <span class="keyword">const</span> noexcept;
+<a name="l00978"></a>00978 };
+<a name="l00979"></a>00979 
+<a name="l00980"></a>00980 }
+<a name="l00981"></a>00981 
+<a name="l00982"></a>00982 <span class="preprocessor">#endif</span><span class="comment">/*__JSONV_VALUE_HPP_INCLUDED__*/</span>
 </pre></div></div><!-- contents -->
 </div>
 <!-- window showing the filter options -->
