@@ -171,6 +171,28 @@ value merge_recursive(TValue&&... values)
                          );
 }
 
+/** The results of the \c diff operation. **/
+struct JSONV_PUBLIC diff_result
+{
+    /** Elements that were the same between the two halves of the diff. **/
+    value same;
+    
+    /** Elements that were unique to the left hand side of the diff. **/
+    value left;
+    
+    /** Elements that were unique to the right hand side of the diff. **/
+    value right;
+};
+
+/** Find the differences and similarities between the structures of \a left and \a right. If \a left and \a right have
+ *  a different \c kind (and the kind difference is not \c kind::integer and \c kind::decimal), \a left and \a right
+ *  will be placed directly in the result. If they have the same \c kind and it is scalar, the values get a direct
+ *  comparison. If they are the same, the result is moved to \c diff_result::same. If they are different, \a left and
+ *  \a right are moved to \c diff_result::left and \c diff_result::right, respectively. For \c kind::array and
+ *  \c kind::object, the \c value elements are compared recursively.
+**/
+JSONV_PUBLIC diff_result diff(value left, value right);
+
 /** Error thrown when an unrepresentable value is encountered in a JSON AST.
  *  
  *  \see validate
