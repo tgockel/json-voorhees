@@ -97,7 +97,7 @@
  *  
  *  \code
  *  // You can use this hideous syntax if you do not want to bring in the whole jsonv namespace:
- *  using jsonv::operator""_json;
+ *  using jsonv::operator"" _json;
  *  
  *  jsonv::value x = R"({
  *                        "objects": [ "Are fun, too.",

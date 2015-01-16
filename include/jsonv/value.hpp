@@ -917,7 +917,7 @@ private:
  *  })"_json;
  *  \endcode
 **/
-JSONV_PUBLIC value operator""_json(const char* str, std::size_t len);
+JSONV_PUBLIC value operator"" _json(const char* str, std::size_t len);
 
 /** Swap the values \a a and \a b. **/
 JSONV_PUBLIC void swap(value& a, value& b) noexcept;
