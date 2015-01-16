@@ -112,29 +112,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00023"></a>00023 <span class="keyword">namespace </span>jsonv
 <a name="l00024"></a>00024 {
 <a name="l00025"></a>00025 
-<a name="l00036"></a>00036 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">bool</span> <a class="code" href="group__Coercion.html#gaf20cb82e10e2201d983e217c47e26ba6" title="Can the given kind be converted from a kind to another?">can_coerce</a>(<span class="keyword">const</span> kind&amp; from, <span class="keyword">const</span> kind&amp; to);
-<a name="l00037"></a>00037 
-<a name="l00048"></a>00048 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">bool</span> <a class="code" href="group__Coercion.html#gaf20cb82e10e2201d983e217c47e26ba6" title="Can the given kind be converted from a kind to another?">can_coerce</a>(<span class="keyword">const</span> value&amp; from, <span class="keyword">const</span> kind&amp; to);
-<a name="l00049"></a>00049 
-<a name="l00056"></a>00056 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::nullptr_t <a class="code" href="group__Coercion.html#ga82b464dbe1081e60ddcd82c434b28c34" title="Coerce from into a null.">coerce_null</a>(<span class="keyword">const</span> value&amp; from);
-<a name="l00057"></a>00057 
-<a name="l00063"></a>00063 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::map&lt;std::string, value&gt; <a class="code" href="group__Coercion.html#gae9a1f603c9ce75f7bd479f022e43dc91" title="Coerce from into a map.">coerce_object</a>(<span class="keyword">const</span> value&amp; from);
-<a name="l00064"></a>00064 
-<a name="l00070"></a>00070 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::vector&lt;value&gt; <a class="code" href="group__Coercion.html#gae17eed7144363cc743cf143f13c377c1" title="Coerce from into a vector.">coerce_array</a>(<span class="keyword">const</span> value&amp; from);
-<a name="l00071"></a>00071 
-<a name="l00075"></a>00075 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::string <a class="code" href="group__Coercion.html#ga7e3fd5c6922f9ead68a46031b0af3e49" title="Coerce from into an std::string.">coerce_string</a>(<span class="keyword">const</span> value&amp; from);
-<a name="l00076"></a>00076 
-<a name="l00091"></a>00091 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::int64_t <a class="code" href="group__Coercion.html#ga202340832fcd5dc84ed142954bf4e85c" title="Coerce from into an integer.">coerce_integer</a>(<span class="keyword">const</span> value&amp; from);
-<a name="l00092"></a>00092 
-<a name="l00106"></a>00106 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">double</span> <a class="code" href="group__Coercion.html#gab8622e02fd1f38c93d11bc9680815627" title="Coerce from into a double.">coerce_decimal</a>(<span class="keyword">const</span> value&amp; from);
-<a name="l00107"></a>00107 
-<a name="l00121"></a>00121 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">bool</span> <a class="code" href="group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16" title="Coerce from into a bool.">coerce_boolean</a>(<span class="keyword">const</span> value&amp; from);
-<a name="l00122"></a>00122 
-<a name="l00127"></a>00127 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> value <a class="code" href="group__Coercion.html#ga98485441d78ea2cdfc00ce97b2563b73" title="Combines a and b in any way possible.">coerce_merge</a>(value a, value b);
-<a name="l00128"></a>00128 
-<a name="l00131"></a>00131 }
-<a name="l00132"></a>00132 
-<a name="l00133"></a>00133 <span class="preprocessor">#endif</span><span class="comment">/*__JSONV_COERCE_HPP_INCLUDED__*/</span>
+<a name="l00037"></a>00037 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">bool</span> <a class="code" href="group__Coercion.html#gaf20cb82e10e2201d983e217c47e26ba6" title="Can the given kind be converted from a kind to another?">can_coerce</a>(<span class="keyword">const</span> kind&amp; from, <span class="keyword">const</span> kind&amp; to);
+<a name="l00038"></a>00038 
+<a name="l00049"></a>00049 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">bool</span> <a class="code" href="group__Coercion.html#gaf20cb82e10e2201d983e217c47e26ba6" title="Can the given kind be converted from a kind to another?">can_coerce</a>(<span class="keyword">const</span> value&amp; from, <span class="keyword">const</span> kind&amp; to);
+<a name="l00050"></a>00050 
+<a name="l00057"></a>00057 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::nullptr_t <a class="code" href="group__Coercion.html#ga82b464dbe1081e60ddcd82c434b28c34" title="Coerce from into a null.">coerce_null</a>(<span class="keyword">const</span> value&amp; from);
+<a name="l00058"></a>00058 
+<a name="l00064"></a>00064 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::map&lt;std::string, value&gt; <a class="code" href="group__Coercion.html#gae9a1f603c9ce75f7bd479f022e43dc91" title="Coerce from into a map.">coerce_object</a>(<span class="keyword">const</span> value&amp; from);
+<a name="l00065"></a>00065 
+<a name="l00071"></a>00071 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::vector&lt;value&gt; <a class="code" href="group__Coercion.html#gae17eed7144363cc743cf143f13c377c1" title="Coerce from into a vector.">coerce_array</a>(<span class="keyword">const</span> value&amp; from);
+<a name="l00072"></a>00072 
+<a name="l00076"></a>00076 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::string <a class="code" href="group__Coercion.html#ga7e3fd5c6922f9ead68a46031b0af3e49" title="Coerce from into an std::string.">coerce_string</a>(<span class="keyword">const</span> value&amp; from);
+<a name="l00077"></a>00077 
+<a name="l00092"></a>00092 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> std::int64_t <a class="code" href="group__Coercion.html#ga202340832fcd5dc84ed142954bf4e85c" title="Coerce from into an integer.">coerce_integer</a>(<span class="keyword">const</span> value&amp; from);
+<a name="l00093"></a>00093 
+<a name="l00107"></a>00107 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">double</span> <a class="code" href="group__Coercion.html#gab8622e02fd1f38c93d11bc9680815627" title="Coerce from into a double.">coerce_decimal</a>(<span class="keyword">const</span> value&amp; from);
+<a name="l00108"></a>00108 
+<a name="l00122"></a>00122 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> <span class="keywordtype">bool</span> <a class="code" href="group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16" title="Coerce from into a bool.">coerce_boolean</a>(<span class="keyword">const</span> value&amp; from);
+<a name="l00123"></a>00123 
+<a name="l00128"></a>00128 <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d" title="This function or class is part of the public API for JsonVoorhees.">JSONV_PUBLIC</a> value <a class="code" href="group__Coercion.html#ga98485441d78ea2cdfc00ce97b2563b73" title="Combines a and b in any way possible.">coerce_merge</a>(value a, value b);
+<a name="l00129"></a>00129 
+<a name="l00132"></a>00132 }
+<a name="l00133"></a>00133 
+<a name="l00134"></a>00134 <span class="preprocessor">#endif</span><span class="comment">/*__JSONV_COERCE_HPP_INCLUDED__*/</span>
 </pre></div></div><!-- contents -->
 </div>
 <!-- window showing the filter options -->
