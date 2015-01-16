@@ -27,7 +27,9 @@ static const char k_some_json[] = R"({
   "b": "blah",
   "c": { "baz": ["bazar"], "cat": ["Eric", "Bob"] },
   "d": {},
-  "e": []
+  "e": [],
+  "f": null,
+  "g": [ true, false ]
 })";
 
 TEST(encode_pretty_print)
