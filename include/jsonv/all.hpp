@@ -32,7 +32,7 @@
  *   - Safe
  *     - In the best case, illegal code should fail to compile
  *     - An illegal action should throw an exception
- *     - Almost all utility functions have a [strong exception guarantee](http://www.gotw.ca/gotw/082.htm)
+ *     - Almost all utility functions have a <a href="http://www.gotw.ca/gotw/082.htm">strong exception guarantee</a>.
  *   - Stable
  *     - Worry less about upgrading -- the API and ABI will not change out from under you
  *   - Documented
