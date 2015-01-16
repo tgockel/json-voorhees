@@ -294,6 +294,34 @@ value& value::path(size_type path_idx)
     return path(jsonv::path({ path_element(path_idx) }));
 }
 
+value::size_type value::count_path(const jsonv::path& p) const
+{
+    // TODO: Performance of this function sucks!
+    try
+    {
+        at_path(p);
+        return 1;
+    }
+    catch (const std::out_of_range&)
+    {
+        return 0;
+    }
+    catch (const kind_error&)
+    {
+        return 0;
+    }
+}
+
+value::size_type value::count_path(string_view p) const
+{
+    return count_path(jsonv::path::create(p));
+}
+
+value::size_type value::count_path(size_type p) const
+{
+    return count_path(jsonv::path({ p }));
+}
+
 void value::swap(value& other) noexcept
 {
     using std::swap;

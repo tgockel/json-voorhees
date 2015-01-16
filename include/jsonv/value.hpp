@@ -506,11 +506,22 @@ public:
      *                      \c path::create).
     **/
     value&       at_path(const path& p);
-    value&       at_path(string_view  p);
+    value&       at_path(string_view p);
     value&       at_path(size_type   p);
     const value& at_path(const path& p) const;
-    const value& at_path(string_view  p) const;
+    const value& at_path(string_view p) const;
     const value& at_path(size_type   p) const;
+    
+    /** Similar to \c count, but walks the given path \a p to determine its presence.
+     *  
+     *  \returns \c 1 if the path finds an element; \c 0 if there is no such path in the tree.
+     *  
+     *  \throws parse_error if a \c string_view was specified that did not have a valid specification (see
+     *                      \c path::create).
+    **/
+    size_type count_path(const path& p) const;
+    size_type count_path(string_view p) const;
+    size_type count_path(size_type   p) const;
     
     /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
      *  no value exists at the path, a new one is created as the default (\c null) value. If any path along the way
@@ -526,7 +537,7 @@ public:
      *  \see at_path
     **/
     value& path(const path& p);
-    value& path(string_view  p);
+    value& path(string_view p);
     value& path(size_type   p);
     
     /** Swap the value this instance represents with \a other. **/

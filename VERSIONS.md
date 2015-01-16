@@ -14,6 +14,7 @@ The focus of this release was the creation of tools to traverse and manipulate t
  - [0.4.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.1): *FUTURE*
    - Adds reverse iteration to `array_view` and `object_view`
    - Adds the `map` algorithm
+   - Adds `value::count_path`
    - Fixes issue in parsing where large inputs would buffer incorrectly
 
  - [0.4.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.0): 2015 January 13
