@@ -88,19 +88,28 @@ TEST(path_assign)
 {
     path p;
     path q = path::create(".b[5][2].crap[\"blah\"]");
+    const path golden = path({ "b", 5, 2, "crap", "blah" });
     p = q;
     ensure_eq(p, q);
+    ensure_eq(golden, p);
+    ensure_eq(golden, q);
     
     q = std::move(p);
     ensure_eq(0, p.size());
-    ensure_ne(0, q.size());
+    ensure_eq(golden.size(), q.size());
     
     p = std::move(q);
-    ensure_ne(0, p.size());
+    ensure_eq(golden.size(), p.size());
     ensure_eq(0, q.size());
     
     q = p;
     ensure_eq(p, q);
+    ensure_eq(golden, p);
+    ensure_eq(golden, q);
+    p = q;
+    ensure_eq(p, q);
+    ensure_eq(golden, p);
+    ensure_eq(golden, q);
 }
 
 TEST(path_concat_key)
