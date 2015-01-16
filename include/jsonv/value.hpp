@@ -907,6 +907,18 @@ private:
     jsonv::kind           _kind;
 };
 
+/** A user-defined literal for parsing JSON. Uses the default (non-strict) \c parse_options.
+ *  
+ *  \code
+ *  R"({
+ *    "taco": "cat",
+ *    "burrito": "dog",
+ *    "whatever": [ "goes", "here", 1, 2, 3, 4 ]
+ *  })"_json;
+ *  \endcode
+**/
+JSONV_PUBLIC value operator""_json(const char* str, std::size_t len);
+
 /** Swap the values \a a and \a b. **/
 JSONV_PUBLIC void swap(value& a, value& b) noexcept;
 

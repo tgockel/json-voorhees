@@ -241,3 +241,9 @@ TEST_PARSE(depth)
     parse(src);
     ensure_throws(parse_error, parse(src, parse_options::create_strict()));
 }
+
+TEST_PARSE(literal)
+{
+    value v = "[1, 2, 3, 4]"_json;
+    ensure_eq(array({ 1, 2, 3, 4 }), v);
+}

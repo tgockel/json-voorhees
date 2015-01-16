@@ -92,6 +92,22 @@
  *  {"compose like":"standard library maps","objects":["Are fun, too.","Do what you want."]}
  *  \endcode
  *  
+ *  If that isn't convenient enough for you, there is a user-defined literal \c _json in the \c jsonv namespace you can
+ *  use
+ *  
+ *  \code
+ *  // You can use this hideous syntax if you do not want to bring in the whole jsonv namespace:
+ *  using jsonv::operator""_json;
+ *  
+ *  jsonv::value x = R"({
+ *                        "objects": [ "Are fun, too.",
+ *                                     "Do what you want."
+ *                                   ],
+ *                        "compose like": "You are just writing JSON",
+ *                        "which I guess": ["is", "also", "neat"]
+ *                     })"_json;
+ *  \endcode
+ *  
  *  JSON is dynamic, which makes value access a bit more of a hassle, but JSON Voorhees aims to make it not too
  *  horrifying for you. A \c jsonv::value has a number of accessor methods named things like \c as_integer and
  *  \c as_string which let you access the value as if it was that type. But what if it isn't that type? In that case,
