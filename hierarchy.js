@@ -32,6 +32,7 @@ var hierarchy =
     [ "jsonv::detail::string_view", "classjsonv_1_1detail_1_1string__view.html", null ],
     [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", null ],
     [ "jsonv::tokenizer", "classjsonv_1_1tokenizer.html", null ],
+    [ "jsonv::validation_error", "classjsonv_1_1validation__error.html", null ],
     [ "jsonv::value", "classjsonv_1_1value.html", null ],
     [ "jsonv::detail::value_storage", "unionjsonv_1_1detail_1_1value__storage.html", null ]
 ];

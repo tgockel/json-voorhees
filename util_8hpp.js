@@ -5,5 +5,7 @@ var util_8hpp =
     [ "merge_explicit", "group__Utility.html#ga953ea8225a035f7dd1dbb88285f980d4", null ],
     [ "merge_explicit", "group__Utility.html#ga77f008513377f09e7d66e046bef67747", null ],
     [ "merge_explicit", "group__Utility.html#gab37af0937ad26c2817106dc21446f104", null ],
-    [ "merge_recursive", "group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42", null ]
+    [ "merge_recursive", "group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42", null ],
+    [ "operator<<", "group__Utility.html#ga996c1ddc2732999a8bcd5212403ce2a5", null ],
+    [ "validate", "group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6", null ]
 ];

@@ -23,6 +23,7 @@ var annotated =
     [ "jsonv::throwing_merge_rules", "classjsonv_1_1throwing__merge__rules.html", "classjsonv_1_1throwing__merge__rules" ],
     [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", "structjsonv_1_1tokenizer_1_1token" ],
     [ "jsonv::tokenizer", "classjsonv_1_1tokenizer.html", "classjsonv_1_1tokenizer" ],
+    [ "jsonv::validation_error", "classjsonv_1_1validation__error.html", "classjsonv_1_1validation__error" ],
     [ "jsonv::value", "classjsonv_1_1value.html", "classjsonv_1_1value" ],
     [ "jsonv::detail::value_storage", "unionjsonv_1_1detail_1_1value__storage.html", "unionjsonv_1_1detail_1_1value__storage" ]
 ];

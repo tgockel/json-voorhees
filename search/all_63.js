@@ -4,6 +4,7 @@ var searchData=
   ['cesu8',['cesu8',['../classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593aa9bc0d4250e3de7e4f71fe900d7a1bdf',1,'jsonv::parse_options']]],
   ['character',['character',['../structjsonv_1_1parse__error_1_1problem.html#a9a170800c8dffbbef3aa8bfbac5cd8a6',1,'jsonv::parse_error::problem']]],
   ['clear',['clear',['../group__Shared.html#ga11b8dfc38c7a6ceac53c639f18aaebea',1,'jsonv::value']]],
+  ['code',['code',['../classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bf',1,'jsonv::validation_error']]],
   ['coerce_2ehpp',['coerce.hpp',['../coerce_8hpp.html',1,'']]],
   ['coerce_5farray',['coerce_array',['../group__Coercion.html#gae17eed7144363cc743cf143f13c377c1',1,'jsonv']]],
   ['coerce_5fboolean',['coerce_boolean',['../group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16',1,'jsonv']]],

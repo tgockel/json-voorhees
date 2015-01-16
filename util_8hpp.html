@@ -124,6 +124,8 @@ Classes</h2></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules throw an exception on all conflicts.  <a href="classjsonv_1_1throwing__merge__rules.html#details">More...</a><br/></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1recursive__merge__rules.html">jsonv::recursive_merge_rules</a></td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules will recursively merge everything they can and coerce all values.  <a href="classjsonv_1_1recursive__merge__rules.html#details">More...</a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1validation__error.html">jsonv::validation_error</a></td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Error thrown when an unrepresentable value is encountered in a JSON AST.  <a href="classjsonv_1_1validation__error.html#details">More...</a><br/></td></tr>
 <tr><td colspan="2"><h2><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1">jsonv::merge_explicit</a> (const merge_rules &amp;rules, path current_path, value a, value b)</td></tr>
@@ -141,6 +143,10 @@ template&lt;typename... TValue&gt; </td></tr>
 <tr><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
 <tr><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42">jsonv::merge_recursive</a> (TValue &amp;&amp;...values)</td></tr>
 <tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42"></a><br/></td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga996c1ddc2732999a8bcd5212403ce2a5"></a><!-- doxytag: member="util.hpp::operator&lt;&lt;" ref="ga996c1ddc2732999a8bcd5212403ce2a5" args="(std::ostream &amp;os, const validation_error::code &amp;code)" -->
+<a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator&lt;&lt;</b> (std::ostream &amp;os, const validation_error::code &amp;code)</td></tr>
+<tr><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6">jsonv::validate</a> (const value &amp;val)</td></tr>
+<tr><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that the provided <em>val</em> is perfectly representable as a JSON string.  <a href="group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6"></a><br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock"><p>A collection of utility functions for manipulating one or more instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>. </p>
