@@ -171,6 +171,53 @@ value merge_recursive(TValue&&... values)
                          );
 }
 
+/** Error thrown when an unrepresentable value is encountered in a JSON AST.
+ *  
+ *  \see validate
+**/
+class JSONV_PUBLIC validation_error :
+        public std::runtime_error
+{
+public:
+    /** Special code for describing the error encountered. **/
+    enum class code
+    {
+        /** Encountered a number which is NaN or Infinity. **/
+        non_finite_number
+    };
+    
+public:
+    explicit validation_error(code code_, jsonv::path path_, jsonv::value value_);
+    
+    virtual ~validation_error() noexcept;
+    
+    /** Get the error code. **/
+    code error_code() const;
+    
+    /** Get the path in the AST the error was found. **/
+    const jsonv::path& path() const;
+    
+    /** Get the value that caused the error. **/
+    const jsonv::value& value() const;
+    
+private:
+    code         _code;
+    jsonv::path  _path;
+    jsonv::value _value;
+};
+
+JSONV_PUBLIC std::ostream& operator<<(std::ostream& os, const validation_error::code& code);
+
+/** Check that the provided \a val is perfectly representable as a JSON string. The JSON specification does not have
+ *  support for things like non-finite floating-point numbers (\c NaN and \c infinity). This means \c value defined with
+ *  these values will get serialized as \c null. This constitutes a loss of information, but not acting this way would
+ *  lead to the encoder outputting invalid JSON text, which is completely unacceptable. Use this funciton to check that
+ *  there will be no information loss when encoding.
+ *  
+ *  \throws validation_error if \a val contains an unrepresentable value.
+**/
+JSONV_PUBLIC void validate(const value& val);
+
 /** \} **/
 
 }

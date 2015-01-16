@@ -9,13 +9,19 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/util.hpp>
+#include <jsonv/algorithm.hpp>
 #include <jsonv/string_view.hpp>
 #include <jsonv/coerce.hpp>
 
+#include <sstream>
 #include <stdexcept>
 
 namespace jsonv
 {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Merging                                                                                                            //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 merge_rules::~merge_rules() noexcept = default;
 
@@ -130,6 +136,64 @@ value merge_explicit(const merge_rules&, const path&, value a)
 value merge_explicit(const merge_rules&, const path&)
 {
     return object();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Validation                                                                                                         //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static std::string validation_error_whatstring(validation_error::code code, const path& p, const value& elem)
+{
+    std::ostringstream ss;
+    ss << "Validation error: Got " << code << " at path " << p << ": " << elem;
+    return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const validation_error::code& code)
+{
+    switch (code)
+    {
+    case validation_error::code::non_finite_number: return os << "non-finite number";
+    default:                                        return os << "validation_error::code(" << static_cast<int>(code) << ")";
+    }
+}
+
+validation_error::validation_error(code code_, jsonv::path path_, jsonv::value value_) :
+        runtime_error(validation_error_whatstring(code_, path_, value_)),
+        _code(code_),
+        _path(std::move(path_)),
+        _value(std::move(value_))
+{ }
+
+validation_error::~validation_error() noexcept = default;
+
+validation_error::code validation_error::error_code() const
+{
+    return _code;
+}
+
+const path& validation_error::path() const
+{
+    return _path;
+}
+
+const value& validation_error::value() const
+{
+    return _value;
+}
+
+void validate(const value& val)
+{
+    traverse(val,
+             [] (const path& p, const value& elem)
+             {
+                 if (elem.kind() == kind::decimal)
+                 {
+                     if (!std::isfinite(elem.as_decimal()))
+                         throw validation_error(validation_error::code::non_finite_number, p, elem);
+                 }
+             }
+            );
 }
 
 }
