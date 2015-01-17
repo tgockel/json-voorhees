@@ -17,6 +17,7 @@ var searchData=
   ['complete_5fparse',['complete_parse',['../classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907',1,'jsonv::parse_options']]],
   ['count',['count',['../group__Object.html#ga7442b42d745e649222506080a05e3913',1,'jsonv::value']]],
   ['count_5fpath',['count_path',['../group__Shared.html#gaa32d3d92b8f59097b10648cf585533f4',1,'jsonv::value']]],
+  ['create',['create',['../classjsonv_1_1path.html#aafa798395256d7ea06e3cbe2de5f940b',1,'jsonv::path']]],
   ['create_5fdefault',['create_default',['../classjsonv_1_1parse__options.html#a699b9ee16f5c3ac8cb3d1ab1f39c1fb9',1,'jsonv::parse_options']]],
   ['create_5fstrict',['create_strict',['../classjsonv_1_1parse__options.html#a27a3f08de1318c06049ec1c264f71740',1,'jsonv::parse_options']]],
   ['current',['current',['../classjsonv_1_1tokenizer.html#a738c2b782c3fa1b1a1c9293b9d1c6cb4',1,'jsonv::tokenizer']]]

@@ -281,8 +281,8 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>pop_back</b> ()</td><
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:aafa798395256d7ea06e3cbe2de5f940b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aafa798395256d7ea06e3cbe2de5f940b"></a>
-static <a class="el" href="classjsonv_1_1path.html">path</a>&#160;</td><td class="memItemRight" valign="bottom"><b>create</b> (string_view specification)</td></tr>
+<tr class="memitem:aafa798395256d7ea06e3cbe2de5f940b"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classjsonv_1_1path.html">path</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1path.html#aafa798395256d7ea06e3cbe2de5f940b">create</a> (string_view specification)</td></tr>
+<tr class="memdesc:aafa798395256d7ea06e3cbe2de5f940b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>path</code> from a string definition.  <a href="#aafa798395256d7ea06e3cbe2de5f940b">More...</a><br /></td></tr>
 <tr class="separator:aafa798395256d7ea06e3cbe2de5f940b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
@@ -373,6 +373,39 @@ storage_type&#160;</td><td class="memItemRight" valign="bottom"><b>_data</b></td
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="aafa798395256d7ea06e3cbe2de5f940b"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classjsonv_1_1path.html">path</a> jsonv::path::create </td>
+          <td>(</td>
+          <td class="paramtype">string_view&#160;</td>
+          <td class="paramname"><em>specification</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create a <code>path</code> from a string definition. </p>
+<p>The syntax of this is ECMAScript's syntax for selecting elements, so <code><a class="el" href="classjsonv_1_1path.html#aafa798395256d7ea06e3cbe2de5f940b" title="Create a path from a string definition. ">path::create</a>(".foo.bar[1]")</code> is equivalent to <code>path({ "foo", "bar", 1 })</code>.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if the <em>specification</em> is not valid. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="ad81ff4e324bfcc8f9ff39299d781392f"></a>
 <div class="memitem">
 <div class="memproto">
