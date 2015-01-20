@@ -81,9 +81,10 @@ Compiler Support
  - Supported
      - GCC 4.9+
      - GCC 4.8 (with [Boost.Regex][Boost.Regex])
-     - Clang 3.3+ (with [Boost.Regex][Boost.Regex])
- - Unplanned
-     - MSVC
+     - Clang 3.5+
+     - Clang 3.3 - 3.4 (with [Boost.Regex][Boost.Regex])
+ - Planned
+     - MSVC 12.0+ (Visual C++ 2013)
 
 While GCC 4.8 and Clang 3.3 are supported, you must compile them with `make USE_BOOST_REGEX=1`.
 Early versions will happy compile regular expressions, but will fail at runtime with a `regex_error`, which is not very

@@ -89,6 +89,11 @@ public:
     /** Creates a path with the provided \a elements. **/
     path(storage_type elements);
     
+    /** Create a \c path from a string definition. The syntax of this is ECMAScript's syntax for selecting elements, so
+     *  <tt>path::create(".foo.bar[1]")</tt> is equivalent to <tt>path({ "foo", "bar", 1 })</tt>.
+     *  
+     *  \throws std::invalid_argument if the \a specification is not valid.
+    **/
     static path create(string_view specification);
     
     path(const path&);
