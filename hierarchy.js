@@ -18,10 +18,20 @@ var hierarchy =
         [ "jsonv::kind_error", "classjsonv_1_1kind__error.html", null ]
       ] ],
       [ "std::runtime_error", null, [
+        [ "jsonv::extraction_error", "classjsonv_1_1extraction__error.html", null ],
+        [ "jsonv::no_extractor", "classjsonv_1_1no__extractor.html", null ],
         [ "jsonv::parse_error", "classjsonv_1_1parse__error.html", null ],
         [ "jsonv::validation_error", "classjsonv_1_1validation__error.html", null ]
       ] ]
     ] ],
+    [ "jsonv::extraction_context", "classjsonv_1_1extraction__context.html", null ],
+    [ "jsonv::extractor", "classjsonv_1_1extractor.html", [
+      [ "jsonv::extractor_construction< T >", "classjsonv_1_1extractor__construction.html", null ],
+      [ "jsonv::extractor_for< T >", "classjsonv_1_1extractor__for.html", [
+        [ "jsonv::function_extractor< T, FExtract >", "classjsonv_1_1function__extractor.html", null ]
+      ] ]
+    ] ],
+    [ "jsonv::formats", "classjsonv_1_1formats.html", null ],
     [ "jsonv::detail::generic_container< TStorage >", "classjsonv_1_1detail_1_1generic__container.html", null ],
     [ "jsonv::detail::generic_container< std::vector< path_element > >", "classjsonv_1_1detail_1_1generic__container.html", [
       [ "jsonv::path", "classjsonv_1_1path.html", null ]
@@ -36,12 +46,17 @@ var hierarchy =
       [ "jsonv::recursive_merge_rules", "classjsonv_1_1recursive__merge__rules.html", null ],
       [ "jsonv::throwing_merge_rules", "classjsonv_1_1throwing__merge__rules.html", null ]
     ] ],
+    [ "nested_exception", null, [
+      [ "jsonv::extraction_error", "classjsonv_1_1extraction__error.html", null ]
+    ] ],
     [ "jsonv::parse_options", "classjsonv_1_1parse__options.html", null ],
     [ "jsonv::path_element", "classjsonv_1_1path__element.html", null ],
     [ "jsonv::parse_error::problem", "structjsonv_1_1parse__error_1_1problem.html", null ],
+    [ "jsonv::detail::scope_exit_invoker< Function >", "classjsonv_1_1detail_1_1scope__exit__invoker.html", null ],
     [ "jsonv::detail::string_view", "classjsonv_1_1detail_1_1string__view.html", null ],
     [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", null ],
     [ "jsonv::tokenizer", "classjsonv_1_1tokenizer.html", null ],
     [ "jsonv::value", "classjsonv_1_1value.html", null ],
-    [ "jsonv::detail::value_storage", "unionjsonv_1_1detail_1_1value__storage.html", null ]
+    [ "jsonv::detail::value_storage", "unionjsonv_1_1detail_1_1value__storage.html", null ],
+    [ "jsonv::version", "structjsonv_1_1version.html", null ]
 ];
