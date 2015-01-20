@@ -103,6 +103,7 @@ private:
     std::type_index _type_index;
 };
 
+/** An \c extractor holds the method for converting a \c value into an arbitrary C++ type. **/
 class JSONV_PUBLIC extractor
 {
 public:
