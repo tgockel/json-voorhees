@@ -64,6 +64,8 @@ public:
     /** Get the number of elements. **/
     size_type size() const { return _data.size(); }
     
+    bool empty() const { return _data.empty(); }
+    
     iterator       begin()        { return _data.begin(); }
     const_iterator begin() const  { return _data.begin(); }
     const_iterator cbegin() const { return _data.begin(); }

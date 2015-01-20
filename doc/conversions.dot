@@ -6,10 +6,13 @@ digraph jsonv {
   istream [label="std::istream"]
   ostream [label="std::ostream"]
   value   [label="value", URL="\ref jsonv::value"]
+  class   [label="C++ class"]
   
   value   -> str     [label="to_string"]
   value   -> ostream [label="operator<<"]
   str     -> value   [label="parse"]
   istream -> value   [label="parse"]
   value   -> value   [label="map, merge, diff, ..."]
+  value   -> class   [label="extract"]
+  class   -> value   [label="to_json"]
 }

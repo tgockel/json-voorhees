@@ -25,6 +25,7 @@ enum class path_element_kind : unsigned char;
 class tokenizer;
 enum class token_kind : unsigned int;
 class value;
+struct version;
 
 }
 
