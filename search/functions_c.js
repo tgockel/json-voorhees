@@ -1,11 +1,12 @@
 var searchData=
 [
-  ['parse_5foptions',['parse_options',['../classjsonv_1_1parse__options.html#a64ef230fb92f599ead9937bb95c168d4',1,'jsonv::parse_options']]],
-  ['partial_5fresult',['partial_result',['../classjsonv_1_1parse__error.html#a6fbbb8105d55f34efdc7bca22fd369e7',1,'jsonv::parse_error']]],
-  ['path',['path',['../classjsonv_1_1path.html#a8776ff9328824e1750cfb6d995ab6be5',1,'jsonv::path::path()'],['../classjsonv_1_1path.html#a890578859bddd6cd6a65f5a1111bf946',1,'jsonv::path::path(storage_type elements)'],['../classjsonv_1_1validation__error.html#ac816f8ec0dfc5f1210205e45d895c83d',1,'jsonv::validation_error::path()'],['../group__Shared.html#ga5fef3e201f1d7661ca0aab45bdd2d4e9',1,'jsonv::value::path()']]],
-  ['pop_5fback',['pop_back',['../group__Array.html#gadfa8dbeba86d9ad39610d7972d995eaf',1,'jsonv::value']]],
-  ['pop_5ffront',['pop_front',['../group__Array.html#gad7cec4c8d1d57aa153605b321dd1b0e9',1,'jsonv::value']]],
-  ['problems',['problems',['../classjsonv_1_1parse__error.html#a30458635786a5b7a5391536c88aec7f6',1,'jsonv::parse_error']]],
-  ['push_5fback',['push_back',['../group__Array.html#gac8dadf575c194b8685abe745ccf78967',1,'jsonv::value']]],
-  ['push_5ffront',['push_front',['../group__Array.html#ga94242bf7d37ef7ae32abe4b3fb553f2a',1,'jsonv::value']]]
+  ['object',['object',['../group__Creation.html#ga757770053a2714136231e26ec7c74673',1,'jsonv::object()'],['../group__Creation.html#ga0626c41c76cb46a7859de92c1f3bdd68',1,'jsonv::object(std::initializer_list&lt; std::pair&lt; std::string, value &gt;&gt; source)'],['../group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1',1,'jsonv::object(TForwardIterator first, TForwardIterator last)']]],
+  ['operator_21_3d',['operator!=',['../group__Shared.html#ga5a94bbcbaa79b35a4a24c0ceeb3ca7be',1,'jsonv::value']]],
+  ['operator_2b',['operator+',['../classjsonv_1_1path.html#ad81ff4e324bfcc8f9ff39299d781392f',1,'jsonv::path::operator+(const path &amp;subpath) const '],['../classjsonv_1_1path.html#aca9bb43bbceee6941ad35c219b49c787',1,'jsonv::path::operator+(path_element elem) const ']]],
+  ['operator_3c',['operator&lt;',['../structjsonv_1_1version.html#a610e510ec9b393e92064b4bcc0a3d14b',1,'jsonv::version']]],
+  ['operator_3d',['operator=',['../classjsonv_1_1value.html#a6d0c99d7a7004dfbf3e787636834c7b4',1,'jsonv::value::operator=(const value &amp;source)'],['../classjsonv_1_1value.html#a20594daa871eaa685f6e6d716561bb76',1,'jsonv::value::operator=(value &amp;&amp;source) noexcept']]],
+  ['operator_3d_3d',['operator==',['../group__Shared.html#ga22d5a5d815048ca653136ef404668cf4',1,'jsonv::value']]],
+  ['operator_5b_5d',['operator[]',['../group__Array.html#ga08a88ea17e35fd2c7844ce4c7768bf12',1,'jsonv::value::operator[](size_type idx)'],['../group__Object.html#gab9121a691d21e33d03773489114cb623',1,'jsonv::value::operator[](const std::string &amp;key)']]],
+  ['ostream_5fencoder',['ostream_encoder',['../classjsonv_1_1ostream__encoder.html#a7686582a09a492dd7ef00c3e8054ebfa',1,'jsonv::ostream_encoder']]],
+  ['ostream_5fpretty_5fencoder',['ostream_pretty_encoder',['../classjsonv_1_1ostream__pretty__encoder.html#aec1e93bb2739f4b5b1d9a115c7000df1',1,'jsonv::ostream_pretty_encoder']]]
 ];
