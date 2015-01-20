@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['scope_5fexit_5finvoker',['scope_exit_invoker',['../classjsonv_1_1detail_1_1scope__exit__invoker.html',1,'jsonv::detail']]],
-  ['string_5fview',['string_view',['../classjsonv_1_1detail_1_1string__view.html',1,'jsonv::detail']]]
+  ['validation_5ferror',['validation_error',['../classjsonv_1_1validation__error.html',1,'jsonv']]],
+  ['value',['value',['../classjsonv_1_1value.html',1,'jsonv']]],
+  ['value_5fstorage',['value_storage',['../unionjsonv_1_1detail_1_1value__storage.html',1,'jsonv::detail']]]
 ];

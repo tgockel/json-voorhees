@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['kind_5ferror',['kind_error',['../classjsonv_1_1kind__error.html',1,'jsonv']]]
+  ['merge_5frules',['merge_rules',['../classjsonv_1_1merge__rules.html',1,'jsonv']]]
 ];

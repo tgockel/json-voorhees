@@ -10,11 +10,9 @@ var dir_10cd029e0034a3f98d221f50ebb6d9d4 =
       [ "ostream_encoder", "classjsonv_1_1ostream__encoder.html", "classjsonv_1_1ostream__encoder" ],
       [ "ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", "classjsonv_1_1ostream__pretty__encoder" ]
     ] ],
-    [ "extract.hpp", "extract_8hpp.html", null ],
     [ "forward.hpp", "forward_8hpp.html", null ],
     [ "parse.hpp", "parse_8hpp.html", "parse_8hpp" ],
     [ "path.hpp", "path_8hpp.html", "path_8hpp" ],
-    [ "serialization.hpp", "serialization_8hpp.html", "serialization_8hpp" ],
     [ "string_view.hpp", "string__view_8hpp.html", "string__view_8hpp" ],
     [ "tokenizer.hpp", "tokenizer_8hpp.html", "tokenizer_8hpp" ],
     [ "util.hpp", "util_8hpp.html", "util_8hpp" ],
