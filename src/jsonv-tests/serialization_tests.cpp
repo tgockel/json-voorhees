@@ -65,6 +65,13 @@ struct my_thing
     {
         return os << "{ a=" << self.a << ", b=" << self.b << ", c=" << self.c << " }";
     }
+    
+    friend std::string to_string(const my_thing& self)
+    {
+        std::ostringstream os;
+        os << self;
+        return os.str();
+    }
 };
 
 }
@@ -127,6 +134,7 @@ TEST(extract_object)
     fmts.register_extractor(my_thing::get_extractor());
     
     my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
+    to_string(res);
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
@@ -160,6 +168,36 @@ TEST(extract_object_with_globals)
     
     my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"));
     ensure_eq(my_thing(1, 2, "thing"), res);
+}
+
+TEST(extract_coerce)
+{
+    value val = parse(R"({
+                        "i": 5,
+                        "d": 4.5,
+                        "s": "10",
+                        "a": [ 1, 2, 3 ],
+                        "o": { "i": 5, "d": 4.5 }
+                      })");
+    extraction_context cxt(formats::coerce());
+    
+    // regular
+    ensure_eq(val, cxt.extract<value>(val));
+    ensure_eq(5, cxt.extract_sub<std::int8_t>(val, "i"));
+    ensure_eq(5, cxt.extract_sub<std::uint8_t>(val, "i"));
+    ensure_eq(5, cxt.extract_sub<std::int16_t>(val, "i"));
+    ensure_eq(5, cxt.extract_sub<std::uint16_t>(val, "i"));
+    ensure_eq(5, cxt.extract_sub<std::int32_t>(val, "i"));
+    ensure_eq(5, cxt.extract_sub<std::uint32_t>(val, "i"));
+    ensure_eq(5, cxt.extract_sub<std::int64_t>(val, "i"));
+    ensure_eq(5, cxt.extract_sub<std::uint64_t>(val, "i"));
+    ensure_eq(4.5f, cxt.extract_sub<float>(val, "d"));
+    ensure_eq(4.5, cxt.extract_sub<double>(val, "d"));
+    ensure_eq("10", cxt.extract_sub<std::string>(val, "s"));
+    
+    // some coercing...
+    ensure_eq("5", cxt.extract_sub<std::string>(val, "i"));
+    ensure_eq(10, cxt.extract_sub<int>(val, "s"));
 }
 
 }

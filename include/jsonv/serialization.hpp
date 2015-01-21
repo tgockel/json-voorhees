@@ -319,6 +319,15 @@ public:
     /** Reset the \c global \c formats instance to \c defaults. **/
     static void reset_global();
     
+    /** Get the coercing \c formats instance. This uses \e loose type-checking and behaves by the same rules as the
+     *  \c coerce_ functions in \c coerce.hpp.
+     *  
+     *  \note
+     *  This function actually returns a \e copy of the default \c formats, so modifications do not affect the actual
+     *  instance.
+    **/
+    static formats coerce();
+    
     /** Create a new, empty \c formats instance. By default, this does not know how to extract anything -- not even the
      *  basic types like \c int64_t or \c std::string.
     **/

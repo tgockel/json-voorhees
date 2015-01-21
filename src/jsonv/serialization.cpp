@@ -10,6 +10,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/serialization.hpp>
+#include <jsonv/coerce.hpp>
 #include <jsonv/value.hpp>
 
 #include <sstream>
@@ -280,6 +281,58 @@ void formats::set_global(formats fmt)
 void formats::reset_global()
 {
     global_formats_ref() = default_formats_ref();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// formats::coerce                                                                                                    //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+static void register_integer_coerce_extractor(formats& fmt)
+{
+    static auto instance = make_function_extractor([] (const value& from) { return T(coerce_integer(from)); });
+    fmt.register_extractor(&instance);
+}
+
+static formats create_coerce_formats()
+{
+    formats fmt;
+    
+    static auto json_extractor = make_function_extractor([] (const value& from) { return from; });
+    fmt.register_extractor(&json_extractor);
+    
+    static auto string_extractor = make_function_extractor([] (const value& from) { return coerce_string(from); });
+    fmt.register_extractor(&string_extractor);
+    
+    static auto bool_extractor = make_function_extractor([] (const value& from) { return coerce_boolean(from); });
+    fmt.register_extractor(&bool_extractor);
+    
+    register_integer_coerce_extractor<std::int8_t>(fmt);
+    register_integer_coerce_extractor<std::uint8_t>(fmt);
+    register_integer_coerce_extractor<std::int16_t>(fmt);
+    register_integer_coerce_extractor<std::uint16_t>(fmt);
+    register_integer_coerce_extractor<std::int32_t>(fmt);
+    register_integer_coerce_extractor<std::uint32_t>(fmt);
+    register_integer_coerce_extractor<std::int64_t>(fmt);
+    register_integer_coerce_extractor<std::uint64_t>(fmt);
+    
+    static auto double_extractor = make_function_extractor([] (const value& from) { return coerce_decimal(from); });
+    fmt.register_extractor(&double_extractor);
+    static auto float_extractor = make_function_extractor([] (const value& from) { return float(coerce_decimal(from)); });
+    fmt.register_extractor(&float_extractor);
+    
+    return fmt;
+}
+
+static const formats& coerce_formats_ref()
+{
+    static formats instance = create_coerce_formats();
+    return instance;
+}
+
+formats formats::coerce()
+{
+    return formats({ coerce_formats_ref() });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
