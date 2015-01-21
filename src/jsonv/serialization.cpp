@@ -95,7 +95,6 @@ public:
     using roots_list = std::vector<std::shared_ptr<const data>>;
     
     using extractor_map        = std::unordered_map<std::type_index, const extractor*>;
-    using unique_extractor_set = std::unordered_set<std::unique_ptr<const extractor>>;
     using shared_extractor_set = std::unordered_set<std::shared_ptr<const extractor>>;
     
 public:
@@ -103,8 +102,6 @@ public:
     roots_list roots;
     
     extractor_map extractors;
-    
-    unique_extractor_set unique_extractors;
     
     shared_extractor_set shared_extractors;
     
@@ -136,22 +133,14 @@ public:
         if (iter != end(extractors))
         {
             // if we already have a value, search the shared maps to see if it is present
-            erase_from_shared_maps(iter->second);
-            iter->second = ex;
-            return iter;
+            std::ostringstream os;
+            os << "Already have an extractor for type " << typeidx.name();
+            throw std::invalid_argument(os.str());
         }
         else
         {
             return extractors.emplace(typeidx, ex).first;
         }
-    }
-    
-    void insert_extractor(std::unique_ptr<const extractor> ex)
-    {
-        auto iter = insert_extractor(ex.get());
-        auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
-        unique_extractors.insert(std::move(ex));
-        rollback.release();
     }
     
     void insert_extractor(std::shared_ptr<const extractor> ex)
@@ -160,31 +149,6 @@ public:
         auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
         shared_extractors.insert(std::move(ex));
         rollback.release();
-    }
-    
-private:
-    void erase_from_shared_maps(const extractor* ex) noexcept
-    {
-        // find in the unique map
-        {
-            auto iter = std::find_if(begin(unique_extractors), end(unique_extractors),
-                                     [ex] (const std::unique_ptr<const extractor>& p) { return p.get() == ex; }
-                                    );
-            if (iter != end(unique_extractors))
-            {
-                unique_extractors.erase(iter);
-                return;
-            }
-        }
-        
-        // find in the shared map
-        {
-            auto iter = std::find_if(begin(shared_extractors), end(shared_extractors),
-                                     [ex] (const std::shared_ptr<const extractor>& p) { return p.get() == ex; }
-                                    );
-            if (iter != end(shared_extractors))
-                shared_extractors.erase(iter);
-        }
     }
 };
 
@@ -232,11 +196,6 @@ void formats::extract(const std::type_info&     type,
 void formats::register_extractor(const extractor* ex)
 {
     _data->insert_extractor(ex);
-}
-
-void formats::register_extractor(std::unique_ptr<const extractor> ex)
-{
-    _data->insert_extractor(std::move(ex));
 }
 
 void formats::register_extractor(std::shared_ptr<const extractor> ex)

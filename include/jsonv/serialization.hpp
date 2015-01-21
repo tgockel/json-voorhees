@@ -354,13 +354,18 @@ public:
                  const extraction_context& context
                 ) const;
     
-    /** Register an \c extractor that lives in some unmanaged space. **/
+    /** Register an \c extractor that lives in some unmanaged space.
+     *  
+     *  \throws std::invalid_argument if this \c formats instance already has an \c extractor that serves the provided
+     *                                \c extractor::get_type.
+    **/
     void register_extractor(const extractor*);
     
-    /** Register an \c extractor and tell this \c formats instance to manage destruction of it. **/
-    void register_extractor(std::unique_ptr<const extractor>);
-    
-    /** Register an \c extractor with shared ownership between this \c formats instance and anything else. **/
+    /** Register an \c extractor with shared ownership between this \c formats instance and anything else.
+     *  
+     *  \throws std::invalid_argument if this \c formats instance already has an \c extractor that serves the provided
+     *                                \c extractor::get_type.
+    **/
     void register_extractor(std::shared_ptr<const extractor>);
     
 private:

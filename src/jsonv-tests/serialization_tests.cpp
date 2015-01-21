@@ -130,6 +130,15 @@ TEST(extract_object)
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
+TEST(extract_object_with_unique_extractor)
+{
+    formats fmts = formats::compose({ formats::defaults() });
+    fmts.register_extractor(std::unique_ptr<extractor>(new extractor_construction<my_thing>()));
+    
+    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
+    ensure_eq(my_thing(1, 2, "thing"), res);
+}
+
 TEST(extract_object_search)
 {
     formats base_fmts;
