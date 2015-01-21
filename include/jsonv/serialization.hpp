@@ -377,6 +377,14 @@ public:
     **/
     void register_extractor(std::shared_ptr<const extractor>);
     
+    /** Test for equality between this instance and \a other. If two \c formats are equal, they are the \e exact same
+     *  node in the graph. Even if one \c formats has the exact same types for the exact same <tt>extractor</tt>s.
+    **/
+    bool operator==(const formats& other) const;
+    
+    /** Test for inequality between this instance and \a other. The opposite of \c operator==. **/
+    bool operator!=(const formats& other) const;
+    
 private:
     struct data;
     
@@ -396,7 +404,7 @@ public:
     extraction_context();
     
     /** Create a new instance using the given \a fmt, \a ver and \a p. **/
-    explicit extraction_context(const jsonv::formats& fmt,
+    explicit extraction_context(jsonv::formats        fmt,
                                 const jsonv::version& ver = jsonv::version(1),
                                 jsonv::path           p   = jsonv::path()
                                );
@@ -494,9 +502,9 @@ public:
     }
     
 private:
-    const jsonv::formats& _formats;
-    jsonv::version        _version;
-    jsonv::path           _path;
+    jsonv::formats _formats;
+    jsonv::version _version;
+    jsonv::path    _path;
 };
 
 /** Extract a C++ value from \a from using the provided \a fmts. **/

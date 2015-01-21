@@ -214,4 +214,24 @@ TEST(extractor_throws_random_thing)
     ensure_throws(extraction_error, cxt.extract_sub<unassociated>(val, "a"));
 }
 
+TEST(extractor_equality)
+{
+    formats a;
+    formats b = a;
+    formats c = formats::compose({ a, b });
+    
+    ensure(a == b);
+    ensure(a != c);
+    ensure(b == a);
+    ensure(c == c);
+}
+
+// Strange cases -- defaults, global and coerce must return sub-formats so nobody can change the real ones
+TEST(extractor_static_results_inequality)
+{
+    ensure(formats::defaults() != formats::defaults());
+    ensure(formats::coerce() != formats::coerce());
+    ensure(formats::global() != formats::global());
+}
+
 }

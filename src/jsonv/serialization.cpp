@@ -206,6 +206,16 @@ void formats::register_extractor(std::shared_ptr<const extractor> ex)
     _data->insert_extractor(std::move(ex));
 }
 
+bool formats::operator==(const formats& other) const
+{
+    return _data.get() == other._data.get();
+}
+
+bool formats::operator!=(const formats& other) const
+{
+    return !operator==(other);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // formats::defaults                                                                                                  //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -255,7 +265,7 @@ static const formats& default_formats_ref()
 
 formats formats::defaults()
 {
-    return formats({ default_formats_ref() });
+    return formats::compose({ default_formats_ref() });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -270,7 +280,7 @@ static formats& global_formats_ref()
 
 formats formats::global()
 {
-    return formats({ global_formats_ref() });
+    return formats::compose({ global_formats_ref() });
 }
 
 void formats::set_global(formats fmt)
@@ -332,15 +342,15 @@ static const formats& coerce_formats_ref()
 
 formats formats::coerce()
 {
-    return formats({ coerce_formats_ref() });
+    return formats::compose({ coerce_formats_ref() });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // extraction_context                                                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extraction_context::extraction_context(const jsonv::formats& fmt, const jsonv::version& ver, jsonv::path p) :
-        _formats(fmt),
+extraction_context::extraction_context(jsonv::formats fmt, const jsonv::version& ver, jsonv::path p) :
+        _formats(std::move(fmt)),
         _version(ver),
         _path(std::move(p))
 { }
