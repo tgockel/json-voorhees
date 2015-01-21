@@ -15,6 +15,7 @@ var searchData=
   ['comma_5fpolicy',['comma_policy',['../classjsonv_1_1parse__options.html#a24b93f3fc4a36c850b103228290a6758',1,'jsonv::parse_options']]],
   ['compare',['compare',['../group__Shared.html#ga05f2fca552d114e678040be40c8cbc06',1,'jsonv::value']]],
   ['complete_5fparse',['complete_parse',['../classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907',1,'jsonv::parse_options']]],
+  ['compose',['compose',['../classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110',1,'jsonv::formats']]],
   ['count',['count',['../group__Object.html#ga7442b42d745e649222506080a05e3913',1,'jsonv::value']]],
   ['count_5fpath',['count_path',['../group__Shared.html#gaa32d3d92b8f59097b10648cf585533f4',1,'jsonv::value']]],
   ['create',['create',['../classjsonv_1_1path.html#aafa798395256d7ea06e3cbe2de5f940b',1,'jsonv::path']]],

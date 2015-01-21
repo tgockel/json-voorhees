@@ -21,6 +21,7 @@ var searchData=
   ['commas',['commas',['../classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714',1,'jsonv::parse_options']]],
   ['compare',['compare',['../group__Shared.html#ga05f2fca552d114e678040be40c8cbc06',1,'jsonv::value']]],
   ['complete_5fparse',['complete_parse',['../classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907',1,'jsonv::parse_options']]],
+  ['compose',['compose',['../classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110',1,'jsonv::formats']]],
   ['config_2ehpp',['config.hpp',['../config_8hpp.html',1,'']]],
   ['conversions',['Conversions',['../group__Conversions.html',1,'']]],
   ['count',['count',['../group__Object.html#ga7442b42d745e649222506080a05e3913',1,'jsonv::value']]],

@@ -106,6 +106,7 @@ $(document).ready(function(){initNavTree('classjsonv_1_1formats.html','');});
 
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classjsonv_1_1formats-members.html">List of all members</a>  </div>
@@ -119,6 +120,12 @@ $(document).ready(function(){initNavTree('classjsonv_1_1formats.html','');});
 
 <p><code>#include &lt;<a class="el" href="serialization_8hpp_source.html">jsonv/serialization.hpp</a>&gt;</code></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a827304b0c977f7ef178daff0f3e75a1a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a827304b0c977f7ef178daff0f3e75a1a"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>list</b> = std::vector&lt; <a class="el" href="classjsonv_1_1formats.html">formats</a> &gt;</td></tr>
+<tr class="separator:a827304b0c977f7ef178daff0f3e75a1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:af0b63e3e4525b64c5aca47933f04f929"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#af0b63e3e4525b64c5aca47933f04f929">formats</a> ()</td></tr>
@@ -148,6 +155,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:afa32b03fdc28204d48fdb8bfe2824a89"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#afa32b03fdc28204d48fdb8bfe2824a89">set_global</a> (<a class="el" href="classjsonv_1_1formats.html">formats</a>)</td></tr>
 <tr class="memdesc:afa32b03fdc28204d48fdb8bfe2824a89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the <code>global</code> <code>formats</code> instance.  <a href="#afa32b03fdc28204d48fdb8bfe2824a89">More...</a><br /></td></tr>
 <tr class="separator:afa32b03fdc28204d48fdb8bfe2824a89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8fdc86436f8dcfd405753db55620110"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classjsonv_1_1formats.html">formats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110">compose</a> (const list &amp;bases)</td></tr>
+<tr class="memdesc:ae8fdc86436f8dcfd405753db55620110"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a new (empty) <code>formats</code> using the <em>bases</em> as backing <code>formats</code>.  <a href="#ae8fdc86436f8dcfd405753db55620110">More...</a><br /></td></tr>
+<tr class="separator:ae8fdc86436f8dcfd405753db55620110"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Simply put, this class is a collection of <code>extractor</code> and <code>serializer</code> instances. </p>
@@ -157,13 +167,13 @@ Static Public Member Functions</h2></td></tr>
 <p>To do this, you would create your object model (called <code>my_app_formats</code> in the chart) with the object models for your application-specific types. This can use any number of 3rd party libraries to get the job done. To make a functional <code>formats</code>, you would <code>compose</code> different <code>formats</code> instances into a single one. From there,</p>
 <div class="fragment"><div class="line"><a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> get_api_formats()</div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">static</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> instance = jsonv::formats::compose({ jsonv::formats::coerce(), get_app_formats() });</div>
+<div class="line">    <span class="keyword">static</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> instance = <a class="code" href="classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110">jsonv::formats::compose</a>({ jsonv::formats::coerce(), get_app_formats() });</div>
 <div class="line">    <span class="keywordflow">return</span> instance;</div>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> get_db_formats()</div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">static</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> instance = jsonv::formats::compose({ <a class="code" href="classjsonv_1_1formats.html#a22c68a1958ab866c7fc53b29609483a1">jsonv::formats::defaults</a>(), get_app_formats() });</div>
+<div class="line">    <span class="keyword">static</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> instance = <a class="code" href="classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110">jsonv::formats::compose</a>({ <a class="code" href="classjsonv_1_1formats.html#a22c68a1958ab866c7fc53b29609483a1">jsonv::formats::defaults</a>(), get_app_formats() });</div>
 <div class="line">    <span class="keywordflow">return</span> instance;</div>
 <div class="line">}</div>
 <div class="line"></div>
@@ -172,7 +182,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="line">    <span class="keywordflow">return</span> jsonv::extract&lt;MyType&gt;(from, from_db ? get_db_formats() : get_api_formats());</div>
 <div class="line">}</div>
 </div><!-- fragment --> 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00290">290</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00291">291</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="af0b63e3e4525b64c5aca47933f04f929"></a>
 <div class="memitem">
@@ -193,6 +203,40 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="ae8fdc86436f8dcfd405753db55620110"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classjsonv_1_1formats.html">formats</a> jsonv::formats::compose </td>
+          <td>(</td>
+          <td class="paramtype">const list &amp;&#160;</td>
+          <td class="paramname"><em>bases</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create a new (empty) <code>formats</code> using the <em>bases</em> as backing <code>formats</code>. </p>
+<p>This forms a directed graph of <code>formats</code> objects. When searching for an <code>extractor</code> or <code>serializer</code>, the <code>formats</code> is searched, then each base is searched depth-first left-to-right.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bases</td><td>Is the list of <code>formats</code> objects to use as bases for the newly-created <code>formats</code>. Order matters &ndash; the <em>bases</em> are searched left-to-right, so <code>formats</code> that are farther left take precedence over those more to the right.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>It is impossible to form an endless loop of <code>formats</code> objects, since the base of all <code>formats</code> are eventually empty. If there is an existing set of nodes <img class="formulaInl" alt="$ k $" src="form_0.png"/> and each new <code>format</code> created with <code>compose</code> is in <img class="formulaInl" alt="$ k+1 $" src="form_1.png"/>, there is no way to create a link from <img class="formulaInl" alt="$ k $" src="form_0.png"/> into <img class="formulaInl" alt="$ k+1 $" src="form_1.png"/> and so there is no way to create a circuit. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a22c68a1958ab866c7fc53b29609483a1"></a>
 <div class="memitem">
 <div class="memproto">
