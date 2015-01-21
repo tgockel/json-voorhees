@@ -3,6 +3,7 @@ var searchData=
   ['can_5fcoerce',['can_coerce',['../group__Coercion.html#gaf20cb82e10e2201d983e217c47e26ba6',1,'jsonv::can_coerce(const kind &amp;from, const kind &amp;to)'],['../group__Coercion.html#gafe7cfb78c4ebf72fe476ce5137b8538f',1,'jsonv::can_coerce(const value &amp;from, const kind &amp;to)']]],
   ['character',['character',['../structjsonv_1_1parse__error_1_1problem.html#a9a170800c8dffbbef3aa8bfbac5cd8a6',1,'jsonv::parse_error::problem']]],
   ['clear',['clear',['../group__Shared.html#ga11b8dfc38c7a6ceac53c639f18aaebea',1,'jsonv::value']]],
+  ['coerce',['coerce',['../classjsonv_1_1formats.html#aee2ffa92a5678e6a24f8750e2c75884d',1,'jsonv::formats']]],
   ['coerce_5farray',['coerce_array',['../group__Coercion.html#gae17eed7144363cc743cf143f13c377c1',1,'jsonv']]],
   ['coerce_5fboolean',['coerce_boolean',['../group__Coercion.html#ga7ef79a40e8ad18e599287552546fca16',1,'jsonv']]],
   ['coerce_5fdecimal',['coerce_decimal',['../group__Coercion.html#gab8622e02fd1f38c93d11bc9680815627',1,'jsonv']]],
