@@ -13,6 +13,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization.hpp>
 #include <jsonv/value.hpp>
+#include <jsonv/detail/scope_exit.hpp>
 
 #include <cstdint>
 #include <string>
@@ -136,6 +137,19 @@ TEST(extract_object_search)
     formats fmts = formats::compose({ formats::defaults(), base_fmts });
     
     my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
+    ensure_eq(my_thing(1, 2, "thing"), res);
+}
+
+TEST(extract_object_with_globals)
+{
+    {
+        formats base_fmts;
+        base_fmts.register_extractor(my_thing::get_extractor());
+        formats::set_global(formats::compose({ formats::defaults(), base_fmts }));
+    }
+    auto reset_global_on_exit = jsonv::detail::on_scope_exit([] { formats::reset_global(); });
+    
+    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"));
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 

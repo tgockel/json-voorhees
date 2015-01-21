@@ -313,9 +313,12 @@ formats formats::global()
 
 void formats::set_global(formats fmt)
 {
-    using std::swap;
-    
     global_formats_ref() = std::move(fmt);
+}
+
+void formats::reset_global()
+{
+    global_formats_ref() = default_formats_ref();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -316,6 +316,9 @@ public:
     /** Set the \c global \c formats instance. **/
     static void set_global(formats);
     
+    /** Reset the \c global \c formats instance to \c defaults. **/
+    static void reset_global();
+    
     /** Create a new, empty \c formats instance. By default, this does not know how to extract anything -- not even the
      *  basic types like \c int64_t or \c std::string.
     **/
