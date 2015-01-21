@@ -14,7 +14,11 @@
 #include <jsonv/serialization.hpp>
 #include <jsonv/value.hpp>
 
+#include <cstdint>
+#include <string>
 #include <tuple>
+#include <typeinfo>
+#include <typeindex>
 #include <utility>
 
 namespace jsonv_test
@@ -86,8 +90,34 @@ TEST(extract_basics)
     ensure_eq(4.5f, cxt.extract_sub<float>(val, "d"));
     ensure_eq(4.5, cxt.extract_sub<double>(val, "d"));
     ensure_eq("thing", cxt.extract_sub<std::string>(val, "s"));
-    ensure_throws(extraction_error, cxt.extract_sub<unassociated>(val, "o"));
-    ensure_throws(extraction_error, cxt.extract_sub<int>(val, path::create(".a[3]")));
+    try
+    {
+        cxt.extract_sub<unassociated>(val, "o");
+    }
+    catch (const extraction_error& extract_err)
+    {
+        ensure_eq(path::create(".o"), extract_err.path());
+        ensure(extract_err.nested_ptr());
+        
+        try
+        {
+            std::rethrow_exception(extract_err.nested_ptr());
+        }
+        catch (const no_extractor& noex)
+        {
+            ensure_eq(std::string(typeid(unassociated).name()), noex.type_name());
+            ensure(noex.type_index() == std::type_index(typeid(unassociated)));
+        }
+    }
+    
+    try
+    {
+        cxt.extract_sub<int>(val, path::create(".a[3]"));
+    }
+    catch (const extraction_error& extract_err)
+    {
+        ensure_eq(path::create(".a[3]"), extract_err.path());
+    }
 }
 
 TEST(extract_object)
