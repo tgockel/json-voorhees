@@ -4,8 +4,8 @@ var modules =
       [ "The jsonv::value", "index.html#demo_value", null ],
       [ "Encoding and decoding", "index.html#demo_parsing", null ],
       [ "Serialization", "index.html#serialization", [
-        [ "Extracting with <tt>jsonv::extract<T></tt>", "index.html#serialization_encoding", null ],
-        [ "Serialization with \\c to_json", "index.html#serialization_to_json", null ],
+        [ "Extracting with `jsonv::extract`", "index.html#serialization_encoding", null ],
+        [ "Serialization with `to_json`", "index.html#serialization_to_json", null ],
         [ "Composing Type Adapters", "index.html#serialization_composition", null ]
       ] ],
       [ "Algorithms", "index.html#demo_algorithm", null ]

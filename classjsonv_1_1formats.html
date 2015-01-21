@@ -146,12 +146,12 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a22c68a1958ab866c7fc53b29609483a1"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="classjsonv_1_1formats.html">formats</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a22c68a1958ab866c7fc53b29609483a1">defaults</a> ()</td></tr>
-<tr class="memdesc:a22c68a1958ab866c7fc53b29609483a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the default <code>formats</code> instance.  <a href="#a22c68a1958ab866c7fc53b29609483a1">More...</a><br /></td></tr>
-<tr class="separator:a22c68a1958ab866c7fc53b29609483a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a268112303b286ce76bdb4424c350ad17"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="classjsonv_1_1formats.html">formats</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a268112303b286ce76bdb4424c350ad17">global</a> ()</td></tr>
-<tr class="memdesc:a268112303b286ce76bdb4424c350ad17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the global <code>formats</code> instance.  <a href="#a268112303b286ce76bdb4424c350ad17">More...</a><br /></td></tr>
-<tr class="separator:a268112303b286ce76bdb4424c350ad17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad194791e293229fb6a79438a6444f51b"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classjsonv_1_1formats.html">formats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#ad194791e293229fb6a79438a6444f51b">defaults</a> ()</td></tr>
+<tr class="memdesc:ad194791e293229fb6a79438a6444f51b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the default <code>formats</code> instance.  <a href="#ad194791e293229fb6a79438a6444f51b">More...</a><br /></td></tr>
+<tr class="separator:ad194791e293229fb6a79438a6444f51b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4403758d5e87d0862a04fc5d9171991d"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classjsonv_1_1formats.html">formats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a4403758d5e87d0862a04fc5d9171991d">global</a> ()</td></tr>
+<tr class="memdesc:a4403758d5e87d0862a04fc5d9171991d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the global <code>formats</code> instance.  <a href="#a4403758d5e87d0862a04fc5d9171991d">More...</a><br /></td></tr>
+<tr class="separator:a4403758d5e87d0862a04fc5d9171991d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa32b03fdc28204d48fdb8bfe2824a89"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#afa32b03fdc28204d48fdb8bfe2824a89">set_global</a> (<a class="el" href="classjsonv_1_1formats.html">formats</a>)</td></tr>
 <tr class="memdesc:afa32b03fdc28204d48fdb8bfe2824a89"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the <code>global</code> <code>formats</code> instance.  <a href="#afa32b03fdc28204d48fdb8bfe2824a89">More...</a><br /></td></tr>
 <tr class="separator:afa32b03fdc28204d48fdb8bfe2824a89"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -173,7 +173,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="line"></div>
 <div class="line"><a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> get_db_formats()</div>
 <div class="line">{</div>
-<div class="line">    <span class="keyword">static</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> instance = <a class="code" href="classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110">jsonv::formats::compose</a>({ <a class="code" href="classjsonv_1_1formats.html#a22c68a1958ab866c7fc53b29609483a1">jsonv::formats::defaults</a>(), get_app_formats() });</div>
+<div class="line">    <span class="keyword">static</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> instance = <a class="code" href="classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110">jsonv::formats::compose</a>({ <a class="code" href="classjsonv_1_1formats.html#ad194791e293229fb6a79438a6444f51b">jsonv::formats::defaults</a>(), get_app_formats() });</div>
 <div class="line">    <span class="keywordflow">return</span> instance;</div>
 <div class="line">}</div>
 <div class="line"></div>
@@ -237,7 +237,7 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a22c68a1958ab866c7fc53b29609483a1"></a>
+<a class="anchor" id="ad194791e293229fb6a79438a6444f51b"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -245,7 +245,7 @@ Static Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static const <a class="el" href="classjsonv_1_1formats.html">formats</a>&amp; jsonv::formats::defaults </td>
+          <td class="memname">static <a class="el" href="classjsonv_1_1formats.html">formats</a> jsonv::formats::defaults </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -259,7 +259,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get the default <code>formats</code> instance. </p>
-<p>This uses <em>strict</em> type-checking and behaves by the same rules as the <code>value</code> <code>as_</code> member functions (<code>as_integer</code>, <code>as_string</code>, etc). </p>
+<p>This uses <em>strict</em> type-checking and behaves by the same rules as the <code>value</code> <code>as_</code> member functions (<code>as_integer</code>, <code>as_string</code>, etc).</p>
+<dl class="section note"><dt>Note</dt><dd>This function actually returns a <em>copy</em> of the default <code>formats</code>, so modifications do not affect the actual instance. </dd></dl>
 
 </div>
 </div>
@@ -310,7 +311,7 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a268112303b286ce76bdb4424c350ad17"></a>
+<a class="anchor" id="a4403758d5e87d0862a04fc5d9171991d"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -318,7 +319,7 @@ Static Public Member Functions</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static const <a class="el" href="classjsonv_1_1formats.html">formats</a>&amp; jsonv::formats::global </td>
+          <td class="memname">static <a class="el" href="classjsonv_1_1formats.html">formats</a> jsonv::formats::global </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -332,7 +333,8 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get the global <code>formats</code> instance. </p>
-<p>By default, this is the same as <code>defaults</code>, but you can override it with <code>set_global</code>. The <code>extract</code> function uses this <code>formats</code> instance if none is provided, so this is convenient if your application only has one type of <code>formats</code> to use. </p>
+<p>By default, this is the same as <code>defaults</code>, but you can override it with <code>set_global</code>. The <code>extract</code> function uses this <code>formats</code> instance if none is provided, so this is convenient if your application only has one type of <code>formats</code> to use.</p>
+<dl class="section note"><dt>Note</dt><dd>This function actually returns a <em>copy</em> of the global <code>formats</code>, so modifications do not affect the actual instance. If you wish to alter the global formats, use <code>set_global</code>. </dd></dl>
 
 </div>
 </div>
