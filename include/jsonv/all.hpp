@@ -321,7 +321,7 @@
  *  <tt>jsonv::extract&lt;my_type&gt;(value)</tt> and create a \c jsonv::value from your arbitrary C++ type with
  *  <tt>jsonv::to_json(my_instance)</tt>.
  *  
- *  \subsubsection serialization_encoding Extracting with <tt>jsonv::extract&lt;T&gt;</tt>
+ *  \subsubsection serialization_encoding Extracting with `jsonv::extract`
  *  
  *  Let's start with converting a \c jsonv::value into a custom C++ type with <tt>jsonv::extract&lt;T&gt;</tt>.
  *  
@@ -458,7 +458,7 @@
  *  to the function. If we had not provided \c format as an argument here, the function would have thrown a
  *  \c jsonv::extraction_error complaining about how it did not know how to extract a \c my_type.
  *  
- *  \subsubsection serialization_to_json Serialization with \c to_json
+ *  \subsubsection serialization_to_json Serialization with `to_json`
  *  
  *  TODO
  *  

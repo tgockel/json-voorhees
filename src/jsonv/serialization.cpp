@@ -285,10 +285,15 @@ static formats create_default_formats()
     return fmt;
 }
 
-const formats& formats::defaults()
+static const formats& default_formats_ref()
 {
     static formats instance = create_default_formats();
     return instance;
+}
+
+formats formats::defaults()
+{
+    return formats({ default_formats_ref() });
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -297,13 +302,13 @@ const formats& formats::defaults()
 
 static formats& global_formats_ref()
 {
-    static formats instance = formats::defaults();
+    static formats instance = default_formats_ref();
     return instance;
 }
 
-const formats& formats::global()
+formats formats::global()
 {
-    return global_formats_ref();
+    return formats({ global_formats_ref() });
 }
 
 void formats::set_global(formats fmt)
@@ -324,7 +329,7 @@ extraction_context::extraction_context(const jsonv::formats& fmt, const jsonv::v
 { }
 
 extraction_context::extraction_context() :
-        extraction_context(jsonv::formats::global())
+        extraction_context(global_formats_ref())
 { }
 
 }

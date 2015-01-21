@@ -296,14 +296,22 @@ public:
 public:
     /** Get the default \c formats instance. This uses \e strict type-checking and behaves by the same rules as the
      *  \c value \c as_ member functions (\c as_integer, \c as_string, etc).
+     *  
+     *  \note
+     *  This function actually returns a \e copy of the default \c formats, so modifications do not affect the actual
+     *  instance.
     **/
-    static const formats& defaults();
+    static formats defaults();
     
     /** Get the global \c formats instance. By default, this is the same as \c defaults, but you can override it with
      *  \c set_global. The \c extract function uses this \c formats instance if none is provided, so this is convenient
      *  if your application only has one type of \c formats to use.
+     *  
+     *  \note
+     *  This function actually returns a \e copy of the global \c formats, so modifications do not affect the actual
+     *  instance. If you wish to alter the global formats, use \c set_global.
     **/
-    static const formats& global();
+    static formats global();
     
     /** Set the \c global \c formats instance. **/
     static void set_global(formats);
@@ -486,7 +494,8 @@ T extract(const value& from, const formats& fmts)
 template <typename T>
 T extract(const value& from)
 {
-    return extract<T>(from, formats::global());
+    extraction_context context;
+    return context.extract<T>(from);
 }
 
 /** \} **/
