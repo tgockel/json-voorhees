@@ -36,6 +36,7 @@ namespace jsonv
 class extractor;
 class value;
 class extraction_context;
+class serialization_context;
 
 /** Represents a version used to extract and encode JSON objects from C++ classes. This is useful for API versioning: if
  *  you need certain fields to be serialized only after a certain version or only before a different one.
@@ -104,138 +105,87 @@ private:
     std::type_index _type_index;
 };
 
+/** Thrown when \c formats::encode does not have a \c serializer for the provided type. **/
+class JSONV_PUBLIC no_serializer :
+        public std::runtime_error
+{
+public:
+    /** Create a new exception. **/
+    explicit no_serializer(const std::type_info& type);
+    
+    virtual ~no_serializer() noexcept;
+    
+    /** The name of the type. **/
+    const char* type_name() const;
+    
+    /** Get an ID for the type of \c serializer that \c formats::encode could not locate. **/
+    std::type_index type_index() const;
+    
+private:
+    std::type_index _type_index;
+};
+
 /** An \c extractor holds the method for converting a \c value into an arbitrary C++ type. **/
 class JSONV_PUBLIC extractor
 {
 public:
     virtual ~extractor() noexcept;
     
+    /** Get the run-time type this \c extractor knows how to extract. Once this \c extractor is registered with a
+     *  \c formats, it is not allowed to change.
+    **/
     virtual const std::type_info& get_type() const = 0;
     
+    /** Extract a the type \a from a \c value \a into a region of memory.
+     *  
+     *  \param context Extra information to help you decode sub-objects, such as looking up other \c formats. It also
+     *                 tracks your \c path in the decoding heirarchy, so any exceptions thrown will have \c path
+     *                 information in the error message.
+     *  \param from The JSON \c value to extract something from.
+     *  \param into The region of memory to create the extracted object in. There will always be enough room to create
+     *              your object and the alignment of the pointer should be correct (assuming a working \c alignof
+     *              implementation).
+    **/
     virtual void extract(const extraction_context& context,
                          const value&              from,
                          void*                     into
                         ) const = 0;
 };
 
-template <typename T>
-class extractor_construction :
-        public extractor
+/** A \c serializer holds the method for converting an arbitrary C++ type into a \c value. **/
+class JSONV_PUBLIC serializer
 {
 public:
-    virtual const std::type_info& get_type() const
-    {
-        return typeid(T);
-    }
+    virtual ~serializer() noexcept;
     
-    virtual void extract(const extraction_context& context,
-                         const value&              from,
-                         void*                     into
-                        ) const override
-    {
-        return extract_impl<T>(context, from, into);
-    }
+    /** Get the run-time type this \c serialize knows how to encode. Once this \c serializer is registered with a
+     *  \c formats, it is not allowed to change.
+    **/
+    virtual const std::type_info& get_type() const = 0;
     
-protected:
-    template <typename U>
-    auto extract_impl(const extraction_context& context,
-                      const value&              from,
-                      void*                     into
-                     ) const
-            -> decltype(U(from, context), void())
-    {
-        new(into) U(from, context);
-    }
-    
-    template <typename U>
-    auto extract_impl(const extraction_context&,
-                      const value&              from,
-                      void*                     into
-                     ) const
-            -> decltype(U(from), void())
-    {
-        new(into) U(from);
-    }
+    /** Create a \c value \a from the value in the given region of memory.
+     *  
+     *  \param context Extra information to help you encode sub-objects for your type, such as the ability to find other
+     *                 \c formats. It also tracks the progression of types in the encoding heirarchy, so any exceptions
+     *                 thrown will have \c type information in the error message.
+     *  \param from The region of memory that represents the C++ value to encode. The pointer comes as the result of a
+     *              <tt>static_cast&lt;void*&gt;</tt>, so performing a \c static_cast back to your type is okay.
+    **/
+    virtual value encode(const serialization_context& context,
+                         const void*                  from
+                        ) const = 0;
 };
 
-template <typename T>
-class extractor_for :
-        public extractor
+/** An \c adapter is both an \c extractor and a \c serializer. It is made with the idea that for \e most types, you want
+ *  to both encode and decode JSON.
+**/
+class JSONV_PUBLIC adapter :
+        public extractor,
+        public serializer
 {
 public:
-    virtual const std::type_info& get_type() const
-    {
-        return typeid(T);
-    }
-    
-    virtual void extract(const extraction_context& context,
-                         const value&              from,
-                         void*                     into
-                        ) const override
-    {
-        new(into) T(create(context, from));
-    }
-    
-protected:
-    virtual T create(const extraction_context& context, const value& from) const = 0;
+    virtual ~adapter() noexcept;
 };
-
-template <typename T, typename FExtract>
-class function_extractor :
-        public extractor_for<T>
-{
-public:
-    template <typename FUExtract>
-    explicit function_extractor(FUExtract&& func) :
-            _func(std::forward<FUExtract>(func))
-    { }
-    
-protected:
-    virtual T create(const extraction_context& context, const value& from) const override
-    {
-        return create_impl(_func, context, from);
-    }
-    
-private:
-    template <typename FUExtract>
-    static auto create_impl(const FUExtract& func, const extraction_context& context, const value& from)
-            -> decltype(func(context, from))
-    {
-        return func(context, from);
-    }
-    
-    template <typename FUExtract>
-    static auto create_impl(const FUExtract& func, const extraction_context&, const value& from)
-            -> decltype(func(from))
-    {
-        return func(from);
-    }
-    
-private:
-    FExtract _func;
-};
-
-template <typename FExtract>
-auto make_function_extractor(FExtract func)
-    -> function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
-                          FExtract
-                         >
-{
-    return function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
-                              FExtract
-                             >
-            (std::move(func));
-}
-
-template <typename FExtract>
-auto make_function_extractor(FExtract func)
-    -> function_extractor<decltype(func(std::declval<const value&>())),
-                          FExtract
-                         >
-{
-    return function_extractor<decltype(func(std::declval<const value&>())), FExtract>
-            (std::move(func));
-}
 
 /** Simply put, this class is a collection of \c extractor and \c serializer instances.
  *  
@@ -363,6 +313,17 @@ public:
                  const extraction_context& context
                 ) const;
     
+    /** Encode the provided value \a from into a JSON \c value. The \a context is passed to the \c serializer which
+     *  performs the conversion. In general, this should not be used directly as it is painful to do so -- prefer
+     *  \c serialization_context::encode or the free function \c jsonv::to_json.
+     *  
+     *  \throws no_serializer if a \c serializer for \a type could not be found.
+    **/
+    value encode(const std::type_info&        type,
+                 const void*                  from,
+                 const serialization_context& context
+                ) const;
+    
     /** Register an \c extractor that lives in some unmanaged space.
      *  
      *  \throws std::invalid_argument if this \c formats instance already has an \c extractor that serves the provided
@@ -376,6 +337,34 @@ public:
      *                                \c extractor::get_type.
     **/
     void register_extractor(std::shared_ptr<const extractor>);
+    
+    /** Register a \c serializer that lives in some managed space.
+     *  
+     *  \throws std::invalid_argument if this \c formats instance already has a \c serializer that serves the provided
+     *                                \c serializer::get_type.
+    **/
+    void register_serializer(const serializer*);
+    
+    /** Register a \c serializer with shared ownership between this \c formats instance and anything else.
+     *  
+     *  \throws std::invalid_argument if this \c formats instance already has a \c serializer that serves the provided
+     *                                \c serializer::get_type.
+    **/
+    void register_serializer(std::shared_ptr<const serializer>);
+    
+    /** Register an \c adapter that lives in some unmanaged space.
+     *  
+     *  \throws std::invalid_argument if this \c formats instance already has either an \c extractor or \c serializer
+     *                                that serves the provided \c adapter::get_type.
+    **/
+    void register_adapter(const adapter*);
+    
+    /** Register an \c adapter with shared ownership between this \c formats instance and anything else.
+     *  
+     *  \throws std::invalid_argument if this \c formats instance already has either an \c extractor or \c serializer
+     *                                that serves the provided \c adapter::get_type.
+    **/
+    void register_adapter(std::shared_ptr<const adapter>);
     
     /** Test for equality between this instance and \a other. If two \c formats are equal, they are the \e exact same
      *  node in the graph. Even if one \c formats has the exact same types for the exact same <tt>extractor</tt>s.
@@ -395,19 +384,19 @@ private:
     std::shared_ptr<data> _data;
 };
 
-/** Provides extra information to routines used for extraction.
-**/
-class JSONV_PUBLIC extraction_context
+/** Provides extra information to routines used for extraction. **/
+class JSONV_PUBLIC context_base
 {
 public:
     /** Create a new instance using the default \c formats (\c formats::global). **/
-    extraction_context();
+    context_base();
     
     /** Create a new instance using the given \a fmt, \a ver and \a p. **/
-    explicit extraction_context(jsonv::formats        fmt,
-                                const jsonv::version& ver = jsonv::version(1),
-                                jsonv::path           p   = jsonv::path()
-                               );
+    explicit context_base(jsonv::formats        fmt,
+                          const jsonv::version& ver = jsonv::version(1)
+                         );
+    
+    virtual ~context_base() noexcept = 0;
     
     /** Get the \c formats object backing extraction and encoding. **/
     const jsonv::formats& formats() const
@@ -420,6 +409,26 @@ public:
     {
         return _version;
     }
+    
+private:
+    jsonv::formats _formats;
+    jsonv::version _version;
+};
+
+class JSONV_PUBLIC extraction_context :
+        public context_base
+{
+public:
+    /** Create a new instance using the default \c formats (\c formats::global). **/
+    extraction_context();
+    
+    /** Create a new instance using the given \a fmt, \a ver and \a p. **/
+    explicit extraction_context(jsonv::formats        fmt,
+                                const jsonv::version& ver = jsonv::version(1),
+                                jsonv::path           p   = jsonv::path()
+                               );
+    
+    virtual ~extraction_context() noexcept;
     
     /** Get the current \c path this \c extraction_context is extracting for. This is useful when debugging and
      *  generating error messages.
@@ -502,9 +511,7 @@ public:
     }
     
 private:
-    jsonv::formats _formats;
-    jsonv::version _version;
-    jsonv::path    _path;
+    jsonv::path _path;
 };
 
 /** Extract a C++ value from \a from using the provided \a fmts. **/
@@ -521,6 +528,43 @@ T extract(const value& from)
 {
     extraction_context context;
     return context.extract<T>(from);
+}
+
+class JSONV_PUBLIC serialization_context :
+        public context_base
+{
+public:
+    /** Create a new instance using the default \c formats (\c formats::global). **/
+    serialization_context();
+    
+    /** Create a new instance using the given \a fmt and \a ver. **/
+    explicit serialization_context(jsonv::formats        fmt,
+                                   const jsonv::version& ver = jsonv::version(1)
+                                  );
+    
+    virtual ~serialization_context() noexcept;
+    
+    template <typename T>
+    value encode(const T& from) const
+    {
+        return formats().encode(typeid(T), static_cast<const void*>(&from), *this);
+    }
+};
+
+/** Encode a JSON \c value from \a from using the provided \a fmts. **/
+template <typename T>
+value to_json(const T& from, const formats& fmts)
+{
+    serialization_context context(fmts);
+    return context.encode(from);
+}
+
+/** Encode a JSON \c value from \a from using \c jsonv::formats::global(). **/
+template <typename T>
+value to_json(const T& from)
+{
+    serialization_context context;
+    return context.encode(from);
 }
 
 /** \} **/

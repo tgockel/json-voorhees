@@ -12,6 +12,7 @@
 
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization.hpp>
+#include <jsonv/serialization_util.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 

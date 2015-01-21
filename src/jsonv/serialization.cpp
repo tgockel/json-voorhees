@@ -11,6 +11,7 @@
 **/
 #include <jsonv/serialization.hpp>
 #include <jsonv/coerce.hpp>
+#include <jsonv/serialization_util.hpp>
 #include <jsonv/value.hpp>
 
 #include <sstream>
@@ -25,6 +26,18 @@ namespace jsonv
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extractor::~extractor() noexcept = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// serializer                                                                                                         //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+serializer::~serializer() noexcept = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// adapter                                                                                                            //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+adapter::~adapter() noexcept = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // extraction_error                                                                                                   //
@@ -61,15 +74,15 @@ const path& extraction_error::path() const
 // no_extractor                                                                                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string make_no_extractor_errmsg(const std::type_info& type)
+static std::string make_no_serializer_extractor_errmsg(const char* kind, const std::type_info& type)
 {
     std::ostringstream ss;
-    ss << "Could not find extractor for type: " << type.name();
+    ss << "Could not find " << kind << " for type: " << type.name();
     return ss.str();
 }
 
 no_extractor::no_extractor(const std::type_info& type) :
-        runtime_error(make_no_extractor_errmsg(type)),
+        runtime_error(make_no_serializer_extractor_errmsg("extractor", type)),
         _type_index(type)
 { }
 
@@ -87,16 +100,38 @@ const char* no_extractor::type_name() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// no_serializer                                                                                                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+no_serializer::no_serializer(const std::type_info& type) :
+        runtime_error(make_no_serializer_extractor_errmsg("serializer", type)),
+        _type_index(type)
+{ }
+
+no_serializer::~no_serializer() noexcept
+{ }
+
+std::type_index no_serializer::type_index() const
+{
+    return _type_index;
+}
+
+const char* no_serializer::type_name() const
+{
+    return _type_index.name();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // formats::data                                                                                                      //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 struct JSONV_LOCAL formats::data
 {
 public:
-    using roots_list = std::vector<std::shared_ptr<const data>>;
-    
-    using extractor_map        = std::unordered_map<std::type_index, const extractor*>;
-    using shared_extractor_set = std::unordered_set<std::shared_ptr<const extractor>>;
+    using roots_list      = std::vector<std::shared_ptr<const data>>;
+    using extractor_map   = std::unordered_map<std::type_index, const extractor*>;
+    using serializer_map  = std::unordered_map<std::type_index, const serializer*>;
+    using owned_items_set = std::unordered_set<std::shared_ptr<const void>>;
     
 public:
     /// The previous data this comes from...this allows us to make a huge tree of formats with custom extension points.
@@ -104,7 +139,9 @@ public:
     
     extractor_map extractors;
     
-    shared_extractor_set shared_extractors;
+    owned_items_set owned_items;
+    
+    serializer_map serializers;
     
     explicit data(roots_list roots) :
             roots(std::move(roots))
@@ -113,16 +150,37 @@ public:
 public:
     const extractor* find_extractor(const std::type_index& typeidx) const
     {
-        auto iter = extractors.find(typeidx);
-        if (iter != end(extractors))
+        return find_impl<extractor>(this,
+                                    typeidx,
+                                    [] (const data* self) -> const extractor_map& { return self->extractors; }
+                                   );
+    }
+    
+    const serializer* find_serializer(const std::type_index& typeidx) const
+    {
+        return find_impl<serializer>(this,
+                                     typeidx,
+                                     [] (const data* self) -> const serializer_map& { return self->serializers; }
+                                    );
+    }
+    
+    template <typename T, typename FSelectMap>
+    static const T* find_impl(const data* self,
+                              const std::type_index& typeidx,
+                              const FSelectMap&      select_map
+                             )
+    {
+        const auto& map = select_map(self);
+        auto iter = map.find(typeidx);
+        if (iter != std::end(map))
         {
             return iter->second;
         }
         else
         {
-            for (const auto& sub : roots)
+            for (const auto& sub : self->roots)
             {
-                auto ptr = sub->find_extractor(typeidx);
+                auto ptr = find_impl<T>(sub.get(), typeidx, select_map);
                 if (ptr)
                     return ptr;
             }
@@ -152,8 +210,52 @@ public:
     {
         auto iter = insert_extractor(ex.get());
         auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
-        shared_extractors.insert(std::move(ex));
+        owned_items.insert(std::move(ex));
         rollback.release();
+    }
+    
+    serializer_map::iterator insert_serializer(const serializer* ser)
+    {
+        std::type_index typeidx(ser->get_type());
+        auto iter = serializers.find(typeidx);
+        if (iter != end(serializers))
+        {
+            // if we already have a value, search the shared maps to see if it is present
+            std::ostringstream os;
+            os << "Already have a serializer for type " << typeidx.name();
+            throw std::invalid_argument(os.str());
+        }
+        else
+        {
+            return serializers.emplace(typeidx, ser).first;
+        }
+    }
+    
+    void insert_serializer(std::shared_ptr<const serializer> ser)
+    {
+        auto iter = insert_serializer(ser.get());
+        auto rollback = detail::on_scope_exit([this, &iter] { serializers.erase(iter); });
+        owned_items.insert(std::move(ser));
+        rollback.release();
+    }
+    
+    void insert_adapter(const adapter* adp)
+    {
+        auto iter = insert_extractor(adp);
+        auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
+        insert_serializer(adp);
+        rollback.release();
+    }
+    
+    void insert_adapter(std::shared_ptr<const adapter> adp)
+    {
+        auto iter_ex = insert_extractor(adp.get());
+        auto rollback_ex = detail::on_scope_exit([this, &iter_ex] { extractors.erase(iter_ex); });
+        auto iter_ser = insert_serializer(adp.get());
+        auto rollback_ser = detail::on_scope_exit([this, &iter_ser] { serializers.erase(iter_ser); });
+        owned_items.insert(std::move(adp));
+        rollback_ex.release();
+        rollback_ser.release();
     }
 };
 
@@ -196,6 +298,18 @@ void formats::extract(const std::type_info&     type,
         throw no_extractor(type);
 }
 
+value formats::encode(const std::type_info& type,
+                      const void* from,
+                      const serialization_context& context
+                     ) const
+{
+    const serializer* ser = _data->find_serializer(std::type_index(type));
+    if (ser)
+        return ser->encode(context, from);
+    else
+        throw no_serializer(type);
+}
+
 void formats::register_extractor(const extractor* ex)
 {
     _data->insert_extractor(ex);
@@ -204,6 +318,26 @@ void formats::register_extractor(const extractor* ex)
 void formats::register_extractor(std::shared_ptr<const extractor> ex)
 {
     _data->insert_extractor(std::move(ex));
+}
+
+void formats::register_serializer(const serializer* ser)
+{
+    _data->insert_serializer(ser);
+}
+
+void formats::register_serializer(std::shared_ptr<const serializer> ser)
+{
+    _data->insert_serializer(std::move(ser));
+}
+
+void formats::register_adapter(const adapter* adp)
+{
+    _data->insert_adapter(adp);
+}
+
+void formats::register_adapter(std::shared_ptr<const adapter> adp)
+{
+    _data->insert_adapter(std::move(adp));
 }
 
 bool formats::operator==(const formats& other) const
@@ -221,37 +355,49 @@ bool formats::operator!=(const formats& other) const
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-static void register_integer_extractor(formats& fmt)
+static void register_integer_adapter(formats& fmt)
 {
-    static auto instance = make_function_extractor([] (const value& from) { return T(from.as_integer()); });
-    fmt.register_extractor(&instance);
+    static auto instance = make_adapter([] (const value& from) { return T(from.as_integer()); },
+                                        [] (const T& from) { return value(static_cast<std::int64_t>(from)); }
+                                       );
+    fmt.register_adapter(&instance);
 }
 
 static formats create_default_formats()
 {
     formats fmt;
     
-    static auto json_extractor = make_function_extractor([] (const value& from) { return from; });
+    static auto json_extractor = make_adapter([] (const value& from) { return from; },
+                                              [] (const value& from) { return from; }
+                                             );
     fmt.register_extractor(&json_extractor);
     
-    static auto string_extractor = make_function_extractor([] (const value& from) { return from.as_string(); });
+    static auto string_extractor = make_adapter([] (const value& from) { return from.as_string(); },
+                                                [] (const std::string& from) { return value(from); }
+                                               );
     fmt.register_extractor(&string_extractor);
     
-    static auto bool_extractor = make_function_extractor([] (const value& from) { return from.as_boolean(); });
+    static auto bool_extractor = make_adapter([] (const value& from) { return from.as_boolean(); },
+                                              [] (const bool& from) { return value(from); }
+                                             );
     fmt.register_extractor(&bool_extractor);
     
-    register_integer_extractor<std::int8_t>(fmt);
-    register_integer_extractor<std::uint8_t>(fmt);
-    register_integer_extractor<std::int16_t>(fmt);
-    register_integer_extractor<std::uint16_t>(fmt);
-    register_integer_extractor<std::int32_t>(fmt);
-    register_integer_extractor<std::uint32_t>(fmt);
-    register_integer_extractor<std::int64_t>(fmt);
-    register_integer_extractor<std::uint64_t>(fmt);
+    register_integer_adapter<std::int8_t>(fmt);
+    register_integer_adapter<std::uint8_t>(fmt);
+    register_integer_adapter<std::int16_t>(fmt);
+    register_integer_adapter<std::uint16_t>(fmt);
+    register_integer_adapter<std::int32_t>(fmt);
+    register_integer_adapter<std::uint32_t>(fmt);
+    register_integer_adapter<std::int64_t>(fmt);
+    register_integer_adapter<std::uint64_t>(fmt);
     
-    static auto double_extractor = make_function_extractor([] (const value& from) { return from.as_decimal(); });
+    static auto double_extractor = make_adapter([] (const value& from) { return from.as_decimal(); },
+                                                [] (const double& from) { return value(from); }
+                                               );
     fmt.register_extractor(&double_extractor);
-    static auto float_extractor = make_function_extractor([] (const value& from) { return float(from.as_decimal()); });
+    static auto float_extractor = make_adapter([] (const value& from) { return float(from.as_decimal()); },
+                                               [] (const float& from) { return value(from); }
+                                              );
     fmt.register_extractor(&float_extractor);
     
     return fmt;
@@ -308,9 +454,6 @@ static formats create_coerce_formats()
 {
     formats fmt;
     
-    static auto json_extractor = make_function_extractor([] (const value& from) { return from; });
-    fmt.register_extractor(&json_extractor);
-    
     static auto string_extractor = make_function_extractor([] (const value& from) { return coerce_string(from); });
     fmt.register_extractor(&string_extractor);
     
@@ -336,7 +479,7 @@ static formats create_coerce_formats()
 
 static const formats& coerce_formats_ref()
 {
-    static formats instance = create_coerce_formats();
+    static formats instance = formats::compose({ create_coerce_formats(), default_formats_ref() });
     return instance;
 }
 
@@ -346,17 +489,47 @@ formats formats::coerce()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// context_base                                                                                                       //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+context_base::context_base(jsonv::formats fmt, const jsonv::version& ver) :
+        _formats(std::move(fmt)),
+        _version(ver)
+{ }
+
+context_base::context_base() :
+        context_base(formats::global())
+{ }
+
+context_base::~context_base() noexcept = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // extraction_context                                                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 extraction_context::extraction_context(jsonv::formats fmt, const jsonv::version& ver, jsonv::path p) :
-        _formats(std::move(fmt)),
-        _version(ver),
+        context_base(std::move(fmt), ver),
         _path(std::move(p))
 { }
 
 extraction_context::extraction_context() :
-        extraction_context(global_formats_ref())
+        context_base()
 { }
+
+extraction_context::~extraction_context() noexcept = default;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// serialization_context                                                                                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+serialization_context::serialization_context(jsonv::formats fmt, const jsonv::version& ver) :
+        context_base(std::move(fmt), ver)
+{ }
+
+serialization_context::serialization_context() :
+        context_base()
+{ }
+
+serialization_context::~serialization_context() noexcept = default;
 
 }
