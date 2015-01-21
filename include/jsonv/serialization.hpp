@@ -23,6 +23,7 @@
 #include <typeindex>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace jsonv
 {
@@ -290,6 +291,9 @@ auto make_function_extractor(FExtract func)
 class JSONV_PUBLIC formats
 {
 public:
+    using list = std::vector<formats>;
+    
+public:
     /** Get the default \c formats instance. This uses \e strict type-checking and behaves by the same rules as the
      *  \c value \c as_ member functions (\c as_integer, \c as_string, etc).
     **/
@@ -310,6 +314,22 @@ public:
     formats();
     
     ~formats() noexcept;
+    
+    /** Create a new (empty) \c formats using the \a bases as backing \c formats. This forms a directed graph of
+     *  \c formats objects. When searching for an \c extractor or \c serializer, the \c formats is searched, then each
+     *  base is searched depth-first left-to-right.
+     *  
+     *  \param bases Is the list of \c formats objects to use as bases for the newly-created \c formats. Order matters
+     *               -- the \a bases are searched left-to-right, so \c formats that are farther left take precedence
+     *               over those more to the right.
+     *  
+     *  \note
+     *  It is impossible to form an endless loop of \c formats objects, since the base of all \c formats are eventually
+     *  empty. If there is an existing set of nodes \f$ k \f$ and each new \c format created with \c compose is in
+     *  \f$ k+1 \f$, there is no way to create a link from \f$ k \f$ into \f$ k+1 \f$ and so there is no way to create a
+     *  circuit.
+    **/
+    static formats compose(const list& bases);
     
     /** Extract the provided \a type \a from a \c value \a into an area of memory. The \a context is passed to the
      *  \c extractor which performs the conversion. In general, this should not be used directly as it is quite painful
@@ -336,7 +356,7 @@ private:
     struct data;
     
 private:
-    explicit formats(std::shared_ptr<data>);
+    explicit formats(const list& bases);
     
 private:
     std::shared_ptr<data> _data;

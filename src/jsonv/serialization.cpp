@@ -92,13 +92,15 @@ const char* no_extractor::type_name() const
 struct JSONV_LOCAL formats::data
 {
 public:
+    using roots_list = std::vector<std::shared_ptr<const data>>;
+    
     using extractor_map        = std::unordered_map<std::type_index, const extractor*>;
     using unique_extractor_set = std::unordered_set<std::unique_ptr<const extractor>>;
     using shared_extractor_set = std::unordered_set<std::shared_ptr<const extractor>>;
     
 public:
     /// The previous data this comes from...this allows us to make a huge tree of formats with custom extension points.
-    std::shared_ptr<const data> prev;
+    roots_list roots;
     
     extractor_map extractors;
     
@@ -107,16 +109,23 @@ public:
     shared_extractor_set shared_extractors;
     
 public:
-    const extractor* find_extractor(const std::type_info& typeinfo) const
+    const extractor* find_extractor(const std::type_index& typeidx) const
     {
-        std::type_index typeidx(typeinfo);
-        for (const formats::data* data = this; data != nullptr; data = data->prev.get())
+        auto iter = extractors.find(typeidx);
+        if (iter != end(extractors))
         {
-            auto iter = data->extractors.find(typeidx);
-            if (iter != end(data->extractors))
-                return iter->second;
+            return iter->second;
         }
-        throw no_extractor(typeinfo);
+        else
+        {
+            for (const auto& sub : roots)
+            {
+                auto ptr = sub->find_extractor(typeidx);
+                if (ptr)
+                    return ptr;
+            }
+            return nullptr;
+        }
     }
     
 public:
@@ -187,10 +196,21 @@ formats::formats() :
         _data(std::make_shared<data>())
 { }
 
-formats::formats(std::shared_ptr<data> root) :
+formats::formats(const list& bases) :
         formats()
 {
-    _data->prev = std::move(root);
+    data::roots_list roots;
+    roots.reserve(bases.size());
+    std::transform(begin(bases), end(bases),
+                   std::back_inserter(roots),
+                   [] (const formats& fmt) { return fmt._data; }
+                  );
+    _data->roots = std::move(roots);
+}
+
+formats formats::compose(const list& bases)
+{
+    return formats(bases);
 }
 
 formats::~formats() noexcept
@@ -202,8 +222,11 @@ void formats::extract(const std::type_info&     type,
                       const extraction_context& context
                      ) const
 {
-    const extractor* ex = _data->find_extractor(type);
-    ex->extract(context, from, into);
+    const extractor* ex = _data->find_extractor(std::type_index(type));
+    if (ex)
+        ex->extract(context, from, into);
+    else
+        throw no_extractor(type);
 }
 
 void formats::register_extractor(const extractor* ex)
@@ -281,6 +304,8 @@ const formats& formats::global()
 
 void formats::set_global(formats fmt)
 {
+    using std::swap;
+    
     global_formats_ref() = std::move(fmt);
 }
 
