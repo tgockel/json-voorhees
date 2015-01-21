@@ -105,6 +105,10 @@ public:
     
     shared_extractor_set shared_extractors;
     
+    explicit data(roots_list roots) :
+            roots(std::move(roots))
+    { }
+    
 public:
     const extractor* find_extractor(const std::type_index& typeidx) const
     {
@@ -156,12 +160,15 @@ public:
 // formats                                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-formats::formats() :
-        _data(std::make_shared<data>())
+formats::formats(data::roots_list roots) :
+        _data(std::make_shared<data>(std::move(roots)))
 { }
 
-formats::formats(const list& bases) :
-        formats()
+formats::formats() :
+        formats(data::roots_list())
+{ }
+
+formats formats::compose(const list& bases)
 {
     data::roots_list roots;
     roots.reserve(bases.size());
@@ -169,12 +176,7 @@ formats::formats(const list& bases) :
                    std::back_inserter(roots),
                    [] (const formats& fmt) { return fmt._data; }
                   );
-    _data->roots = std::move(roots);
-}
-
-formats formats::compose(const list& bases)
-{
-    return formats(bases);
+    return formats(std::move(roots));
 }
 
 formats::~formats() noexcept

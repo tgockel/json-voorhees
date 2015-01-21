@@ -372,7 +372,7 @@ private:
     struct data;
     
 private:
-    explicit formats(const list& bases);
+    explicit formats(std::vector<std::shared_ptr<const data>> bases);
     
 private:
     std::shared_ptr<data> _data;
