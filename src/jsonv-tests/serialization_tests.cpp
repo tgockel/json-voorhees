@@ -200,4 +200,18 @@ TEST(extract_coerce)
     ensure_eq(10, cxt.extract_sub<int>(val, "s"));
 }
 
+// Tests that even if we throw a completely bogus exception type, the extraction_context wraps it in an extraction_error
+TEST(extractor_throws_random_thing)
+{
+    static auto instance = make_function_extractor([] (const value& from) -> unassociated { throw from; });
+    formats locals;
+    locals.register_extractor(&instance);
+    
+    value val = object({ { "a", 1 } });
+    
+    extraction_context cxt(locals);
+    ensure_throws(extraction_error, cxt.extract<unassociated>(val));
+    ensure_throws(extraction_error, cxt.extract_sub<unassociated>(val, "a"));
+}
+
 }
