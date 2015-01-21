@@ -220,9 +220,8 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1formats.html":[0,7,7],
 "classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447":[0,7,7,3],
 "classjsonv_1_1formats.html#a656580c8138fb24a4723ee64f6a364a6":[0,7,7,2],
-"classjsonv_1_1formats.html#a71746cfef7715ab67f0730315fdca2eb":[0,7,7,5],
 "classjsonv_1_1formats.html#a827304b0c977f7ef178daff0f3e75a1a":[0,7,7,0],
-"classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620":[0,7,7,6],
+"classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620":[0,7,7,5],
 "classjsonv_1_1formats.html#aef7abfdef5b868b5eca94929466bdae3":[0,7,7,4],
 "classjsonv_1_1formats.html#af0b63e3e4525b64c5aca47933f04f929":[0,7,7,1],
 "classjsonv_1_1function__extractor.html":[0,7,6],
@@ -249,5 +248,6 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1ostream__encoder.html#a7686582a09a492dd7ef00c3e8054ebfa":[1,0,0,14,0],
 "classjsonv_1_1ostream__encoder.html#a8225c69ef08c78e6fa3904cd2690d418":[1,0,0,14,11],
 "classjsonv_1_1ostream__encoder.html#a8433b7aa253ebe9f55ab2b8febc31ce1":[1,0,0,14,2],
-"classjsonv_1_1ostream__encoder.html#a86cbb20c2cdbabbfeab236ed9ee7a0b3":[1,0,0,14,5]
+"classjsonv_1_1ostream__encoder.html#a86cbb20c2cdbabbfeab236ed9ee7a0b3":[1,0,0,14,5],
+"classjsonv_1_1ostream__encoder.html#a9b2d1ef20b2479c3b10bcc3e1d96683f":[1,0,0,14,8]
 };

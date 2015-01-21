@@ -343,129 +343,127 @@ $(document).ready(function(){initNavTree('serialization_8hpp_source.html','');})
 <div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;                 <span class="keyword">const</span> <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context</div>
 <div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;                ) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;    </div>
-<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;    <span class="keywordtype">void</span> register_extractor(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1extractor.html">extractor</a>*);</div>
-<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;    </div>
-<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;    <span class="keywordtype">void</span> register_extractor(std::unique_ptr&lt;const extractor&gt;);</div>
-<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;    </div>
-<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;    <span class="keywordtype">void</span> register_extractor(std::shared_ptr&lt;const extractor&gt;);</div>
-<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;    </div>
-<div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;    <span class="keyword">struct </span>data;</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;    </div>
-<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>(<span class="keyword">const</span> list&amp; bases);</div>
-<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;    </div>
-<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;    std::shared_ptr&lt;data&gt; _data;</div>
-<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;};</div>
-<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;</div>
-<div class="line"><a name="l00378"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html">  378</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a></div>
-<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;{</div>
-<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;    <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a>();</div>
-<div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;    </div>
-<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a>&amp; fmt,</div>
-<div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;                                <span class="keyword">const</span> <a class="code" href="structjsonv_1_1version.html">jsonv::version</a>&amp; ver = <a class="code" href="structjsonv_1_1version.html">jsonv::version</a>(1),</div>
-<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;                                <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>           p   = <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>()</div>
-<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;                               );</div>
-<div class="line"><a name="l00389"></a><span class="lineno">  389</span>&#160;    </div>
-<div class="line"><a name="l00391"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a0b882c950a7d205e33b963065154acc0">  391</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a>&amp; <a class="code" href="classjsonv_1_1extraction__context.html#a0b882c950a7d205e33b963065154acc0">formats</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;        <span class="keywordflow">return</span> _formats;</div>
-<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;    }</div>
-<div class="line"><a name="l00395"></a><span class="lineno">  395</span>&#160;    </div>
-<div class="line"><a name="l00397"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a100c71fc9e3a92a79f2ceb39c5216eda">  397</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="structjsonv_1_1version.html">jsonv::version</a> <a class="code" href="classjsonv_1_1extraction__context.html#a100c71fc9e3a92a79f2ceb39c5216eda">version</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;        <span class="keywordflow">return</span> _version;</div>
-<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    }</div>
-<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;    </div>
-<div class="line"><a name="l00405"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#af0e81b4935d94bef16f656ccd45eda55">  405</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>&amp; <a class="code" href="classjsonv_1_1extraction__context.html#af0e81b4935d94bef16f656ccd45eda55">path</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00407"></a><span class="lineno">  407</span>&#160;        <span class="keywordflow">return</span> _path;</div>
-<div class="line"><a name="l00408"></a><span class="lineno">  408</span>&#160;    }</div>
-<div class="line"><a name="l00409"></a><span class="lineno">  409</span>&#160;    </div>
-<div class="line"><a name="l00416"></a><span class="lineno">  416</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00417"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">  417</a></span>&#160;    T <a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from)<span class="keyword"> const</span></div>
-<div class="line"><a name="l00418"></a><span class="lineno">  418</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00419"></a><span class="lineno">  419</span>&#160;        <span class="keywordflow">try</span></div>
-<div class="line"><a name="l00420"></a><span class="lineno">  420</span>&#160;        {</div>
-<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;            <span class="keyword">typename</span> std::aligned_storage&lt;sizeof(T), alignof(T)&gt;::type place[<span class="keyword">sizeof</span>(T)];</div>
-<div class="line"><a name="l00422"></a><span class="lineno">  422</span>&#160;            T* ptr = <span class="keyword">reinterpret_cast&lt;</span>T*<span class="keyword">&gt;</span>(place);</div>
-<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;            <a class="code" href="classjsonv_1_1formats.html">formats</a>().<a class="code" href="classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447">extract</a>(<span class="keyword">typeid</span>(T), from, static_cast&lt;void*&gt;(ptr), *<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;            <span class="keyword">auto</span> destroy = detail::on_scope_exit([ptr] { ptr-&gt;~T(); });</div>
-<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;            <span class="keywordflow">return</span> std::move(*ptr);</div>
-<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;        }</div>
-<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>&amp;)</div>
-<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;        {</div>
-<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;            <span class="keywordflow">throw</span>;</div>
-<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;        }</div>
-<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; ex)</div>
-<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;        {</div>
-<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(*<span class="keyword">this</span>, ex.what());</div>
-<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;        }</div>
-<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;        <span class="keywordflow">catch</span> (...)</div>
-<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;        {</div>
-<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(*<span class="keyword">this</span>, <span class="stringliteral">&quot;&quot;</span>);</div>
-<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;        }</div>
-<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;    }</div>
-<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;    </div>
-<div class="line"><a name="l00447"></a><span class="lineno">  447</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00448"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038">  448</a></span>&#160;    T <a class="code" href="classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038">extract_sub</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from, <a class="code" href="classjsonv_1_1path.html">jsonv::path</a> subpath)<span class="keyword"> const</span></div>
-<div class="line"><a name="l00449"></a><span class="lineno">  449</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00450"></a><span class="lineno">  450</span>&#160;        <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a> sub(*<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00451"></a><span class="lineno">  451</span>&#160;        sub._path += subpath;</div>
-<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;        <span class="keywordflow">try</span></div>
-<div class="line"><a name="l00453"></a><span class="lineno">  453</span>&#160;        {</div>
-<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;            <span class="keywordflow">return</span> sub.<a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>&lt;T&gt;(from.<a class="code" href="group__Shared.html#ga4deebd24d01a9a729e3fceee3b62232a">at_path</a>(subpath));</div>
-<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;        }</div>
-<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>&amp;)</div>
-<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;        {</div>
-<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;            <span class="keywordflow">throw</span>;</div>
-<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;        }</div>
-<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; ex)</div>
-<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;        {</div>
-<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(sub, ex.what());</div>
-<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;        }</div>
-<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;        <span class="keywordflow">catch</span> (...)</div>
-<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;        {</div>
-<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(sub, <span class="stringliteral">&quot;&quot;</span>);</div>
-<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;        }</div>
-<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;    }</div>
-<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;    </div>
-<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00477"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0">  477</a></span>&#160;    T <a class="code" href="classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0">extract_sub</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from, <a class="code" href="classjsonv_1_1path__element.html">path_element</a> elem)<span class="keyword"> const</span></div>
-<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;        <span class="keywordflow">return</span> extract_sub&lt;T&gt;(from, <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>({ elem }));</div>
-<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;    }</div>
-<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;    </div>
-<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;    <span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a>&amp; _formats;</div>
-<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;    <a class="code" href="structjsonv_1_1version.html">jsonv::version</a>        _version;</div>
-<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;    <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>           _path;</div>
-<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;};</div>
-<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;</div>
-<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00490"></a><span class="lineno"><a class="line" href="group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8">  490</a></span>&#160;T <a class="code" href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">extract</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from, <span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>&amp; fmts)</div>
-<div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160;{</div>
-<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160;    <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a> context(fmts);</div>
-<div class="line"><a name="l00493"></a><span class="lineno">  493</span>&#160;    <span class="keywordflow">return</span> context.<a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>&lt;T&gt;(from);</div>
-<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;}</div>
-<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;</div>
-<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00498"></a><span class="lineno"><a class="line" href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">  498</a></span>&#160;T <a class="code" href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">extract</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from)</div>
-<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;{</div>
-<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;    <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a> context;</div>
-<div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;    <span class="keywordflow">return</span> context.<a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>&lt;T&gt;(from);</div>
-<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;}</div>
-<div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;</div>
-<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;}</div>
-<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;</div>
-<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_SERIALIZATION_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;    <span class="keywordtype">void</span> register_extractor(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1extractor.html">extractor</a>*);</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;    </div>
+<div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;    <span class="keywordtype">void</span> register_extractor(std::shared_ptr&lt;const extractor&gt;);</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;    </div>
+<div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;    <span class="keyword">struct </span>data;</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;    </div>
+<div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>(<span class="keyword">const</span> list&amp; bases);</div>
+<div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;    </div>
+<div class="line"><a name="l00377"></a><span class="lineno">  377</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;    std::shared_ptr&lt;data&gt; _data;</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;};</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;</div>
+<div class="line"><a name="l00383"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html">  383</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a></div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;{</div>
+<div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;    <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a>();</div>
+<div class="line"><a name="l00388"></a><span class="lineno">  388</span>&#160;    </div>
+<div class="line"><a name="l00390"></a><span class="lineno">  390</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a>&amp; fmt,</div>
+<div class="line"><a name="l00391"></a><span class="lineno">  391</span>&#160;                                <span class="keyword">const</span> <a class="code" href="structjsonv_1_1version.html">jsonv::version</a>&amp; ver = <a class="code" href="structjsonv_1_1version.html">jsonv::version</a>(1),</div>
+<div class="line"><a name="l00392"></a><span class="lineno">  392</span>&#160;                                <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>           p   = <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>()</div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;                               );</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;    </div>
+<div class="line"><a name="l00396"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a0b882c950a7d205e33b963065154acc0">  396</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a>&amp; <a class="code" href="classjsonv_1_1extraction__context.html#a0b882c950a7d205e33b963065154acc0">formats</a>()<span class="keyword"> const</span></div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;        <span class="keywordflow">return</span> _formats;</div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;    }</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;    </div>
+<div class="line"><a name="l00402"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a100c71fc9e3a92a79f2ceb39c5216eda">  402</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="structjsonv_1_1version.html">jsonv::version</a> <a class="code" href="classjsonv_1_1extraction__context.html#a100c71fc9e3a92a79f2ceb39c5216eda">version</a>()<span class="keyword"> const</span></div>
+<div class="line"><a name="l00403"></a><span class="lineno">  403</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00404"></a><span class="lineno">  404</span>&#160;        <span class="keywordflow">return</span> _version;</div>
+<div class="line"><a name="l00405"></a><span class="lineno">  405</span>&#160;    }</div>
+<div class="line"><a name="l00406"></a><span class="lineno">  406</span>&#160;    </div>
+<div class="line"><a name="l00410"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#af0e81b4935d94bef16f656ccd45eda55">  410</a></span>&#160;    <span class="keyword">const</span> <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>&amp; <a class="code" href="classjsonv_1_1extraction__context.html#af0e81b4935d94bef16f656ccd45eda55">path</a>()<span class="keyword"> const</span></div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;        <span class="keywordflow">return</span> _path;</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;    }</div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;    </div>
+<div class="line"><a name="l00421"></a><span class="lineno">  421</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00422"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">  422</a></span>&#160;    T <a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00423"></a><span class="lineno">  423</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00424"></a><span class="lineno">  424</span>&#160;        <span class="keywordflow">try</span></div>
+<div class="line"><a name="l00425"></a><span class="lineno">  425</span>&#160;        {</div>
+<div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;            <span class="keyword">typename</span> std::aligned_storage&lt;sizeof(T), alignof(T)&gt;::type place[<span class="keyword">sizeof</span>(T)];</div>
+<div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;            T* ptr = <span class="keyword">reinterpret_cast&lt;</span>T*<span class="keyword">&gt;</span>(place);</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;            <a class="code" href="classjsonv_1_1formats.html">formats</a>().<a class="code" href="classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447">extract</a>(<span class="keyword">typeid</span>(T), from, static_cast&lt;void*&gt;(ptr), *<span class="keyword">this</span>);</div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;            <span class="keyword">auto</span> destroy = detail::on_scope_exit([ptr] { ptr-&gt;~T(); });</div>
+<div class="line"><a name="l00430"></a><span class="lineno">  430</span>&#160;            <span class="keywordflow">return</span> std::move(*ptr);</div>
+<div class="line"><a name="l00431"></a><span class="lineno">  431</span>&#160;        }</div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>&amp;)</div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;        {</div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;            <span class="keywordflow">throw</span>;</div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;        }</div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; ex)</div>
+<div class="line"><a name="l00437"></a><span class="lineno">  437</span>&#160;        {</div>
+<div class="line"><a name="l00438"></a><span class="lineno">  438</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(*<span class="keyword">this</span>, ex.what());</div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;        }</div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;        <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;        {</div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(*<span class="keyword">this</span>, <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;        }</div>
+<div class="line"><a name="l00444"></a><span class="lineno">  444</span>&#160;    }</div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;    </div>
+<div class="line"><a name="l00452"></a><span class="lineno">  452</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00453"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038">  453</a></span>&#160;    T <a class="code" href="classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038">extract_sub</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from, <a class="code" href="classjsonv_1_1path.html">jsonv::path</a> subpath)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00454"></a><span class="lineno">  454</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00455"></a><span class="lineno">  455</span>&#160;        <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a> sub(*<span class="keyword">this</span>);</div>
+<div class="line"><a name="l00456"></a><span class="lineno">  456</span>&#160;        sub._path += subpath;</div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;        <span class="keywordflow">try</span></div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;        {</div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;            <span class="keywordflow">return</span> sub.<a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>&lt;T&gt;(from.<a class="code" href="group__Shared.html#ga4deebd24d01a9a729e3fceee3b62232a">at_path</a>(subpath));</div>
+<div class="line"><a name="l00460"></a><span class="lineno">  460</span>&#160;        }</div>
+<div class="line"><a name="l00461"></a><span class="lineno">  461</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>&amp;)</div>
+<div class="line"><a name="l00462"></a><span class="lineno">  462</span>&#160;        {</div>
+<div class="line"><a name="l00463"></a><span class="lineno">  463</span>&#160;            <span class="keywordflow">throw</span>;</div>
+<div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;        }</div>
+<div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;        <span class="keywordflow">catch</span> (<span class="keyword">const</span> std::exception&amp; ex)</div>
+<div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;        {</div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(sub, ex.what());</div>
+<div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;        }</div>
+<div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;        <span class="keywordflow">catch</span> (...)</div>
+<div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;        {</div>
+<div class="line"><a name="l00471"></a><span class="lineno">  471</span>&#160;            <span class="keywordflow">throw</span> <a class="code" href="classjsonv_1_1extraction__error.html">extraction_error</a>(sub, <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l00472"></a><span class="lineno">  472</span>&#160;        }</div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;    }</div>
+<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;    </div>
+<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00482"></a><span class="lineno"><a class="line" href="classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0">  482</a></span>&#160;    T <a class="code" href="classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0">extract_sub</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from, <a class="code" href="classjsonv_1_1path__element.html">path_element</a> elem)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00483"></a><span class="lineno">  483</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00484"></a><span class="lineno">  484</span>&#160;        <span class="keywordflow">return</span> extract_sub&lt;T&gt;(from, <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>({ elem }));</div>
+<div class="line"><a name="l00485"></a><span class="lineno">  485</span>&#160;    }</div>
+<div class="line"><a name="l00486"></a><span class="lineno">  486</span>&#160;    </div>
+<div class="line"><a name="l00487"></a><span class="lineno">  487</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00488"></a><span class="lineno">  488</span>&#160;    <span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a>&amp; _formats;</div>
+<div class="line"><a name="l00489"></a><span class="lineno">  489</span>&#160;    <a class="code" href="structjsonv_1_1version.html">jsonv::version</a>        _version;</div>
+<div class="line"><a name="l00490"></a><span class="lineno">  490</span>&#160;    <a class="code" href="classjsonv_1_1path.html">jsonv::path</a>           _path;</div>
+<div class="line"><a name="l00491"></a><span class="lineno">  491</span>&#160;};</div>
+<div class="line"><a name="l00492"></a><span class="lineno">  492</span>&#160;</div>
+<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00495"></a><span class="lineno"><a class="line" href="group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8">  495</a></span>&#160;T <a class="code" href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">extract</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from, <span class="keyword">const</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>&amp; fmts)</div>
+<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;{</div>
+<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;    <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a> context(fmts);</div>
+<div class="line"><a name="l00498"></a><span class="lineno">  498</span>&#160;    <span class="keywordflow">return</span> context.<a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>&lt;T&gt;(from);</div>
+<div class="line"><a name="l00499"></a><span class="lineno">  499</span>&#160;}</div>
+<div class="line"><a name="l00500"></a><span class="lineno">  500</span>&#160;</div>
+<div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00503"></a><span class="lineno"><a class="line" href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">  503</a></span>&#160;T <a class="code" href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">extract</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp; from)</div>
+<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;{</div>
+<div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;    <a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a> context;</div>
+<div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;    <span class="keywordflow">return</span> context.<a class="code" href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">extract</a>&lt;T&gt;(from);</div>
+<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;}</div>
+<div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;</div>
+<div class="line"><a name="l00511"></a><span class="lineno">  511</span>&#160;}</div>
+<div class="line"><a name="l00512"></a><span class="lineno">  512</span>&#160;</div>
+<div class="line"><a name="l00513"></a><span class="lineno">  513</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_SERIALIZATION_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
 <div class="ttc" id="scope__exit_8hpp_html"><div class="ttname"><a href="scope__exit_8hpp.html">scope_exit.hpp</a></div><div class="ttdoc">Definition of the on_scope_exit utility. </div></div>
 <div class="ttc" id="classjsonv_1_1extractor__construction_html"><div class="ttname"><a href="classjsonv_1_1extractor__construction.html">jsonv::extractor_construction</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00122">serialization.hpp:122</a></div></div>
-<div class="ttc" id="classjsonv_1_1extraction__context_html_a71d973519b73a827f78a308c2d496038"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038">jsonv::extraction_context::extract_sub</a></div><div class="ttdeci">T extract_sub(const value &amp;from, jsonv::path subpath) const </div><div class="ttdoc">Attempt to extract a T from from.at_path(subpath) using the formats associated with this context...</div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00448">serialization.hpp:448</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html_a71d973519b73a827f78a308c2d496038"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038">jsonv::extraction_context::extract_sub</a></div><div class="ttdeci">T extract_sub(const value &amp;from, jsonv::path subpath) const </div><div class="ttdoc">Attempt to extract a T from from.at_path(subpath) using the formats associated with this context...</div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00453">serialization.hpp:453</a></div></div>
 <div class="ttc" id="classjsonv_1_1extractor__for_html"><div class="ttname"><a href="classjsonv_1_1extractor__for.html">jsonv::extractor_for</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00162">serialization.hpp:162</a></div></div>
-<div class="ttc" id="classjsonv_1_1extraction__context_html_a81e0b159f846a1cb8bea1687285835f0"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0">jsonv::extraction_context::extract_sub</a></div><div class="ttdeci">T extract_sub(const value &amp;from, path_element elem) const </div><div class="ttdoc">Attempt to extract a T from from.at_path({elem}) using the formats associated with this context...</div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00477">serialization.hpp:477</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html_a81e0b159f846a1cb8bea1687285835f0"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0">jsonv::extraction_context::extract_sub</a></div><div class="ttdeci">T extract_sub(const value &amp;from, path_element elem) const </div><div class="ttdoc">Attempt to extract a T from from.at_path({elem}) using the formats associated with this context...</div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00482">serialization.hpp:482</a></div></div>
 <div class="ttc" id="classjsonv_1_1no__extractor_html"><div class="ttname"><a href="classjsonv_1_1no__extractor.html">jsonv::no_extractor</a></div><div class="ttdoc">Thrown when formats::extract does not have an extractor for the provided type. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00088">serialization.hpp:88</a></div></div>
 <div class="ttc" id="classjsonv_1_1extraction__error_html"><div class="ttname"><a href="classjsonv_1_1extraction__error.html">jsonv::extraction_error</a></div><div class="ttdoc">Exception thrown if there is any problem running extract. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00070">serialization.hpp:70</a></div></div>
 <div class="ttc" id="classjsonv_1_1formats_html_a4f5ccf3fbaf50aee040a6dbaa3859447"><div class="ttname"><a href="classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447">jsonv::formats::extract</a></div><div class="ttdeci">void extract(const std::type_info &amp;type, const value &amp;from, void *into, const extraction_context &amp;context) const </div><div class="ttdoc">Extract the provided type from a value into an area of memory. </div></div>
@@ -475,15 +473,15 @@ $(document).ready(function(){initNavTree('serialization_8hpp_source.html','');})
 <div class="ttc" id="classjsonv_1_1formats_html"><div class="ttname"><a href="classjsonv_1_1formats.html">jsonv::formats</a></div><div class="ttdoc">Simply put, this class is a collection of extractor and serializer instances. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00291">serialization.hpp:291</a></div></div>
 <div class="ttc" id="path_8hpp_html"><div class="ttname"><a href="path_8hpp.html">path.hpp</a></div><div class="ttdoc">Support for JSONPath. </div></div>
 <div class="ttc" id="classjsonv_1_1path_html"><div class="ttname"><a href="classjsonv_1_1path.html">jsonv::path</a></div><div class="ttdoc">Represents an exact path in some JSON structure. </div><div class="ttdef"><b>Definition:</b> <a href="path_8hpp_source.html#l00082">path.hpp:82</a></div></div>
-<div class="ttc" id="classjsonv_1_1extraction__context_html"><div class="ttname"><a href="classjsonv_1_1extraction__context.html">jsonv::extraction_context</a></div><div class="ttdoc">Provides extra information to routines used for extraction. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00378">serialization.hpp:378</a></div></div>
-<div class="ttc" id="classjsonv_1_1extraction__context_html_a0b882c950a7d205e33b963065154acc0"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a0b882c950a7d205e33b963065154acc0">jsonv::extraction_context::formats</a></div><div class="ttdeci">const jsonv::formats &amp; formats() const </div><div class="ttdoc">Get the formats object backing extraction and encoding. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00391">serialization.hpp:391</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html"><div class="ttname"><a href="classjsonv_1_1extraction__context.html">jsonv::extraction_context</a></div><div class="ttdoc">Provides extra information to routines used for extraction. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00383">serialization.hpp:383</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html_a0b882c950a7d205e33b963065154acc0"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a0b882c950a7d205e33b963065154acc0">jsonv::extraction_context::formats</a></div><div class="ttdeci">const jsonv::formats &amp; formats() const </div><div class="ttdoc">Get the formats object backing extraction and encoding. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00396">serialization.hpp:396</a></div></div>
 <div class="ttc" id="structjsonv_1_1version_html"><div class="ttname"><a href="structjsonv_1_1version.html">jsonv::version</a></div><div class="ttdoc">Represents a version used to extract and encode JSON objects from C++ classes. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00043">serialization.hpp:43</a></div></div>
 <div class="ttc" id="classjsonv_1_1function__extractor_html"><div class="ttname"><a href="classjsonv_1_1function__extractor.html">jsonv::function_extractor</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00184">serialization.hpp:184</a></div></div>
-<div class="ttc" id="group__Serialization_html_gac24f0cb864988715300f4741b5031546"><div class="ttname"><a href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">jsonv::extract</a></div><div class="ttdeci">T extract(const value &amp;from)</div><div class="ttdoc">Extract a C++ value from from using jsonv::formats::global(). </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00498">serialization.hpp:498</a></div></div>
+<div class="ttc" id="group__Serialization_html_gac24f0cb864988715300f4741b5031546"><div class="ttname"><a href="group__Serialization.html#gac24f0cb864988715300f4741b5031546">jsonv::extract</a></div><div class="ttdeci">T extract(const value &amp;from)</div><div class="ttdoc">Extract a C++ value from from using jsonv::formats::global(). </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00503">serialization.hpp:503</a></div></div>
 <div class="ttc" id="group__Shared_html_ga4deebd24d01a9a729e3fceee3b62232a"><div class="ttname"><a href="group__Shared.html#ga4deebd24d01a9a729e3fceee3b62232a">jsonv::value::at_path</a></div><div class="ttdeci">value &amp; at_path(const path &amp;p)</div><div class="ttdoc">Get the value specified by the path p. </div></div>
-<div class="ttc" id="classjsonv_1_1extraction__context_html_a10e56517662919b5316adcf26e2095bc"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">jsonv::extraction_context::extract</a></div><div class="ttdeci">T extract(const value &amp;from) const </div><div class="ttdoc">Attempt to extract a T from from using the formats associated with this context. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00417">serialization.hpp:417</a></div></div>
-<div class="ttc" id="classjsonv_1_1extraction__context_html_af0e81b4935d94bef16f656ccd45eda55"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#af0e81b4935d94bef16f656ccd45eda55">jsonv::extraction_context::path</a></div><div class="ttdeci">const jsonv::path &amp; path() const </div><div class="ttdoc">Get the current path this extraction_context is extracting for. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00405">serialization.hpp:405</a></div></div>
-<div class="ttc" id="classjsonv_1_1extraction__context_html_a100c71fc9e3a92a79f2ceb39c5216eda"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a100c71fc9e3a92a79f2ceb39c5216eda">jsonv::extraction_context::version</a></div><div class="ttdeci">const jsonv::version version() const </div><div class="ttdoc">Get the version this extraction_context was created with. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00397">serialization.hpp:397</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html_a10e56517662919b5316adcf26e2095bc"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc">jsonv::extraction_context::extract</a></div><div class="ttdeci">T extract(const value &amp;from) const </div><div class="ttdoc">Attempt to extract a T from from using the formats associated with this context. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00422">serialization.hpp:422</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html_af0e81b4935d94bef16f656ccd45eda55"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#af0e81b4935d94bef16f656ccd45eda55">jsonv::extraction_context::path</a></div><div class="ttdeci">const jsonv::path &amp; path() const </div><div class="ttdoc">Get the current path this extraction_context is extracting for. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00410">serialization.hpp:410</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html_a100c71fc9e3a92a79f2ceb39c5216eda"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a100c71fc9e3a92a79f2ceb39c5216eda">jsonv::extraction_context::version</a></div><div class="ttdeci">const jsonv::version version() const </div><div class="ttdoc">Get the version this extraction_context was created with. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00402">serialization.hpp:402</a></div></div>
 <div class="ttc" id="config_8hpp_html_acd0703012bd724b356c177b7bc3d761d"><div class="ttname"><a href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a></div><div class="ttdeci">#define JSONV_PUBLIC</div><div class="ttdoc">This function or class is part of the public API for JsonVoorhees. </div><div class="ttdef"><b>Definition:</b> <a href="config_8hpp_source.html#l00078">config.hpp:78</a></div></div>
 <div class="ttc" id="classjsonv_1_1path__element_html"><div class="ttname"><a href="classjsonv_1_1path__element.html">jsonv::path_element</a></div><div class="ttdef"><b>Definition:</b> <a href="path_8hpp_source.html#l00037">path.hpp:37</a></div></div>
 <div class="ttc" id="classjsonv_1_1value_html"><div class="ttname"><a href="classjsonv_1_1value.html">jsonv::value</a></div><div class="ttdoc">Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00116">value.hpp:116</a></div></div>

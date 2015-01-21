@@ -137,9 +137,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aef7abfdef5b868b5eca94929466bdae3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#aef7abfdef5b868b5eca94929466bdae3">register_extractor</a> (const <a class="el" href="classjsonv_1_1extractor.html">extractor</a> *)</td></tr>
 <tr class="memdesc:aef7abfdef5b868b5eca94929466bdae3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>extractor</code> that lives in some unmanaged space.  <a href="#aef7abfdef5b868b5eca94929466bdae3">More...</a><br /></td></tr>
 <tr class="separator:aef7abfdef5b868b5eca94929466bdae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71746cfef7715ab67f0730315fdca2eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a71746cfef7715ab67f0730315fdca2eb">register_extractor</a> (std::unique_ptr&lt; const <a class="el" href="classjsonv_1_1extractor.html">extractor</a> &gt;)</td></tr>
-<tr class="memdesc:a71746cfef7715ab67f0730315fdca2eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>extractor</code> and tell this <code>formats</code> instance to manage destruction of it.  <a href="#a71746cfef7715ab67f0730315fdca2eb">More...</a><br /></td></tr>
-<tr class="separator:a71746cfef7715ab67f0730315fdca2eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb526b687bfd89d08b3c57809c689620"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620">register_extractor</a> (std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1extractor.html">extractor</a> &gt;)</td></tr>
 <tr class="memdesc:aeb526b687bfd89d08b3c57809c689620"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>extractor</code> with shared ownership between this <code>formats</code> instance and anything else.  <a href="#aeb526b687bfd89d08b3c57809c689620">More...</a><br /></td></tr>
 <tr class="separator:aeb526b687bfd89d08b3c57809c689620"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -356,24 +353,12 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Register an <code>extractor</code> that lives in some unmanaged space. </p>
-
-</div>
-</div>
-<a class="anchor" id="a71746cfef7715ab67f0730315fdca2eb"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void jsonv::formats::register_extractor </td>
-          <td>(</td>
-          <td class="paramtype">std::unique_ptr&lt; const <a class="el" href="classjsonv_1_1extractor.html">extractor</a> &gt;&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Register an <code>extractor</code> and tell this <code>formats</code> instance to manage destruction of it. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has an <code>extractor</code> that serves the provided <code>extractor::get_type</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -392,6 +377,12 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Register an <code>extractor</code> with shared ownership between this <code>formats</code> instance and anything else. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has an <code>extractor</code> that serves the provided <code>extractor::get_type</code>. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
