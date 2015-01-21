@@ -140,6 +140,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aeb526b687bfd89d08b3c57809c689620"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620">register_extractor</a> (std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1extractor.html">extractor</a> &gt;)</td></tr>
 <tr class="memdesc:aeb526b687bfd89d08b3c57809c689620"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>extractor</code> with shared ownership between this <code>formats</code> instance and anything else.  <a href="#aeb526b687bfd89d08b3c57809c689620">More...</a><br /></td></tr>
 <tr class="separator:aeb526b687bfd89d08b3c57809c689620"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f8e8bdba52fd094cb34635015957df7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a2f8e8bdba52fd094cb34635015957df7">operator==</a> (const <a class="el" href="classjsonv_1_1formats.html">formats</a> &amp;other) const </td></tr>
+<tr class="memdesc:a2f8e8bdba52fd094cb34635015957df7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test for equality between this instance and <em>other</em>.  <a href="#a2f8e8bdba52fd094cb34635015957df7">More...</a><br /></td></tr>
+<tr class="separator:a2f8e8bdba52fd094cb34635015957df7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7e5f101767bb57e73c58a77deffa24c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#ab7e5f101767bb57e73c58a77deffa24c">operator!=</a> (const <a class="el" href="classjsonv_1_1formats.html">formats</a> &amp;other) const </td></tr>
+<tr class="memdesc:ab7e5f101767bb57e73c58a77deffa24c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test for inequality between this instance and <em>other</em>.  <a href="#ab7e5f101767bb57e73c58a77deffa24c">More...</a><br /></td></tr>
+<tr class="separator:ab7e5f101767bb57e73c58a77deffa24c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -365,6 +371,44 @@ Static Public Member Functions</h2></td></tr>
 <p>Get the global <code>formats</code> instance. </p>
 <p>By default, this is the same as <code>defaults</code>, but you can override it with <code>set_global</code>. The <code>extract</code> function uses this <code>formats</code> instance if none is provided, so this is convenient if your application only has one type of <code>formats</code> to use.</p>
 <dl class="section note"><dt>Note</dt><dd>This function actually returns a <em>copy</em> of the global <code>formats</code>, so modifications do not affect the actual instance. If you wish to alter the global formats, use <code>set_global</code>. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ab7e5f101767bb57e73c58a77deffa24c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool jsonv::formats::operator!= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1formats.html">formats</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Test for inequality between this instance and <em>other</em>. </p>
+<p>The opposite of <code>operator==</code>. </p>
+
+</div>
+</div>
+<a class="anchor" id="a2f8e8bdba52fd094cb34635015957df7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool jsonv::formats::operator== </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1formats.html">formats</a> &amp;&#160;</td>
+          <td class="paramname"><em>other</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Test for equality between this instance and <em>other</em>. </p>
+<p>If two <code>formats</code> are equal, they are the <em>exact</em> same node in the graph. Even if one <code>formats</code> has the exact same types for the exact same <code>extractor</code>s. </p>
 
 </div>
 </div>

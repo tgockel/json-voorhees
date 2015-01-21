@@ -195,7 +195,7 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1extraction__context.html#a0b882c950a7d205e33b963065154acc0":[0,7,8,5],
 "classjsonv_1_1extraction__context.html#a100c71fc9e3a92a79f2ceb39c5216eda":[0,7,8,7],
 "classjsonv_1_1extraction__context.html#a10e56517662919b5316adcf26e2095bc":[0,7,8,2],
-"classjsonv_1_1extraction__context.html#a69d82a6b2d18c384fc5be6905df59259":[0,7,8,1],
+"classjsonv_1_1extraction__context.html#a51cb906635fe5ffe5295f18beb40f34a":[0,7,8,1],
 "classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038":[0,7,8,3],
 "classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0":[0,7,8,4],
 "classjsonv_1_1extraction__context.html#a9624a27eea2b7ed047055b51e36cc237":[0,7,8,0],
@@ -218,11 +218,13 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1extractor__for.html#a900535dacf134ff04415ea2cf1f7b8e5":[0,7,5,2],
 "classjsonv_1_1extractor__for.html#acc9524fcaf0506c7247d959f9618453f":[0,7,5,1],
 "classjsonv_1_1formats.html":[0,7,7],
+"classjsonv_1_1formats.html#a2f8e8bdba52fd094cb34635015957df7":[0,7,7,5],
 "classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447":[0,7,7,3],
 "classjsonv_1_1formats.html#a656580c8138fb24a4723ee64f6a364a6":[0,7,7,2],
 "classjsonv_1_1formats.html#a827304b0c977f7ef178daff0f3e75a1a":[0,7,7,0],
-"classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620":[0,7,7,5],
-"classjsonv_1_1formats.html#aef7abfdef5b868b5eca94929466bdae3":[0,7,7,4],
+"classjsonv_1_1formats.html#ab7e5f101767bb57e73c58a77deffa24c":[0,7,7,4],
+"classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620":[0,7,7,7],
+"classjsonv_1_1formats.html#aef7abfdef5b868b5eca94929466bdae3":[0,7,7,6],
 "classjsonv_1_1formats.html#af0b63e3e4525b64c5aca47933f04f929":[0,7,7,1],
 "classjsonv_1_1function__extractor.html":[0,7,6],
 "classjsonv_1_1function__extractor.html#a515a13fa7044ceb80130782115993f34":[0,7,6,1],
@@ -247,7 +249,5 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1ostream__encoder.html#a6ff540fdc4296437462aca3eb36f1baa":[1,0,0,14,13],
 "classjsonv_1_1ostream__encoder.html#a7686582a09a492dd7ef00c3e8054ebfa":[1,0,0,14,0],
 "classjsonv_1_1ostream__encoder.html#a8225c69ef08c78e6fa3904cd2690d418":[1,0,0,14,11],
-"classjsonv_1_1ostream__encoder.html#a8433b7aa253ebe9f55ab2b8febc31ce1":[1,0,0,14,2],
-"classjsonv_1_1ostream__encoder.html#a86cbb20c2cdbabbfeab236ed9ee7a0b3":[1,0,0,14,5],
-"classjsonv_1_1ostream__encoder.html#a9b2d1ef20b2479c3b10bcc3e1d96683f":[1,0,0,14,8]
+"classjsonv_1_1ostream__encoder.html#a8433b7aa253ebe9f55ab2b8febc31ce1":[1,0,0,14,2]
 };
