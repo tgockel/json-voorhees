@@ -258,6 +258,10 @@ static void register_integer_extractor(formats& fmt)
 static formats create_default_formats()
 {
     formats fmt;
+    
+    static auto json_extractor = make_function_extractor([] (const value& from) { return from; });
+    fmt.register_extractor(&json_extractor);
+    
     static auto string_extractor = make_function_extractor([] (const value& from) { return from.as_string(); });
     fmt.register_extractor(&string_extractor);
     

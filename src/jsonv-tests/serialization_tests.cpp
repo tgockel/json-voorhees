@@ -74,6 +74,7 @@ TEST(extract_basics)
                         "o": { "i": 5, "d": 4.5 }
                       })");
     extraction_context cxt(formats::defaults());
+    ensure_eq(val, cxt.extract<value>(val));
     ensure_eq(5, cxt.extract_sub<std::int8_t>(val, "i"));
     ensure_eq(5, cxt.extract_sub<std::uint8_t>(val, "i"));
     ensure_eq(5, cxt.extract_sub<std::int16_t>(val, "i"));
