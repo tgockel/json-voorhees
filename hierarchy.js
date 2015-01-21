@@ -7,6 +7,10 @@ var hierarchy =
     [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", [
       [ "jsonv::detail::basic_owning_view< TContainer, TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__owning__view.html", null ]
     ] ],
+    [ "jsonv::context_base", "classjsonv_1_1context__base.html", [
+      [ "jsonv::extraction_context", "classjsonv_1_1extraction__context.html", null ],
+      [ "jsonv::serialization_context", "classjsonv_1_1serialization__context.html", null ]
+    ] ],
     [ "jsonv::diff_result", "structjsonv_1_1diff__result.html", null ],
     [ "jsonv::encoder", "classjsonv_1_1encoder.html", [
       [ "jsonv::ostream_encoder", "classjsonv_1_1ostream__encoder.html", [
@@ -20,12 +24,17 @@ var hierarchy =
       [ "std::runtime_error", null, [
         [ "jsonv::extraction_error", "classjsonv_1_1extraction__error.html", null ],
         [ "jsonv::no_extractor", "classjsonv_1_1no__extractor.html", null ],
+        [ "jsonv::no_serializer", "classjsonv_1_1no__serializer.html", null ],
         [ "jsonv::parse_error", "classjsonv_1_1parse__error.html", null ],
         [ "jsonv::validation_error", "classjsonv_1_1validation__error.html", null ]
       ] ]
     ] ],
-    [ "jsonv::extraction_context", "classjsonv_1_1extraction__context.html", null ],
     [ "jsonv::extractor", "classjsonv_1_1extractor.html", [
+      [ "jsonv::adapter", "classjsonv_1_1adapter.html", [
+        [ "jsonv::adapter_for< T >", "classjsonv_1_1adapter__for.html", [
+          [ "jsonv::function_adapter< T, FExtract, FEncode >", "classjsonv_1_1function__adapter.html", null ]
+        ] ]
+      ] ],
       [ "jsonv::extractor_construction< T >", "classjsonv_1_1extractor__construction.html", null ],
       [ "jsonv::extractor_for< T >", "classjsonv_1_1extractor__for.html", [
         [ "jsonv::function_extractor< T, FExtract >", "classjsonv_1_1function__extractor.html", null ]
@@ -53,6 +62,9 @@ var hierarchy =
     [ "jsonv::path_element", "classjsonv_1_1path__element.html", null ],
     [ "jsonv::parse_error::problem", "structjsonv_1_1parse__error_1_1problem.html", null ],
     [ "jsonv::detail::scope_exit_invoker< Function >", "classjsonv_1_1detail_1_1scope__exit__invoker.html", null ],
+    [ "jsonv::serializer", "classjsonv_1_1serializer.html", [
+      [ "jsonv::adapter", "classjsonv_1_1adapter.html", null ]
+    ] ],
     [ "jsonv::detail::string_view", "classjsonv_1_1detail_1_1string__view.html", null ],
     [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", null ],
     [ "jsonv::tokenizer", "classjsonv_1_1tokenizer.html", null ],

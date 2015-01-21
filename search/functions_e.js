@@ -1,6 +1,8 @@
 var searchData=
 [
+  ['register_5fadapter',['register_adapter',['../classjsonv_1_1formats.html#a9bf59b5db670a92d3b4d4d4094c78b86',1,'jsonv::formats::register_adapter(const adapter *)'],['../classjsonv_1_1formats.html#ab2569d1d8ad8034f709bf137947a60be',1,'jsonv::formats::register_adapter(std::shared_ptr&lt; const adapter &gt;)']]],
   ['register_5fextractor',['register_extractor',['../classjsonv_1_1formats.html#aef7abfdef5b868b5eca94929466bdae3',1,'jsonv::formats::register_extractor(const extractor *)'],['../classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620',1,'jsonv::formats::register_extractor(std::shared_ptr&lt; const extractor &gt;)']]],
+  ['register_5fserializer',['register_serializer',['../classjsonv_1_1formats.html#ad67618fd14da466da0c6d03735790811',1,'jsonv::formats::register_serializer(const serializer *)'],['../classjsonv_1_1formats.html#ab68a85ae007fec577661d916c41242ec',1,'jsonv::formats::register_serializer(std::shared_ptr&lt; const serializer &gt;)']]],
   ['require_5fdocument',['require_document',['../classjsonv_1_1parse__options.html#a57f5c91bc1491c9556d0d86a74d09a05',1,'jsonv::parse_options']]],
   ['reset_5fglobal',['reset_global',['../classjsonv_1_1formats.html#a986b2fd931b674d215e3416311c2ec23',1,'jsonv::formats']]],
   ['resize',['resize',['../group__Array.html#ga961156664c4bf71ebe27c516be6d8ae9',1,'jsonv::value']]],

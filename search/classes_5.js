@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['hash_3c_20jsonv_3a_3avalue_20_3e',['hash&lt; jsonv::value &gt;',['../structstd_1_1hash_3_01jsonv_1_1value_01_4.html',1,'std']]]
+  ['formats',['formats',['../classjsonv_1_1formats.html',1,'jsonv']]],
+  ['function_5fadapter',['function_adapter',['../classjsonv_1_1function__adapter.html',1,'jsonv']]],
+  ['function_5fextractor',['function_extractor',['../classjsonv_1_1function__extractor.html',1,'jsonv']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['merge_5frules',['merge_rules',['../classjsonv_1_1merge__rules.html',1,'jsonv']]]
+  ['hash_3c_20jsonv_3a_3avalue_20_3e',['hash&lt; jsonv::value &gt;',['../structstd_1_1hash_3_01jsonv_1_1value_01_4.html',1,'std']]]
 ];

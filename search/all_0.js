@@ -1,5 +1,7 @@
 var searchData=
 [
+  ['adapter',['adapter',['../classjsonv_1_1adapter.html',1,'jsonv']]],
+  ['adapter_5ffor',['adapter_for',['../classjsonv_1_1adapter__for.html',1,'jsonv']]],
   ['algorithm',['Algorithm',['../group__Algorithm.html',1,'']]],
   ['algorithm_2ehpp',['algorithm.hpp',['../algorithm_8hpp.html',1,'']]],
   ['all_2ehpp',['all.hpp',['../all_8hpp.html',1,'']]],

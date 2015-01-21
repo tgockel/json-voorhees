@@ -123,26 +123,110 @@ Inheritance diagram for jsonv::extractor:</div>
  <div class="center">
   <img src="classjsonv_1_1extractor.png" usemap="#jsonv::extractor_map" alt=""/>
   <map id="jsonv::extractor_map" name="jsonv::extractor_map">
-<area href="classjsonv_1_1extractor__construction.html" alt="jsonv::extractor_construction&lt; T &gt;" shape="rect" coords="0,56,237,80"/>
-<area href="classjsonv_1_1extractor__for.html" alt="jsonv::extractor_for&lt; T &gt;" shape="rect" coords="247,56,484,80"/>
-<area href="classjsonv_1_1function__extractor.html" alt="jsonv::function_extractor&lt; T, FExtract &gt;" shape="rect" coords="247,112,484,136"/>
+<area href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. " alt="jsonv::adapter" shape="rect" coords="0,56,290,80"/>
+<area href="classjsonv_1_1extractor__construction.html" alt="jsonv::extractor_construction&lt; T &gt;" shape="rect" coords="300,56,590,80"/>
+<area href="classjsonv_1_1extractor__for.html" alt="jsonv::extractor_for&lt; T &gt;" shape="rect" coords="600,56,890,80"/>
+<area href="classjsonv_1_1adapter__for.html" alt="jsonv::adapter_for&lt; T &gt;" shape="rect" coords="0,112,290,136"/>
+<area href="classjsonv_1_1function__extractor.html" alt="jsonv::function_extractor&lt; T, FExtract &gt;" shape="rect" coords="600,112,890,136"/>
+<area href="classjsonv_1_1function__adapter.html" alt="jsonv::function_adapter&lt; T, FExtract, FEncode &gt;" shape="rect" coords="0,168,290,192"/>
 </map>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3595ea56dac959622735193c1768501f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3595ea56dac959622735193c1768501f"></a>
-virtual const std::type_info &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>get_type</b> () const =0</td></tr>
+<tr class="memitem:a3595ea56dac959622735193c1768501f"><td class="memItemLeft" align="right" valign="top">virtual const std::type_info &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1extractor.html#a3595ea56dac959622735193c1768501f">get_type</a> () const =0</td></tr>
+<tr class="memdesc:a3595ea56dac959622735193c1768501f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the run-time type this <code>extractor</code> knows how to extract.  <a href="#a3595ea56dac959622735193c1768501f">More...</a><br /></td></tr>
 <tr class="separator:a3595ea56dac959622735193c1768501f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3fba9285d76e04548dd065d5cae66d13"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3fba9285d76e04548dd065d5cae66d13"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>extract</b> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, void *into) const =0</td></tr>
+<tr class="memitem:a3fba9285d76e04548dd065d5cae66d13"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1extractor.html#a3fba9285d76e04548dd065d5cae66d13">extract</a> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, void *into) const =0</td></tr>
+<tr class="memdesc:a3fba9285d76e04548dd065d5cae66d13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract a the type <em>from</em> a <code>value</code> <em>into</em> a region of memory.  <a href="#a3fba9285d76e04548dd065d5cae66d13">More...</a><br /></td></tr>
 <tr class="separator:a3fba9285d76e04548dd065d5cae66d13"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An <code>extractor</code> holds the method for converting a <code>value</code> into an arbitrary C++ type. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00108">108</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00129">129</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a3fba9285d76e04548dd065d5cae66d13"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void jsonv::extractor::extract </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;&#160;</td>
+          <td class="paramname"><em>context</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td>
+          <td class="paramname"><em>from</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>into</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Extract a the type <em>from</em> a <code>value</code> <em>into</em> a region of memory. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">context</td><td>Extra information to help you decode sub-objects, such as looking up other <code>formats</code>. It also tracks your <code>path</code> in the decoding heirarchy, so any exceptions thrown will have <code>path</code> information in the error message. </td></tr>
+    <tr><td class="paramname">from</td><td>The JSON <code>value</code> to extract something from. </td></tr>
+    <tr><td class="paramname">into</td><td>The region of memory to create the extracted object in. There will always be enough room to create your object and the alignment of the pointer should be correct (assuming a working <code>alignof</code> implementation). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="classjsonv_1_1adapter__for.html#a3205a83144e12aefdeb4211f1b9dce92">jsonv::adapter_for&lt; T &gt;</a>, <a class="el" href="classjsonv_1_1extractor__for.html#acc9524fcaf0506c7247d959f9618453f">jsonv::extractor_for&lt; T &gt;</a>, and <a class="el" href="classjsonv_1_1extractor__construction.html#afc01fbc4bd7fefca6cb932e5c60ac387">jsonv::extractor_construction&lt; T &gt;</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a3595ea56dac959622735193c1768501f"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual const std::type_info&amp; jsonv::extractor::get_type </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the run-time type this <code>extractor</code> knows how to extract. </p>
+<p>Once this <code>extractor</code> is registered with a <code>formats</code>, it is not allowed to change. </p>
+
+<p>Implemented in <a class="el" href="classjsonv_1_1adapter__for.html#a2b2f3795b0ec91f79504d9dd0b3d19bc">jsonv::adapter_for&lt; T &gt;</a>, <a class="el" href="classjsonv_1_1extractor__for.html#a900535dacf134ff04415ea2cf1f7b8e5">jsonv::extractor_for&lt; T &gt;</a>, and <a class="el" href="classjsonv_1_1extractor__construction.html#a62b6923cb67527582698dfb1c54af8b4">jsonv::extractor_construction&lt; T &gt;</a>.</p>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="serialization_8hpp_source.html">serialization.hpp</a></li>
 </ul>
 </div><!-- contents -->

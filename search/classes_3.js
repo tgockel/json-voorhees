@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['formats',['formats',['../classjsonv_1_1formats.html',1,'jsonv']]],
-  ['function_5fextractor',['function_extractor',['../classjsonv_1_1function__extractor.html',1,'jsonv']]]
+  ['diff_5fresult',['diff_result',['../structjsonv_1_1diff__result.html',1,'jsonv']]],
+  ['dynamic_5fmerge_5frules',['dynamic_merge_rules',['../classjsonv_1_1dynamic__merge__rules.html',1,'jsonv']]]
 ];

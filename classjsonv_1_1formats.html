@@ -134,12 +134,27 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4f5ccf3fbaf50aee040a6dbaa3859447"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447">extract</a> (const std::type_info &amp;type, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, void *into, const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context) const </td></tr>
 <tr class="memdesc:a4f5ccf3fbaf50aee040a6dbaa3859447"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract the provided <em>type</em> <em>from</em> a <code>value</code> <em>into</em> an area of memory.  <a href="#a4f5ccf3fbaf50aee040a6dbaa3859447">More...</a><br /></td></tr>
 <tr class="separator:a4f5ccf3fbaf50aee040a6dbaa3859447"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedd77cea1a8fe4831fbe561a6507ff76"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#aedd77cea1a8fe4831fbe561a6507ff76">encode</a> (const std::type_info &amp;type, const void *from, const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context) const </td></tr>
+<tr class="memdesc:aedd77cea1a8fe4831fbe561a6507ff76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encode the provided value <em>from</em> into a JSON <code>value</code>.  <a href="#aedd77cea1a8fe4831fbe561a6507ff76">More...</a><br /></td></tr>
+<tr class="separator:aedd77cea1a8fe4831fbe561a6507ff76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aef7abfdef5b868b5eca94929466bdae3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#aef7abfdef5b868b5eca94929466bdae3">register_extractor</a> (const <a class="el" href="classjsonv_1_1extractor.html">extractor</a> *)</td></tr>
 <tr class="memdesc:aef7abfdef5b868b5eca94929466bdae3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>extractor</code> that lives in some unmanaged space.  <a href="#aef7abfdef5b868b5eca94929466bdae3">More...</a><br /></td></tr>
 <tr class="separator:aef7abfdef5b868b5eca94929466bdae3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb526b687bfd89d08b3c57809c689620"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620">register_extractor</a> (std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1extractor.html">extractor</a> &gt;)</td></tr>
 <tr class="memdesc:aeb526b687bfd89d08b3c57809c689620"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>extractor</code> with shared ownership between this <code>formats</code> instance and anything else.  <a href="#aeb526b687bfd89d08b3c57809c689620">More...</a><br /></td></tr>
 <tr class="separator:aeb526b687bfd89d08b3c57809c689620"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad67618fd14da466da0c6d03735790811"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#ad67618fd14da466da0c6d03735790811">register_serializer</a> (const <a class="el" href="classjsonv_1_1serializer.html">serializer</a> *)</td></tr>
+<tr class="memdesc:ad67618fd14da466da0c6d03735790811"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a <code>serializer</code> that lives in some managed space.  <a href="#ad67618fd14da466da0c6d03735790811">More...</a><br /></td></tr>
+<tr class="separator:ad67618fd14da466da0c6d03735790811"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab68a85ae007fec577661d916c41242ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#ab68a85ae007fec577661d916c41242ec">register_serializer</a> (std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1serializer.html">serializer</a> &gt;)</td></tr>
+<tr class="memdesc:ab68a85ae007fec577661d916c41242ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a <code>serializer</code> with shared ownership between this <code>formats</code> instance and anything else.  <a href="#ab68a85ae007fec577661d916c41242ec">More...</a><br /></td></tr>
+<tr class="separator:ab68a85ae007fec577661d916c41242ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9bf59b5db670a92d3b4d4d4094c78b86"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a9bf59b5db670a92d3b4d4d4094c78b86">register_adapter</a> (const <a class="el" href="classjsonv_1_1adapter.html">adapter</a> *)</td></tr>
+<tr class="memdesc:a9bf59b5db670a92d3b4d4d4094c78b86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>adapter</code> that lives in some unmanaged space.  <a href="#a9bf59b5db670a92d3b4d4d4094c78b86">More...</a><br /></td></tr>
+<tr class="separator:a9bf59b5db670a92d3b4d4d4094c78b86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2569d1d8ad8034f709bf137947a60be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#ab2569d1d8ad8034f709bf137947a60be">register_adapter</a> (std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1adapter.html">adapter</a> &gt;)</td></tr>
+<tr class="memdesc:ab2569d1d8ad8034f709bf137947a60be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register an <code>adapter</code> with shared ownership between this <code>formats</code> instance and anything else.  <a href="#ab2569d1d8ad8034f709bf137947a60be">More...</a><br /></td></tr>
+<tr class="separator:ab2569d1d8ad8034f709bf137947a60be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f8e8bdba52fd094cb34635015957df7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1formats.html#a2f8e8bdba52fd094cb34635015957df7">operator==</a> (const <a class="el" href="classjsonv_1_1formats.html">formats</a> &amp;other) const </td></tr>
 <tr class="memdesc:a2f8e8bdba52fd094cb34635015957df7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test for equality between this instance and <em>other</em>.  <a href="#a2f8e8bdba52fd094cb34635015957df7">More...</a><br /></td></tr>
 <tr class="separator:a2f8e8bdba52fd094cb34635015957df7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -191,7 +206,7 @@ Static Public Member Functions</h2></td></tr>
 <div class="line">    <span class="keywordflow">return</span> jsonv::extract&lt;MyType&gt;(from, from_db ? get_db_formats() : get_api_formats());</div>
 <div class="line">}</div>
 </div><!-- fragment --> 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00291">291</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00241">241</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="af0b63e3e4525b64c5aca47933f04f929"></a>
 <div class="memitem">
@@ -297,6 +312,47 @@ Static Public Member Functions</h2></td></tr>
 <p>Get the default <code>formats</code> instance. </p>
 <p>This uses <em>strict</em> type-checking and behaves by the same rules as the <code>value</code> <code>as_</code> member functions (<code>as_integer</code>, <code>as_string</code>, etc).</p>
 <dl class="section note"><dt>Note</dt><dd>This function actually returns a <em>copy</em> of the default <code>formats</code>, so modifications do not affect the actual instance. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="aedd77cea1a8fe4831fbe561a6507ff76"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classjsonv_1_1value.html">value</a> jsonv::formats::encode </td>
+          <td>(</td>
+          <td class="paramtype">const std::type_info &amp;&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const void *&#160;</td>
+          <td class="paramname"><em>from</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;&#160;</td>
+          <td class="paramname"><em>context</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Encode the provided value <em>from</em> into a JSON <code>value</code>. </p>
+<p>The <em>context</em> is passed to the <code>serializer</code> which performs the conversion. In general, this should not be used directly as it is painful to do so &ndash; prefer <code>serialization_context::encode</code> or the free function <code>jsonv::to_json</code>.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1no__serializer.html" title="Thrown when formats::encode does not have a serializer for the provided type. ">no_serializer</a></td><td>if a <code>serializer</code> for <em>type</em> could not be found. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -412,6 +468,54 @@ Static Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a9bf59b5db670a92d3b4d4d4094c78b86"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void jsonv::formats::register_adapter </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1adapter.html">adapter</a> *&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Register an <code>adapter</code> that lives in some unmanaged space. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has either an <code>extractor</code> or <code>serializer</code> that serves the provided <code><a class="el" href="classjsonv_1_1extractor.html#a3595ea56dac959622735193c1768501f" title="Get the run-time type this extractor knows how to extract. ">adapter::get_type</a></code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ab2569d1d8ad8034f709bf137947a60be"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void jsonv::formats::register_adapter </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1adapter.html">adapter</a> &gt;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Register an <code>adapter</code> with shared ownership between this <code>formats</code> instance and anything else. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has either an <code>extractor</code> or <code>serializer</code> that serves the provided <code><a class="el" href="classjsonv_1_1extractor.html#a3595ea56dac959622735193c1768501f" title="Get the run-time type this extractor knows how to extract. ">adapter::get_type</a></code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="aef7abfdef5b868b5eca94929466bdae3"></a>
 <div class="memitem">
 <div class="memproto">
@@ -429,7 +533,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Register an <code>extractor</code> that lives in some unmanaged space. </p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has an <code>extractor</code> that serves the provided <code>extractor::get_type</code>. </td></tr>
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has an <code>extractor</code> that serves the provided <code><a class="el" href="classjsonv_1_1extractor.html#a3595ea56dac959622735193c1768501f" title="Get the run-time type this extractor knows how to extract. ">extractor::get_type</a></code>. </td></tr>
   </table>
   </dd>
 </dl>
@@ -453,7 +557,55 @@ Static Public Member Functions</h2></td></tr>
 <p>Register an <code>extractor</code> with shared ownership between this <code>formats</code> instance and anything else. </p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has an <code>extractor</code> that serves the provided <code>extractor::get_type</code>. </td></tr>
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has an <code>extractor</code> that serves the provided <code><a class="el" href="classjsonv_1_1extractor.html#a3595ea56dac959622735193c1768501f" title="Get the run-time type this extractor knows how to extract. ">extractor::get_type</a></code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ad67618fd14da466da0c6d03735790811"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void jsonv::formats::register_serializer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classjsonv_1_1serializer.html">serializer</a> *&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Register a <code>serializer</code> that lives in some managed space. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has a <code>serializer</code> that serves the provided <code><a class="el" href="classjsonv_1_1serializer.html#ab66dee52dec1bbb163b1ba76e7243cee" title="Get the run-time type this serialize knows how to encode. ">serializer::get_type</a></code>. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ab68a85ae007fec577661d916c41242ec"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void jsonv::formats::register_serializer </td>
+          <td>(</td>
+          <td class="paramtype">std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1serializer.html">serializer</a> &gt;&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Register a <code>serializer</code> with shared ownership between this <code>formats</code> instance and anything else. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if this <code>formats</code> instance already has a <code>serializer</code> that serves the provided <code><a class="el" href="classjsonv_1_1serializer.html#ab66dee52dec1bbb163b1ba76e7243cee" title="Get the run-time type this serialize knows how to encode. ">serializer::get_type</a></code>. </td></tr>
   </table>
   </dd>
 </dl>
