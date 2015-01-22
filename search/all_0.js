@@ -1,6 +1,8 @@
 var searchData=
 [
   ['adapter',['adapter',['../classjsonv_1_1adapter.html',1,'jsonv']]],
+  ['adapter_5fbuilder',['adapter_builder',['../classjsonv_1_1detail_1_1adapter__builder.html',1,'jsonv::detail']]],
+  ['adapter_5fbuilder_5fdsl',['adapter_builder_dsl',['../classjsonv_1_1detail_1_1adapter__builder__dsl.html',1,'jsonv::detail']]],
   ['adapter_5ffor',['adapter_for',['../classjsonv_1_1adapter__for.html',1,'jsonv']]],
   ['algorithm',['Algorithm',['../group__Algorithm.html',1,'']]],
   ['algorithm_2ehpp',['algorithm.hpp',['../algorithm_8hpp.html',1,'']]],

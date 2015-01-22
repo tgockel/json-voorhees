@@ -1,6 +1,7 @@
 var NAVTREE =
 [
   [ "JSON Voorhees", "index.html", [
+    [ "Serialization Builder DSL", "serialization_builder_dsl.html", null ],
     [ "Modules", "modules.html", "modules" ],
     [ "Classes", null, [
       [ "Class List", "annotated.html", "annotated" ],
@@ -30,9 +31,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classjsonv_1_1function__extractor.html#aeaedea66895fa7dded92350dc18cfcb6",
-"group__Array.html",
-"structjsonv_1_1value_1_1basic__array__iterator.html#ab9073f357a5d2e1eced88aa0ea09dc20"
+"classjsonv_1_1extractor__for.html",
+"functions_n.html",
+"string__view_8hpp.html#a9cc8d30ac4b07b6f3b7e5c22fb98bcd6"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

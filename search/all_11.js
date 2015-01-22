@@ -5,6 +5,8 @@ var searchData=
   ['scope_5fexit_5finvoker',['scope_exit_invoker',['../classjsonv_1_1detail_1_1scope__exit__invoker.html',1,'jsonv::detail']]],
   ['serialization',['Serialization',['../group__Serialization.html',1,'']]],
   ['serialization_2ehpp',['serialization.hpp',['../serialization_8hpp.html',1,'']]],
+  ['serialization_5fbuilder_2ehpp',['serialization_builder.hpp',['../serialization__builder_8hpp.html',1,'']]],
+  ['serialization_20builder_20dsl',['Serialization Builder DSL',['../serialization_builder_dsl.html',1,'']]],
   ['serialization_5fcontext',['serialization_context',['../classjsonv_1_1serialization__context.html',1,'jsonv']]],
   ['serialization_5fcontext',['serialization_context',['../classjsonv_1_1serialization__context.html#a2cc730476dc157437e76e3eca2659c90',1,'jsonv::serialization_context::serialization_context()'],['../classjsonv_1_1serialization__context.html#a818f88538d7473bb258f521dfff3fce4',1,'jsonv::serialization_context::serialization_context(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1))']]],
   ['serialization_5futil_2ehpp',['serialization_util.hpp',['../serialization__util_8hpp.html',1,'']]],
@@ -15,7 +17,7 @@ var searchData=
   ['strict',['strict',['../classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714a2133fd717402a7966ee88d06f9e0b792',1,'jsonv::parse_options::strict()'],['../classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa2133fd717402a7966ee88d06f9e0b792',1,'jsonv::parse_options::strict()']]],
   ['string_5fencoding',['string_encoding',['../classjsonv_1_1parse__options.html#ac8763752b079dadae3f78780a81aed3a',1,'jsonv::parse_options']]],
   ['string_5fview',['string_view',['../classjsonv_1_1detail_1_1string__view.html',1,'jsonv::detail']]],
-  ['string_5fview_2ehpp',['string_view.hpp',['../detail_2string__view_8hpp.html',1,'']]],
   ['string_5fview_2ehpp',['string_view.hpp',['../string__view_8hpp.html',1,'']]],
+  ['string_5fview_2ehpp',['string_view.hpp',['../detail_2string__view_8hpp.html',1,'']]],
   ['swap',['swap',['../group__Shared.html#gacea6f1f938880b1b1761324e59abad83',1,'jsonv::value']]]
 ];

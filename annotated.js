@@ -2,10 +2,16 @@ var annotated =
 [
     [ "jsonv", null, [
       [ "detail", null, [
+        [ "adapter_builder", "classjsonv_1_1detail_1_1adapter__builder.html", "classjsonv_1_1detail_1_1adapter__builder" ],
+        [ "adapter_builder_dsl", "classjsonv_1_1detail_1_1adapter__builder__dsl.html", "classjsonv_1_1detail_1_1adapter__builder__dsl" ],
         [ "basic_owner", "classjsonv_1_1detail_1_1basic__owner.html", "classjsonv_1_1detail_1_1basic__owner" ],
         [ "basic_owning_view", "classjsonv_1_1detail_1_1basic__owning__view.html", "classjsonv_1_1detail_1_1basic__owning__view" ],
         [ "basic_view", "classjsonv_1_1detail_1_1basic__view.html", "classjsonv_1_1detail_1_1basic__view" ],
+        [ "formats_builder_dsl", "classjsonv_1_1detail_1_1formats__builder__dsl.html", "classjsonv_1_1detail_1_1formats__builder__dsl" ],
         [ "generic_container", "classjsonv_1_1detail_1_1generic__container.html", "classjsonv_1_1detail_1_1generic__container" ],
+        [ "member_adapter", "classjsonv_1_1detail_1_1member__adapter.html", "classjsonv_1_1detail_1_1member__adapter" ],
+        [ "member_adapter_builder", "classjsonv_1_1detail_1_1member__adapter__builder.html", "classjsonv_1_1detail_1_1member__adapter__builder" ],
+        [ "member_adapter_impl", "classjsonv_1_1detail_1_1member__adapter__impl.html", "classjsonv_1_1detail_1_1member__adapter__impl" ],
         [ "scope_exit_invoker", "classjsonv_1_1detail_1_1scope__exit__invoker.html", "classjsonv_1_1detail_1_1scope__exit__invoker" ],
         [ "string_view", "classjsonv_1_1detail_1_1string__view.html", "classjsonv_1_1detail_1_1string__view" ],
         [ "value_storage", "unionjsonv_1_1detail_1_1value__storage.html", "unionjsonv_1_1detail_1_1value__storage" ]
@@ -22,6 +28,7 @@ var annotated =
       [ "extractor_construction", "classjsonv_1_1extractor__construction.html", "classjsonv_1_1extractor__construction" ],
       [ "extractor_for", "classjsonv_1_1extractor__for.html", "classjsonv_1_1extractor__for" ],
       [ "formats", "classjsonv_1_1formats.html", "classjsonv_1_1formats" ],
+      [ "formats_builder", "classjsonv_1_1formats__builder.html", "classjsonv_1_1formats__builder" ],
       [ "function_adapter", "classjsonv_1_1function__adapter.html", "classjsonv_1_1function__adapter" ],
       [ "function_extractor", "classjsonv_1_1function__extractor.html", "classjsonv_1_1function__extractor" ],
       [ "kind_error", "classjsonv_1_1kind__error.html", "classjsonv_1_1kind__error" ],
