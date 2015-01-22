@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>JSON Voorhees: jsonv::adapter_for&lt; T &gt; Class Template Reference</title>
+<title>JSON Voorhees: jsonv::serializer_for&lt; T &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -88,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-$(document).ready(function(){initNavTree('classjsonv_1_1adapter__for.html','');});
+$(document).ready(function(){initNavTree('classjsonv_1_1serializer__for.html','');});
 </script>
 <div id="doc-content">
 <!-- window showing the filter options -->
@@ -109,53 +109,45 @@ $(document).ready(function(){initNavTree('classjsonv_1_1adapter__for.html','');}
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
-<a href="classjsonv_1_1adapter__for-members.html">List of all members</a>  </div>
+<a href="classjsonv_1_1serializer__for-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">jsonv::adapter_for&lt; T &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span><div class="ingroups"><a class="el" href="group__Serialization.html">Serialization</a></div></div>  </div>
+<div class="title">jsonv::serializer_for&lt; T &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span><div class="ingroups"><a class="el" href="group__Serialization.html">Serialization</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="dynheader">
-Inheritance diagram for jsonv::adapter_for&lt; T &gt;:</div>
+Inheritance diagram for jsonv::serializer_for&lt; T &gt;:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classjsonv_1_1adapter__for.png" usemap="#jsonv::adapter_for&lt; T &gt;_map" alt=""/>
-  <map id="jsonv::adapter_for&lt; T &gt;_map" name="jsonv::adapter_for&lt; T &gt;_map">
-<area href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. " alt="jsonv::adapter" shape="rect" coords="150,56,440,80"/>
-<area href="classjsonv_1_1extractor.html" title="An extractor holds the method for converting a value into an arbitrary C++ type. " alt="jsonv::extractor" shape="rect" coords="0,0,290,24"/>
-<area href="classjsonv_1_1serializer.html" title="A serializer holds the method for converting an arbitrary C++ type into a value. " alt="jsonv::serializer" shape="rect" coords="300,0,590,24"/>
-<area href="classjsonv_1_1function__adapter.html" alt="jsonv::function_adapter&lt; T, FExtract, FEncode &gt;" shape="rect" coords="150,168,440,192"/>
+  <img src="classjsonv_1_1serializer__for.png" usemap="#jsonv::serializer_for&lt; T &gt;_map" alt=""/>
+  <map id="jsonv::serializer_for&lt; T &gt;_map" name="jsonv::serializer_for&lt; T &gt;_map">
+<area href="classjsonv_1_1serializer.html" title="A serializer holds the method for converting an arbitrary C++ type into a value. " alt="jsonv::serializer" shape="rect" coords="0,0,243,24"/>
+<area href="classjsonv_1_1function__serializer.html" alt="jsonv::function_serializer&lt; T, FEncode &gt;" shape="rect" coords="0,112,243,136"/>
 </map>
  </div></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2b2f3795b0ec91f79504d9dd0b3d19bc"><td class="memItemLeft" align="right" valign="top">virtual const std::type_info &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1adapter__for.html#a2b2f3795b0ec91f79504d9dd0b3d19bc">get_type</a> () const override</td></tr>
-<tr class="memdesc:a2b2f3795b0ec91f79504d9dd0b3d19bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the run-time type this <code>extractor</code> knows how to extract.  <a href="#a2b2f3795b0ec91f79504d9dd0b3d19bc">More...</a><br /></td></tr>
-<tr class="separator:a2b2f3795b0ec91f79504d9dd0b3d19bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3205a83144e12aefdeb4211f1b9dce92"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1adapter__for.html#a3205a83144e12aefdeb4211f1b9dce92">extract</a> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, void *into) const override</td></tr>
-<tr class="memdesc:a3205a83144e12aefdeb4211f1b9dce92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract a the type <em>from</em> a <code>value</code> <em>into</em> a region of memory.  <a href="#a3205a83144e12aefdeb4211f1b9dce92">More...</a><br /></td></tr>
-<tr class="separator:a3205a83144e12aefdeb4211f1b9dce92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a598a599b0398d9a4917c4fd626c6c5bc"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1adapter__for.html#a598a599b0398d9a4917c4fd626c6c5bc">encode</a> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const void *from) const override</td></tr>
-<tr class="memdesc:a598a599b0398d9a4917c4fd626c6c5bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>value</code> <em>from</em> the value in the given region of memory.  <a href="#a598a599b0398d9a4917c4fd626c6c5bc">More...</a><br /></td></tr>
-<tr class="separator:a598a599b0398d9a4917c4fd626c6c5bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72493b3e3b31bd091e30feb52d36711c"><td class="memItemLeft" align="right" valign="top">virtual const std::type_info &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1serializer__for.html#a72493b3e3b31bd091e30feb52d36711c">get_type</a> () const override</td></tr>
+<tr class="memdesc:a72493b3e3b31bd091e30feb52d36711c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the run-time type this <code>serialize</code> knows how to encode.  <a href="#a72493b3e3b31bd091e30feb52d36711c">More...</a><br /></td></tr>
+<tr class="separator:a72493b3e3b31bd091e30feb52d36711c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98c24e2e1d651600520b179a10799d50"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1serializer__for.html#a98c24e2e1d651600520b179a10799d50">encode</a> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const void *from) const override</td></tr>
+<tr class="memdesc:a98c24e2e1d651600520b179a10799d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>value</code> <em>from</em> the value in the given region of memory.  <a href="#a98c24e2e1d651600520b179a10799d50">More...</a><br /></td></tr>
+<tr class="separator:a98c24e2e1d651600520b179a10799d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ab6163d56219609a9236b7009f2e48cd5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab6163d56219609a9236b7009f2e48cd5"></a>
-virtual T&#160;</td><td class="memItemRight" valign="bottom"><b>create</b> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from) const =0</td></tr>
-<tr class="separator:ab6163d56219609a9236b7009f2e48cd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4c479db079158d9557f790a9d188c13"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af4c479db079158d9557f790a9d188c13"></a>
+<tr class="memitem:a931f7364d6488e693b2f7666ac01189e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a931f7364d6488e693b2f7666ac01189e"></a>
 virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><b>encode</b> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const T &amp;from) const =0</td></tr>
-<tr class="separator:af4c479db079158d9557f790a9d188c13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a931f7364d6488e693b2f7666ac01189e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T&gt;<br />
-class jsonv::adapter_for&lt; T &gt;</h3>
+class jsonv::serializer_for&lt; T &gt;</h3>
 
 
-<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00213">213</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00148">148</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a598a599b0398d9a4917c4fd626c6c5bc"></a>
+<a class="anchor" id="a98c24e2e1d651600520b179a10799d50"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -165,7 +157,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual <a class="el" href="classjsonv_1_1value.html">value</a> <a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for</a>&lt; T &gt;::encode </td>
+          <td class="memname">virtual <a class="el" href="classjsonv_1_1value.html">value</a> <a class="el" href="classjsonv_1_1serializer__for.html">jsonv::serializer_for</a>&lt; T &gt;::encode </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;&#160;</td>
           <td class="paramname"><em>context</em>, </td>
@@ -200,11 +192,11 @@ template&lt;typename T &gt; </div>
 
 <p>Implements <a class="el" href="classjsonv_1_1serializer.html#ab68474e7a0bdcfbe57e7ff95fadd5ab0">jsonv::serializer</a>.</p>
 
-<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00230">230</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00157">157</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a3205a83144e12aefdeb4211f1b9dce92"></a>
+<a class="anchor" id="a72493b3e3b31bd091e30feb52d36711c"></a>
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
@@ -214,63 +206,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual void <a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for</a>&lt; T &gt;::extract </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;&#160;</td>
-          <td class="paramname"><em>context</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;&#160;</td>
-          <td class="paramname"><em>from</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>into</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Extract a the type <em>from</em> a <code>value</code> <em>into</em> a region of memory. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">context</td><td>Extra information to help you decode sub-objects, such as looking up other <code>formats</code>. It also tracks your <code>path</code> in the decoding heirarchy, so any exceptions thrown will have <code>path</code> information in the error message. </td></tr>
-    <tr><td class="paramname">from</td><td>The JSON <code>value</code> to extract something from. </td></tr>
-    <tr><td class="paramname">into</td><td>The region of memory to create the extracted object in. There will always be enough room to create your object and the alignment of the pointer should be correct (assuming a working <code>alignof</code> implementation). </td></tr>
-  </table>
-  </dd>
-</dl>
-
-<p>Implements <a class="el" href="classjsonv_1_1extractor.html#a3fba9285d76e04548dd065d5cae66d13">jsonv::extractor</a>.</p>
-
-<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00222">222</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a2b2f3795b0ec91f79504d9dd0b3d19bc"></a>
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename T &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual const std::type_info&amp; <a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for</a>&lt; T &gt;::get_type </td>
+          <td class="memname">virtual const std::type_info&amp; <a class="el" href="classjsonv_1_1serializer__for.html">jsonv::serializer_for</a>&lt; T &gt;::get_type </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -283,12 +219,12 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p>Get the run-time type this <code>extractor</code> knows how to extract. </p>
-<p>Once this <code>extractor</code> is registered with a <code>formats</code>, it is not allowed to change. </p>
+<p>Get the run-time type this <code>serialize</code> knows how to encode. </p>
+<p>Once this <code>serializer</code> is registered with a <code>formats</code>, it is not allowed to change. </p>
 
-<p>Implements <a class="el" href="classjsonv_1_1extractor.html#a3595ea56dac959622735193c1768501f">jsonv::extractor</a>.</p>
+<p>Implements <a class="el" href="classjsonv_1_1serializer.html#ab66dee52dec1bbb163b1ba76e7243cee">jsonv::serializer</a>.</p>
 
-<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00217">217</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00152">152</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
 
 </div>
 </div>
@@ -300,7 +236,7 @@ template&lt;typename T &gt; </div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>jsonv</b></li><li class="navelem"><a class="el" href="classjsonv_1_1adapter__for.html">adapter_for</a></li>
+    <li class="navelem"><b>jsonv</b></li><li class="navelem"><a class="el" href="classjsonv_1_1serializer__for.html">serializer_for</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.7 </li>

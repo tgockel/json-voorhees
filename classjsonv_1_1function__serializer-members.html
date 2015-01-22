@@ -88,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-$(document).ready(function(){initNavTree('classjsonv_1_1serialization__context.html','');});
+$(document).ready(function(){initNavTree('classjsonv_1_1function__serializer.html','');});
 </script>
 <div id="doc-content">
 <!-- window showing the filter options -->
@@ -107,22 +107,17 @@ $(document).ready(function(){initNavTree('classjsonv_1_1serialization__context.h
 
 <div class="header">
   <div class="headertitle">
-<div class="title">jsonv::serialization_context Member List</div>  </div>
+<div class="title">jsonv::function_serializer&lt; T, FEncode &gt; Member List</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>This is the complete list of members for <a class="el" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a>, including all inherited members.</p>
+<p>This is the complete list of members for <a class="el" href="classjsonv_1_1function__serializer.html">jsonv::function_serializer&lt; T, FEncode &gt;</a>, including all inherited members.</p>
 <table class="directory">
-  <tr class="even"><td class="entry"><a class="el" href="classjsonv_1_1context__base.html#a43f445f3d44d5bd78e1cc9dee440ca63">context_base</a>()</td><td class="entry"><a class="el" href="classjsonv_1_1context__base.html">jsonv::context_base</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="classjsonv_1_1context__base.html#a7ae9085313c6150a02a1385607ee5929">context_base</a>(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), const void *userdata=nullptr)</td><td class="entry"><a class="el" href="classjsonv_1_1context__base.html">jsonv::context_base</a></td><td class="entry"><span class="mlabel">explicit</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>encode</b>(const T &amp;from) const  (defined in <a class="el" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr><td class="entry"><a class="el" href="classjsonv_1_1context__base.html#a1fda6ccfbfa7410fa7c61749d6834404">formats</a>() const </td><td class="entry"><a class="el" href="classjsonv_1_1context__base.html">jsonv::context_base</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="classjsonv_1_1serialization__context.html#a2cc730476dc157437e76e3eca2659c90">serialization_context</a>()</td><td class="entry"><a class="el" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a></td><td class="entry"></td></tr>
-  <tr><td class="entry"><a class="el" href="classjsonv_1_1serialization__context.html#af388b7e9bf606eb17cd766749144a3df">serialization_context</a>(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), const void *userdata=nullptr)</td><td class="entry"><a class="el" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a></td><td class="entry"><span class="mlabel">explicit</span></td></tr>
-  <tr class="even"><td class="entry"><a class="el" href="classjsonv_1_1context__base.html#a8f87d18955e76fc53ae74bdf5be242dc">user_data</a>() const </td><td class="entry"><a class="el" href="classjsonv_1_1context__base.html">jsonv::context_base</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr><td class="entry"><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f">version</a>() const </td><td class="entry"><a class="el" href="classjsonv_1_1context__base.html">jsonv::context_base</a></td><td class="entry"><span class="mlabel">inline</span></td></tr>
-  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>~context_base</b>() noexcept=0 (defined in <a class="el" href="classjsonv_1_1context__base.html">jsonv::context_base</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1context__base.html">jsonv::context_base</a></td><td class="entry"><span class="mlabel">pure virtual</span></td></tr>
-  <tr bgcolor="#f0f0f0"><td class="entry"><b>~serialization_context</b>() noexcept (defined in <a class="el" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>encode</b>(const serialization_context &amp;context, const T &amp;from) const override (defined in <a class="el" href="classjsonv_1_1function__serializer.html">jsonv::function_serializer&lt; T, FEncode &gt;</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1function__serializer.html">jsonv::function_serializer&lt; T, FEncode &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classjsonv_1_1serializer__for.html#a98c24e2e1d651600520b179a10799d50">jsonv::serializer_for::encode</a>(const serialization_context &amp;context, const void *from) const override</td><td class="entry"><a class="el" href="classjsonv_1_1serializer__for.html">jsonv::serializer_for&lt; T &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>function_serializer</b>(FUEncode &amp;&amp;encode_) (defined in <a class="el" href="classjsonv_1_1function__serializer.html">jsonv::function_serializer&lt; T, FEncode &gt;</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1function__serializer.html">jsonv::function_serializer&lt; T, FEncode &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">explicit</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classjsonv_1_1serializer__for.html#a72493b3e3b31bd091e30feb52d36711c">get_type</a>() const override</td><td class="entry"><a class="el" href="classjsonv_1_1serializer__for.html">jsonv::serializer_for&lt; T &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>~serializer</b>() noexcept (defined in <a class="el" href="classjsonv_1_1serializer.html">jsonv::serializer</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1serializer.html">jsonv::serializer</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
 </table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

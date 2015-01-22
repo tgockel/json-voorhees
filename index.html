@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>JSON Voorhees: JSON Voorhees</title>
+<title>JSON Voorhees: Overview</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -99,7 +99,7 @@ $(document).ready(function(){initNavTree('index.html','');});
 
 <div class="header">
   <div class="headertitle">
-<div class="title">JSON Voorhees </div>  </div>
+<div class="title">Overview </div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler. It is hosted on <a href="https://github.com/tgockel/json-voorhees">GitHub</a> and sports an Apache License, so use it anywhere you need.</p>
@@ -340,7 +340,7 @@ Encoding and decoding</h2>
 Serialization</h2>
 <p>Most of the time, you do not want to deal with <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> instances directly. Instead, most people prefer to convert <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> instances into their own strong C++ <code>class</code> or <code>struct</code>. JSON Voorhees provides utilities to make this easy for you to use. At the end of the day, you should be able to create an arbitrary C++ type with <code>jsonv::extract&lt;my_type&gt;(value)</code> and create a <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> from your arbitrary C++ type with <code>jsonv::to_json(my_instance)</code>.</p>
 <h3><a class="anchor" id="serialization_encoding"></a>
-Extracting with `jsonv::extract`</h3>
+Extracting with extract</h3>
 <p>Let's start with converting a <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> into a custom C++ type with <code>jsonv::extract&lt;T&gt;</code>.</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="parse_8hpp.html">jsonv/parse.hpp</a>&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;<a class="code" href="serialization_8hpp.html">jsonv/serialization.hpp</a>&gt;</span></div>
@@ -363,6 +363,7 @@ Extracting with `jsonv::extract`</h3>
 <p>The real power comes in when we start talking about <code><a class="el" href="classjsonv_1_1formats.html" title="Simply put, this class is a collection of extractor and serializer instances. ">jsonv::formats</a></code>. These objects provide a set of rules to encode and decode arbitrary types. So let's make a C++ <code>class</code> for our JSON object and write a special constructor for it.</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="parse_8hpp.html">jsonv/parse.hpp</a>&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;<a class="code" href="serialization_8hpp.html">jsonv/serialization.hpp</a>&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;<a class="code" href="serialization__util_8hpp.html">jsonv/serialization_util.hpp</a>&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span></div>
 <div class="line"></div>
 <div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
@@ -425,11 +426,100 @@ Extracting with `jsonv::extract`</h3>
 <div class="fragment"><div class="line">my_type x = jsonv::extract&lt;my_type&gt;(val, format);</div>
 </div><!-- fragment --><p>This is not terribly different from the example before, but now we are explicitly passing a <code><a class="el" href="classjsonv_1_1formats.html" title="Simply put, this class is a collection of extractor and serializer instances. ">jsonv::formats</a></code> object to the function. If we had not provided <code>format</code> as an argument here, the function would have thrown a <code><a class="el" href="classjsonv_1_1extraction__error.html" title="Exception thrown if there is any problem running extract. ">jsonv::extraction_error</a></code> complaining about how it did not know how to extract a <code>my_type</code>.</p>
 <h3><a class="anchor" id="serialization_to_json"></a>
-Serialization with `to_json`</h3>
-<p>TODO</p>
-<h3><a class="anchor" id="serialization_composition"></a>
+Serialization with to_json</h3>
+<p>JSON Voorhees also allows you to convert from your C++ structures into JSON values, using <code>jsonv::to_json</code>. It should feel like a mirror <code>jsonv::extract</code>, with similar argument types and many shared concepts. Just like extraction, <code>jsonv::to_json</code> uses the <code><a class="el" href="classjsonv_1_1formats.html" title="Simply put, this class is a collection of extractor and serializer instances. ">jsonv::formats</a></code> class, but it uses a <code><a class="el" href="classjsonv_1_1serializer.html" title="A serializer holds the method for converting an arbitrary C++ type into a value. ">jsonv::serializer</a></code> to convert from C++ into JSON.</p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="serialization_8hpp.html">jsonv/serialization.hpp</a>&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;<a class="code" href="serialization__util_8hpp.html">jsonv/serialization_util.hpp</a>&gt;</span></div>
+<div class="line"><span class="preprocessor">#include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span></div>
+<div class="line"></div>
+<div class="line"><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"></div>
+<div class="line"><span class="keyword">class </span>my_type</div>
+<div class="line">{</div>
+<div class="line"><span class="keyword">public</span>:</div>
+<div class="line">    my_type(<span class="keywordtype">int</span> a, <span class="keywordtype">int</span> b, std::string c) :</div>
+<div class="line">            a(a),</div>
+<div class="line">            b(b),</div>
+<div class="line">            c(std::move(c))</div>
+<div class="line">    { }</div>
+<div class="line">    </div>
+<div class="line">    <span class="keyword">static</span> <span class="keyword">const</span> <a class="code" href="classjsonv_1_1serializer.html">jsonv::serializer</a>* get_serializer()</div>
+<div class="line">    {</div>
+<div class="line">        <span class="keyword">static</span> <span class="keyword">auto</span> instance = jsonv::make_serializer&lt;my_type&gt;</div>
+<div class="line">                               (</div>
+<div class="line">                                [] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a>&amp; context, <span class="keyword">const</span> my_type&amp; <span class="keyword">self</span>)</div>
+<div class="line">                                {</div>
+<div class="line">                                    <span class="keywordflow">return</span> <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;a&quot;</span>, context.encode(<span class="keyword">self</span>.a) },</div>
+<div class="line">                                                           { <span class="stringliteral">&quot;b&quot;</span>, context.encode(<span class="keyword">self</span>.b) },</div>
+<div class="line">                                                           { <span class="stringliteral">&quot;c&quot;</span>, context.encode(<span class="keyword">self</span>.c) }</div>
+<div class="line">                                                         }</div>
+<div class="line">                                                        );</div>
+<div class="line">                                }</div>
+<div class="line">                               );</div>
+<div class="line">        <span class="keywordflow">return</span> &amp;instance;</div>
+<div class="line">    }</div>
+<div class="line">    </div>
+<div class="line"><span class="keyword">private</span>:</div>
+<div class="line">    <span class="keywordtype">int</span>         a;</div>
+<div class="line">    <span class="keywordtype">int</span>         b;</div>
+<div class="line">    std::string c;</div>
+<div class="line">};</div>
+<div class="line"></div>
+<div class="line"><span class="keywordtype">int</span> main()</div>
+<div class="line">{</div>
+<div class="line">    <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> local_formats;</div>
+<div class="line">    local_formats.<a class="code" href="classjsonv_1_1formats.html#ad67618fd14da466da0c6d03735790811">register_serializer</a>(my_type::get_serializer());</div>
+<div class="line">    <a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> format = <a class="code" href="classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110">jsonv::formats::compose</a>({ <a class="code" href="classjsonv_1_1formats.html#ad194791e293229fb6a79438a6444f51b">jsonv::formats::defaults</a>(), local_formats });</div>
+<div class="line">    </div>
+<div class="line">    my_type x(5, 6, <span class="stringliteral">&quot;Hello&quot;</span>);</div>
+<div class="line">    std::ostream &lt;&lt; <a class="code" href="group__Serialization.html#gaabee8db6887a255c3b351d127bfad140">jsonv::to_json</a>(x, format) &lt;&lt; std::endl;</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>Output:</p>
+<div class="fragment"><div class="line">{<span class="stringliteral">&quot;a&quot;</span>:5,<span class="stringliteral">&quot;b&quot;</span>:6,<span class="stringliteral">&quot;c&quot;</span>:<span class="stringliteral">&quot;Hello&quot;</span>}</div>
+</div><!-- fragment --><h3><a class="anchor" id="serialization_composition"></a>
 Composing Type Adapters</h3>
-<p>TODO</p>
+<p>Does all this seem a little bit <em>manual</em> to you? Creating an <code>extractor</code> and <code>serializer</code> for every single type can get a little bit tedious. Unfortunately, until C++ has a standard way to do reflection, we must specify the conversions manually. However, there <em>is</em> an easier way! That way is the <a class="el" href="serialization_builder_dsl.html">Serialization Builder DSL</a>.</p>
+<p>Let's start with a couple of simple structures:</p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>foo</div>
+<div class="line">{</div>
+<div class="line">    <span class="keywordtype">int</span>         a;</div>
+<div class="line">    <span class="keywordtype">int</span>         b;</div>
+<div class="line">    std::string c;</div>
+<div class="line">};</div>
+<div class="line"></div>
+<div class="line"><span class="keyword">struct </span>bar</div>
+<div class="line">{</div>
+<div class="line">    foo         x;</div>
+<div class="line">    foo         y;</div>
+<div class="line">    std::string z;</div>
+<div class="line">    std::string w;</div>
+<div class="line">};</div>
+</div><!-- fragment --><p>Let's make a <code>formats</code> for them using the DSL:</p>
+<div class="fragment"><div class="line"><a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> formats =</div>
+<div class="line">    <a class="code" href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a>()</div>
+<div class="line">        .type&lt;foo&gt;()</div>
+<div class="line">            .member(<span class="stringliteral">&quot;a&quot;</span>, &amp;foo::a)</div>
+<div class="line">            .member(<span class="stringliteral">&quot;b&quot;</span>, &amp;foo::b)</div>
+<div class="line">                .default_value(10)</div>
+<div class="line">            .member(<span class="stringliteral">&quot;c&quot;</span>, &amp;foo::c)</div>
+<div class="line">        .type&lt;bar&gt;()</div>
+<div class="line">            .member(<span class="stringliteral">&quot;x&quot;</span>, &amp;bar::x)</div>
+<div class="line">            .member(<span class="stringliteral">&quot;y&quot;</span>, &amp;bar::y)</div>
+<div class="line">            .member(<span class="stringliteral">&quot;z&quot;</span>, &amp;bar::z)</div>
+<div class="line">                .since(<a class="code" href="structjsonv_1_1version.html">jsonv::version</a>(2, 0))</div>
+<div class="line">            .member(<span class="stringliteral">&quot;w&quot;</span>, &amp;bar::w)</div>
+<div class="line">                .until(<a class="code" href="structjsonv_1_1version.html">jsonv::version</a>(5, 0))</div>
+<div class="line">    ;</div>
+</div><!-- fragment --><p>What is going on there? The giant chain of function calls is building up a collection of type adapters into a <code>formats</code> for you. The indentation shows the intent &ndash; the <code>.member("a", &amp;foo::a)</code> is attached to the type <code>adapter</code> for <code>foo</code> (if you tried to specify <code>&amp;bar::y</code> in that same place, it would fail to compile). Each function call returns a reference back to the builder so you can chain as many of these together as you want to. The <code><a class="el" href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a></code> is a proper object, so if you wish to spread out building your type adapters into multiple functions, you can do that by passing around an instance.</p>
+<p>The two most-used functions are <code>type</code> and <code>member</code>. <code>type</code> defines a <code><a class="el" href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. ">jsonv::adapter</a></code> for the C++ class provided at the template parameter. All of the calls before the second <code>type</code> call modify the adapter for <code>foo</code>. There, we attach members with the <code>member</code> function. This tells the <code>formats</code> how to encode and extract each of the specified members to and from a JSON object using the provided string as the key. The extra function calls like <code>default_value</code>, <code>since</code> and <code>until</code> are just some of the many functions available to modify how the members of the type get transformed.</p>
+<p>The <code>formats</code> we built would be perfectly capable of serializing to and extracting from this JSON document:</p>
+<div class="fragment"><div class="line">{</div>
+<div class="line">    <span class="stringliteral">&quot;x&quot;</span>: { <span class="stringliteral">&quot;a&quot;</span>: 50, <span class="stringliteral">&quot;b&quot;</span>: 20, <span class="stringliteral">&quot;c&quot;</span>: <span class="stringliteral">&quot;Blah&quot;</span> },</div>
+<div class="line">    <span class="stringliteral">&quot;y&quot;</span>: { <span class="stringliteral">&quot;a&quot;</span>: 10,          <span class="stringliteral">&quot;c&quot;</span>: <span class="stringliteral">&quot;No B?&quot;</span> },</div>
+<div class="line">    <span class="stringliteral">&quot;z&quot;</span>: <span class="stringliteral">&quot;Only serialized in 2.0+&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;w&quot;</span>: <span class="stringliteral">&quot;Only serialized before 5.0&quot;</span></div>
+<div class="line">}</div>
+</div><!-- fragment --><p>For a more in-depth reference, see the <a class="el" href="serialization_builder_dsl.html">Serialization Builder DSL page</a>.</p>
 <h2><a class="anchor" id="demo_algorithm"></a>
 Algorithms</h2>
 <p>JSON Voorhees takes a "batteries included" approach. A few building blocks for powerful operations can be found in the <code><a class="el" href="algorithm_8hpp.html" title="A collection of algorithms a la  <algorithm>. ">algorithm.hpp</a></code> header file.</p>

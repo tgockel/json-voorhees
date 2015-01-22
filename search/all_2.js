@@ -25,7 +25,7 @@ var searchData=
   ['compose',['compose',['../classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110',1,'jsonv::formats']]],
   ['config_2ehpp',['config.hpp',['../config_8hpp.html',1,'']]],
   ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html',1,'jsonv']]],
-  ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html#a43f445f3d44d5bd78e1cc9dee440ca63',1,'jsonv::context_base::context_base()'],['../classjsonv_1_1context__base.html#a69a9949ec0c3f5c9f2bf76fc7c3fa3d6',1,'jsonv::context_base::context_base(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1))']]],
+  ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html#a43f445f3d44d5bd78e1cc9dee440ca63',1,'jsonv::context_base::context_base()'],['../classjsonv_1_1context__base.html#a7ae9085313c6150a02a1385607ee5929',1,'jsonv::context_base::context_base(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), const void *userdata=nullptr)']]],
   ['conversions',['Conversions',['../group__Conversions.html',1,'']]],
   ['count',['count',['../group__Object.html#ga7442b42d745e649222506080a05e3913',1,'jsonv::value']]],
   ['count_5fpath',['count_path',['../group__Shared.html#gaa32d3d92b8f59097b10648cf585533f4',1,'jsonv::value']]],

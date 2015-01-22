@@ -148,6 +148,10 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1function__extractor.html">jsonv::function_extractor&lt; T, FExtract &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1serializer__for.html">jsonv::serializer_for&lt; T &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1function__serializer.html">jsonv::function_serializer&lt; T, FEncode &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for&lt; T &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1function__adapter.html">jsonv::function_adapter&lt; T, FExtract, FEncode &gt;</a></td></tr>
@@ -171,10 +175,14 @@ Functions</h2></td></tr>
 <tr class="memitem:ga52201f62c91cdfb758fdb62a330f6e5f"><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga52201f62c91cdfb758fdb62a330f6e5f">jsonv::to_json</a> (const T &amp;from)</td></tr>
 <tr class="memdesc:ga52201f62c91cdfb758fdb62a330f6e5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encode a JSON <code>value</code> from <em>from</em> using <code><a class="el" href="classjsonv_1_1formats.html#a4403758d5e87d0862a04fc5d9171991d" title="Get the global formats instance. ">jsonv::formats::global()</a></code>.  <a href="#ga52201f62c91cdfb758fdb62a330f6e5f">More...</a><br /></td></tr>
 <tr class="separator:ga52201f62c91cdfb758fdb62a330f6e5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4bd2e7e0ddfaeb75acd839096e186b5e"><td class="memTemplParams" colspan="2"><a class="anchor" id="ga4bd2e7e0ddfaeb75acd839096e186b5e"></a>
+<tr class="memitem:ga0bd79426477091433b93dfd5228fe205"><td class="memTemplParams" colspan="2"><a class="anchor" id="ga0bd79426477091433b93dfd5228fe205"></a>
 template&lt;typename FExtract &gt; </td></tr>
-<tr class="memitem:ga4bd2e7e0ddfaeb75acd839096e186b5e"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_function_extractor</b> (FExtract func) -&gt; function_extractor&lt; decltype(func(std::declval&lt; const extraction_context &amp; &gt;(), std::declval&lt; const value &amp; &gt;())), FExtract &gt;</td></tr>
-<tr class="separator:ga4bd2e7e0ddfaeb75acd839096e186b5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0bd79426477091433b93dfd5228fe205"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_extractor</b> (FExtract func) -&gt; function_extractor&lt; decltype(func(std::declval&lt; const extraction_context &amp; &gt;(), std::declval&lt; const value &amp; &gt;())), FExtract &gt;</td></tr>
+<tr class="separator:ga0bd79426477091433b93dfd5228fe205"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7823f6e242cbbea48fd045dde5c9d467"><td class="memTemplParams" colspan="2"><a class="anchor" id="ga7823f6e242cbbea48fd045dde5c9d467"></a>
+template&lt;typename T , typename FEncode &gt; </td></tr>
+<tr class="memitem:ga7823f6e242cbbea48fd045dde5c9d467"><td class="memTemplItemLeft" align="right" valign="top">function_serializer&lt; T, FEncode &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_serializer</b> (FEncode encode)</td></tr>
+<tr class="separator:ga7823f6e242cbbea48fd045dde5c9d467"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6d9e71d3d6fc23fbadf31a904adb5f88"><td class="memTemplParams" colspan="2"><a class="anchor" id="ga6d9e71d3d6fc23fbadf31a904adb5f88"></a>
 template&lt;typename FExtract , typename FEncode &gt; </td></tr>
 <tr class="memitem:ga6d9e71d3d6fc23fbadf31a904adb5f88"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_adapter</b> (FExtract extract, FEncode encode) -&gt; function_adapter&lt; decltype(extract(std::declval&lt; const extraction_context &amp; &gt;(), std::declval&lt; const value &amp; &gt;())), FExtract, FEncode &gt;</td></tr>
@@ -211,7 +219,7 @@ template&lt;typename T &gt; </div>
 
 <p>Extract a C++ value from <em>from</em> using the provided <em>fmts</em>. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00519">519</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00528">528</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 
 </div>
 </div>
@@ -233,7 +241,7 @@ template&lt;typename T &gt; </div>
 
 <p>Extract a C++ value from <em>from</em> using <code><a class="el" href="classjsonv_1_1formats.html#a4403758d5e87d0862a04fc5d9171991d" title="Get the global formats instance. ">jsonv::formats::global()</a></code>. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00527">527</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00536">536</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 
 </div>
 </div>
@@ -265,7 +273,7 @@ template&lt;typename T &gt; </div>
 
 <p>Encode a JSON <code>value</code> from <em>from</em> using the provided <em>fmts</em>. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00556">556</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00566">566</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 
 </div>
 </div>
@@ -287,7 +295,7 @@ template&lt;typename T &gt; </div>
 
 <p>Encode a JSON <code>value</code> from <em>from</em> using <code><a class="el" href="classjsonv_1_1formats.html#a4403758d5e87d0862a04fc5d9171991d" title="Get the global formats instance. ">jsonv::formats::global()</a></code>. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00564">564</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00574">574</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 
 </div>
 </div>

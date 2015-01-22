@@ -1,6 +1,18 @@
 var NAVTREE =
 [
   [ "JSON Voorhees", "index.html", [
+    [ "Overview", "index.html", [
+      [ "Using the library", "index.html#usage", [
+        [ "The jsonv::value", "index.html#demo_value", null ],
+        [ "Encoding and decoding", "index.html#demo_parsing", null ],
+        [ "Serialization", "index.html#serialization", [
+          [ "Extracting with extract", "index.html#serialization_encoding", null ],
+          [ "Serialization with to_json", "index.html#serialization_to_json", null ],
+          [ "Composing Type Adapters", "index.html#serialization_composition", null ]
+        ] ],
+        [ "Algorithms", "index.html#demo_algorithm", null ]
+      ] ]
+    ] ],
     [ "Serialization Builder DSL", "serialization_builder_dsl.html", null ],
     [ "Modules", "modules.html", "modules" ],
     [ "Classes", null, [
@@ -31,9 +43,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classjsonv_1_1extractor__for.html",
-"functions_n.html",
-"string__view_8hpp.html#a9cc8d30ac4b07b6f3b7e5c22fb98bcd6"
+"classjsonv_1_1extractor__construction.html#afc01fbc4bd7fefca6cb932e5c60ac387",
+"functions_eval.html",
+"serialization_8hpp_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

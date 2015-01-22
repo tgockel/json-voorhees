@@ -1,7 +1,7 @@
 var searchData=
 [
   ['empty',['empty',['../group__Shared.html#gafc0eb6d0e3b9a8dcfba8c36c19ced691',1,'jsonv::value']]],
-  ['encode',['encode',['../classjsonv_1_1encoder.html#a8c314dfcaa9df22f72ed16cf771a4849',1,'jsonv::encoder::encode()'],['../classjsonv_1_1serializer.html#ab68474e7a0bdcfbe57e7ff95fadd5ab0',1,'jsonv::serializer::encode()'],['../classjsonv_1_1formats.html#aedd77cea1a8fe4831fbe561a6507ff76',1,'jsonv::formats::encode()'],['../classjsonv_1_1adapter__for.html#a598a599b0398d9a4917c4fd626c6c5bc',1,'jsonv::adapter_for::encode()']]],
+  ['encode',['encode',['../classjsonv_1_1encoder.html#a8c314dfcaa9df22f72ed16cf771a4849',1,'jsonv::encoder::encode()'],['../classjsonv_1_1serializer.html#ab68474e7a0bdcfbe57e7ff95fadd5ab0',1,'jsonv::serializer::encode()'],['../classjsonv_1_1formats.html#aedd77cea1a8fe4831fbe561a6507ff76',1,'jsonv::formats::encode()'],['../classjsonv_1_1serializer__for.html#a98c24e2e1d651600520b179a10799d50',1,'jsonv::serializer_for::encode()'],['../classjsonv_1_1adapter__for.html#a598a599b0398d9a4917c4fd626c6c5bc',1,'jsonv::adapter_for::encode()']]],
   ['encode_2ehpp',['encode.hpp',['../encode_8hpp.html',1,'']]],
   ['encoder',['encoder',['../classjsonv_1_1encoder.html',1,'jsonv']]],
   ['encoding',['encoding',['../classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593',1,'jsonv::parse_options']]],
@@ -13,7 +13,7 @@ var searchData=
   ['extract_2ehpp',['extract.hpp',['../extract_8hpp.html',1,'']]],
   ['extract_5fsub',['extract_sub',['../classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038',1,'jsonv::extraction_context::extract_sub(const value &amp;from, jsonv::path subpath) const '],['../classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0',1,'jsonv::extraction_context::extract_sub(const value &amp;from, path_element elem) const ']]],
   ['extraction_5fcontext',['extraction_context',['../classjsonv_1_1extraction__context.html',1,'jsonv']]],
-  ['extraction_5fcontext',['extraction_context',['../classjsonv_1_1extraction__context.html#a9624a27eea2b7ed047055b51e36cc237',1,'jsonv::extraction_context::extraction_context()'],['../classjsonv_1_1extraction__context.html#a51cb906635fe5ffe5295f18beb40f34a',1,'jsonv::extraction_context::extraction_context(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), jsonv::path p=jsonv::path())']]],
+  ['extraction_5fcontext',['extraction_context',['../classjsonv_1_1extraction__context.html#a9624a27eea2b7ed047055b51e36cc237',1,'jsonv::extraction_context::extraction_context()'],['../classjsonv_1_1extraction__context.html#a246b1db346b2f8b9869faa504f462863',1,'jsonv::extraction_context::extraction_context(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), jsonv::path p=jsonv::path(), const void *userdata=nullptr)']]],
   ['extraction_5ferror',['extraction_error',['../classjsonv_1_1extraction__error.html#a9898837e5ddb1c53d11761ef64d8ed3e',1,'jsonv::extraction_error']]],
   ['extraction_5ferror',['extraction_error',['../classjsonv_1_1extraction__error.html',1,'jsonv']]],
   ['extractor',['extractor',['../classjsonv_1_1extractor.html',1,'jsonv']]],

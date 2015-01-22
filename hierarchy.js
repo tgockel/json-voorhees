@@ -74,7 +74,10 @@ var hierarchy =
     [ "jsonv::parse_error::problem", "structjsonv_1_1parse__error_1_1problem.html", null ],
     [ "jsonv::detail::scope_exit_invoker< Function >", "classjsonv_1_1detail_1_1scope__exit__invoker.html", null ],
     [ "jsonv::serializer", "classjsonv_1_1serializer.html", [
-      [ "jsonv::adapter", "classjsonv_1_1adapter.html", null ]
+      [ "jsonv::adapter", "classjsonv_1_1adapter.html", null ],
+      [ "jsonv::serializer_for< T >", "classjsonv_1_1serializer__for.html", [
+        [ "jsonv::function_serializer< T, FEncode >", "classjsonv_1_1function__serializer.html", null ]
+      ] ]
     ] ],
     [ "jsonv::detail::string_view", "classjsonv_1_1detail_1_1string__view.html", null ],
     [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", null ],
