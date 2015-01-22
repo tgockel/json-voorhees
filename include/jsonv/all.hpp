@@ -44,11 +44,9 @@
  *  
  *  \dotfile doc/conversions.dot
  *  
- *  \section usage Using the library
- *  
  *  JSON Voorhees is designed with ease-of-use in mind. So let's look at some code!
  *  
- *  \subsection demo_value The jsonv::value
+ *  \section demo_value The jsonv::value
  *  
  *  The central class of JSON Voorhees is the \c value. This class represents a JSON AST and is somewhat of a dynamic
  *  type. This can make things a little bit awkward for C++ programmers who are used to static typing. Don't worry about
@@ -237,7 +235,7 @@
  *  Sorted:  null   -2  3   4.8 5   "beef"  "cat"   "taco"
  *  \endcode
  *  
- *  \subsection demo_parsing Encoding and decoding
+ *  \section demo_parsing Encoding and decoding
  *  
  *  Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services
  *  or storing things in a file or a database. JSON Voorhees makes this very easy for you.
@@ -313,7 +311,7 @@
  *  
  *  Compile that code and you now have your own little JSON prettification program!
  *  
- *  \subsection serialization Serialization
+ *  \section serialization Serialization
  *  
  *  Most of the time, you do not want to deal with \c jsonv::value instances directly. Instead, most people prefer to
  *  convert \c jsonv::value instances into their own strong C++ \c class or \c struct. JSON Voorhees provides utilities
@@ -321,7 +319,7 @@
  *  <tt>jsonv::extract&lt;my_type&gt;(value)</tt> and create a \c jsonv::value from your arbitrary C++ type with
  *  <tt>jsonv::to_json(my_instance)</tt>.
  *  
- *  \subsubsection serialization_encoding Extracting with extract
+ *  \subsection serialization_encoding Extracting with extract
  *  
  *  Let's start with converting a \c jsonv::value into a custom C++ type with <tt>jsonv::extract&lt;T&gt;</tt>.
  *  
@@ -459,7 +457,7 @@
  *  to the function. If we had not provided \c format as an argument here, the function would have thrown a
  *  \c jsonv::extraction_error complaining about how it did not know how to extract a \c my_type.
  *  
- *  \subsubsection serialization_to_json Serialization with to_json
+ *  \subsection serialization_to_json Serialization with to_json
  *  
  *  JSON Voorhees also allows you to convert from your C++ structures into JSON values, using \c jsonv::to_json. It
  *  should feel like a mirror \c jsonv::extract, with similar argument types and many shared concepts. Just like
@@ -521,7 +519,7 @@
  *  {"a":5,"b":6,"c":"Hello"}
  *  \endcode
  *  
- *  \subsubsection serialization_composition Composing Type Adapters
+ *  \subsection serialization_composition Composing Type Adapters
  *  
  *  Does all this seem a little bit \e manual to you? Creating an \c extractor and \c serializer for every single type
  *  can get a little bit tedious. Unfortunately, until C++ has a standard way to do reflection, we must specify the
@@ -594,7 +592,7 @@
  *  
  *  For a more in-depth reference, see the \ref serialization_builder_dsl "Serialization Builder DSL page".
  *  
- *  \subsection demo_algorithm Algorithms
+ *  \section demo_algorithm Algorithms
  *  
  *  JSON Voorhees takes a "batteries included" approach. A few building blocks for powerful operations can be found in
  *  the \c algorithm.hpp header file.
