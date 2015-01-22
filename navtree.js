@@ -24,7 +24,7 @@ var NAVTREE =
         [ "Type Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type", [
           [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level", null ],
           [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing", [
-            [ "serialization_builder_dsl_ref_type_narrowing_member", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member", null ]
+            [ "member", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member", null ]
           ] ]
         ] ],
         [ "Member Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member", [
