@@ -370,17 +370,17 @@ static formats create_default_formats()
     static auto json_extractor = make_adapter([] (const value& from) { return from; },
                                               [] (const value& from) { return from; }
                                              );
-    fmt.register_extractor(&json_extractor);
+    fmt.register_adapter(&json_extractor);
     
     static auto string_extractor = make_adapter([] (const value& from) { return from.as_string(); },
                                                 [] (const std::string& from) { return value(from); }
                                                );
-    fmt.register_extractor(&string_extractor);
+    fmt.register_adapter(&string_extractor);
     
     static auto bool_extractor = make_adapter([] (const value& from) { return from.as_boolean(); },
                                               [] (const bool& from) { return value(from); }
                                              );
-    fmt.register_extractor(&bool_extractor);
+    fmt.register_adapter(&bool_extractor);
     
     register_integer_adapter<std::int8_t>(fmt);
     register_integer_adapter<std::uint8_t>(fmt);
@@ -394,11 +394,11 @@ static formats create_default_formats()
     static auto double_extractor = make_adapter([] (const value& from) { return from.as_decimal(); },
                                                 [] (const double& from) { return value(from); }
                                                );
-    fmt.register_extractor(&double_extractor);
+    fmt.register_adapter(&double_extractor);
     static auto float_extractor = make_adapter([] (const value& from) { return float(from.as_decimal()); },
                                                [] (const float& from) { return value(from); }
                                               );
-    fmt.register_extractor(&float_extractor);
+    fmt.register_adapter(&float_extractor);
     
     return fmt;
 }
