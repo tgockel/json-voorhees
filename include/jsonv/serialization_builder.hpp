@@ -48,6 +48,64 @@
  *              .member("age",        &person::age)
  *      ;
  *  \endcode
+ * 
+ *  \section Reference
+ *  
+ *  The DSL is made up of three major parts:
+ *  
+ *   1. \e formats -- modifies a \c jsonv::formats object by adding new type adapters to it
+ *   2. \e type -- modifies the behavior of a \c jsonv::adapter by adding new members to it
+ *   3. \e member -- modifies an individual member inside of a specific type
+ *  
+ *  Each successive function call transforms your context. \e Narrowing calls make your context more specific; for
+ *  example, calling \c type from a \e formats context allows you to modify a specific type. \e Widening calls make the
+ *  context less specific and are always available; for example, when in the \e member context, you can still call
+ *  \c type from the \e formats context to specify a new type.
+ *  
+ *  \dot
+ *  diagraph serialization_builder_dsl {
+ *    formats -> formats [label="register_adapter"]
+ *    type    -> formats [label="register_adapter"]
+ *    member  -> formats [label="register_adapter"]
+ *    formats -> type    [label="type<T>"]
+ *    type    -> member  [label="member"]
+ *    type    -> type    [label="type<T>"]
+ *    member  -> type    [label="type<T>"]
+ *    member  -> member  [label="since"]
+ *  }
+ *  \enddot
+ *  
+ *  \subsection serialization_builder_dsl_ref_formats Formats Context
+ *  
+ *  Commands in this section modify the behavior of the underlying \c jsonv::formats object.
+ *  
+ *  \subsubsection serialization_builder_dsl_ref_formats_level Level
+ *  
+ *  \paragraph serialization_builder_dsl_ref_formats_level_register_adapter register_adapter
+ *  
+ *  TODO
+ *  
+ *  \subsubsection serialization_builder_dsl_ref_formats_narrowing Narrowing
+ *  
+ *  \paragraph serialization_builder_dsl_ref_formats_narrowing_type type&lt;T&gt;
+ *  
+ *  TODO
+ *  
+ *  \subsection serialization_builder_dsl_ref_type Type Context
+ *  
+ *  Commands in this section modify the behavior of the \c jsonv::adapter for a particular type.
+ *  
+ *  \subsubsection serialization_builder_dsl_ref_type_level Level
+ *  
+ *  \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
+ *  
+ *  \paragraph serialization_builder_dsl_ref_type_narrowing_member
+ *  
+ *  TODO
+ *  
+ *  \subsection serialization_builder_dsl_ref_member Member Context
+ *  
+ *  \subsubsection serialization_builder_dsl_ref_member_level Level
 **/
 #ifndef __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
 #define __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
