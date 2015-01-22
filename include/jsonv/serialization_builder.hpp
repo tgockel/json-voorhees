@@ -63,15 +63,19 @@
  *  \c type from the \e formats context to specify a new type.
  *  
  *  \dot
- *  diagraph serialization_builder_dsl {
- *    formats -> formats [label="register_adapter"]
- *    type    -> formats [label="register_adapter"]
- *    member  -> formats [label="register_adapter"]
- *    formats -> type    [label="type<T>"]
- *    type    -> member  [label="member"]
- *    type    -> type    [label="type<T>"]
- *    member  -> type    [label="type<T>"]
- *    member  -> member  [label="since"]
+ *  digraph serialization_builder_dsl {
+ *    formats  [label="formats"]
+ *    type     [label="type"]
+ *    member   [label="member"]
+ *    
+ *    formats -> formats
+ *    formats -> type
+ *    type    -> formats
+ *    type    -> type
+ *    type    -> member
+ *    member  -> formats
+ *    member  -> type
+ *    member  -> member
  *  }
  *  \enddot
  *  
@@ -99,7 +103,7 @@
  *  
  *  \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
  *  
- *  \paragraph serialization_builder_dsl_ref_type_narrowing_member
+ *  \paragraph serialization_builder_dsl_ref_type_narrowing_member member
  *  
  *  TODO
  *  
