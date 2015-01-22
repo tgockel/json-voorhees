@@ -125,7 +125,45 @@ $(document).ready(function(){initNavTree('serialization_builder_dsl.html','');})
 <div class="line">            .member(<span class="stringliteral">&quot;last_name&quot;</span>,  &amp;person::last_name)</div>
 <div class="line">            .member(<span class="stringliteral">&quot;age&quot;</span>,        &amp;person::age)</div>
 <div class="line">    ;</div>
-</div><!-- fragment --> </div></div><!-- contents -->
+</div><!-- fragment --><h1><a class="anchor" id="Reference"></a>
+Reference</h1>
+<p>The DSL is made up of three major parts:</p>
+<ol type="1">
+<li><em>formats</em> &ndash; modifies a <code><a class="el" href="classjsonv_1_1formats.html" title="Simply put, this class is a collection of extractor and serializer instances. ">jsonv::formats</a></code> object by adding new type adapters to it</li>
+<li><em>type</em> &ndash; modifies the behavior of a <code><a class="el" href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. ">jsonv::adapter</a></code> by adding new members to it</li>
+<li><em>member</em> &ndash; modifies an individual member inside of a specific type</li>
+</ol>
+<p>Each successive function call transforms your context. <em>Narrowing</em> calls make your context more specific; for example, calling <code>type</code> from a <em>formats</em> context allows you to modify a specific type. <em>Widening</em> calls make the context less specific and are always available; for example, when in the <em>member</em> context, you can still call <code>type</code> from the <em>formats</em> context to specify a new type.</p>
+<div align="center">
+</div>
+<h2><a class="anchor" id="serialization_builder_dsl_ref_formats"></a>
+Formats Context</h2>
+<p>Commands in this section modify the behavior of the underlying <code><a class="el" href="classjsonv_1_1formats.html" title="Simply put, this class is a collection of extractor and serializer instances. ">jsonv::formats</a></code> object.</p>
+<h3><a class="anchor" id="serialization_builder_dsl_ref_formats_level"></a>
+Level</h3>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_adapter"></a>
+register_adapter</h4>
+<p>TODO</p>
+<h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
+Narrowing</h3>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing_type"></a>
+type&lt;T&gt;</h4>
+<p>TODO</p>
+<h2><a class="anchor" id="serialization_builder_dsl_ref_type"></a>
+Type Context</h2>
+<p>Commands in this section modify the behavior of the <code><a class="el" href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. ">jsonv::adapter</a></code> for a particular type.</p>
+<h3><a class="anchor" id="serialization_builder_dsl_ref_type_level"></a>
+Level</h3>
+<h3><a class="anchor" id="serialization_builder_dsl_ref_type_narrowing"></a>
+Narrowing</h3>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_type_narrowing_member"></a>
+serialization_builder_dsl_ref_type_narrowing_member</h4>
+<p>TODO</p>
+<h2><a class="anchor" id="serialization_builder_dsl_ref_member"></a>
+Member Context</h2>
+<h3><a class="anchor" id="serialization_builder_dsl_ref_member_level"></a>
+Level</h3>
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

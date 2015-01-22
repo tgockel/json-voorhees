@@ -2,18 +2,36 @@ var NAVTREE =
 [
   [ "JSON Voorhees", "index.html", [
     [ "Overview", "index.html", [
-      [ "Using the library", "index.html#usage", [
-        [ "The jsonv::value", "index.html#demo_value", null ],
-        [ "Encoding and decoding", "index.html#demo_parsing", null ],
-        [ "Serialization", "index.html#serialization", [
-          [ "Extracting with extract", "index.html#serialization_encoding", null ],
-          [ "Serialization with to_json", "index.html#serialization_to_json", null ],
-          [ "Composing Type Adapters", "index.html#serialization_composition", null ]
+      [ "The jsonv::value", "index.html#demo_value", null ],
+      [ "Encoding and decoding", "index.html#demo_parsing", null ],
+      [ "Serialization", "index.html#serialization", [
+        [ "Extracting with extract", "index.html#serialization_encoding", null ],
+        [ "Serialization with to_json", "index.html#serialization_to_json", null ],
+        [ "Composing Type Adapters", "index.html#serialization_composition", null ]
+      ] ],
+      [ "Algorithms", "index.html#demo_algorithm", null ]
+    ] ],
+    [ "Serialization Builder DSL", "serialization_builder_dsl.html", [
+      [ "Reference", "serialization_builder_dsl.html#Reference", [
+        [ "Formats Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats", [
+          [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level", [
+            [ "register_adapter", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_adapter", null ]
+          ] ],
+          [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing", [
+            [ "type<T>", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing_type", null ]
+          ] ]
         ] ],
-        [ "Algorithms", "index.html#demo_algorithm", null ]
+        [ "Type Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type", [
+          [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level", null ],
+          [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing", [
+            [ "serialization_builder_dsl_ref_type_narrowing_member", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member", null ]
+          ] ]
+        ] ],
+        [ "Member Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member", [
+          [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level", null ]
+        ] ]
       ] ]
     ] ],
-    [ "Serialization Builder DSL", "serialization_builder_dsl.html", null ],
     [ "Modules", "modules.html", "modules" ],
     [ "Classes", null, [
       [ "Class List", "annotated.html", "annotated" ],
@@ -45,7 +63,7 @@ var NAVTREEINDEX =
 ".html",
 "classjsonv_1_1extractor__construction.html#afc01fbc4bd7fefca6cb932e5c60ac387",
 "functions_eval.html",
-"serialization_8hpp_source.html"
+"serialization__builder_8hpp.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
