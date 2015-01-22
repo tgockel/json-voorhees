@@ -12,7 +12,7 @@
 #ifndef __JSONV_ALL_HPP_INCLUDED__
 #define __JSONV_ALL_HPP_INCLUDED__
 
-/** \mainpage JSON Voorhees
+/** \mainpage Overview
  *  JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for
  *  developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler. It is hosted on
  *  <a href="https://github.com/tgockel/json-voorhees">GitHub</a> and sports an Apache License, so use it anywhere you
@@ -321,7 +321,7 @@
  *  <tt>jsonv::extract&lt;my_type&gt;(value)</tt> and create a \c jsonv::value from your arbitrary C++ type with
  *  <tt>jsonv::to_json(my_instance)</tt>.
  *  
- *  \subsubsection serialization_encoding Extracting with `jsonv::extract`
+ *  \subsubsection serialization_encoding Extracting with extract
  *  
  *  Let's start with converting a \c jsonv::value into a custom C++ type with <tt>jsonv::extract&lt;T&gt;</tt>.
  *  
@@ -359,6 +359,7 @@
  *  \code
  *  #include <jsonv/parse.hpp>
  *  #include <jsonv/serialization.hpp>
+ *  #include <jsonv/serialization_util.hpp>
  *  #include <jsonv/value.hpp>
  *  
  *  #include <iostream>
@@ -458,13 +459,140 @@
  *  to the function. If we had not provided \c format as an argument here, the function would have thrown a
  *  \c jsonv::extraction_error complaining about how it did not know how to extract a \c my_type.
  *  
- *  \subsubsection serialization_to_json Serialization with `to_json`
+ *  \subsubsection serialization_to_json Serialization with to_json
  *  
- *  TODO
+ *  JSON Voorhees also allows you to convert from your C++ structures into JSON values, using \c jsonv::to_json. It
+ *  should feel like a mirror \c jsonv::extract, with similar argument types and many shared concepts. Just like
+ *  extraction, \c jsonv::to_json uses the \c jsonv::formats class, but it uses a \c jsonv::serializer to convert from
+ *  C++ into JSON.
+ *  
+ *  \code
+ *  #include <jsonv/serialization.hpp>
+ *  #include <jsonv/serialization_util.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  class my_type
+ *  {
+ *  public:
+ *      my_type(int a, int b, std::string c) :
+ *              a(a),
+ *              b(b),
+ *              c(std::move(c))
+ *      { }
+ *      
+ *      static const jsonv::serializer* get_serializer()
+ *      {
+ *          static auto instance = jsonv::make_serializer<my_type>
+ *                                 (
+ *                                  [] (const jsonv::serialization_context& context, const my_type& self)
+ *                                  {
+ *                                      return jsonv::object({ { "a", context.encode(self.a) },
+ *                                                             { "b", context.encode(self.b) },
+ *                                                             { "c", context.encode(self.c) }
+ *                                                           }
+ *                                                          );
+ *                                  }
+ *                                 );
+ *          return &instance;
+ *      }
+ *      
+ *  private:
+ *      int         a;
+ *      int         b;
+ *      std::string c;
+ *  };
+ *  
+ *  int main()
+ *  {
+ *      jsonv::formats local_formats;
+ *      local_formats.register_serializer(my_type::get_serializer());
+ *      jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+ *      
+ *      my_type x(5, 6, "Hello");
+ *      std::ostream << jsonv::to_json(x, format) << std::endl;
+ *  }
+ *  \endcode
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  {"a":5,"b":6,"c":"Hello"}
+ *  \endcode
  *  
  *  \subsubsection serialization_composition Composing Type Adapters
  *  
- *  TODO
+ *  Does all this seem a little bit \e manual to you? Creating an \c extractor and \c serializer for every single type
+ *  can get a little bit tedious. Unfortunately, until C++ has a standard way to do reflection, we must specify the
+ *  conversions manually. However, there \e is an easier way! That way is the
+ *  \ref serialization_builder_dsl "Serialization Builder DSL".
+ *  
+ *  Let's start with a couple of simple structures:
+ *  
+ *  \code
+ *  struct foo
+ *  {
+ *      int         a;
+ *      int         b;
+ *      std::string c;
+ *  };
+ *  
+ *  struct bar
+ *  {
+ *      foo         x;
+ *      foo         y;
+ *      std::string z;
+ *      std::string w;
+ *  };
+ *  \endcode
+ *  
+ *  Let's make a \c formats for them using the DSL:
+ *  
+ *  \code
+ *  jsonv::formats formats =
+ *      jsonv::formats_builder()
+ *          .type<foo>()
+ *              .member("a", &foo::a)
+ *              .member("b", &foo::b)
+ *                  .default_value(10)
+ *              .member("c", &foo::c)
+ *          .type<bar>()
+ *              .member("x", &bar::x)
+ *              .member("y", &bar::y)
+ *              .member("z", &bar::z)
+ *                  .since(jsonv::version(2, 0))
+ *              .member("w", &bar::w)
+ *                  .until(jsonv::version(5, 0))
+ *      ;
+ *  \endcode
+ *  
+ *  What is going on there? The giant chain of function calls is building up a collection of type adapters into a
+ *  \c formats for you. The indentation shows the intent -- the <tt>.member("a", &foo::a)</tt> is attached to the type
+ *  \c adapter for \c foo (if you tried to specify \c &bar::y in that same place, it would fail to compile). Each
+ *  function call returns a reference back to the builder so you can chain as many of these together as you want to. The
+ *  \c jsonv::formats_builder is a proper object, so if you wish to spread out building your type adapters into multiple
+ *  functions, you can do that by passing around an instance.
+ *  
+ *  The two most-used functions are \c type and \c member. \c type defines a \c jsonv::adapter for the C++ class
+ *  provided at the template parameter. All of the calls before the second \c type call modify the adapter for \c foo.
+ *  There, we attach members with the \c member function. This tells the \c formats how to encode and extract each of
+ *  the specified members to and from a JSON object using the provided string as the key. The extra function calls like
+ *  \c default_value, \c since and \c until are just some of the many functions available to modify how the members of
+ *  the type get transformed.
+ *  
+ *  The \c formats we built would be perfectly capable of serializing to and extracting from this JSON document:
+ *  
+ *  \code
+ *  {
+ *      "x": { "a": 50, "b": 20, "c": "Blah" },
+ *      "y": { "a": 10,          "c": "No B?" },
+ *      "z": "Only serialized in 2.0+",
+ *      "w": "Only serialized before 5.0"
+ *  }
+ *  \endcode
+ *  
+ *  For a more in-depth reference, see the \ref serialization_builder_dsl "Serialization Builder DSL page".
  *  
  *  \subsection demo_algorithm Algorithms
  *  
