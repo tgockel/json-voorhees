@@ -123,7 +123,7 @@ private:
 };
 
 template <typename FExtract>
-auto make_function_extractor(FExtract func)
+auto make_extractor(FExtract func)
     -> function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
                           FExtract
                          >
@@ -135,13 +135,78 @@ auto make_function_extractor(FExtract func)
 }
 
 template <typename FExtract>
-auto make_function_extractor(FExtract func)
+auto make_extractor(FExtract func)
     -> function_extractor<decltype(func(std::declval<const value&>())),
                           FExtract
                          >
 {
     return function_extractor<decltype(func(std::declval<const value&>())), FExtract>
             (std::move(func));
+}
+
+template <typename T>
+class serializer_for :
+        public serializer
+{
+public:
+    virtual const std::type_info& get_type() const override
+    {
+        return typeid(T);
+    }
+    
+    virtual value encode(const serialization_context& context,
+                         const void*                  from
+                        ) const override
+    {
+        return encode(context, *static_cast<const T*>(from));
+    }
+    
+protected:
+    virtual value encode(const serialization_context& context,
+                         const T&                     from
+                        ) const = 0;
+};
+
+template <typename T, typename FEncode>
+class function_serializer :
+        public serializer_for<T>
+{
+public:
+    template <typename FUEncode>
+    explicit function_serializer(FUEncode&& encode_) :
+            _encode(std::forward<FUEncode>(encode_))
+    { }
+    
+protected:
+    
+    virtual value encode(const serialization_context& context, const T& from) const override
+    {
+        return encode_impl(_encode, context, from);
+    }
+    
+private:
+    template <typename FUEncode>
+    static auto encode_impl(const FUEncode& func, const serialization_context& context, const T& from)
+            -> decltype(func(context, from))
+    {
+        return func(context, from);
+    }
+    
+    template <typename FUEncode>
+    static auto encode_impl(const FUEncode& func, const serialization_context&, const T& from)
+            -> decltype(func(from))
+    {
+        return func(from);
+    }
+    
+private:
+    FEncode _encode;
+};
+
+template <typename T, typename FEncode>
+function_serializer<T, FEncode> make_serializer(FEncode encode)
+{
+    return function_serializer<T, FEncode>(std::move(encode));
 }
 
 template <typename T>

@@ -446,7 +446,7 @@ void formats::reset_global()
 template <typename T>
 static void register_integer_coerce_extractor(formats& fmt)
 {
-    static auto instance = make_function_extractor([] (const value& from) { return T(coerce_integer(from)); });
+    static auto instance = make_extractor([] (const value& from) { return T(coerce_integer(from)); });
     fmt.register_extractor(&instance);
 }
 
@@ -454,10 +454,10 @@ static formats create_coerce_formats()
 {
     formats fmt;
     
-    static auto string_extractor = make_function_extractor([] (const value& from) { return coerce_string(from); });
+    static auto string_extractor = make_extractor([] (const value& from) { return coerce_string(from); });
     fmt.register_extractor(&string_extractor);
     
-    static auto bool_extractor = make_function_extractor([] (const value& from) { return coerce_boolean(from); });
+    static auto bool_extractor = make_extractor([] (const value& from) { return coerce_boolean(from); });
     fmt.register_extractor(&bool_extractor);
     
     register_integer_coerce_extractor<std::int8_t>(fmt);
@@ -469,9 +469,9 @@ static formats create_coerce_formats()
     register_integer_coerce_extractor<std::int64_t>(fmt);
     register_integer_coerce_extractor<std::uint64_t>(fmt);
     
-    static auto double_extractor = make_function_extractor([] (const value& from) { return coerce_decimal(from); });
+    static auto double_extractor = make_extractor([] (const value& from) { return coerce_decimal(from); });
     fmt.register_extractor(&double_extractor);
-    static auto float_extractor = make_function_extractor([] (const value& from) { return float(coerce_decimal(from)); });
+    static auto float_extractor = make_extractor([] (const value& from) { return float(coerce_decimal(from)); });
     fmt.register_extractor(&float_extractor);
     
     return fmt;

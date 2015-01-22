@@ -232,7 +232,7 @@ TEST(extract_coerce)
 // Tests that even if we throw a completely bogus exception type, the extraction_context wraps it in an extraction_error
 TEST(extractor_throws_random_thing)
 {
-    static auto instance = make_function_extractor([] (const value& from) -> unassociated { throw from; });
+    static auto instance = make_extractor([] (const value& from) -> unassociated { throw from; });
     formats locals;
     locals.register_extractor(&instance);
     
