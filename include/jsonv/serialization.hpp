@@ -393,7 +393,8 @@ public:
     
     /** Create a new instance using the given \a fmt, \a ver and \a p. **/
     explicit context_base(jsonv::formats        fmt,
-                          const jsonv::version& ver = jsonv::version(1)
+                          const jsonv::version& ver      = jsonv::version(1),
+                          const void*           userdata = nullptr
                          );
     
     virtual ~context_base() noexcept = 0;
@@ -410,9 +411,16 @@ public:
         return _version;
     }
     
+    /** Get a pointer to arbitrary user data. **/
+    const void* user_data() const
+    {
+        return _user_data;
+    }
+    
 private:
     jsonv::formats _formats;
     jsonv::version _version;
+    const void*    _user_data;
 };
 
 class JSONV_PUBLIC extraction_context :
@@ -424,8 +432,9 @@ public:
     
     /** Create a new instance using the given \a fmt, \a ver and \a p. **/
     explicit extraction_context(jsonv::formats        fmt,
-                                const jsonv::version& ver = jsonv::version(1),
-                                jsonv::path           p   = jsonv::path()
+                                const jsonv::version& ver      = jsonv::version(1),
+                                jsonv::path           p        = jsonv::path(),
+                                const void*           userdata = nullptr
                                );
     
     virtual ~extraction_context() noexcept;
@@ -539,7 +548,8 @@ public:
     
     /** Create a new instance using the given \a fmt and \a ver. **/
     explicit serialization_context(jsonv::formats        fmt,
-                                   const jsonv::version& ver = jsonv::version(1)
+                                   const jsonv::version& ver      = jsonv::version(1),
+                                   const void*           userdata = nullptr
                                   );
     
     virtual ~serialization_context() noexcept;

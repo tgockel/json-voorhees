@@ -492,9 +492,13 @@ formats formats::coerce()
 // context_base                                                                                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-context_base::context_base(jsonv::formats fmt, const jsonv::version& ver) :
+context_base::context_base(jsonv::formats        fmt,
+                           const jsonv::version& ver,
+                           const void*           userdata
+                          ) :
         _formats(std::move(fmt)),
-        _version(ver)
+        _version(ver),
+        _user_data(userdata)
 { }
 
 context_base::context_base() :
@@ -507,8 +511,12 @@ context_base::~context_base() noexcept = default;
 // extraction_context                                                                                                 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extraction_context::extraction_context(jsonv::formats fmt, const jsonv::version& ver, jsonv::path p) :
-        context_base(std::move(fmt), ver),
+extraction_context::extraction_context(jsonv::formats        fmt,
+                                       const jsonv::version& ver,
+                                       jsonv::path           p,
+                                       const void*           userdata
+                                      ) :
+        context_base(std::move(fmt), ver, userdata),
         _path(std::move(p))
 { }
 
@@ -522,8 +530,11 @@ extraction_context::~extraction_context() noexcept = default;
 // serialization_context                                                                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-serialization_context::serialization_context(jsonv::formats fmt, const jsonv::version& ver) :
-        context_base(std::move(fmt), ver)
+serialization_context::serialization_context(jsonv::formats        fmt,
+                                             const jsonv::version& ver,
+                                             const void*           userdata
+                                            ) :
+        context_base(std::move(fmt), ver, userdata)
 { }
 
 serialization_context::serialization_context() :
