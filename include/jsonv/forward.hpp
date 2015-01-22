@@ -14,7 +14,11 @@
 namespace jsonv
 {
 
+class adapter;
 class encoder;
+class extractor;
+class extraction_context;
+class formats;
 enum class kind : unsigned char;
 class kind_error;
 class parse_error;
@@ -22,6 +26,8 @@ class parse_options;
 class path;
 class path_element;
 enum class path_element_kind : unsigned char;
+class serializer;
+class serialization_context;
 class tokenizer;
 enum class token_kind : unsigned int;
 class value;
