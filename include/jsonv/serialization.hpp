@@ -47,17 +47,53 @@ public:
     using version_element = std::uint32_t;
     
 public:
+    /** Initialize an instance with the given \a major and \a minor version info. **/
     explicit constexpr version(version_element major = 0, version_element minor = 0) :
             major{major},
             minor{minor}
     { }
     
+    /** Check if this version is an "empty" value -- meaning \c major and \c minor are both \c 0. **/
+    constexpr bool empty() const
+    {
+        return major == 0 && minor == 0;
+    }
+    
+    explicit constexpr operator std::uint64_t() const
+    {
+        return static_cast<std::uint64_t>(major) << 32
+             | static_cast<std::uint64_t>(minor) <<  0;
+    }
+    
+    constexpr bool operator==(const version& other) const
+    {
+        return static_cast<std::uint64_t>(*this) == static_cast<std::uint64_t>(other);
+    }
+    
+    constexpr bool operator!=(const version& other) const
+    {
+        return static_cast<std::uint64_t>(*this) != static_cast<std::uint64_t>(other);
+    }
+    
     /** Check that this version is less than \a other. The comparison is done lexicographically. **/
     constexpr bool operator<(const version& other) const
     {
-        return major < other.major  ? true
-             : major > other.major  ? false
-             : minor < other.minor;
+        return static_cast<std::uint64_t>(*this) < static_cast<std::uint64_t>(other);
+    }
+    
+    constexpr bool operator<=(const version& other) const
+    {
+        return static_cast<std::uint64_t>(*this) <= static_cast<std::uint64_t>(other);
+    }
+    
+    constexpr bool operator>(const version& other) const
+    {
+        return static_cast<std::uint64_t>(*this) > static_cast<std::uint64_t>(other);
+    }
+    
+    constexpr bool operator>=(const version& other) const
+    {
+        return static_cast<std::uint64_t>(*this) >= static_cast<std::uint64_t>(other);
     }
     
 public:
@@ -548,7 +584,7 @@ public:
     
     /** Create a new instance using the given \a fmt and \a ver. **/
     explicit serialization_context(jsonv::formats        fmt,
-                                   const jsonv::version& ver      = jsonv::version(1),
+                                   const jsonv::version& ver      = jsonv::version(),
                                    const void*           userdata = nullptr
                                   );
     
