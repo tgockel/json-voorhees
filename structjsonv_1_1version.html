@@ -129,12 +129,33 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>version_element</b> 
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a320125222ef82673a5bc378830b85c3d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a320125222ef82673a5bc378830b85c3d"></a>
-constexpr&#160;</td><td class="memItemRight" valign="bottom"><b>version</b> (version_element major=0, version_element minor=0)</td></tr>
+<tr class="memitem:a320125222ef82673a5bc378830b85c3d"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1version.html#a320125222ef82673a5bc378830b85c3d">version</a> (version_element major=0, version_element minor=0)</td></tr>
+<tr class="memdesc:a320125222ef82673a5bc378830b85c3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize an instance with the given <em>major</em> and <em>minor</em> version info.  <a href="#a320125222ef82673a5bc378830b85c3d">More...</a><br /></td></tr>
 <tr class="separator:a320125222ef82673a5bc378830b85c3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0571c645cd90fdc6fbdfb55a5a1438b5"><td class="memItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1version.html#a0571c645cd90fdc6fbdfb55a5a1438b5">empty</a> () const </td></tr>
+<tr class="memdesc:a0571c645cd90fdc6fbdfb55a5a1438b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if this version is an "empty" value &ndash; meaning <code>major</code> and <code>minor</code> are both <code>0</code>.  <a href="#a0571c645cd90fdc6fbdfb55a5a1438b5">More...</a><br /></td></tr>
+<tr class="separator:a0571c645cd90fdc6fbdfb55a5a1438b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80e5787c534f7d4622a5f29735488321"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a80e5787c534f7d4622a5f29735488321"></a>
+constexpr&#160;</td><td class="memItemRight" valign="bottom"><b>operator std::uint64_t</b> () const </td></tr>
+<tr class="separator:a80e5787c534f7d4622a5f29735488321"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1c87869db13144a453d13809e9b9bb7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab1c87869db13144a453d13809e9b9bb7"></a>
+constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator==</b> (const <a class="el" href="structjsonv_1_1version.html">version</a> &amp;other) const </td></tr>
+<tr class="separator:ab1c87869db13144a453d13809e9b9bb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7039815c02c4c4e44511f2ab0b5b1f4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab7039815c02c4c4e44511f2ab0b5b1f4"></a>
+constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator!=</b> (const <a class="el" href="structjsonv_1_1version.html">version</a> &amp;other) const </td></tr>
+<tr class="separator:ab7039815c02c4c4e44511f2ab0b5b1f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a610e510ec9b393e92064b4bcc0a3d14b"><td class="memItemLeft" align="right" valign="top">constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1version.html#a610e510ec9b393e92064b4bcc0a3d14b">operator&lt;</a> (const <a class="el" href="structjsonv_1_1version.html">version</a> &amp;other) const </td></tr>
 <tr class="memdesc:a610e510ec9b393e92064b4bcc0a3d14b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that this version is less than <em>other</em>.  <a href="#a610e510ec9b393e92064b4bcc0a3d14b">More...</a><br /></td></tr>
 <tr class="separator:a610e510ec9b393e92064b4bcc0a3d14b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bd355a9054a0ed82720d61661930c21"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8bd355a9054a0ed82720d61661930c21"></a>
+constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;=</b> (const <a class="el" href="structjsonv_1_1version.html">version</a> &amp;other) const </td></tr>
+<tr class="separator:a8bd355a9054a0ed82720d61661930c21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa635f11f9bb5f9502ed1f9d8db7f259b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa635f11f9bb5f9502ed1f9d8db7f259b"></a>
+constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;</b> (const <a class="el" href="structjsonv_1_1version.html">version</a> &amp;other) const </td></tr>
+<tr class="separator:aa635f11f9bb5f9502ed1f9d8db7f259b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a26c29f33ef366a2bb047c317162e77a1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a26c29f33ef366a2bb047c317162e77a1"></a>
+constexpr bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&gt;=</b> (const <a class="el" href="structjsonv_1_1version.html">version</a> &amp;other) const </td></tr>
+<tr class="separator:a26c29f33ef366a2bb047c317162e77a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -150,7 +171,73 @@ version_element&#160;</td><td class="memItemRight" valign="bottom"><b>minor</b><
 <p>This is useful for API versioning: if you need certain fields to be serialized only after a certain version or only before a different one. </p>
 
 <p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00044">44</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
-</div><h2 class="groupheader">Member Function Documentation</h2>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a class="anchor" id="a320125222ef82673a5bc378830b85c3d"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr jsonv::version::version </td>
+          <td>(</td>
+          <td class="paramtype">version_element&#160;</td>
+          <td class="paramname"><em>major</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">version_element&#160;</td>
+          <td class="paramname"><em>minor</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Initialize an instance with the given <em>major</em> and <em>minor</em> version info. </p>
+
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00051">51</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="a0571c645cd90fdc6fbdfb55a5a1438b5"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr bool jsonv::version::empty </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Check if this version is an "empty" value &ndash; meaning <code>major</code> and <code>minor</code> are both <code>0</code>. </p>
+
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00057">57</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="a610e510ec9b393e92064b4bcc0a3d14b"></a>
 <div class="memitem">
 <div class="memproto">
@@ -176,7 +263,7 @@ version_element&#160;</td><td class="memItemRight" valign="bottom"><b>minor</b><
 <p>Check that this version is less than <em>other</em>. </p>
 <p>The comparison is done lexicographically. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00056">56</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00079">79</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 
 </div>
 </div>

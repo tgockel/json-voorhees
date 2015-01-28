@@ -8,7 +8,7 @@ var searchData=
   ['serialization_5fbuilder_2ehpp',['serialization_builder.hpp',['../serialization__builder_8hpp.html',1,'']]],
   ['serialization_20builder_20dsl',['Serialization Builder DSL',['../serialization_builder_dsl.html',1,'']]],
   ['serialization_5fcontext',['serialization_context',['../classjsonv_1_1serialization__context.html',1,'jsonv']]],
-  ['serialization_5fcontext',['serialization_context',['../classjsonv_1_1serialization__context.html#a2cc730476dc157437e76e3eca2659c90',1,'jsonv::serialization_context::serialization_context()'],['../classjsonv_1_1serialization__context.html#af388b7e9bf606eb17cd766749144a3df',1,'jsonv::serialization_context::serialization_context(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), const void *userdata=nullptr)']]],
+  ['serialization_5fcontext',['serialization_context',['../classjsonv_1_1serialization__context.html#a2cc730476dc157437e76e3eca2659c90',1,'jsonv::serialization_context::serialization_context()'],['../classjsonv_1_1serialization__context.html#a884e5ab82b0954db49ff05df6b5d1727',1,'jsonv::serialization_context::serialization_context(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(), const void *userdata=nullptr)']]],
   ['serialization_5futil_2ehpp',['serialization_util.hpp',['../serialization__util_8hpp.html',1,'']]],
   ['serializer',['serializer',['../classjsonv_1_1serializer.html',1,'jsonv']]],
   ['serializer_5ffor',['serializer_for',['../classjsonv_1_1serializer__for.html',1,'jsonv']]],
