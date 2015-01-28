@@ -11,7 +11,7 @@
 
 The focus of this release was the creation of tools to traverse and manipulate the JSON AST.
 
- - [0.4.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.1): *FUTURE*
+ - [0.4.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.1): 2015 January 19
    - Adds reverse iteration to `array_view` and `object_view`
    - Adds the `map` algorithm
    - Adds the `diff` algorithm
