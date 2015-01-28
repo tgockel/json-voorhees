@@ -105,14 +105,15 @@ For progress updates, check in at [the MSVC support issue](https://github.com/tg
 Versioning
 ----------
 
-Like every software system ever, JSON Voorhees describes versions in 3 parts: `${major}.${minor}.${maintenance}`.
+Like every software system ever, JSON Voorhees describes versions in 3 part [semantic versioning](http://semver.org/):
+ `${major}.${minor}.${patch}`.
 Unlike most software, it actually means something when the versions change.
 
  - `major`: There are no guarantees whatsoever across major releases.
  - `minor`: For a given minor release, all code is forward-compatible source-code compliant.
             That means code written against version 1.1 can be recompiled against version 1.4 and continue to work.
             No guarantees are made for going backwards (version 1.4 might have added new functions).
- - `maintenance`: Code is ABI-compatible across maintenance.
+ - `patch`: Code is ABI-compatible across patch.
                   Library *A* built against JSON Voorhees 1.2.4 should be able to pass a `jsonv::value` to library *B*
                    built against JSON Voorhees 1.2.9.
                   Any change to publicly-visible data structures or calling conventions will correspond to a bump in the
@@ -128,7 +129,7 @@ When developing code, follow this simple workflow to determine which version com
  2. *Will this change force users to recompile to continue to work?*
     If yes, bump the `minor` version.
  3. *Will this change the behavior in any way?*
-    If yes, bump the `maintenance` version.
+    If yes, bump the `patch` version.
  4. *Did I only change comments or rearrange code positioning (indentation, etc)?*
     If yes, you do not need to update any part of the version.
  5. *Did I miss something?*
