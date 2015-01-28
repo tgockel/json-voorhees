@@ -21,6 +21,12 @@
 namespace jsonv_test
 {
 
+TEST(merge_single)
+{
+    jsonv::value x = jsonv::merge(nullptr);
+    ensure_eq(jsonv::value(nullptr), x);
+}
+
 template <typename TMergeRules>
 class json_merge_test :
         public unit_test

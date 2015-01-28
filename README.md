@@ -17,6 +17,9 @@ Features include (but are not necessarily limited to):
  - Efficient
    - Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)
    - No-throw move semantics wherever possible
+ - Easy
+   - Convert a `value` into a C++ type using `extract<T>`
+   - Encode a C++ type into a value using `to_json`
  - Safe
    - In the best case, illegal code should fail to compile
    - An illegal action should throw an exception

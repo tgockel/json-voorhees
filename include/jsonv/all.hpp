@@ -12,7 +12,7 @@
 #ifndef __JSONV_ALL_HPP_INCLUDED__
 #define __JSONV_ALL_HPP_INCLUDED__
 
-/** \mainpage JSON Voorhees
+/** \mainpage Overview
  *  JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for
  *  developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler. It is hosted on
  *  <a href="https://github.com/tgockel/json-voorhees">GitHub</a> and sports an Apache License, so use it anywhere you
@@ -29,6 +29,9 @@
  *   - Efficient
  *     - Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)
  *     - No-throw move semantics wherever possible
+ *   - Easy
+ *     - Convert a `value` into a C++ type using `extract<T>`
+ *     - Encode a C++ type into a value using `to_json`
  *   - Safe
  *     - In the best case, illegal code should fail to compile
  *     - An illegal action should throw an exception
@@ -41,11 +44,9 @@
  *  
  *  \dotfile doc/conversions.dot
  *  
- *  \section usage Using the library
- *  
  *  JSON Voorhees is designed with ease-of-use in mind. So let's look at some code!
  *  
- *  \subsection demo_value The jsonv::value
+ *  \section demo_value The jsonv::value
  *  
  *  The central class of JSON Voorhees is the \c value. This class represents a JSON AST and is somewhat of a dynamic
  *  type. This can make things a little bit awkward for C++ programmers who are used to static typing. Don't worry about
@@ -234,7 +235,7 @@
  *  Sorted:  null   -2  3   4.8 5   "beef"  "cat"   "taco"
  *  \endcode
  *  
- *  \subsection demo_parsing Encoding and decoding
+ *  \section demo_parsing Encoding and decoding
  *  
  *  Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services
  *  or storing things in a file or a database. JSON Voorhees makes this very easy for you.
@@ -310,7 +311,288 @@
  *  
  *  Compile that code and you now have your own little JSON prettification program!
  *  
- *  \subsection demo_algorithm Algorithms
+ *  \section serialization Serialization
+ *  
+ *  Most of the time, you do not want to deal with \c jsonv::value instances directly. Instead, most people prefer to
+ *  convert \c jsonv::value instances into their own strong C++ \c class or \c struct. JSON Voorhees provides utilities
+ *  to make this easy for you to use. At the end of the day, you should be able to create an arbitrary C++ type with
+ *  <tt>jsonv::extract&lt;my_type&gt;(value)</tt> and create a \c jsonv::value from your arbitrary C++ type with
+ *  <tt>jsonv::to_json(my_instance)</tt>.
+ *  
+ *  \subsection serialization_encoding Extracting with extract
+ *  
+ *  Let's start with converting a \c jsonv::value into a custom C++ type with <tt>jsonv::extract&lt;T&gt;</tt>.
+ *  
+ *  \code
+ *  #include <jsonv/parse.hpp>
+ *  #include <jsonv/serialization.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  int main()
+ *  {
+ *      jsonv::value val = jsonv::parse(R"({ "a": 1, "b": 2, "c": "Hello!" })");
+ *      std::cout << "a=" << jsonv::extract<int>(val.at("a")) << std::endl;
+ *      std::cout << "b=" << jsonv::extract<int>(val.at("b")) << std::endl;
+ *      std::cout << "c=" << jsonv::extract<std::string>(val.at("c")) << std::endl;
+ *  }
+ *  \endcode
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  a=1
+ *  b=2
+ *  c=Hello!
+ *  \endcode
+ *  
+ *  Overall, this is not very complicated. We did not do anything that could not have been done through a little use of
+ *  \c as_integer and \c as_string. So what is this \c extract giving us?
+ *  
+ *  The real power comes in when we start talking about \c jsonv::formats. These objects provide a set of rules to
+ *  encode and decode arbitrary types. So let's make a C++ \c class for our JSON object and write a special constructor
+ *  for it.
+ *  
+ *  \code
+ *  #include <jsonv/parse.hpp>
+ *  #include <jsonv/serialization.hpp>
+ *  #include <jsonv/serialization_util.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  class my_type
+ *  {
+ *  public:
+ *      my_type(const jsonv::value& from, const jsonv::extraction_context& context) :
+ *              a(context.extract_sub<int>(from, "a")),
+ *              b(context.extract_sub<int>(from, "b")),
+ *              c(context.extract_sub<std::string>(from, "c"))
+ *      { }
+ *      
+ *      static const jsonv::extractor* get_extractor()
+ *      {
+ *          static jsonv::extractor_construction<my_type> instance;
+ *          return &instance;
+ *      }
+ *      
+ *      friend std::ostream& operator<<(std::ostream& os, const my_type& self)
+ *      {
+ *          return os << "{ a=" << self.a << ", b=" << self.b << ", c=" << self.c << " }";
+ *      }
+ *      
+ *  private:
+ *      int         a;
+ *      int         b;
+ *      std::string c;
+ *  };
+ *  
+ *  int main()
+ *  {
+ *      jsonv::formats local_formats;
+ *      local_formats.register_extractor(my_type::get_extractor());
+ *      jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+ *      
+ *      jsonv::value val = jsonv::parse(R"({ "a": 1, "b": 2, "c": "Hello!" })");
+ *      my_type x = jsonv::extract<my_type>(val, format);
+ *      std::ostream << x << std::endl;
+ *  }
+ *  \endcode
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  { a=1, b=2, c=Hello! }
+ *  \endcode
+ *  
+ *  There is a lot going on in that example, so let's take it one step at a time. First, we are creating a \c my_type
+ *  object to store our values, which is nice. Then, we gave it a funny-looking constructor:
+ *  
+ *  \code
+ *      my_type(const jsonv::value& from, const jsonv::extraction_context& context) :
+ *              a(context.extract_sub<int>(from, "a")),
+ *              b(context.extract_sub<int>(from, "b")),
+ *              c(context.extract_sub<std::string>(from, "c"))
+ *      { }
+ *  \endcode
+ *  
+ *  This is an <i>extracting constructor</i>. All that means is that it has those two arguments: a \c jsonv::value and
+ *  a \c jsonv::extraction_context. The \c jsonv::extraction_context is an optional, but extremely helpful class. Inside
+ *  the constructor, we use the \c jsonv::extraction_context to access the values of the incoming JSON object in order
+ *  to build our object.
+ *  
+ *  \code
+ *      static const jsonv::extractor* get_extractor()
+ *      {
+ *          static jsonv::extractor_construction<my_type> instance;
+ *          return &instance;
+ *      }
+ *  \endcode
+ *  
+ *  A \c jsonv::extractor is a type that knows how to take a \c jsonv::value and create some C++ type out of it. In this
+ *  case, we are creating a \c jsonv::extractor_construction, which is a subtype that knows how to call the constructor
+ *  of a type. There are all sorts of \c jsonv::extractor implementations in \c jsonv/serialization.hpp, so you should
+ *  be able to find one that fits your needs.
+ *  
+ *  \code
+ *      jsonv::formats local_formats;
+ *      local_formats.register_extractor(my_type::get_extractor());
+ *      jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+ *  \endcode
+ *  
+ *  Now things are starting to get interesting. The \c jsonv::formats object is a collection of
+ *  <tt>jsonv::extractor</tt>s, so we create one of our own and add the \c jsonv::extractor* from the static function of
+ *  \c my_type. Now, \c local_formats \e only knows how to extract instances of \c my_type -- it does \e not know even
+ *  the most basic things like how to extract an \c int. We use \c jsonv::formats::compose to create a new instance of
+ *  \c jsonv::formats that combines the qualities of \c local_formats (which knows how to deal with \c my_type) and the
+ *  \c jsonv::formats::defaults (which knows how to deal with things like \c int and \c std::string). The \c format
+ *  instance now has the power to do everything we need!
+ *  
+ *  \code
+ *      my_type x = jsonv::extract<my_type>(val, format);
+ *  \endcode
+ *  
+ *  This is not terribly different from the example before, but now we are explicitly passing a \c jsonv::formats object
+ *  to the function. If we had not provided \c format as an argument here, the function would have thrown a
+ *  \c jsonv::extraction_error complaining about how it did not know how to extract a \c my_type.
+ *  
+ *  \subsection serialization_to_json Serialization with to_json
+ *  
+ *  JSON Voorhees also allows you to convert from your C++ structures into JSON values, using \c jsonv::to_json. It
+ *  should feel like a mirror \c jsonv::extract, with similar argument types and many shared concepts. Just like
+ *  extraction, \c jsonv::to_json uses the \c jsonv::formats class, but it uses a \c jsonv::serializer to convert from
+ *  C++ into JSON.
+ *  
+ *  \code
+ *  #include <jsonv/serialization.hpp>
+ *  #include <jsonv/serialization_util.hpp>
+ *  #include <jsonv/value.hpp>
+ *  
+ *  #include <iostream>
+ *  
+ *  class my_type
+ *  {
+ *  public:
+ *      my_type(int a, int b, std::string c) :
+ *              a(a),
+ *              b(b),
+ *              c(std::move(c))
+ *      { }
+ *      
+ *      static const jsonv::serializer* get_serializer()
+ *      {
+ *          static auto instance = jsonv::make_serializer<my_type>
+ *                                 (
+ *                                  [] (const jsonv::serialization_context& context, const my_type& self)
+ *                                  {
+ *                                      return jsonv::object({ { "a", context.encode(self.a) },
+ *                                                             { "b", context.encode(self.b) },
+ *                                                             { "c", context.encode(self.c) }
+ *                                                           }
+ *                                                          );
+ *                                  }
+ *                                 );
+ *          return &instance;
+ *      }
+ *      
+ *  private:
+ *      int         a;
+ *      int         b;
+ *      std::string c;
+ *  };
+ *  
+ *  int main()
+ *  {
+ *      jsonv::formats local_formats;
+ *      local_formats.register_serializer(my_type::get_serializer());
+ *      jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+ *      
+ *      my_type x(5, 6, "Hello");
+ *      std::ostream << jsonv::to_json(x, format) << std::endl;
+ *  }
+ *  \endcode
+ *  
+ *  Output:
+ *  
+ *  \code
+ *  {"a":5,"b":6,"c":"Hello"}
+ *  \endcode
+ *  
+ *  \subsection serialization_composition Composing Type Adapters
+ *  
+ *  Does all this seem a little bit \e manual to you? Creating an \c extractor and \c serializer for every single type
+ *  can get a little bit tedious. Unfortunately, until C++ has a standard way to do reflection, we must specify the
+ *  conversions manually. However, there \e is an easier way! That way is the
+ *  \ref serialization_builder_dsl "Serialization Builder DSL".
+ *  
+ *  Let's start with a couple of simple structures:
+ *  
+ *  \code
+ *  struct foo
+ *  {
+ *      int         a;
+ *      int         b;
+ *      std::string c;
+ *  };
+ *  
+ *  struct bar
+ *  {
+ *      foo         x;
+ *      foo         y;
+ *      std::string z;
+ *      std::string w;
+ *  };
+ *  \endcode
+ *  
+ *  Let's make a \c formats for them using the DSL:
+ *  
+ *  \code
+ *  jsonv::formats formats =
+ *      jsonv::formats_builder()
+ *          .type<foo>()
+ *              .member("a", &foo::a)
+ *              .member("b", &foo::b)
+ *                  .default_value(10)
+ *              .member("c", &foo::c)
+ *          .type<bar>()
+ *              .member("x", &bar::x)
+ *              .member("y", &bar::y)
+ *              .member("z", &bar::z)
+ *                  .since(jsonv::version(2, 0))
+ *              .member("w", &bar::w)
+ *                  .until(jsonv::version(5, 0))
+ *      ;
+ *  \endcode
+ *  
+ *  What is going on there? The giant chain of function calls is building up a collection of type adapters into a
+ *  \c formats for you. The indentation shows the intent -- the <tt>.member("a", &foo::a)</tt> is attached to the type
+ *  \c adapter for \c foo (if you tried to specify \c &bar::y in that same place, it would fail to compile). Each
+ *  function call returns a reference back to the builder so you can chain as many of these together as you want to. The
+ *  \c jsonv::formats_builder is a proper object, so if you wish to spread out building your type adapters into multiple
+ *  functions, you can do that by passing around an instance.
+ *  
+ *  The two most-used functions are \c type and \c member. \c type defines a \c jsonv::adapter for the C++ class
+ *  provided at the template parameter. All of the calls before the second \c type call modify the adapter for \c foo.
+ *  There, we attach members with the \c member function. This tells the \c formats how to encode and extract each of
+ *  the specified members to and from a JSON object using the provided string as the key. The extra function calls like
+ *  \c default_value, \c since and \c until are just some of the many functions available to modify how the members of
+ *  the type get transformed.
+ *  
+ *  The \c formats we built would be perfectly capable of serializing to and extracting from this JSON document:
+ *  
+ *  \code
+ *  {
+ *      "x": { "a": 50, "b": 20, "c": "Blah" },
+ *      "y": { "a": 10,          "c": "No B?" },
+ *      "z": "Only serialized in 2.0+",
+ *      "w": "Only serialized before 5.0"
+ *  }
+ *  \endcode
+ *  
+ *  For a more in-depth reference, see the \ref serialization_builder_dsl "Serialization Builder DSL page".
+ *  
+ *  \section demo_algorithm Algorithms
  *  
  *  JSON Voorhees takes a "batteries included" approach. A few building blocks for powerful operations can be found in
  *  the \c algorithm.hpp header file.
@@ -424,7 +706,7 @@
  *  \endcode
  *  
  *  You might have noticed the use of \c std::move into the \c merge function. \c merge, like most functions in JSON
- *  Voorees, takes advantage of move semantics. In this case, the implementation will move the contents of the values
+ *  Voorhees, takes advantage of move semantics. In this case, the implementation will move the contents of the values
  *  instead of copying them around. While it may not matter in this simple case, if you have large JSON structures, the
  *  support for movement will save you a ton of memory.
  *  
