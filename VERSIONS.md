@@ -6,6 +6,18 @@
 0._ Series
 ==========
 
+[0.5](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.5)
+-------------------------------------------------------------------------
+
+The focus of this release is extensible serialization between JSON values and C++ types.
+
+ - [0.5.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.5.0): 2015 February 13
+   - Creates `formats`, `extractor`, `serializer` and `adapter` classes
+   - Creates the Serialization Builder DSL for easily making type adapters
+   - Creates the `extract` and `to_json` free functions for conversion
+   - Adds support for compiling with GCC and Clang on Windows with [Cygwin](https://www.cygwin.com/)
+   - Adds experimental support for Microsoft Visual Studio 14 (CTP 5)
+
 [0.4](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.4)
 -------------------------------------------------------------------------
 
@@ -81,4 +93,5 @@ The original prototype, which allows for parsing input to the JSON AST, manipula
  - [0.1.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.1.1): 2014 April 30
     - Minor parsing performance improvements by batching the string read for `parse_number`
     - Move to GNU Make as the build system
+
  - [0.1.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.1.0): 2014 April 24
