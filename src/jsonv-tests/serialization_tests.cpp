@@ -57,6 +57,20 @@ struct my_thing
         return &instance;
     }
     
+    static const serializer* get_serializer()
+    {
+        static auto instance = make_serializer<my_thing>([] (const serialization_context& context, const my_thing& self)
+            {
+                return object({
+                               { "a", context.encode(self.a) },
+                               { "b", context.encode(self.b) },
+                               { "c", context.encode(self.c) },
+                              }
+                             );
+            });
+        return &instance;
+    }
+    
     bool operator==(const my_thing& other) const
     {
         return std::tie(a, b, c) == std::tie(other.a, other.b, other.c);
@@ -93,8 +107,8 @@ TEST(formats_equality)
 TEST(formats_static_results_inequality)
 {
     ensure(formats::defaults() != formats::defaults());
-    ensure(formats::coerce() != formats::coerce());
-    ensure(formats::global() != formats::global());
+    ensure(formats::coerce()   != formats::coerce());
+    ensure(formats::global()   != formats::global());
 }
 
 TEST(formats_throws_on_duplicate)
@@ -102,6 +116,8 @@ TEST(formats_throws_on_duplicate)
     formats fmt;
     fmt.register_extractor(my_thing::get_extractor());
     ensure_throws(std::invalid_argument, fmt.register_extractor(my_thing::get_extractor()));
+    fmt.register_serializer(my_thing::get_serializer());
+    ensure_throws(std::invalid_argument, fmt.register_serializer(my_thing::get_serializer()));
 }
 
 TEST(extract_basics)
@@ -241,6 +257,33 @@ TEST(extractor_throws_random_thing)
     extraction_context cxt(locals);
     ensure_throws(extraction_error, cxt.extract<unassociated>(val));
     ensure_throws(extraction_error, cxt.extract_sub<unassociated>(val, "a"));
+}
+
+TEST(serialize_basics)
+{
+    serialization_context cxt(formats::defaults());
+    ensure(cxt.user_data() == nullptr);
+    ensure_eq(value(5), cxt.encode(std::int8_t(5)));
+    ensure_eq(value(5), cxt.encode(std::uint8_t(5)));
+    ensure_eq(value(5), cxt.encode(std::int16_t(5)));
+    ensure_eq(value(5), cxt.encode(std::uint16_t(5)));
+    ensure_eq(value(5), cxt.encode(std::int32_t(5)));
+    ensure_eq(value(5), cxt.encode(std::uint32_t(5)));
+    ensure_eq(value(5), cxt.encode(std::int64_t(5)));
+    ensure_eq(value(5), cxt.encode(std::uint64_t(5)));
+    ensure_eq(value(4.5), cxt.encode(4.5));
+    ensure_eq(value(4.5), cxt.encode(4.5f));
+    ensure_eq(value("thing"), cxt.encode(std::string("thing")));
+    
+    try
+    {
+        cxt.encode(unassociated{});
+    }
+    catch (const no_serializer& noser)
+    {
+        ensure(noser.type_index() == std::type_index(typeid(unassociated)));
+        ensure_eq(string_view(noser.type_name()), string_view(typeid(unassociated).name()));
+    }
 }
 
 }

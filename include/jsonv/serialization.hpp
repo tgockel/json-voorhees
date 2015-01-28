@@ -59,17 +59,22 @@ public:
         return major == 0 && minor == 0;
     }
     
+    /** Convert this instance into a \c uint64_t. The \c major version will be in the higher-order bits, while \c minor
+     *  will be in the lower-order bits.
+    **/
     explicit constexpr operator std::uint64_t() const
     {
         return static_cast<std::uint64_t>(major) << 32
              | static_cast<std::uint64_t>(minor) <<  0;
     }
     
+    /** Test for equality with \a other. **/
     constexpr bool operator==(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) == static_cast<std::uint64_t>(other);
     }
     
+    /** Test for inequality with \a other. **/
     constexpr bool operator!=(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) != static_cast<std::uint64_t>(other);
@@ -81,16 +86,19 @@ public:
         return static_cast<std::uint64_t>(*this) < static_cast<std::uint64_t>(other);
     }
     
+    /** Check that this version is less than or equal to \a other. The comparison is done lexicographically. **/
     constexpr bool operator<=(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) <= static_cast<std::uint64_t>(other);
     }
     
+    /** Check that this version is greater than \a other. The comparison is done lexicographically. **/
     constexpr bool operator>(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) > static_cast<std::uint64_t>(other);
     }
     
+    /** Check that this version is greater than or equal to \a other. The comparison is done lexicographically. **/
     constexpr bool operator>=(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) >= static_cast<std::uint64_t>(other);
