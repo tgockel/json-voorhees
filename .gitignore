@@ -5,3 +5,4 @@
 build
 .kdev*
 *.kdev4
+packages/

@@ -78,6 +78,14 @@ public:
     {
         return std::basic_string<value_type, std::char_traits<value_type>, UAllocator>(_base, _length);
     }
+
+    #ifdef _MSC_VER
+    // MSVC 14 CTP 5 has issues picking up templated cast operators, so provide this one for the sake of convenience
+    explicit operator std::string() const
+    {
+        return std::string(_base, _length);
+    }
+    #endif
     
     constexpr size_type size()     const noexcept { return _length; }
     constexpr size_type max_size() const noexcept { return _length; }

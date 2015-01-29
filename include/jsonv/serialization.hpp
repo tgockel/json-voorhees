@@ -13,6 +13,7 @@
 #define __JSONV_SERIALIZATION_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
+#include <jsonv/detail/nested_exception.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/value.hpp>
@@ -114,7 +115,7 @@ public:
 **/
 class JSONV_PUBLIC extraction_error :
         public std::runtime_error,
-        public std::nested_exception
+        public nested_exception
 {
 public:
     /** Create a new \c extraction_error from the given \a context and \a message. **/
