@@ -1,11 +1,15 @@
 var NAVTREEINDEX3 =
 {
+"serialization_8hpp.html#gac24f0cb864988715300f4741b5031546":[4,0,0,10,1],
+"serialization_8hpp_source.html":[4,0,0,10],
 "serialization__builder_8hpp.html":[4,0,0,11],
 "serialization__builder_8hpp_source.html":[4,0,0,11],
 "serialization__util_8hpp.html":[4,0,0,12],
-"serialization__util_8hpp.html#ga0bd79426477091433b93dfd5228fe205":[4,0,0,12,1],
+"serialization__util_8hpp.html#ga0bd79426477091433b93dfd5228fe205":[4,0,0,12,2],
+"serialization__util_8hpp.html#ga1198650bb8204d2aebbebe51cb73c1e8":[4,0,0,12,3],
+"serialization__util_8hpp.html#ga21b66ef294d97a8844014e95bd8bd19b":[4,0,0,12,1],
 "serialization__util_8hpp.html#ga6d9e71d3d6fc23fbadf31a904adb5f88":[4,0,0,12,0],
-"serialization__util_8hpp.html#ga7823f6e242cbbea48fd045dde5c9d467":[4,0,0,12,2],
+"serialization__util_8hpp.html#ga7823f6e242cbbea48fd045dde5c9d467":[4,0,0,12,4],
 "serialization__util_8hpp_source.html":[4,0,0,12],
 "serialization_builder_dsl.html":[1],
 "serialization_builder_dsl.html#Reference":[1,0],

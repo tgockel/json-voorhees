@@ -247,7 +247,7 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1extractor.html#a3fba9285d76e04548dd065d5cae66d13":[2,6,4,1],
 "classjsonv_1_1extractor.html#a7fa3babb10d07474aaf5cb4e709d3495":[2,6,4,0],
 "classjsonv_1_1extractor__construction.html":[2,6,11],
+"classjsonv_1_1extractor__construction.html#a1338df97f1485d6ba2acadb303fc64cb":[2,6,11,2],
 "classjsonv_1_1extractor__construction.html#a2d67ef9a8b97cddfd45b7dd8668540a7":[2,6,11,1],
-"classjsonv_1_1extractor__construction.html#a62b6923cb67527582698dfb1c54af8b4":[2,6,11,3],
-"classjsonv_1_1extractor__construction.html#ae5a8775d9f5786a72c6d7092950d3732":[2,6,11,2]
+"classjsonv_1_1extractor__construction.html#a62b6923cb67527582698dfb1c54af8b4":[2,6,11,3]
 };

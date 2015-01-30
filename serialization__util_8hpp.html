@@ -143,6 +143,10 @@ Functions</h2></td></tr>
 template&lt;typename FExtract &gt; </td></tr>
 <tr class="memitem:ga0bd79426477091433b93dfd5228fe205"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_extractor</b> (FExtract func) -&gt; function_extractor&lt; decltype(func(std::declval&lt; const extraction_context &amp; &gt;(), std::declval&lt; const value &amp; &gt;())), FExtract &gt;</td></tr>
 <tr class="separator:ga0bd79426477091433b93dfd5228fe205"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1198650bb8204d2aebbebe51cb73c1e8"><td class="memTemplParams" colspan="2"><a class="anchor" id="ga1198650bb8204d2aebbebe51cb73c1e8"></a>
+template&lt;typename FExtract , typename  = void&gt; </td></tr>
+<tr class="memitem:ga1198650bb8204d2aebbebe51cb73c1e8"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_extractor</b> (FExtract func) -&gt; function_extractor&lt; decltype(func(std::declval&lt; const value &amp; &gt;())), FExtract &gt;</td></tr>
+<tr class="separator:ga1198650bb8204d2aebbebe51cb73c1e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7823f6e242cbbea48fd045dde5c9d467"><td class="memTemplParams" colspan="2"><a class="anchor" id="ga7823f6e242cbbea48fd045dde5c9d467"></a>
 template&lt;typename T , typename FEncode &gt; </td></tr>
 <tr class="memitem:ga7823f6e242cbbea48fd045dde5c9d467"><td class="memTemplItemLeft" align="right" valign="top">function_serializer&lt; T, FEncode &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_serializer</b> (FEncode encode)</td></tr>
@@ -151,6 +155,10 @@ template&lt;typename T , typename FEncode &gt; </td></tr>
 template&lt;typename FExtract , typename FEncode &gt; </td></tr>
 <tr class="memitem:ga6d9e71d3d6fc23fbadf31a904adb5f88"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_adapter</b> (FExtract extract, FEncode encode) -&gt; function_adapter&lt; decltype(extract(std::declval&lt; const extraction_context &amp; &gt;(), std::declval&lt; const value &amp; &gt;())), FExtract, FEncode &gt;</td></tr>
 <tr class="separator:ga6d9e71d3d6fc23fbadf31a904adb5f88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga21b66ef294d97a8844014e95bd8bd19b"><td class="memTemplParams" colspan="2"><a class="anchor" id="ga21b66ef294d97a8844014e95bd8bd19b"></a>
+template&lt;typename FExtract , typename FEncode , typename  = void&gt; </td></tr>
+<tr class="memitem:ga21b66ef294d97a8844014e95bd8bd19b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::make_adapter</b> (FExtract extract, FEncode encode) -&gt; function_adapter&lt; decltype(extract(std::declval&lt; const value &amp; &gt;())), FExtract, FEncode &gt;</td></tr>
+<tr class="separator:ga21b66ef294d97a8844014e95bd8bd19b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Helper types and functions for serialization. </p>

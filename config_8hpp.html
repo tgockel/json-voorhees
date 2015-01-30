@@ -195,7 +195,8 @@ Macros</h2></td></tr>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">item(<span class="keywordtype">int</span>)                              \</div>
 <div class="line">        item(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)                     \</div>
-<div class="line">        item(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)</div>
+<div class="line">        item(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)                    \</div>
+<div class="line">        item(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span>)</div>
 </div><!-- fragment -->
 <p>An item list of types to also consider as an integer. </p>
 <p>This mostly exists to help resolve the C-induced type ambiguity for the literal <code>0</code>. It most prefers to be an <code>int</code>, but might also become a <code>long</code> or a pointer type. </p>
@@ -251,7 +252,7 @@ Macros</h2></td></tr>
 <p>Controls the regular expression engine to use. </p>
 <p>By default, this will use the C++ Standard Library implementation. GCC versions below 4.8 will happy compile regular expressions, but will fail at runtime. If using GCC under 4.9, it is recommended that you set <code>JSONV_REGEX_USE_BOOST</code> to <code>1</code>. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00160">160</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00161">161</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -268,7 +269,7 @@ Macros</h2></td></tr>
 <p>The regular expression namespace to use. </p>
 <p>By default, this is <code>std</code>. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00161">161</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00162">162</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -285,7 +286,7 @@ Macros</h2></td></tr>
 <p>The file to include to get the implementation for <code>string_view</code>. </p>
 <p>If you define <code>JSONV_STRING_VIEW_TYPE</code>, you must also define this. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00139">139</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00140">140</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -302,7 +303,7 @@ Macros</h2></td></tr>
 <p>The type to use for <code>jsonv::string_view</code>. </p>
 <p>By default, this is <code><a class="el" href="classjsonv_1_1detail_1_1string__view.html" title="A non-owning reference to an std::string, as proposed to the C++ Standard Committee by Jeffrey Yasski...">jsonv::detail::string_view</a></code>. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00138">138</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00139">139</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
