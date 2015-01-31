@@ -190,7 +190,10 @@ public:
     
     virtual void mutate(const extraction_context& context, const value& from, T& out) const override
     {
-        (out.*_selector) = context.extract_sub<TMember>(from, _name);
+        if (_default_value && from.count(_name))
+            (out.*_selector) = _default_value(context, from);
+        else
+            (out.*_selector) = context.extract_sub<TMember>(from, _name);
     }
     
     virtual void encode(const serialization_context& context, const T& from, value& out) const override
@@ -225,9 +228,10 @@ private:
     }
     
 private:
-    std::string                                                  _name;
-    TMember T::*                                                 _selector;
-    std::function<bool (const serialization_context&, const T&)> _should_encode;
+    std::string                                                      _name;
+    TMember T::*                                                     _selector;
+    std::function<bool (const serialization_context&, const T&)>     _should_encode;
+    std::function<TMember (const extraction_context&, const value&)> _default_value;
 };
 
 template <typename T, typename TMember>
@@ -244,6 +248,23 @@ public:
             adapter_builder_dsl<T>(adapt_builder),
             _adapter(adapter)
     { }
+    
+    /** If the key for this member is not in the object when deserializing, call this function to create a value. If a
+     *  \c default_value is not specified, the key is required.
+    **/
+    member_adapter_builder& default_value(std::function<TMember (const extraction_context&, const value&)> create)
+    {
+        _adapter->_default_value = std::move(create);
+        return *this;
+    }
+    
+    /** If the key for this member is not in the object when deserializing, use this \a value. If a \c default_value is
+     *  not specified, the key is required.
+    **/
+    member_adapter_builder& default_value(TMember value)
+    {
+        return default_value([value] (const extraction_context&, const jsonv::value&) { return value; });
+    }
     
     /** Only encode this member if the \a check passes. The final decision to encode is based on \e all \c check
      *  functions.
