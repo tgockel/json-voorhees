@@ -23,7 +23,13 @@ formats_builder::formats_builder() :
 
 formats_builder& formats_builder::reference_type(std::type_index type)
 {
-    _referenced_types.insert(type);
+    _referenced_types[type];
+    return *this;
+}
+
+formats_builder& formats_builder::reference_type(std::type_index type, std::type_index from)
+{
+    _referenced_types[type].insert(from);
     return *this;
 }
 
@@ -32,8 +38,10 @@ formats_builder& formats_builder::check_references(formats other, const std::str
     formats searching = formats::compose({ _formats, other });
     
     std::deque<std::tuple<std::type_index, bool, bool>> failed_types;
-    for (const std::type_index& type : _referenced_types)
+    for (const auto& pair : _referenced_types)
     {
+        const std::type_index& type = pair.first;
+        
         bool has_extractor  = [&] { try { searching.get_extractor(type); return true; } catch (const no_extractor&)  { return false; } }();
         bool has_serializer = [&] { try { searching.get_encoder(type);   return true; } catch (const no_serializer&) { return false; } }();
         
@@ -55,7 +63,23 @@ formats_builder& formats_builder::check_references(formats other, const std::str
            << " referenced that the formats do not know how to serialize: ";
         for (const auto& failed_info : failed_types)
         {
-            os << std::endl << " - " << std::get<0>(failed_info).name();
+            std::type_index type = std::get<0>(failed_info);
+            os << std::endl << " - " << type.name();
+            const auto& referencing_types = _referenced_types.at(type);
+            if (!referencing_types.empty())
+            {
+                os << " (referenced by: ";
+                bool first = true;
+                for (const std::type_index& referencing_type : referencing_types)
+                {
+                    if (first)
+                        first = false;
+                    else
+                        os << ", ";
+                    os << referencing_type.name();
+                }
+                os << ")";
+            }
         }
         throw std::logic_error(os.str());
     }
@@ -73,6 +97,12 @@ formats_builder& formats_builder_dsl::reference_type(std::type_index typ)
 {
     return owner->reference_type(typ);
 }
+
+formats_builder& formats_builder_dsl::reference_type(std::type_index type, std::type_index from)
+{
+    return owner->reference_type(type, from);
+}
+
 
 formats_builder& formats_builder_dsl::register_adapter(std::shared_ptr<const adapter> p)
 {

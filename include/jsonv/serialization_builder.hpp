@@ -210,6 +210,7 @@
 #include <jsonv/serialization_util.hpp>
 
 #include <deque>
+#include <map>
 #include <memory>
 #include <set>
 #include <type_traits>
@@ -238,6 +239,8 @@ public:
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
     
     formats_builder& reference_type(std::type_index typ);
+    
+    formats_builder& reference_type(std::type_index type, std::type_index from);
     
     formats_builder& check_references(formats other, const std::string& name = "");
     
@@ -357,7 +360,7 @@ public:
             adapter_builder_dsl<T>(adapt_builder),
             _adapter(adapter)
     {
-        reference_type(std::type_index(typeid(TMember)));
+        reference_type(std::type_index(typeid(TMember)), std::type_index(typeid(T)));
     }
     
     /** When extracting, also look for this \a name as a key. **/
@@ -524,6 +527,7 @@ public:
     }
     
     formats_builder& reference_type(std::type_index type);
+    formats_builder& reference_type(std::type_index type, std::type_index from);
     
     /** Check that, when combined with the \c formats \a other, all types referenced by this \c formats_builder will
      *  get decoded properly.
@@ -538,8 +542,8 @@ public:
     formats_builder& check_references(formats other, const std::string& name = "");
     
 private:
-    formats                   _formats;
-    std::set<std::type_index> _referenced_types;
+    formats                                              _formats;
+    std::map<std::type_index, std::set<std::type_index>> _referenced_types;
 };
 
 namespace detail
