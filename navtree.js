@@ -30,6 +30,7 @@ var NAVTREE =
         [ "Member Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member", [
           [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level", [
             [ "after", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_after", null ],
+            [ "alternate_name", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_alternate_name", null ],
             [ "before", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_before", null ],
             [ "default_value", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_default_value", null ],
             [ "default_on_null", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_default_on_null", null ],
@@ -69,9 +70,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classjsonv_1_1extraction__error.html#aaa60750b41598d0100b4c3f371bab192",
-"forward_8hpp_source.html",
-"pages.html"
+"classjsonv_1_1extraction__error.html#a9898837e5ddb1c53d11761ef64d8ed3e",
+"forward_8hpp.html",
+"ostream_pretty_encoder_01to_01pretty-print_01JSON_01to_01std_1_1cout-example.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
