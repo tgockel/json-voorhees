@@ -1,5 +1,7 @@
 var NAVTREEINDEX3 =
 {
+"serialization_8hpp.html#ga75b53c85ab73bce4a1d0027c556715a8":[4,0,0,10,0],
+"serialization_8hpp.html#gaabee8db6887a255c3b351d127bfad140":[4,0,0,10,2],
 "serialization_8hpp.html#gac24f0cb864988715300f4741b5031546":[4,0,0,10,1],
 "serialization_8hpp_source.html":[4,0,0,10],
 "serialization__builder_8hpp.html":[4,0,0,11],

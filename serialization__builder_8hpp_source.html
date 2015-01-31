@@ -193,152 +193,192 @@ $(document).ready(function(){initNavTree('serialization__builder_8hpp_source.htm
 <div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;    </div>
 <div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;    <span class="keyword">virtual</span> <span class="keywordtype">void</span> encode(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1serialization__context.html">serialization_context</a>&amp; context, <span class="keyword">const</span> T&amp; from, <a class="code" href="classjsonv_1_1value.html">value</a>&amp; out)<span class="keyword"> const override</span></div>
 <div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        out.<a class="code" href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a">insert</a>({ _name, context.encode(from.*_selector) });</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    }</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    </div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    std::string  _name;</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    TMember T::* _selector;</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;};</div>
-<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1detail_1_1member__adapter__builder.html">member_adapter_builder</a> :</div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;        <span class="keyword">public</span> <a class="code" href="classjsonv_1_1detail_1_1formats__builder__dsl.html">formats_builder_dsl</a>,</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;        <span class="keyword">public</span> <a class="code" href="classjsonv_1_1detail_1_1adapter__builder__dsl.html">adapter_builder_dsl</a>&lt;T&gt;</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;{</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1detail_1_1member__adapter__builder.html">member_adapter_builder</a>(<a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>*                 fmt_builder,</div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;                                    <a class="code" href="classjsonv_1_1detail_1_1adapter__builder.html">adapter_builder&lt;T&gt;</a>*              adapt_builder,</div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;                                    <a class="code" href="classjsonv_1_1detail_1_1member__adapter__impl.html">member_adapter_impl&lt;T, TMember&gt;</a>* <a class="code" href="classjsonv_1_1adapter.html">adapter</a></div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;                                   ) :</div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;            <a class="code" href="classjsonv_1_1detail_1_1formats__builder__dsl.html">formats_builder_dsl</a>(fmt_builder),</div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;            <a class="code" href="classjsonv_1_1detail_1_1adapter__builder__dsl.html">adapter_builder_dsl</a>&lt;T&gt;(adapt_builder),</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;            _adapter(adapter)</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    { }</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    </div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    member_adapter_impl&lt;T, TMember&gt;* _adapter;</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;};</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;<span class="keyword">class </span>adapter_builder :</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;        <span class="keyword">public</span> formats_builder_dsl</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;{</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    <span class="keyword">explicit</span> adapter_builder(formats_builder* owner) :</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;            formats_builder_dsl(owner),</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;            _adapter(nullptr)</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    {</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;        <span class="keyword">auto</span> adapter = std::make_shared&lt;adapter_impl&gt;();</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        register_adapter(adapter);</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        _adapter = adapter.get();</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    }</div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    </div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    member_adapter_builder&lt;T, TMember&gt; member(std::string name, TMember T::*selector)</div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    {</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;        std::unique_ptr&lt;member_adapter_impl&lt;T, TMember&gt;&gt; ptr</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;            (</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;                <span class="keyword">new</span> member_adapter_impl&lt;T, TMember&gt;(std::move(name), selector)</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;            );</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;        member_adapter_builder&lt;T, TMember&gt; builder(formats_builder_dsl::owner, <span class="keyword">this</span>, ptr.get());</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;        _adapter-&gt;_members.emplace_back(std::move(ptr));</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;        <span class="keywordflow">return</span> builder;</div>
-<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    }</div>
-<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    </div>
-<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    <span class="keyword">class </span>adapter_impl :</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;            <span class="keyword">public</span> adapter_for&lt;T&gt;</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    {</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;    <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    </div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;        <span class="keyword">virtual</span> T create(<span class="keyword">const</span> extraction_context&amp; context, <span class="keyword">const</span> value&amp; from)<span class="keyword"> const override</span></div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;            T out;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; member : _members)</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;                member-&gt;mutate(context, from, out);</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;            <span class="keywordflow">return</span> out;</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;        }</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;        </div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;        <span class="keyword">virtual</span> value <a class="code" href="classjsonv_1_1adapter__for.html#a598a599b0398d9a4917c4fd626c6c5bc">encode</a>(<span class="keyword">const</span> serialization_context&amp; context, <span class="keyword">const</span> T&amp; from)<span class="keyword"> const override</span></div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;<span class="keyword">        </span>{</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;            value out = <a class="code" href="group__Creation.html#ga757770053a2714136231e26ec7c74673">object</a>();</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; member : _members)</div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;                member-&gt;encode(context, from, out);</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;            <span class="keywordflow">return</span> out;</div>
-<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;        }</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        </div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        std::deque&lt;std::unique_ptr&lt;member_adapter&lt;T&gt;&gt;&gt; _members;</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    };</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    </div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;    adapter_impl* _adapter;</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;};</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;</div>
-<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;}</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;</div>
-<div class="line"><a name="l00282"></a><span class="lineno"><a class="line" href="classjsonv_1_1formats__builder.html">  282</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a></div>
-<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;{</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;    <a class="code" href="classjsonv_1_1detail_1_1adapter__builder.html">detail::adapter_builder&lt;T&gt;</a> type()</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    {</div>
-<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classjsonv_1_1detail_1_1adapter__builder.html">detail::adapter_builder&lt;T&gt;</a>(<span class="keyword">this</span>);</div>
-<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;    }</div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;    </div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; register_adapter(std::shared_ptr&lt;const adapter&gt; p)</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        <span class="keywordflow">if</span> (should_encode(context, from))</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;            out.<a class="code" href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a">insert</a>({ _name, context.encode(from.*_selector) });</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    }</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    </div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    <span class="keywordtype">void</span> add_encode_check(std::function&lt;<span class="keywordtype">bool</span> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1serialization__context.html">serialization_context</a>&amp;, <span class="keyword">const</span> T&amp;)&gt; check)</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    {</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;        <span class="keywordflow">if</span> (_should_encode)</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;        {</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;            <span class="keyword">auto</span> old_check = std::move(_should_encode);</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;            _should_encode = [check, old_check] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1serialization__context.html">serialization_context</a>&amp; context, <span class="keyword">const</span> T&amp; <a class="code" href="classjsonv_1_1value.html">value</a>)</div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;                             {</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;                                <span class="keywordflow">return</span> check(context, <a class="code" href="classjsonv_1_1value.html">value</a>) &amp;&amp; old_check(context, <a class="code" href="classjsonv_1_1value.html">value</a>);</div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;                             };</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;        }</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;        {</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;            _should_encode = std::move(check);</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;        }</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;    }</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    </div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    <span class="keywordtype">bool</span> should_encode(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1serialization__context.html">serialization_context</a>&amp; context, <span class="keyword">const</span> T&amp; from)<span class="keyword"> const</span></div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;        <span class="keywordflow">if</span> (_should_encode)</div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;            <span class="keywordflow">return</span> _should_encode(context, from);</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;        <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;            <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    }</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;    </div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    std::string                                                  _name;</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    TMember T::*                                                 _selector;</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    std::function&lt;bool (const serialization_context&amp;, const T&amp;)&gt; _should_encode;</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;};</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1detail_1_1member__adapter__builder.html">member_adapter_builder</a> :</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;        <span class="keyword">public</span> <a class="code" href="classjsonv_1_1detail_1_1formats__builder__dsl.html">formats_builder_dsl</a>,</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;        <span class="keyword">public</span> <a class="code" href="classjsonv_1_1detail_1_1adapter__builder__dsl.html">adapter_builder_dsl</a>&lt;T&gt;</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;{</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1detail_1_1member__adapter__builder.html">member_adapter_builder</a>(<a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>*                 fmt_builder,</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;                                    <a class="code" href="classjsonv_1_1detail_1_1adapter__builder.html">adapter_builder&lt;T&gt;</a>*              adapt_builder,</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;                                    <a class="code" href="classjsonv_1_1detail_1_1member__adapter__impl.html">member_adapter_impl&lt;T, TMember&gt;</a>* <a class="code" href="classjsonv_1_1adapter.html">adapter</a></div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;                                   ) :</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;            <a class="code" href="classjsonv_1_1detail_1_1formats__builder__dsl.html">formats_builder_dsl</a>(fmt_builder),</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;            <a class="code" href="classjsonv_1_1detail_1_1adapter__builder__dsl.html">adapter_builder_dsl</a>&lt;T&gt;(adapt_builder),</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;            _adapter(adapter)</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    { }</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    </div>
+<div class="line"><a name="l00249"></a><span class="lineno"><a class="line" href="classjsonv_1_1detail_1_1member__adapter__builder.html#aade8065ec7dad73501daf861cc02d09b">  249</a></span>&#160;    <a class="code" href="classjsonv_1_1detail_1_1member__adapter__builder.html">member_adapter_builder</a>&amp; <a class="code" href="classjsonv_1_1detail_1_1member__adapter__builder.html#aade8065ec7dad73501daf861cc02d09b">since</a>(<a class="code" href="structjsonv_1_1version.html">version</a> ver)</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;    {</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;        _adapter-&gt;add_encode_check([ver] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1serialization__context.html">serialization_context</a>&amp; context, <span class="keyword">const</span> T&amp;)</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;                                   {</div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;                                       <span class="keywordflow">return</span> context.<a class="code" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f">version</a>() &gt;= ver;</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;                                   }</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;                                  );</div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    }</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    </div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    <a class="code" href="classjsonv_1_1detail_1_1member__adapter__impl.html">member_adapter_impl&lt;T, TMember&gt;</a>* _adapter;</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;};</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;<span class="keyword">class </span>adapter_builder :</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;        <span class="keyword">public</span> formats_builder_dsl</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;{</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    <span class="keyword">explicit</span> adapter_builder(<a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>* owner) :</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;            formats_builder_dsl(owner),</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;            _adapter(nullptr)</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    {</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;        <span class="keyword">auto</span> <a class="code" href="classjsonv_1_1adapter.html">adapter</a> = std::make_shared&lt;adapter_impl&gt;();</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;        register_adapter(<a class="code" href="classjsonv_1_1adapter.html">adapter</a>);</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;        _adapter = <a class="code" href="classjsonv_1_1adapter.html">adapter</a>.get();</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    }</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    </div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    member_adapter_builder&lt;T, TMember&gt; member(std::string name, TMember T::*selector)</div>
+<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;    {</div>
+<div class="line"><a name="l00280"></a><span class="lineno">  280</span>&#160;        std::unique_ptr&lt;member_adapter_impl&lt;T, TMember&gt;&gt; ptr</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;            (</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;                <span class="keyword">new</span> member_adapter_impl&lt;T, TMember&gt;(std::move(name), selector)</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;            );</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;        member_adapter_builder&lt;T, TMember&gt; builder(formats_builder_dsl::owner, <span class="keyword">this</span>, ptr.get());</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;        _adapter-&gt;_members.emplace_back(std::move(ptr));</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;        <span class="keywordflow">return</span> builder;</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    }</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;    </div>
+<div class="line"><a name="l00289"></a><span class="lineno">  289</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;    <span class="keyword">class </span>adapter_impl :</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;            <span class="keyword">public</span> adapter_for&lt;T&gt;</div>
 <div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;    {</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;        _formats.register_adapter(std::move(p));</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;    }</div>
-<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;    </div>
-<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;    <span class="keyword">operator</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;        <span class="keywordflow">return</span> _formats;</div>
-<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;    }</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;    </div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;    <a class="code" href="classjsonv_1_1formats.html">formats</a> _formats;</div>
-<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;};</div>
-<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<span class="keyword">namespace </span>detail</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;{</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;adapter_builder&lt;T&gt; formats_builder_dsl::type()</div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;{</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type&lt;T&gt;();</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;}</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;member_adapter_builder&lt;T, TMember&gt; adapter_builder_dsl&lt;T&gt;::member(std::string name, TMember T::*selector)</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;{</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), selector);</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;}</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;}</div>
-<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;</div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;}</div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;</div>
-<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;    <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;    </div>
+<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        <span class="keyword">virtual</span> T create(<span class="keyword">const</span> extraction_context&amp; context, <span class="keyword">const</span> value&amp; from)<span class="keyword"> const override</span></div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;<span class="keyword">        </span>{</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;            T out;</div>
+<div class="line"><a name="l00298"></a><span class="lineno">  298</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; member : _members)</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;                member-&gt;mutate(context, from, out);</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;            <span class="keywordflow">return</span> out;</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;        }</div>
+<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;        </div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;        <span class="keyword">virtual</span> value <a class="code" href="classjsonv_1_1adapter__for.html#a598a599b0398d9a4917c4fd626c6c5bc">encode</a>(<span class="keyword">const</span> serialization_context&amp; context, <span class="keyword">const</span> T&amp; from)<span class="keyword"> const override</span></div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;<span class="keyword">        </span>{</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;            value out = <a class="code" href="group__Creation.html#ga757770053a2714136231e26ec7c74673">object</a>();</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;            <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; member : _members)</div>
+<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;                member-&gt;encode(context, from, out);</div>
+<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;            <span class="keywordflow">return</span> out;</div>
+<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;        }</div>
+<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;        </div>
+<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;        std::deque&lt;std::unique_ptr&lt;member_adapter&lt;T&gt;&gt;&gt; _members;</div>
+<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;    };</div>
+<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    </div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    adapter_impl* _adapter;</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;};</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;}</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;</div>
+<div class="line"><a name="l00320"></a><span class="lineno"><a class="line" href="classjsonv_1_1formats__builder.html">  320</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a></div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;{</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;    <a class="code" href="classjsonv_1_1detail_1_1adapter__builder.html">detail::adapter_builder&lt;T&gt;</a> type()</div>
+<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;    {</div>
+<div class="line"><a name="l00326"></a><span class="lineno">  326</span>&#160;        <span class="keywordflow">return</span> <a class="code" href="classjsonv_1_1detail_1_1adapter__builder.html">detail::adapter_builder&lt;T&gt;</a>(<span class="keyword">this</span>);</div>
+<div class="line"><a name="l00327"></a><span class="lineno">  327</span>&#160;    }</div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;    </div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; register_adapter(std::shared_ptr&lt;const adapter&gt; p)</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;    {</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;        _formats.register_adapter(std::move(p));</div>
+<div class="line"><a name="l00332"></a><span class="lineno">  332</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a name="l00333"></a><span class="lineno">  333</span>&#160;    }</div>
+<div class="line"><a name="l00334"></a><span class="lineno">  334</span>&#160;    </div>
+<div class="line"><a name="l00335"></a><span class="lineno">  335</span>&#160;    <span class="keyword">operator</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>()<span class="keyword"> const</span></div>
+<div class="line"><a name="l00336"></a><span class="lineno">  336</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l00337"></a><span class="lineno">  337</span>&#160;        <span class="keywordflow">return</span> _formats;</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;    }</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    </div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;    <a class="code" href="classjsonv_1_1formats.html">formats</a> _formats;</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;};</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;<span class="keyword">namespace </span>detail</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;{</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;adapter_builder&lt;T&gt; formats_builder_dsl::type()</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;{</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type&lt;T&gt;();</div>
+<div class="line"><a name="l00351"></a><span class="lineno">  351</span>&#160;}</div>
+<div class="line"><a name="l00352"></a><span class="lineno">  352</span>&#160;</div>
+<div class="line"><a name="l00353"></a><span class="lineno">  353</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00354"></a><span class="lineno">  354</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l00355"></a><span class="lineno">  355</span>&#160;member_adapter_builder&lt;T, TMember&gt; adapter_builder_dsl&lt;T&gt;::member(std::string name, TMember T::*selector)</div>
+<div class="line"><a name="l00356"></a><span class="lineno">  356</span>&#160;{</div>
+<div class="line"><a name="l00357"></a><span class="lineno">  357</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), selector);</div>
+<div class="line"><a name="l00358"></a><span class="lineno">  358</span>&#160;}</div>
+<div class="line"><a name="l00359"></a><span class="lineno">  359</span>&#160;</div>
+<div class="line"><a name="l00360"></a><span class="lineno">  360</span>&#160;}</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;}</div>
+<div class="line"><a name="l00363"></a><span class="lineno">  363</span>&#160;</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
 <div class="ttc" id="classjsonv_1_1detail_1_1adapter__builder__dsl_html"><div class="ttname"><a href="classjsonv_1_1detail_1_1adapter__builder__dsl.html">jsonv::detail::adapter_builder_dsl</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00155">serialization_builder.hpp:155</a></div></div>
 <div class="ttc" id="classjsonv_1_1serialization__context_html"><div class="ttname"><a href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00587">serialization.hpp:587</a></div></div>
 <div class="ttc" id="classjsonv_1_1extraction__context_html_a71d973519b73a827f78a308c2d496038"><div class="ttname"><a href="classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038">jsonv::extraction_context::extract_sub</a></div><div class="ttdeci">T extract_sub(const value &amp;from, jsonv::path subpath) const </div><div class="ttdoc">Attempt to extract a T from from.at_path(subpath) using the formats associated with this context...</div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00533">serialization.hpp:533</a></div></div>
+<div class="ttc" id="classjsonv_1_1detail_1_1member__adapter__builder_html_aade8065ec7dad73501daf861cc02d09b"><div class="ttname"><a href="classjsonv_1_1detail_1_1member__adapter__builder.html#aade8065ec7dad73501daf861cc02d09b">jsonv::detail::member_adapter_builder::since</a></div><div class="ttdeci">member_adapter_builder &amp; since(version ver)</div><div class="ttdoc">Only encode this member if the serialization_context::version is greater than or equal to ver...</div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00249">serialization_builder.hpp:249</a></div></div>
 <div class="ttc" id="serialization__util_8hpp_html"><div class="ttname"><a href="serialization__util_8hpp.html">serialization_util.hpp</a></div><div class="ttdoc">Helper types and functions for serialization. </div></div>
 <div class="ttc" id="group__Creation_html_ga757770053a2714136231e26ec7c74673"><div class="ttname"><a href="group__Creation.html#ga757770053a2714136231e26ec7c74673">jsonv::object</a></div><div class="ttdeci">JSONV_PUBLIC value object()</div><div class="ttdoc">Create an empty object. </div></div>
 <div class="ttc" id="classjsonv_1_1adapter__for_html_a598a599b0398d9a4917c4fd626c6c5bc"><div class="ttname"><a href="classjsonv_1_1adapter__for.html#a598a599b0398d9a4917c4fd626c6c5bc">jsonv::adapter_for::encode</a></div><div class="ttdeci">virtual value encode(const serialization_context &amp;context, const void *from) const override</div><div class="ttdoc">Create a value from the value in the given region of memory. </div><div class="ttdef"><b>Definition:</b> <a href="serialization__util_8hpp_source.html#l00230">serialization_util.hpp:230</a></div></div>
-<div class="ttc" id="classjsonv_1_1formats__builder_html"><div class="ttname"><a href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00282">serialization_builder.hpp:282</a></div></div>
+<div class="ttc" id="classjsonv_1_1formats__builder_html"><div class="ttname"><a href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00320">serialization_builder.hpp:320</a></div></div>
 <div class="ttc" id="config_8hpp_html"><div class="ttname"><a href="config_8hpp.html">config.hpp</a></div><div class="ttdoc">Copyright (c) 2014 by Travis Gockel. </div></div>
 <div class="ttc" id="classjsonv_1_1detail_1_1formats__builder__dsl_html"><div class="ttname"><a href="classjsonv_1_1detail_1_1formats__builder__dsl.html">jsonv::detail::formats_builder_dsl</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00136">serialization_builder.hpp:136</a></div></div>
 <div class="ttc" id="classjsonv_1_1adapter_html"><div class="ttname"><a href="classjsonv_1_1adapter.html">jsonv::adapter</a></div><div class="ttdoc">An adapter is both an extractor and a serializer. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00227">serialization.hpp:227</a></div></div>
 <div class="ttc" id="classjsonv_1_1detail_1_1member__adapter__builder_html"><div class="ttname"><a href="classjsonv_1_1detail_1_1member__adapter__builder.html">jsonv::detail::member_adapter_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00134">serialization_builder.hpp:134</a></div></div>
 <div class="ttc" id="classjsonv_1_1formats_html"><div class="ttname"><a href="classjsonv_1_1formats.html">jsonv::formats</a></div><div class="ttdoc">Simply put, this class is a collection of extractor and serializer instances. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00286">serialization.hpp:286</a></div></div>
+<div class="ttc" id="classjsonv_1_1context__base_html_ad561e860ce9209021de176f646538f3f"><div class="ttname"><a href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f">jsonv::context_base::version</a></div><div class="ttdeci">const jsonv::version version() const </div><div class="ttdoc">Get the version this extraction_context was created with. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00454">serialization.hpp:454</a></div></div>
 <div class="ttc" id="classjsonv_1_1detail_1_1member__adapter__impl_html"><div class="ttname"><a href="classjsonv_1_1detail_1_1member__adapter__impl.html">jsonv::detail::member_adapter_impl</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00182">serialization_builder.hpp:182</a></div></div>
 <div class="ttc" id="classjsonv_1_1detail_1_1member__adapter_html"><div class="ttname"><a href="classjsonv_1_1detail_1_1member__adapter.html">jsonv::detail::member_adapter</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00170">serialization_builder.hpp:170</a></div></div>
 <div class="ttc" id="classjsonv_1_1extraction__context_html"><div class="ttname"><a href="classjsonv_1_1extraction__context.html">jsonv::extraction_context</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00471">serialization.hpp:471</a></div></div>
 <div class="ttc" id="serialization_8hpp_html"><div class="ttname"><a href="serialization_8hpp.html">serialization.hpp</a></div><div class="ttdoc">Conversion between C++ types and JSON values. </div></div>
 <div class="ttc" id="classjsonv_1_1detail_1_1adapter__builder_html"><div class="ttname"><a href="classjsonv_1_1detail_1_1adapter__builder.html">jsonv::detail::adapter_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00133">serialization_builder.hpp:133</a></div></div>
+<div class="ttc" id="structjsonv_1_1version_html"><div class="ttname"><a href="structjsonv_1_1version.html">jsonv::version</a></div><div class="ttdoc">Represents a version used to extract and encode JSON objects from C++ classes. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00045">serialization.hpp:45</a></div></div>
 <div class="ttc" id="config_8hpp_html_acd0703012bd724b356c177b7bc3d761d"><div class="ttname"><a href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a></div><div class="ttdeci">#define JSONV_PUBLIC</div><div class="ttdoc">This function or class is part of the public API for JsonVoorhees. </div><div class="ttdef"><b>Definition:</b> <a href="config_8hpp_source.html#l00078">config.hpp:78</a></div></div>
 <div class="ttc" id="classjsonv_1_1value_html"><div class="ttname"><a href="classjsonv_1_1value.html">jsonv::value</a></div><div class="ttdoc">Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00116">value.hpp:116</a></div></div>
 <div class="ttc" id="group__Array_html_gae19ed935e84e274c0cc93fd397498d3a"><div class="ttname"><a href="group__Array.html#gae19ed935e84e274c0cc93fd397498d3a">jsonv::value::insert</a></div><div class="ttdeci">array_iterator insert(const_array_iterator position, value item)</div><div class="ttdoc">Insert an item into position on this array. </div></div>
