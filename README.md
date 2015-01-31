@@ -213,6 +213,12 @@ I personally do not understand what these alternative build systems give me that
 Yes, I am a luddite who does not understand the fancy things the kids are using these days.
 Get off my lawn.
 
+### With such a cool name, do you have an equally cool logo?
+
+Not really...
+
+![JSON: Serialized Killer](https://raw.githubusercontent.com/tgockel/json-voorhees/master/doc/meme.jpg)
+
 
  [Boost.Regex]: http://www.boost.org/doc/libs/1_56_0/libs/regex/doc/html/index.html
     "The Boost.Regex library"

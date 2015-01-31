@@ -59,7 +59,7 @@ public:
     bool operator!=(const path_element&) const;
     
 private:
-    union storage
+    union JSONV_PUBLIC storage
     {
         std::size_t index;
         std::string key;

@@ -5,3 +5,6 @@
 build
 .kdev*
 *.kdev4
+packages/
+.vs
+*sdf

@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <vector>
 
 TEST(array)
 {

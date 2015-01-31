@@ -253,7 +253,15 @@ path::path(std::vector<path_element> elements) :
 
 path::path(const path&) = default;
 path& path::operator=(const path&) = default;
+
+#ifdef _MSC_VER
+path::path(path&& src) noexcept :
+        detail::generic_container<std::vector<path_element>>(std::move(src))
+{ }
+#else
 path::path(path&&) noexcept = default;
+#endif
+
 path& path::operator=(path&& src) noexcept
 {
     _data = std::move(src._data);

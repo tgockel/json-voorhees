@@ -59,7 +59,7 @@ std::string make_extraction_error_errmsg(const extraction_context& context, cons
 
 extraction_error::extraction_error(const extraction_context& context, const std::string& message) :
         std::runtime_error(make_extraction_error_errmsg(context, message)),
-        std::nested_exception(),
+        nested_exception(),
         _path(context.path())
 { }
 

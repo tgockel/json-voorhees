@@ -58,6 +58,20 @@ $(foreach extension,$(MAKEFILE_EXTENSIONS),$(eval $(call MAKEFILE_EXTENSION_TEMP
 # Configuration                                                                #
 ################################################################################
 
+# def: OS
+# The operating system we are using.
+OS ?= Linux
+
+ifeq ($(OS),Linux)
+    OS_LINUX   := 1
+    OS_WINDOWS :=
+else
+ ifeq ($(OS),Windows_NT)
+    OS_LINUX   :=
+    OS_WINDOWS := 1
+ endif
+endif
+
 # def: USE_BOOST_REGEX
 # Controls the variable JSONV_REGEX_USE_BOOST (see C++ documentation).
 USE_BOOST_REGEX ?= 0
@@ -163,7 +177,8 @@ TESTS       = $(filter %-tests,$(LIBRARIES))
 
 CXXC          ?= $(CXX) $(CXX_FLAGS) $(CXX_INCLUDES) $(CXX_DEFINES)
 CXX           ?= c++
-CXX_FLAGS     ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb -fPIC $(CXX_FLAGS_$(CONF))
+CXX_PIC       ?= $(if $(OS_WINDOWS),,-fPIC)
+CXX_FLAGS     ?= $(CXX_STANDARD) -c $(CXX_WARNINGS) -ggdb $(CXX_PIC) $(CXX_FLAGS_$(CONF))
 CXX_INCLUDES  ?= -I$(SRC_DIR) -I$(HEADER_DIR)
 CXX_STANDARD  ?= --std=c++11
 CXX_DEFINES   ?= -DJSONV_REGEX_USE_BOOST=$(USE_BOOST_REGEX)              \

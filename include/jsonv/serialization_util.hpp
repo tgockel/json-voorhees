@@ -54,7 +54,7 @@ protected:
         new(into) U(from, context);
     }
     
-    template <typename U>
+    template <typename U, typename = void>
     auto extract_impl(const extraction_context&,
                       const value&              from,
                       void*                     into
@@ -111,7 +111,7 @@ private:
         return func(context, from);
     }
     
-    template <typename FUExtract>
+    template <typename FUExtract, typename = void>
     static auto create_impl(const FUExtract& func, const extraction_context&, const value& from)
             -> decltype(func(from))
     {
@@ -134,7 +134,7 @@ auto make_extractor(FExtract func)
             (std::move(func));
 }
 
-template <typename FExtract>
+template <typename FExtract, typename = void>
 auto make_extractor(FExtract func)
     -> function_extractor<decltype(func(std::declval<const value&>())),
                           FExtract
@@ -192,7 +192,7 @@ private:
         return func(context, from);
     }
     
-    template <typename FUEncode>
+    template <typename FUEncode, typename = void>
     static auto encode_impl(const FUEncode& func, const serialization_context&, const T& from)
             -> decltype(func(from))
     {
@@ -270,7 +270,7 @@ private:
         return func(context, from);
     }
     
-    template <typename FUExtract>
+    template <typename FUExtract, typename = void>
     static auto create_impl(const FUExtract& func, const extraction_context&, const value& from)
             -> decltype(func(from))
     {
@@ -284,7 +284,7 @@ private:
         return func(context, from);
     }
     
-    template <typename FUEncode>
+    template <typename FUEncode, typename = void>
     static auto encode_impl(const FUEncode& func, const serialization_context&, const T& from)
             -> decltype(func(from))
     {
@@ -310,7 +310,7 @@ auto make_adapter(FExtract extract, FEncode encode)
             (std::move(extract), std::move(encode));
 }
 
-template <typename FExtract, typename FEncode>
+template <typename FExtract, typename FEncode, typename = void>
 auto make_adapter(FExtract extract, FEncode encode)
     -> function_adapter<decltype(extract(std::declval<const value&>())),
                         FExtract,

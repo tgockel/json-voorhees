@@ -13,6 +13,7 @@
 #define __JSONV_SERIALIZATION_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
+#include <jsonv/detail/nested_exception.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/value.hpp>
@@ -47,46 +48,63 @@ public:
     using version_element = std::uint32_t;
     
 public:
+    /** Initialize an instance with the given \a major and \a minor version info. **/
     constexpr version(version_element major = 0, version_element minor = 0) :
             major{major},
             minor{minor}
     { }
-    
-    constexpr bool operator==(const version& other) const
+
+    /** Check if this version is an "empty" value -- meaning \c major and \c minor are both \c 0. **/
+    constexpr bool empty() const
     {
-        return major == other.major
-            && minor == other.minor;
+        return major == 0 && minor == 0;
     }
     
+    /** Convert this instance into a \c uint64_t. The \c major version will be in the higher-order bits, while \c minor
+     *  will be in the lower-order bits.
+    **/
+    explicit constexpr operator std::uint64_t() const
+    {
+        return static_cast<std::uint64_t>(major) << 32
+             | static_cast<std::uint64_t>(minor) <<  0;
+    }
+    
+    /** Test for equality with \a other. **/
+    constexpr bool operator==(const version& other) const
+    {
+        return static_cast<std::uint64_t>(*this) == static_cast<std::uint64_t>(other);
+    }
+    
+    /** Test for inequality with \a other. **/
     constexpr bool operator!=(const version& other) const
     {
-        return major != other.major
-            || minor != other.minor;
+        return static_cast<std::uint64_t>(*this) != static_cast<std::uint64_t>(other);
     }
     
     /** Check that this version is less than \a other. The comparison is done lexicographically. **/
     constexpr bool operator<(const version& other) const
     {
-        return major < other.major  ? true
-             : major > other.major  ? false
-             : minor < other.minor;
+        return static_cast<std::uint64_t>(*this) < static_cast<std::uint64_t>(other);
     }
     
+    /** Check that this version is less than or equal to \a other. The comparison is done lexicographically. **/
     constexpr bool operator<=(const version& other) const
     {
-        return !(other < *this);
+        return static_cast<std::uint64_t>(*this) <= static_cast<std::uint64_t>(other);
     }
     
+    /** Check that this version is greater than \a other. The comparison is done lexicographically. **/
     constexpr bool operator>(const version& other) const
     {
-        return other < *this;
+        return static_cast<std::uint64_t>(*this) > static_cast<std::uint64_t>(other);
     }
     
+    /** Check that this version is greater than or equal to \a other. The comparison is done lexicographically. **/
     constexpr bool operator>=(const version& other) const
     {
-        return !(*this < other);
+        return static_cast<std::uint64_t>(*this) >= static_cast<std::uint64_t>(other);
     }
-    
+        
 public:
     version_element major;
     version_element minor;
@@ -97,7 +115,7 @@ public:
 **/
 class JSONV_PUBLIC extraction_error :
         public std::runtime_error,
-        public std::nested_exception
+        public nested_exception
 {
 public:
     /** Create a new \c extraction_error from the given \a context and \a message. **/
@@ -459,7 +477,7 @@ public:
     
     /** Create a new instance using the given \a fmt, \a ver and \a p. **/
     explicit extraction_context(jsonv::formats        fmt,
-                                const jsonv::version& ver      = jsonv::version(1),
+                                const jsonv::version& ver      = jsonv::version(),
                                 jsonv::path           p        = jsonv::path(),
                                 const void*           userdata = nullptr
                                );
@@ -575,7 +593,7 @@ public:
     
     /** Create a new instance using the given \a fmt and \a ver. **/
     explicit serialization_context(jsonv::formats        fmt,
-                                   const jsonv::version& ver      = jsonv::version(1),
+                                   const jsonv::version& ver      = jsonv::version(),
                                    const void*           userdata = nullptr
                                   );
     
