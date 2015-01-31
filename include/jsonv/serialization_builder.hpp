@@ -245,15 +245,53 @@ public:
             _adapter(adapter)
     { }
     
+    /** Only encode this member if the \a check passes. The final decision to encode is based on \e all \c check
+     *  functions.
+    **/
+    member_adapter_builder& encode_if(std::function<bool (const serialization_context&, const T&)> check)
+    {
+        _adapter->add_encode_check(std::move(check));
+        return *this;
+    }
+    
     /** Only encode this member if the \c serialization_context::version is greater than or equal to \a ver. **/
     member_adapter_builder& since(version ver)
     {
-        _adapter->add_encode_check([ver] (const serialization_context& context, const T&)
-                                   {
-                                       return context.version() >= ver;
-                                   }
-                                  );
-        return *this;
+        return encode_if([ver] (const serialization_context& context, const T&)
+                         {
+                             return context.version().empty() || context.version() >= ver;
+                         }
+                        );
+    }
+    
+    /** Only encode this member if the \c serialization_context::version is less than or equal to \a ver. **/
+    member_adapter_builder& until(version ver)
+    {
+        return encode_if([ver] (const serialization_context& context, const T&)
+                         {
+                             return context.version().empty() || context.version() <= ver;
+                         }
+                        );
+    }
+    
+    /** Only encode this member if the \c serialization_context::version is greater than \a ver. **/
+    member_adapter_builder& after(version ver)
+    {
+        return encode_if([ver] (const serialization_context& context, const T&)
+                         {
+                             return context.version().empty() || context.version() > ver;
+                         }
+                        );
+    }
+    
+    /** Only encode this member if the \c serialization_context::version is less than \a ver. **/
+    member_adapter_builder& before(version ver)
+    {
+        return encode_if([ver] (const serialization_context& context, const T&)
+                         {
+                             return context.version().empty() || context.version() < ver;
+                         }
+                        );
     }
     
 private:
