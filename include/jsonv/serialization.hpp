@@ -47,10 +47,22 @@ public:
     using version_element = std::uint32_t;
     
 public:
-    explicit constexpr version(version_element major = 0, version_element minor = 0) :
+    constexpr version(version_element major = 0, version_element minor = 0) :
             major{major},
             minor{minor}
     { }
+    
+    constexpr bool operator==(const version& other) const
+    {
+        return major == other.major
+            && minor == other.minor;
+    }
+    
+    constexpr bool operator!=(const version& other) const
+    {
+        return major != other.major
+            || minor != other.minor;
+    }
     
     /** Check that this version is less than \a other. The comparison is done lexicographically. **/
     constexpr bool operator<(const version& other) const
@@ -58,6 +70,21 @@ public:
         return major < other.major  ? true
              : major > other.major  ? false
              : minor < other.minor;
+    }
+    
+    constexpr bool operator<=(const version& other) const
+    {
+        return !(other < *this);
+    }
+    
+    constexpr bool operator>(const version& other) const
+    {
+        return other < *this;
+    }
+    
+    constexpr bool operator>=(const version& other) const
+    {
+        return !(*this < other);
     }
     
 public:

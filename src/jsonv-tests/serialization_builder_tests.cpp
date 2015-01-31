@@ -40,7 +40,8 @@ struct person
     
     bool operator==(const person& other) const
     {
-        return std::tie(firstname, lastname, age) == std::tie(other.firstname, other.lastname, other.age);
+        return std::tie(firstname,       lastname,       age)
+            == std::tie(other.firstname, other.lastname, other.age);
     }
     
     friend std::ostream& operator<<(std::ostream& os, const person& p)
@@ -80,6 +81,30 @@ TEST(serialization_builder_members)
     
     person q = extract<person>(encoded, fmt);
     ensure_eq(expected, encoded);
+}
+
+TEST(serialization_builder_members_since)
+{
+    using my_pair = std::pair<int, int>;
+    
+    formats base =
+        formats_builder()
+            .type<my_pair>()
+                .member("a", &my_pair::first)
+                .member("b", &my_pair::second)
+                    .since({ 2, 0 })
+        ;
+    formats fmt = formats::compose({ base, formats::defaults() });
+    
+    auto to_json_ver = [&fmt] (const version& v)
+                       {
+                        serialization_context context(fmt, v);
+                        return context.encode(my_pair(5, 10));
+                       };
+    
+    ensure_eq(0U, to_json_ver({ 1, 0 }).count("b"));
+    ensure_eq(1U, to_json_ver({ 2, 0 }).count("b"));
+    ensure_eq(1U, to_json_ver({ 3, 0 }).count("b"));
 }
 
 }

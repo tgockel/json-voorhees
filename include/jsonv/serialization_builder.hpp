@@ -195,12 +195,39 @@ public:
     
     virtual void encode(const serialization_context& context, const T& from, value& out) const override
     {
-        out.insert({ _name, context.encode(from.*_selector) });
+        if (should_encode(context, from))
+            out.insert({ _name, context.encode(from.*_selector) });
+    }
+    
+    void add_encode_check(std::function<bool (const serialization_context&, const T&)> check)
+    {
+        if (_should_encode)
+        {
+            auto old_check = std::move(_should_encode);
+            _should_encode = [check, old_check] (const serialization_context& context, const T& value)
+                             {
+                                return check(context, value) && old_check(context, value);
+                             };
+        }
+        else
+        {
+            _should_encode = std::move(check);
+        }
     }
     
 private:
-    std::string  _name;
-    TMember T::* _selector;
+    bool should_encode(const serialization_context& context, const T& from) const
+    {
+        if (_should_encode)
+            return _should_encode(context, from);
+        else
+            return true;
+    }
+    
+private:
+    std::string                                                  _name;
+    TMember T::*                                                 _selector;
+    std::function<bool (const serialization_context&, const T&)> _should_encode;
 };
 
 template <typename T, typename TMember>
@@ -217,6 +244,17 @@ public:
             adapter_builder_dsl<T>(adapt_builder),
             _adapter(adapter)
     { }
+    
+    /** Only encode this member if the \c serialization_context::version is greater than or equal to \a ver. **/
+    member_adapter_builder& since(version ver)
+    {
+        _adapter->add_encode_check([ver] (const serialization_context& context, const T&)
+                                   {
+                                       return context.version() >= ver;
+                                   }
+                                  );
+        return *this;
+    }
     
 private:
     member_adapter_impl<T, TMember>* _adapter;
