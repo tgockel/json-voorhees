@@ -21,12 +21,14 @@ var group__Serialization =
     ] ],
     [ "no_extractor", "classjsonv_1_1no__extractor.html", [
       [ "no_extractor", "classjsonv_1_1no__extractor.html#a2fb50e8d11e9f2351bcabe1394e4f06a", null ],
+      [ "no_extractor", "classjsonv_1_1no__extractor.html#a682b6b8aed31090a4f1a506fcd6dd7a3", null ],
       [ "~no_extractor", "classjsonv_1_1no__extractor.html#a52eac475300e7d2daa4b9ce35a4dd885", null ],
       [ "type_index", "classjsonv_1_1no__extractor.html#a4db99bf34b0018f9baae45c11ebfd9d2", null ],
       [ "type_name", "classjsonv_1_1no__extractor.html#a62e439cff6efa579290ddd4a30d17860", null ]
     ] ],
     [ "no_serializer", "classjsonv_1_1no__serializer.html", [
       [ "no_serializer", "classjsonv_1_1no__serializer.html#a24f76c4f20e7d6772c8e227c03a45d69", null ],
+      [ "no_serializer", "classjsonv_1_1no__serializer.html#a6197746954effe33956f51c9bdc85e5b", null ],
       [ "~no_serializer", "classjsonv_1_1no__serializer.html#a40d827d8e5cbbfcb3777d3485efda961", null ],
       [ "type_index", "classjsonv_1_1no__serializer.html#a2c91ea9edbddbdfefbc4a33581a42ea1", null ],
       [ "type_name", "classjsonv_1_1no__serializer.html#a01073f3eea6ad3dd4f5af32c0f9b0c1a", null ]
@@ -50,6 +52,10 @@ var group__Serialization =
       [ "~formats", "classjsonv_1_1formats.html#a656580c8138fb24a4723ee64f6a364a6", null ],
       [ "encode", "classjsonv_1_1formats.html#aedd77cea1a8fe4831fbe561a6507ff76", null ],
       [ "extract", "classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447", null ],
+      [ "get_encoder", "classjsonv_1_1formats.html#a20364d4722399188f962500909ee1c32", null ],
+      [ "get_encoder", "classjsonv_1_1formats.html#a16195cf9f8eda8962c9fa1fa1ab0ff87", null ],
+      [ "get_extractor", "classjsonv_1_1formats.html#a8457bf42fe91f4b664b709c5993168f6", null ],
+      [ "get_extractor", "classjsonv_1_1formats.html#adf2e4f404fcbaca68e6831047e850758", null ],
       [ "operator!=", "classjsonv_1_1formats.html#ab7e5f101767bb57e73c58a77deffa24c", null ],
       [ "operator==", "classjsonv_1_1formats.html#a2f8e8bdba52fd094cb34635015957df7", null ],
       [ "register_adapter", "classjsonv_1_1formats.html#a9bf59b5db670a92d3b4d4d4094c78b86", null ],

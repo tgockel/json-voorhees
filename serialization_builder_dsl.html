@@ -104,26 +104,68 @@ $(document).ready(function(){initNavTree('serialization_builder_dsl.html','');})
 <div class="contents">
 <div class="textblock"><p>Most applications tend to have a lot of structure types.</p>
 <p>While it is possible to write an <code>extractor</code> and <code>serializer</code> (or <code>adapter</code>) for each type, this can get a little bit tedious. Beyond that, it is very difficult to look at the contents of adapter code and discover what the JSON might actually look like. The builder DSL is meant to solve these issues by providing a convenient way to describe conversion operations for your C++ types.</p>
-<p>At the end of the day, the goal is to take a C++ structure like this:</p>
+<p>At the end of the day, the goal is to take some C++ structures like this:</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>person</div>
 <div class="line">{</div>
 <div class="line">    std::string first_name;</div>
 <div class="line">    std::string last_name;</div>
 <div class="line">    <span class="keywordtype">int</span>         age;</div>
+<div class="line">    std::string role;</div>
+<div class="line">};</div>
+<div class="line"></div>
+<div class="line"><span class="keyword">struct </span>company</div>
+<div class="line">{</div>
+<div class="line">    std::string         name;</div>
+<div class="line">    <span class="keywordtype">bool</span>                certified;</div>
+<div class="line">    std::vector&lt;person&gt; employees;</div>
+<div class="line">    std::list&lt;person&gt;   candidates;</div>
 <div class="line">};</div>
 </div><!-- fragment --><p>...and easily convert it to an from a JSON representation that looks like this:</p>
 <div class="fragment"><div class="line">{</div>
-<div class="line">    <span class="stringliteral">&quot;first_name&quot;</span>: <span class="stringliteral">&quot;Bob&quot;</span>,</div>
-<div class="line">    <span class="stringliteral">&quot;last_name&quot;</span>:  <span class="stringliteral">&quot;Builder&quot;</span>,</div>
-<div class="line">    <span class="stringliteral">&quot;age&quot;</span>:        29</div>
+<div class="line">    <span class="stringliteral">&quot;name&quot;</span>: <span class="stringliteral">&quot;Paul&#39;s Construction&quot;</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;certified&quot;</span>: <span class="keyword">false</span>,</div>
+<div class="line">    <span class="stringliteral">&quot;employees&quot;</span>: [</div>
+<div class="line">        {</div>
+<div class="line">            <span class="stringliteral">&quot;first_name&quot;</span>: <span class="stringliteral">&quot;Bob&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;last_name&quot;</span>:  <span class="stringliteral">&quot;Builder&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;age&quot;</span>:        29</div>
+<div class="line">        },</div>
+<div class="line">        {</div>
+<div class="line">            <span class="stringliteral">&quot;first_name&quot;</span>: <span class="stringliteral">&quot;James&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;last_name&quot;</span>:  <span class="stringliteral">&quot;Johnson&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;age&quot;</span>:        38,</div>
+<div class="line">            <span class="stringliteral">&quot;role&quot;</span>:       <span class="stringliteral">&quot;Foreman&quot;</span></div>
+<div class="line">        }</div>
+<div class="line">    ],</div>
+<div class="line">    <span class="stringliteral">&quot;candidates&quot;</span>: [</div>
+<div class="line">        {</div>
+<div class="line">            <span class="stringliteral">&quot;firstname&quot;</span>: <span class="stringliteral">&quot;Adam&quot;</span>,</div>
+<div class="line">            <span class="stringliteral">&quot;lastname&quot;</span>:  <span class="stringliteral">&quot;Ant&quot;</span></div>
+<div class="line">        }</div>
+<div class="line">    ]</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>To define a <code>formats</code> for this <code>person</code> type using the serialization builder DSL, you would say:</p>
 <div class="fragment"><div class="line"><a class="code" href="classjsonv_1_1formats.html">jsonv::formats</a> fmts =</div>
 <div class="line">    <a class="code" href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a>()</div>
 <div class="line">        .type&lt;person&gt;()</div>
 <div class="line">            .member(<span class="stringliteral">&quot;first_name&quot;</span>, &amp;person::first_name)</div>
+<div class="line">                .alternate_name(<span class="stringliteral">&quot;firstname&quot;</span>)</div>
 <div class="line">            .member(<span class="stringliteral">&quot;last_name&quot;</span>,  &amp;person::last_name)</div>
+<div class="line">                .alternate_name(<span class="stringliteral">&quot;lastname&quot;</span>)</div>
 <div class="line">            .member(<span class="stringliteral">&quot;age&quot;</span>,        &amp;person::age)</div>
+<div class="line">                .until({ 6,1 })</div>
+<div class="line">                .default_value(21)</div>
+<div class="line">                .default_on_null()</div>
+<div class="line">                .check_input([] (<span class="keywordtype">int</span> value) { <span class="keywordflow">if</span> (value &lt; 0) <span class="keywordflow">throw</span> std::logic_error(<span class="stringliteral">&quot;Age must be positive.&quot;</span>); })</div>
+<div class="line">            .member(<span class="stringliteral">&quot;role&quot;</span>,       &amp;person::role)</div>
+<div class="line">                .since({ 2,0 })</div>
+<div class="line">                .default_value(<span class="stringliteral">&quot;Builder&quot;</span>)</div>
+<div class="line">        .type&lt;company&gt;()</div>
+<div class="line">            .member(<span class="stringliteral">&quot;name&quot;</span>,       &amp;company::name)</div>
+<div class="line">            .member(<span class="stringliteral">&quot;certified&quot;</span>,  &amp;company::certified)</div>
+<div class="line">            .member(<span class="stringliteral">&quot;employees&quot;</span>,  &amp;company::employees)</div>
+<div class="line">            .member(<span class="stringliteral">&quot;candidates&quot;</span>, &amp;company::candidates)</div>
+<div class="line">        .register_sequence_containers&lt;company, std::vector, std::list&gt;()</div>
 <div class="line">    ;</div>
 </div><!-- fragment --><h1><a class="anchor" id="Reference"></a>
 Reference</h1>
@@ -141,8 +183,20 @@ Formats Context</h2>
 <p>Commands in this section modify the behavior of the underlying <code><a class="el" href="classjsonv_1_1formats.html" title="Simply put, this class is a collection of extractor and serializer instances. ">jsonv::formats</a></code> object.</p>
 <h3><a class="anchor" id="serialization_builder_dsl_ref_formats_level"></a>
 Level</h3>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_check_references"></a>
+check_references</h4>
+<p>TODO</p>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_reference_type"></a>
+reference_type</h4>
+<p>TODO</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_adapter"></a>
 register_adapter</h4>
+<p>TODO</p>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_sequence_container"></a>
+register_sequence_container&lt;TContainer&gt;</h4>
+<p>TODO</p>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_sequence_containers"></a>
+register_sequence_containers&lt;T, template... &lt;T, ...&gt;&gt;</h4>
 <p>TODO</p>
 <h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
 Narrowing</h3>

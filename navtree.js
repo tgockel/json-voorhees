@@ -15,7 +15,11 @@ var NAVTREE =
       [ "Reference", "serialization_builder_dsl.html#Reference", [
         [ "Formats Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats", [
           [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level", [
-            [ "register_adapter", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_adapter", null ]
+            [ "check_references", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_check_references", null ],
+            [ "reference_type", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_reference_type", null ],
+            [ "register_adapter", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_adapter", null ],
+            [ "register_sequence_container<TContainer>", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_sequence_container", null ],
+            [ "register_sequence_containers<T, template... <T, ...>>", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_sequence_containers", null ]
           ] ],
           [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing", [
             [ "type<T>", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing_type", null ]
@@ -70,9 +74,9 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classjsonv_1_1extraction__error.html#a9898837e5ddb1c53d11761ef64d8ed3e",
-"forward_8hpp.html",
-"ostream_pretty_encoder_01to_01pretty-print_01JSON_01to_01std_1_1cout-example.html"
+"classjsonv_1_1extraction__context.html#af0e81b4935d94bef16f656ccd45eda55",
+"config_8hpp.html#acd0703012bd724b356c177b7bc3d761d",
+"index.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

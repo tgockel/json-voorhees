@@ -2,6 +2,7 @@ var searchData=
 [
   ['can_5fcoerce',['can_coerce',['../group__Coercion.html#gaf20cb82e10e2201d983e217c47e26ba6',1,'jsonv::can_coerce(const kind &amp;from, const kind &amp;to)'],['../group__Coercion.html#gafe7cfb78c4ebf72fe476ce5137b8538f',1,'jsonv::can_coerce(const value &amp;from, const kind &amp;to)']]],
   ['character',['character',['../structjsonv_1_1parse__error_1_1problem.html#a9a170800c8dffbbef3aa8bfbac5cd8a6',1,'jsonv::parse_error::problem']]],
+  ['check_5freferences',['check_references',['../classjsonv_1_1formats__builder.html#a8f4052163f27e150ae0ad26042a03edb',1,'jsonv::formats_builder']]],
   ['clear',['clear',['../group__Shared.html#ga11b8dfc38c7a6ceac53c639f18aaebea',1,'jsonv::value']]],
   ['coerce',['coerce',['../classjsonv_1_1formats.html#aee2ffa92a5678e6a24f8750e2c75884d',1,'jsonv::formats']]],
   ['coerce_5farray',['coerce_array',['../group__Coercion.html#gae17eed7144363cc743cf143f13c377c1',1,'jsonv']]],
