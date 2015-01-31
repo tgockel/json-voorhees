@@ -115,6 +115,10 @@
  *  
  *  TODO
  *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_alternate_name alternate_name
+ *  
+ *  TODO
+ *  
  *  \paragraph serialization_builder_dsl_ref_member_level_before before
  *  
  *  TODO
@@ -213,16 +217,20 @@ class member_adapter_impl :
 {
 public:
     explicit member_adapter_impl(std::string name, TMember T::*selector) :
-            _name(std::move(name)),
+            _names({ std::move(name) }),
             _selector(selector)
     { }
     
     virtual void mutate(const extraction_context& context, const value& from, T& out) const override
     {
+        value::const_object_iterator iter;
+        for (const auto& name : _names)
+            if ((iter = from.find(name)) != from.end_object())
+                break;
+        
         bool use_default = false;
         if (_default_value)
         {
-            auto iter = from.find(_name);
             use_default = (iter == from.end_object())
                        || (_default_on_null && iter->second.kind() == kind::null);
         }
@@ -230,13 +238,13 @@ public:
         if (use_default)
             (out.*_selector) = _default_value(context, from);
         else
-            (out.*_selector) = context.extract_sub<TMember>(from, _name);
+            (out.*_selector) = context.extract_sub<TMember>(from, iter->first);
     }
     
     virtual void encode(const serialization_context& context, const T& from, value& out) const override
     {
         if (should_encode(context, from))
-            out.insert({ _name, context.encode(from.*_selector) });
+            out.insert({ _names.at(0), context.encode(from.*_selector) });
     }
     
     void add_encode_check(std::function<bool (const serialization_context&, const T&)> check)
@@ -265,7 +273,7 @@ private:
     }
     
 private:
-    std::string                                                      _name;
+    std::vector<std::string>                                         _names;
     TMember T::*                                                     _selector;
     std::function<bool (const serialization_context&, const T&)>     _should_encode;
     std::function<TMember (const extraction_context&, const value&)> _default_value;
@@ -286,6 +294,13 @@ public:
             adapter_builder_dsl<T>(adapt_builder),
             _adapter(adapter)
     { }
+    
+    /** When extracting, also look for this \a name as a key. **/
+    member_adapter_builder& alternate_name(std::string name)
+    {
+        _adapter->_names.emplace_back(std::move(name));
+        return *this;
+    }
     
     /** If the key for this member is not in the object when deserializing, call this function to create a value. If a
      *  \c default_value is not specified, the key is required.
