@@ -110,6 +110,35 @@
  *  \subsection serialization_builder_dsl_ref_member Member Context
  *  
  *  \subsubsection serialization_builder_dsl_ref_member_level Level
+ *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_after after
+ *  
+ *  TODO
+ *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_before before
+ *  
+ *  TODO
+ *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
+ *  
+ *  TODO
+ *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_default_on_null default_on_null
+ *  
+ *  TODO
+ *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_encode_if encode_if
+ *  
+ *  TODO
+ *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_since since
+ *  
+ *  TODO
+ *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_until until
+ *  
+ *  TODO
+ *  
 **/
 #ifndef __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
 #define __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
@@ -190,7 +219,15 @@ public:
     
     virtual void mutate(const extraction_context& context, const value& from, T& out) const override
     {
-        if (_default_value && from.count(_name))
+        bool use_default = false;
+        if (_default_value)
+        {
+            auto iter = from.find(_name);
+            use_default = (iter == from.end_object())
+                       || (_default_on_null && iter->second.kind() == kind::null);
+        }
+        
+        if (use_default)
             (out.*_selector) = _default_value(context, from);
         else
             (out.*_selector) = context.extract_sub<TMember>(from, _name);
@@ -232,6 +269,7 @@ private:
     TMember T::*                                                     _selector;
     std::function<bool (const serialization_context&, const T&)>     _should_encode;
     std::function<TMember (const extraction_context&, const value&)> _default_value;
+    bool                                                             _default_on_null = true;
 };
 
 template <typename T, typename TMember>
@@ -264,6 +302,13 @@ public:
     member_adapter_builder& default_value(TMember value)
     {
         return default_value([value] (const extraction_context&, const jsonv::value&) { return value; });
+    }
+    
+    /** Should a \c kind::null for a key be interpreted as a missing value? **/
+    member_adapter_builder& default_on_null(bool on = true)
+    {
+        _adapter->_default_on_null = on;
+        return *this;
     }
     
     /** Only encode this member if the \a check passes. The final decision to encode is based on \e all \c check
