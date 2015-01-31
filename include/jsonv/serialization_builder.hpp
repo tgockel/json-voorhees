@@ -16,7 +16,7 @@
  *  look at the contents of adapter code and discover what the JSON might actually look like. The builder DSL is meant
  *  to solve these issues by providing a convenient way to describe conversion operations for your C++ types.
  *  
- *  At the end of the day, the goal is to take a C++ structure like this:
+ *  At the end of the day, the goal is to take some C++ structures like this:
  *  
  *  \code
  *  struct person
@@ -24,6 +24,15 @@
  *      std::string first_name;
  *      std::string last_name;
  *      int         age;
+ *      std::string role;
+ *  };
+ *  
+ *  struct company
+ *  {
+ *      std::string         name;
+ *      bool                certified;
+ *      std::vector<person> employees;
+ *      std::list<person>   candidates;
  *  };
  *  \endcode
  *  
@@ -31,9 +40,27 @@
  *  
  *  \code
  *  {
- *      "first_name": "Bob",
- *      "last_name":  "Builder",
- *      "age":        29
+ *      "name": "Paul's Construction",
+ *      "certified": false,
+ *      "employees": [
+ *          {
+ *              "first_name": "Bob",
+ *              "last_name":  "Builder",
+ *              "age":        29
+ *          },
+ *          {
+ *              "first_name": "James",
+ *              "last_name":  "Johnson",
+ *              "age":        38,
+ *              "role":       "Foreman"
+ *          }
+ *      ],
+ *      "candidates": [
+ *          {
+ *              "firstname": "Adam",
+ *              "lastname":  "Ant"
+ *          }
+ *      ]
  *  }
  *  \endcode
  *  
@@ -44,8 +71,23 @@
  *      jsonv::formats_builder()
  *          .type<person>()
  *              .member("first_name", &person::first_name)
+ *                  .alternate_name("firstname")
  *              .member("last_name",  &person::last_name)
+ *                  .alternate_name("lastname")
  *              .member("age",        &person::age)
+ *                  .until({ 6,1 })
+ *                  .default_value(21)
+ *                  .default_on_null()
+ *                  .check_input([] (int value) { if (value < 0) throw std::logic_error("Age must be positive."); })
+ *              .member("role",       &person::role)
+ *                  .since({ 2,0 })
+ *                  .default_value("Builder")
+ *          .type<company>()
+ *              .member("name",       &company::name)
+ *              .member("certified",  &company::certified)
+ *              .member("employees",  &company::employees)
+ *              .member("candidates", &company::candidates)
+ *          .register_sequence_containers<company, std::vector, std::list>()
  *      ;
  *  \endcode
  * 
@@ -85,7 +127,23 @@
  *  
  *  \subsubsection serialization_builder_dsl_ref_formats_level Level
  *  
+ *  \paragraph serialization_builder_dsl_ref_formats_level_check_references check_references
+ *  
+ *  TODO
+ *  
+ *  \paragraph serialization_builder_dsl_ref_formats_level_reference_type reference_type
+ *  
+ *  TODO
+ *  
  *  \paragraph serialization_builder_dsl_ref_formats_level_register_adapter register_adapter
+ *  
+ *  TODO
+ * 
+ *  \paragraph serialization_builder_dsl_ref_formats_level_register_sequence_container register_sequence_container&lt;TContainer&gt;
+ *  
+ *  TODO
+ * 
+ *  \paragraph serialization_builder_dsl_ref_formats_level_register_sequence_containers register_sequence_containers&lt;T, template... &lt;T, ...&gt;&gt;
  *  
  *  TODO
  *  
@@ -153,6 +211,7 @@
 
 #include <deque>
 #include <memory>
+#include <set>
 #include <type_traits>
 
 namespace jsonv
@@ -177,6 +236,10 @@ public:
     detail::adapter_builder<T> type();
     
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
+    
+    formats_builder& reference_type(std::type_index typ);
+    
+    formats_builder& check_references(formats other, const std::string& name = "");
     
     operator formats() const;
     
@@ -293,7 +356,9 @@ public:
             formats_builder_dsl(fmt_builder),
             adapter_builder_dsl<T>(adapt_builder),
             _adapter(adapter)
-    { }
+    {
+        reference_type(std::type_index(typeid(TMember)));
+    }
     
     /** When extracting, also look for this \a name as a key. **/
     member_adapter_builder& alternate_name(std::string name)
@@ -439,6 +504,8 @@ private:
 class JSONV_PUBLIC formats_builder
 {
 public:
+    formats_builder();
+    
     template <typename T>
     detail::adapter_builder<T> type()
     {
@@ -456,8 +523,23 @@ public:
         return _formats;
     }
     
+    formats_builder& reference_type(std::type_index type);
+    
+    /** Check that, when combined with the \c formats \a other, all types referenced by this \c formats_builder will
+     *  get decoded properly.
+     *  
+     *  \param name if non-empty and this function throws, this \a name will be provided in the exception's \c what
+     *              string. This can be useful if you are running multiple \c check_references calls and you want to
+     *              name the different checks.
+     *  
+     *  \throws std::logic_error if \c formats this \c formats_builder is generating, when combined with the provided
+     *                           \a other \c formats, cannot properly serialize all the types.
+    **/
+    formats_builder& check_references(formats other, const std::string& name = "");
+    
 private:
-    formats _formats;
+    formats                   _formats;
+    std::set<std::type_index> _referenced_types;
 };
 
 namespace detail

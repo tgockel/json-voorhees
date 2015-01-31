@@ -66,6 +66,7 @@ TEST(serialization_builder_members)
                         .member("firstname", &person::firstname)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
+                    .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
     
