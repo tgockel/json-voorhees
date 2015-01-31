@@ -137,6 +137,7 @@ class JSONV_PUBLIC no_extractor :
 public:
     /** Create a new exception. **/
     explicit no_extractor(const std::type_info& type);
+    explicit no_extractor(const std::type_index& type);
     
     virtual ~no_extractor() noexcept;
     
@@ -157,6 +158,7 @@ class JSONV_PUBLIC no_serializer :
 public:
     /** Create a new exception. **/
     explicit no_serializer(const std::type_info& type);
+    explicit no_serializer(const std::type_index& type);
     
     virtual ~no_serializer() noexcept;
     
@@ -358,6 +360,18 @@ public:
                  const extraction_context& context
                 ) const;
     
+    /** Get the \c extractor for the given \a type.
+     *  
+     *  \throws no_extractor if an \c extractor for \a type could not be found.
+    **/
+    const extractor& get_extractor(std::type_index type) const;
+    
+    /** Get the \c extractor for the given \a type.
+     *  
+     *  \throws no_extractor if an \c extractor for \a type could not be found.
+    **/
+    const extractor& get_extractor(const std::type_info& type) const;
+    
     /** Encode the provided value \a from into a JSON \c value. The \a context is passed to the \c serializer which
      *  performs the conversion. In general, this should not be used directly as it is painful to do so -- prefer
      *  \c serialization_context::encode or the free function \c jsonv::to_json.
@@ -368,6 +382,18 @@ public:
                  const void*                  from,
                  const serialization_context& context
                 ) const;
+    
+    /** Gets the \c serializer for the given \a type.
+     *  
+     *  \throws no_serializer if a \c serializer for \a type could not be found.
+    **/
+    const serializer& get_encoder(std::type_index type) const;
+    
+    /** Gets the \c serializer for the given \a type.
+     *  
+     *  \throws no_serializer if a \c serializer for \a type could not be found.
+    **/
+    const serializer& get_encoder(const std::type_info& type) const;
     
     /** Register an \c extractor that lives in some unmanaged space.
      *  
