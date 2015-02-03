@@ -6,6 +6,16 @@
 0._ Series
 ==========
 
+[0.5](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.5)
+-------------------------------------------------------------------------
+
+The focus of this release was the creation of the serialization system: `extract`, `to_json` and everything else they need to work.
+
+ - [0.5.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.4.1): 2015 February 13
+   - Creates the serialization API: `extract`, `to_json`, `formats`, `extractor`, `serializer` and `adapter`
+   - Creates the "Serialization Builder DSL"
+   - Adds the `value::is_X` convenience functions for checking `kind` values.
+
 [0.4](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av0.4)
 -------------------------------------------------------------------------
 
