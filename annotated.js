@@ -18,6 +18,7 @@ var annotated =
       ] ],
       [ "adapter", "classjsonv_1_1adapter.html", "classjsonv_1_1adapter" ],
       [ "adapter_for", "classjsonv_1_1adapter__for.html", "classjsonv_1_1adapter__for" ],
+      [ "container_adapter", "classjsonv_1_1container__adapter.html", "classjsonv_1_1container__adapter" ],
       [ "context_base", "classjsonv_1_1context__base.html", "classjsonv_1_1context__base" ],
       [ "diff_result", "structjsonv_1_1diff__result.html", "structjsonv_1_1diff__result" ],
       [ "dynamic_merge_rules", "classjsonv_1_1dynamic__merge__rules.html", "classjsonv_1_1dynamic__merge__rules" ],

@@ -124,6 +124,10 @@ var group__Serialization =
       [ "create", "classjsonv_1_1function__adapter.html#aabe0ca724cfea9ef050272322f9467f6", null ],
       [ "encode", "classjsonv_1_1function__adapter.html#a9b270a7c675681aa26245b15ad8aefd0", null ]
     ] ],
+    [ "container_adapter", "classjsonv_1_1container__adapter.html", [
+      [ "create", "classjsonv_1_1container__adapter.html#ad88e79f33a559f43e90d511e06d28069", null ],
+      [ "encode", "classjsonv_1_1container__adapter.html#a04f7c58240f2bfcd20b942495cc943ad", null ]
+    ] ],
     [ "extract", "group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8", null ],
     [ "extract", "group__Serialization.html#gac24f0cb864988715300f4741b5031546", null ],
     [ "to_json", "group__Serialization.html#gaabee8db6887a255c3b351d127bfad140", null ],

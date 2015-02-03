@@ -25,6 +25,7 @@ var searchData=
   ['complete_5fparse',['complete_parse',['../classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907',1,'jsonv::parse_options']]],
   ['compose',['compose',['../classjsonv_1_1formats.html#ae8fdc86436f8dcfd405753db55620110',1,'jsonv::formats']]],
   ['config_2ehpp',['config.hpp',['../config_8hpp.html',1,'']]],
+  ['container_5fadapter',['container_adapter',['../classjsonv_1_1container__adapter.html',1,'jsonv']]],
   ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html#a43f445f3d44d5bd78e1cc9dee440ca63',1,'jsonv::context_base::context_base()'],['../classjsonv_1_1context__base.html#a7ae9085313c6150a02a1385607ee5929',1,'jsonv::context_base::context_base(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), const void *userdata=nullptr)']]],
   ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html',1,'jsonv']]],
   ['conversions',['Conversions',['../group__Conversions.html',1,'']]],

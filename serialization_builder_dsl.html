@@ -165,7 +165,8 @@ $(document).ready(function(){initNavTree('serialization_builder_dsl.html','');})
 <div class="line">            .member(<span class="stringliteral">&quot;certified&quot;</span>,  &amp;company::certified)</div>
 <div class="line">            .member(<span class="stringliteral">&quot;employees&quot;</span>,  &amp;company::employees)</div>
 <div class="line">            .member(<span class="stringliteral">&quot;candidates&quot;</span>, &amp;company::candidates)</div>
-<div class="line">        .register_sequence_containers&lt;company, std::vector, std::list&gt;()</div>
+<div class="line">        .register_containers&lt;company, std::vector, std::list&gt;()</div>
+<div class="line">        .check_references()</div>
 <div class="line">    ;</div>
 </div><!-- fragment --><h1><a class="anchor" id="Reference"></a>
 Reference</h1>
