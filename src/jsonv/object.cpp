@@ -264,7 +264,7 @@ value::const_object_iterator value::find(const std::string& key) const
 value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::string, value> pair)
 {
     check_type(jsonv::kind::object, kind());
-    typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
+    using const_converter_union = object_iter_converter<const value::object_value_type>::const_impl;
     const_converter_union hint_convert;
     hint_convert.storage = hint._storage;
     return object_iterator(_data.object->_values.insert(*hint_convert.iter, std::move(pair)));
@@ -293,7 +293,7 @@ value::size_type value::erase(const std::string& key)
 value::object_iterator value::erase(const_object_iterator position)
 {
     check_type(jsonv::kind::object, kind());
-    typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
+    using const_converter_union = object_iter_converter<const value::object_value_type>::const_impl;
     const_converter_union pos_convert;
     pos_convert.storage = position._storage;
     return object_iterator(_data.object->_values.erase(*pos_convert.iter));
@@ -302,7 +302,7 @@ value::object_iterator value::erase(const_object_iterator position)
 value::object_iterator value::erase(const_object_iterator first, const_object_iterator last)
 {
     check_type(jsonv::kind::object, kind());
-    typedef typename object_iter_converter<const value::object_value_type>::const_impl const_converter_union;
+    using const_converter_union = object_iter_converter<const value::object_value_type>::const_impl;
     const_converter_union first_convert;
     first_convert.storage = first._storage;
     const_converter_union last_convert;

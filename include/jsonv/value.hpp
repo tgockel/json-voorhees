@@ -429,10 +429,6 @@ public:
         value(type_ val);
     JSONV_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR)
     
-    // Don't allow any implicit conversions that we have not specified.
-    template <typename T>
-    value(T) = delete;
-    
     /** Destruction will never throw. **/
     ~value() noexcept;
     

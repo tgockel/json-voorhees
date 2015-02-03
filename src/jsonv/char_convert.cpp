@@ -342,7 +342,7 @@ static void utf8_append_code(std::string& str, char32_t val)
     char* bufferOut = buffer;
     *bufferOut++ = c;
     
-    int shift = (length - 2) * 6;
+    std::size_t shift = (length - 2) * 6;
     for (std::size_t idx = 1; idx < length; ++idx)
     {
         c = char('\x80' | ('\x3f' & (val >> shift)));

@@ -11,6 +11,60 @@
 **/
 #include "filesystem_util.hpp"
 
+#include <jsonv/detail/scope_exit.hpp>
+
+#ifdef _MSC_VER
+
+#include <Windows.h>
+
+namespace jsonv_test
+{
+
+std::string filename(std::string path)
+{
+    return path;
+}
+
+void recursive_directory_for_each(const std::string&                             root_path_name,
+                                  const std::string&                             extension_filter,
+                                  const std::function<void (const std::string&)> action
+                                 )
+{
+    WIN32_FIND_DATA found_file;
+    HANDLE search_handle = NULL;
+
+    std::string filter = root_path_name + "\\*" + extension_filter;
+    
+    if ((search_handle = FindFirstFile(filter.c_str(), &found_file)) == INVALID_HANDLE_VALUE)
+        return;
+
+    auto clean_handle = jsonv::detail::on_scope_exit([&search_handle] { FindClose(search_handle); });
+
+    do
+    {
+        // skip "." and ".."
+        if (strcmp(found_file.cFileName, ".") == 0
+            || strcmp(found_file.cFileName, "..") == 0
+            )
+        {
+            continue;
+        }
+        else
+        {
+            std::string path = root_path_name + "\\" + found_file.cFileName;
+
+            if (found_file.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                recursive_directory_for_each(path, extension_filter, action);
+            else
+                action(path);
+        }
+    } while (FindNextFile(search_handle, &found_file));
+}
+
+}
+
+#else
+
 #include <boost/filesystem.hpp>
 
 namespace jsonv_test
@@ -38,3 +92,5 @@ void recursive_directory_for_each(const std::string&                            
 }
 
 }
+
+#endif

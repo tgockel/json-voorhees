@@ -13,6 +13,7 @@
 #define __JSONV_SERIALIZATION_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
+#include <jsonv/detail/nested_exception.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/value.hpp>
@@ -48,11 +49,11 @@ public:
     
 public:
     /** Initialize an instance with the given \a major and \a minor version info. **/
-    explicit constexpr version(version_element major = 0, version_element minor = 0) :
+    constexpr version(version_element major = 0, version_element minor = 0) :
             major{major},
             minor{minor}
     { }
-    
+
     /** Check if this version is an "empty" value -- meaning \c major and \c minor are both \c 0. **/
     constexpr bool empty() const
     {
@@ -103,7 +104,7 @@ public:
     {
         return static_cast<std::uint64_t>(*this) >= static_cast<std::uint64_t>(other);
     }
-    
+        
 public:
     version_element major;
     version_element minor;
@@ -114,7 +115,7 @@ public:
 **/
 class JSONV_PUBLIC extraction_error :
         public std::runtime_error,
-        public std::nested_exception
+        public nested_exception
 {
 public:
     /** Create a new \c extraction_error from the given \a context and \a message. **/
@@ -136,6 +137,7 @@ class JSONV_PUBLIC no_extractor :
 public:
     /** Create a new exception. **/
     explicit no_extractor(const std::type_info& type);
+    explicit no_extractor(const std::type_index& type);
     
     virtual ~no_extractor() noexcept;
     
@@ -156,6 +158,7 @@ class JSONV_PUBLIC no_serializer :
 public:
     /** Create a new exception. **/
     explicit no_serializer(const std::type_info& type);
+    explicit no_serializer(const std::type_index& type);
     
     virtual ~no_serializer() noexcept;
     
@@ -357,6 +360,18 @@ public:
                  const extraction_context& context
                 ) const;
     
+    /** Get the \c extractor for the given \a type.
+     *  
+     *  \throws no_extractor if an \c extractor for \a type could not be found.
+    **/
+    const extractor& get_extractor(std::type_index type) const;
+    
+    /** Get the \c extractor for the given \a type.
+     *  
+     *  \throws no_extractor if an \c extractor for \a type could not be found.
+    **/
+    const extractor& get_extractor(const std::type_info& type) const;
+    
     /** Encode the provided value \a from into a JSON \c value. The \a context is passed to the \c serializer which
      *  performs the conversion. In general, this should not be used directly as it is painful to do so -- prefer
      *  \c serialization_context::encode or the free function \c jsonv::to_json.
@@ -367,6 +382,18 @@ public:
                  const void*                  from,
                  const serialization_context& context
                 ) const;
+    
+    /** Gets the \c serializer for the given \a type.
+     *  
+     *  \throws no_serializer if a \c serializer for \a type could not be found.
+    **/
+    const serializer& get_encoder(std::type_index type) const;
+    
+    /** Gets the \c serializer for the given \a type.
+     *  
+     *  \throws no_serializer if a \c serializer for \a type could not be found.
+    **/
+    const serializer& get_encoder(const std::type_info& type) const;
     
     /** Register an \c extractor that lives in some unmanaged space.
      *  
@@ -476,7 +503,7 @@ public:
     
     /** Create a new instance using the given \a fmt, \a ver and \a p. **/
     explicit extraction_context(jsonv::formats        fmt,
-                                const jsonv::version& ver      = jsonv::version(1),
+                                const jsonv::version& ver      = jsonv::version(),
                                 jsonv::path           p        = jsonv::path(),
                                 const void*           userdata = nullptr
                                );

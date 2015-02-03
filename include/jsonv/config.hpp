@@ -49,7 +49,7 @@
 #       define JSONV_EXPORT          __attribute__((visibility("default")))
 #       define JSONV_IMPORT
 #       define JSONV_HIDDEN          __attribute__((visibility("hidden")))
-#   elif defined(__MSC_VER)
+#   elif defined(_MSC_VER)
 #       define JSONV_EXPORT          __declspec(dllexport)
 #       define JSONV_IMPORT          __declspec(dllimport)
 #       define JSONV_HIDDEN
@@ -111,7 +111,8 @@
 #   define JSONV_INTEGER_ALTERNATES_LIST(item) \
         item(int)                              \
         item(unsigned int)                     \
-        item(unsigned long)
+        item(unsigned long)                    \
+        item(unsigned long long)
 #endif
 
 /** \def JSONV_STRING_VIEW_TYPE

@@ -14,6 +14,7 @@
 #include <jsonv/serialization_util.hpp>
 #include <jsonv/value.hpp>
 
+#include <set>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -59,7 +60,7 @@ std::string make_extraction_error_errmsg(const extraction_context& context, cons
 
 extraction_error::extraction_error(const extraction_context& context, const std::string& message) :
         std::runtime_error(make_extraction_error_errmsg(context, message)),
-        std::nested_exception(),
+        nested_exception(),
         _path(context.path())
 { }
 
@@ -74,16 +75,20 @@ const path& extraction_error::path() const
 // no_extractor                                                                                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string make_no_serializer_extractor_errmsg(const char* kind, const std::type_info& type)
+static std::string make_no_serializer_extractor_errmsg(const char* kind, const std::type_index& type)
 {
     std::ostringstream ss;
     ss << "Could not find " << kind << " for type: " << type.name();
     return ss.str();
 }
 
-no_extractor::no_extractor(const std::type_info& type) :
+no_extractor::no_extractor(const std::type_index& type) :
         runtime_error(make_no_serializer_extractor_errmsg("extractor", type)),
         _type_index(type)
+{ }
+
+no_extractor::no_extractor(const std::type_info& type) :
+        no_extractor(std::type_index(type))
 { }
 
 no_extractor::~no_extractor() noexcept
@@ -103,9 +108,13 @@ const char* no_extractor::type_name() const
 // no_serializer                                                                                                      //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-no_serializer::no_serializer(const std::type_info& type) :
+no_serializer::no_serializer(const std::type_index& type) :
         runtime_error(make_no_serializer_extractor_errmsg("serializer", type)),
         _type_index(type)
+{ }
+
+no_serializer::no_serializer(const std::type_info& type) :
+        no_serializer(std::type_index(type))
 { }
 
 no_serializer::~no_serializer() noexcept
@@ -285,17 +294,41 @@ formats formats::compose(const list& bases)
 formats::~formats() noexcept
 { }
 
+const extractor& formats::get_extractor(std::type_index type) const
+{
+    const extractor* ex = _data->find_extractor(type);
+    if (ex)
+        return *ex;
+    else
+        throw no_extractor(type);
+}
+
+const extractor& formats::get_extractor(const std::type_info& type) const
+{
+    return get_extractor(std::type_index(type));
+}
+
 void formats::extract(const std::type_info&     type,
                       const value&              from,
                       void*                     into,
                       const extraction_context& context
                      ) const
 {
-    const extractor* ex = _data->find_extractor(std::type_index(type));
-    if (ex)
-        ex->extract(context, from, into);
+    get_extractor(type).extract(context, from, into);
+}
+
+const serializer& formats::get_encoder(std::type_index type) const
+{
+    const serializer* ser = _data->find_serializer(type);
+    if (ser)
+        return *ser;
     else
-        throw no_extractor(type);
+        throw no_serializer(type);
+}
+
+const serializer& formats::get_encoder(const std::type_info& type) const
+{
+    return get_encoder(std::type_index(type));
 }
 
 value formats::encode(const std::type_info& type,
@@ -303,11 +336,7 @@ value formats::encode(const std::type_info& type,
                       const serialization_context& context
                      ) const
 {
-    const serializer* ser = _data->find_serializer(std::type_index(type));
-    if (ser)
-        return ser->encode(context, from);
-    else
-        throw no_serializer(type);
+    return get_encoder(type).encode(context, from);
 }
 
 void formats::register_extractor(const extractor* ex)
