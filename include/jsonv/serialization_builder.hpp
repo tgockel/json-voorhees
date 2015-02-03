@@ -201,7 +201,7 @@
  * 
  *  \paragraph serialization_builder_dsl_ref_formats_level_register_containers register_containers
  *  
- *   - <tt>register_containers&lt;T, template... &lt;T, ...&gt; TTContainer&gt;</tt>
+ *   - <tt>register_containers&lt;T, template &lt;T, ...&gt;... TTContainer&gt;</tt>
  *  
  *  Convenience function for calling \c register_container for multiple containers with the same \c value_type.
  *  Unfortunately, it only supports varying the first template parameter of the \c TTContainer types, so if you wish to
@@ -240,44 +240,87 @@
  *  
  *  \paragraph serialization_builder_dsl_ref_type_narrowing_member member
  *  
- *  TODO
+ *   - <tt>member(std::string name, TMember T::*selector)</tt>
+ *  
+ *  Adds a member to the type we are currently building. By default, the member will be serialized with the key of the
+ *  given \a name and the extractor will search for the given \a name. If you wish to change properties of this field,
+ *  use the \ref serialization_builder_dsl_ref_member member context.
+ *  
+ *  \code
+ *    .type<my_type>()
+ *        .member("x", &my_type::x)
+ *        .member("y", &my_type::y)
+ *  \endcode
+ *  
  *  
  *  \subsection serialization_builder_dsl_ref_member Member Context
+ *  
+ *  Commands in this section modify the behavior of a particular member. Here, \c T refers to the containing type (the
+ *  one we are adding a member to) and \c TMember refers to the type of the member we are modifying.
  *  
  *  \subsubsection serialization_builder_dsl_ref_member_level Level
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_after after
  *  
- *  TODO
+ *   - <tt>after(version)</tt>
+ *  
+ *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than or
+ *  equal to the provided \c version.
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_alternate_name alternate_name
  *  
- *  TODO
+ *   - <tt>alternate_name(std::string name)</tt>
+ *  
+ *  Provide an alternate name to search for when extracting this member. If a user provides values for multiple names,
+ *  preference is given to names earlier in the list, starting with the original given name.
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_before before
  *  
- *  TODO
+ *   - <tt>before(version)</tt>
+ *  
+ *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than or
+ *  equal to the provided \c version.
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
  *  
- *  TODO
+ *   - <tt>default_value(TMember value)</tt>
+ *   - <tt>default_value(std::function&lt;TMember (const extraction_context&, const value&)&gt; create)</tt>
+ *  
+ *  Provide a default value for this member if no key is found when extracting. You can use the function implementation
+ *  to synthesize the key however you want.
+ *  
+ *  \code
+ *   .member("x", &my_type::x)
+ *       .default_value(10)
+ *  \endcode
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_default_on_null default_on_null
  *  
- *  TODO
+ *   - <tt>default_on_null()</tt>
+ *   - <tt>default_on_null(bool on)</tt>
+ *  
+ *  If the value associated with this key is \c kind::null, should that be treated as the default value? This option is
+ *  only considered if a \ref serialization_builder_dsl_ref_member_level_default_value default_value was provided.
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_encode_if encode_if
  *  
- *  TODO
+ *   - <tt>encode_if(std::function&lt;bool (const serialization_context&, const TMember&amp;)&gt; check)</tt>
+ *  
+ *  Only serialize this member if the \a check function returns true.
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_since since
  *  
- *  TODO
+ *   - <tt>since(version)</tt>
+ *  
+ *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than the
+ *  provided \c version.
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_until until
  *  
- *  TODO
+ *   - <tt>until(version)</tt>
  *  
+ *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than the
+ *  provided \c version.
 **/
 #ifndef __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
 #define __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
@@ -396,12 +439,12 @@ public:
             out.insert({ _names.at(0), context.encode(from.*_selector) });
     }
     
-    void add_encode_check(std::function<bool (const serialization_context&, const T&)> check)
+    void add_encode_check(std::function<bool (const serialization_context&, const TMember&)> check)
     {
         if (_should_encode)
         {
             auto old_check = std::move(_should_encode);
-            _should_encode = [check, old_check] (const serialization_context& context, const T& value)
+            _should_encode = [check, old_check] (const serialization_context& context, const TMember& value)
                              {
                                 return check(context, value) && old_check(context, value);
                              };
@@ -416,17 +459,17 @@ private:
     bool should_encode(const serialization_context& context, const T& from) const
     {
         if (_should_encode)
-            return _should_encode(context, from);
+            return _should_encode(context, from.*_selector);
         else
             return true;
     }
     
 private:
-    std::vector<std::string>                                         _names;
-    TMember T::*                                                     _selector;
-    std::function<bool (const serialization_context&, const T&)>     _should_encode;
-    std::function<TMember (const extraction_context&, const value&)> _default_value;
-    bool                                                             _default_on_null = true;
+    std::vector<std::string>                                           _names;
+    TMember T::*                                                       _selector;
+    std::function<bool (const serialization_context&, const TMember&)> _should_encode;
+    std::function<TMember (const extraction_context&, const value&)>   _default_value;
+    bool                                                               _default_on_null = true;
 };
 
 template <typename T, typename TMember>
@@ -480,7 +523,7 @@ public:
     /** Only encode this member if the \a check passes. The final decision to encode is based on \e all \c check
      *  functions.
     **/
-    member_adapter_builder& encode_if(std::function<bool (const serialization_context&, const T&)> check)
+    member_adapter_builder& encode_if(std::function<bool (const serialization_context&, const TMember&)> check)
     {
         _adapter->add_encode_check(std::move(check));
         return *this;
@@ -489,7 +532,7 @@ public:
     /** Only encode this member if the \c serialization_context::version is greater than or equal to \a ver. **/
     member_adapter_builder& since(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const T&)
+        return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
                              return context.version().empty() || context.version() >= ver;
                          }
@@ -499,7 +542,7 @@ public:
     /** Only encode this member if the \c serialization_context::version is less than or equal to \a ver. **/
     member_adapter_builder& until(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const T&)
+        return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
                              return context.version().empty() || context.version() <= ver;
                          }
@@ -509,7 +552,7 @@ public:
     /** Only encode this member if the \c serialization_context::version is greater than \a ver. **/
     member_adapter_builder& after(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const T&)
+        return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
                              return context.version().empty() || context.version() > ver;
                          }
@@ -519,7 +562,7 @@ public:
     /** Only encode this member if the \c serialization_context::version is less than \a ver. **/
     member_adapter_builder& before(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const T&)
+        return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
                              return context.version().empty() || context.version() < ver;
                          }
