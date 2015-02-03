@@ -109,6 +109,26 @@ TEST(swap_same)
     ensure_eq(jsonv::array({ 1, 2, 3 }), x);
 }
 
+TEST(is_operations)
+{
+    jsonv::value num = 2.9;
+    jsonv::value in_ = 5;
+    jsonv::value arr = jsonv::array({ 1, 2, 3 });
+    jsonv::value obj = jsonv::object({ {"arr", arr } });
+    jsonv::value str = "SOMETHING";
+    jsonv::value bol = true;
+    jsonv::value nul = nullptr;
+    
+    ensure(num.is_decimal());
+    ensure(in_.is_integer());
+    ensure(in_.is_decimal());
+    ensure(arr.is_array());
+    ensure(obj.is_object());
+    ensure(str.is_string());
+    ensure(bol.is_boolean());
+    ensure(nul.is_null());
+}
+
 TEST(hash_set_operations)
 {
     jsonv::value num = 2.9;
