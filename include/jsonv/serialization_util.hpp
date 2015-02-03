@@ -324,6 +324,39 @@ auto make_adapter(FExtract extract, FEncode encode)
             (std::move(extract), std::move(encode));
 }
 
+/** An adapter for container types. This is for convenience of creating an \c adapter for things like \c std::vector,
+ *  \c std::set and such.
+ *  
+ *  \tparam TContainer is the container to create and encode. It must have a member type \c value_type, support
+ *                     iteration and an \c insert operation.
+**/
+template <typename TContainer>
+class container_adapter :
+        public adapter_for<TContainer>
+{
+    using element_type = typename TContainer::value_type;
+    
+protected:
+    virtual TContainer create(const extraction_context& context, const value& from) const override
+    {
+        using std::end;
+        
+        TContainer out;
+        from.as_array(); // get nice error if input is not an array
+        for (value::size_type idx = 0U; idx < from.size(); ++idx)
+            out.insert(end(out), context.extract_sub<element_type>(from, idx));
+        return out;
+    }
+    
+    virtual value encode(const serialization_context& context, const TContainer& from) const override
+    {
+        value out = array();
+        for (const element_type& x : from)
+            out.push_back(context.encode(x));
+        return out;
+    }
+};
+
 /** \} **/
 
 }

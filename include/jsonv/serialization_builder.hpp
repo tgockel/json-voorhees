@@ -87,7 +87,8 @@
  *              .member("certified",  &company::certified)
  *              .member("employees",  &company::employees)
  *              .member("candidates", &company::candidates)
- *          .register_sequence_containers<company, std::vector, std::list>()
+ *          .register_containers<company, std::vector, std::list>()
+ *          .check_references()
  *      ;
  *  \endcode
  * 
@@ -319,6 +320,12 @@ public:
     formats_builder& reference_type(std::type_index type, std::type_index from);
     
     formats_builder& check_references(formats other, const std::string& name = "");
+    
+    template <typename TContainer>
+    formats_builder& register_container();
+    
+    template <typename T, template <class...> class... TTContainers>
+    formats_builder& register_containers();
     
     operator formats() const;
     
@@ -603,6 +610,27 @@ public:
         return *this;
     }
     
+    template <typename TContainer>
+    formats_builder& register_container()
+    {
+        std::unique_ptr<container_adapter<TContainer>> p(new container_adapter<TContainer>);
+        _formats.register_adapter(std::move(p));
+        return *this;
+    }
+    
+    template <typename T>
+    formats_builder& register_containers()
+    {
+        return *this;
+    }
+    
+    template <typename T, template <class...> class TTContainer, template <class...> class... TTRest>
+    formats_builder& register_containers()
+    {
+        register_container<TTContainer<T>>();
+        return register_containers<T, TTRest...>();
+    }
+    
     operator formats() const
     {
         return _formats;
@@ -635,6 +663,18 @@ template <typename T>
 adapter_builder<T> formats_builder_dsl::type()
 {
     return owner->type<T>();
+}
+
+template <typename TContainer>
+formats_builder& formats_builder_dsl::register_container()
+{
+    return owner->register_container<TContainer>();
+}
+    
+template <typename T, template <class...> class... TTContainers>
+formats_builder& formats_builder_dsl::register_containers()
+{
+    return owner->register_containers<T, TTContainers...>();
 }
 
 template <typename T>
