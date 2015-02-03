@@ -185,25 +185,66 @@ Formats Context</h2>
 Level</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_check_references"></a>
 check_references</h4>
-<p>TODO</p>
-<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_reference_type"></a>
+<ul>
+<li><code>check_references(formats)</code></li>
+<li><code>check_references(formats, std::string name)</code></li>
+</ul>
+<p>Tests that every type referenced by the members of the output of the DSL have an <code>extractor</code> and a <code>serializer</code>. The provided <code>formats</code> is used to draw extra types from (a common value is <code><a class="el" href="classjsonv_1_1formats.html#ad194791e293229fb6a79438a6444f51b" title="Get the default formats instance. ">jsonv::formats::defaults</a></code>). In other words, it asks the question: If the <code>formats</code> from this DSL was combined with these other <code>formats</code>, could all of the types be encoded and decoded?</p>
+<p>This does not mutate the DSL in any way. On successful verification, it will appear that nothing happened. If the verification is not successful, an exception will be thrown with the offending types in the message. For example:</p>
+<div class="fragment"><div class="line">There are 2 types referenced that the formats <span class="keywordflow">do</span> not know how to serialize: </div>
+<div class="line"> - date_type (referenced by: name_space::foo, other::name::space::bar)</div>
+<div class="line"> - tree</div>
+</div><!-- fragment --><p>If <em>name</em> is provided, the value will be output to the error message on failure. This can be useful if you have multiple <code>check_references</code> statements and wish to more easily determine the failing <code>formats</code> combination from the error message alone.</p>
+<dl class="section note"><dt>Note</dt><dd>This is evaluated <em>immediately</em>, so it is best to call this function as the very last step in the DSL.</dd></dl>
+<div class="fragment"><div class="line">.check_references()</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_reference_type"></a>
 reference_type</h4>
-<p>TODO</p>
-<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_adapter"></a>
+<ul>
+<li><code>reference_type(std::type_index type)</code></li>
+<li><code>reference_type(std::type_index type, std::type_index from)</code></li>
+</ul>
+<p>Explicitly add a reference to the provided <em>type</em> in the DSL. If <em>from</em> is provided, also add a back reference for tracking purposes. The <em>from</em> field is useful for tracking <em>why</em> the <em>type</em> is referenced.</p>
+<p>Type references are used in <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_check_references">check_references</a> check_references to both check and generate error messages if the <code>formats</code> the DSL is building cannot fully create and extract JSON values. You do not usually have to call this, as each call to <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member">member</a> member calls this automatically.</p>
+<div class="fragment"><div class="line">.reference_type(std::type_index(<span class="keyword">typeid</span>(<span class="keywordtype">int</span>)), std::type_index(<span class="keyword">typeid</span>(my_type)))</div>
+<div class="line">.reference_type(std::type_index(<span class="keyword">typeid</span>(my_type))</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_adapter"></a>
 register_adapter</h4>
-<p>TODO</p>
-<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_sequence_container"></a>
-register_sequence_container&lt;TContainer&gt;</h4>
-<p>TODO</p>
-<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_sequence_containers"></a>
-register_sequence_containers&lt;T, template... &lt;T, ...&gt;&gt;</h4>
-<p>TODO</p>
-<h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
+<ul>
+<li><code>register_adapter(const adapter*)</code></li>
+<li><code>register_adapter(std::shared_ptr&lt;const adapter&gt;)</code></li>
+</ul>
+<p>Register an arbitrary <code>adapter</code> with the <code>formats</code> we are currently building. This is useful for integrating with type adapters that do not (or can not) use the DSL.</p>
+<div class="fragment"><div class="line">.register_adapter(my_type::get_adapter())</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_container"></a>
+register_container</h4>
+<ul>
+<li><code>register_container&lt;TContainer&gt;()</code></li>
+</ul>
+<p>Similar to <code>register_adapter</code>, but automatically create a <code>container_adapter&lt;TContainer&gt;</code> to store.</p>
+<div class="fragment"><div class="line">.register_container&lt;std::vector&lt;int&gt;&gt;()</div>
+<div class="line">.register_container&lt;std::list&lt;std::string&gt;&gt;()</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_containers"></a>
+register_containers</h4>
+<ul>
+<li><code>register_containers&lt;T, template... &lt;T, ...&gt; TTContainer&gt;</code></li>
+</ul>
+<p>Convenience function for calling <code>register_container</code> for multiple containers with the same <code>value_type</code>. Unfortunately, it only supports varying the first template parameter of the <code>TTContainer</code> types, so if you wish to do something like vary the allocator, you will have to either call <code>register_container</code> multiple times or use a template alias.</p>
+<div class="fragment"><div class="line">.register_containers&lt;int, std::list, std::deque&gt;()</div>
+<div class="line">.register_containers&lt;double, std::vector, std::set&gt;()</div>
+</div><!-- fragment --><h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
 Narrowing</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing_type"></a>
 type&lt;T&gt;</h4>
-<p>TODO</p>
-<h2><a class="anchor" id="serialization_builder_dsl_ref_type"></a>
+<ul>
+<li><code>type&lt;T&gt;()</code></li>
+</ul>
+<p>Create an <code>adapter</code> for type <code>T</code> and begin building the members for it.</p>
+<div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
+<div class="line">    .member(...)</div>
+<div class="line">    .</div>
+<div class="line">    .</div>
+<div class="line">    .</div>
+</div><!-- fragment --><h2><a class="anchor" id="serialization_builder_dsl_ref_type"></a>
 Type Context</h2>
 <p>Commands in this section modify the behavior of the <code><a class="el" href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. ">jsonv::adapter</a></code> for a particular type.</p>
 <h3><a class="anchor" id="serialization_builder_dsl_ref_type_level"></a>

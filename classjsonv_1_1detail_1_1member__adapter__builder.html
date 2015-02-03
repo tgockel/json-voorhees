@@ -165,6 +165,9 @@ Public Member Functions</h2></td></tr>
 template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ab2c9f51da5fd24da198ee26c221a63bb inherit pub_methods_classjsonv_1_1detail_1_1formats__builder__dsl"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1detail_1_1adapter__builder.html">detail::adapter_builder</a>&lt; T &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>type</b> ()</td></tr>
 <tr class="separator:ab2c9f51da5fd24da198ee26c221a63bb inherit pub_methods_classjsonv_1_1detail_1_1formats__builder__dsl"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34e76a3ee985ea526b801c39456bedf4 inherit pub_methods_classjsonv_1_1detail_1_1formats__builder__dsl"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a34e76a3ee985ea526b801c39456bedf4"></a>
+<a class="el" href="classjsonv_1_1formats__builder.html">formats_builder</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>register_adapter</b> (const <a class="el" href="classjsonv_1_1adapter.html">adapter</a> *p)</td></tr>
+<tr class="separator:a34e76a3ee985ea526b801c39456bedf4 inherit pub_methods_classjsonv_1_1detail_1_1formats__builder__dsl"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a552945a1bdedfae58bf61a62fc790ab5 inherit pub_methods_classjsonv_1_1detail_1_1formats__builder__dsl"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a552945a1bdedfae58bf61a62fc790ab5"></a>
 <a class="el" href="classjsonv_1_1formats__builder.html">formats_builder</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>register_adapter</b> (std::shared_ptr&lt; const <a class="el" href="classjsonv_1_1adapter.html">adapter</a> &gt; p)</td></tr>
 <tr class="separator:a552945a1bdedfae58bf61a62fc790ab5 inherit pub_methods_classjsonv_1_1detail_1_1formats__builder__dsl"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -210,7 +213,7 @@ Additional Inherited Members</h2></td></tr>
 class jsonv::detail::member_adapter_builder&lt; T, TMember &gt;</h3>
 
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00227">227</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00303">303</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a class="anchor" id="abb82e4857144f61c94edf5ad493a686c"></a>
 <div class="memitem">
@@ -238,7 +241,7 @@ template&lt;typename T, typename TMember&gt; </div>
 
 <p>Only encode this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is greater than <em>ver</em>. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00427">427</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00503">503</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>
@@ -268,7 +271,7 @@ template&lt;typename T, typename TMember&gt; </div>
 
 <p>When extracting, also look for this <em>name</em> as a key. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00367">367</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00443">443</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>
@@ -298,7 +301,7 @@ template&lt;typename T, typename TMember&gt; </div>
 
 <p>Only encode this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is less than <em>ver</em>. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00437">437</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00513">513</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>
@@ -329,7 +332,7 @@ template&lt;typename T, typename TMember&gt; </div>
 <p>If the key for this member is not in the object when deserializing, call this function to create a value. </p>
 <p>If a <code>default_value</code> is not specified, the key is required. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00376">376</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00452">452</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>
@@ -360,7 +363,7 @@ template&lt;typename T, typename TMember&gt; </div>
 <p>If the key for this member is not in the object when deserializing, use this <em>value</em>. </p>
 <p>If a <code>default_value</code> is not specified, the key is required. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00385">385</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00461">461</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>
@@ -391,7 +394,7 @@ template&lt;typename T, typename TMember&gt; </div>
 <p>Only encode this member if the <em>check</em> passes. </p>
 <p>The final decision to encode is based on <em>all</em> <code>check</code> functions. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00400">400</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00476">476</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>
@@ -421,7 +424,7 @@ template&lt;typename T, typename TMember&gt; </div>
 
 <p>Only encode this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is greater than or equal to <em>ver</em>. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00407">407</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00483">483</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>
@@ -451,7 +454,7 @@ template&lt;typename T, typename TMember&gt; </div>
 
 <p>Only encode this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is less than or equal to <em>ver</em>. </p>
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00417">417</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00493">493</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 
 </div>
 </div>

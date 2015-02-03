@@ -64,13 +64,14 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1detail_1_1basic__view.html#ae9fb71e9060ad3842e923fcf529c9ff3":[3,0,0,0,4,15],
 "classjsonv_1_1detail_1_1basic__view.html#afb5430013851f448b69bf4b6450f7fcb":[3,0,0,0,4,0],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html":[3,0,0,0,5],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a34e76a3ee985ea526b801c39456bedf4":[3,0,0,0,5,5],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a3ba068f0be3773560cab480c4709c8e6":[3,0,0,0,5,2],
-"classjsonv_1_1detail_1_1formats__builder__dsl.html#a44bafce567d906a354ff00e6bbe518eb":[3,0,0,0,5,7],
-"classjsonv_1_1detail_1_1formats__builder__dsl.html#a552945a1bdedfae58bf61a62fc790ab5":[3,0,0,0,5,5],
-"classjsonv_1_1detail_1_1formats__builder__dsl.html#a5673039254642e668ca7029cbe2ea0bb":[3,0,0,0,5,8],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a44bafce567d906a354ff00e6bbe518eb":[3,0,0,0,5,8],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a552945a1bdedfae58bf61a62fc790ab5":[3,0,0,0,5,6],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a5673039254642e668ca7029cbe2ea0bb":[3,0,0,0,5,9],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#ab070f7798b3c49436de90736decc9819":[3,0,0,0,5,1],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#ab0f09c3e6958a4df738c4181e72fe62c":[3,0,0,0,5,4],
-"classjsonv_1_1detail_1_1formats__builder__dsl.html#ab2c9f51da5fd24da198ee26c221a63bb":[3,0,0,0,5,6],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#ab2c9f51da5fd24da198ee26c221a63bb":[3,0,0,0,5,7],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#ad0e3aa0827407936297aed79647047d2":[3,0,0,0,5,0],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#af6de598bf6d4b0deae468266e975b0af":[3,0,0,0,5,3],
 "classjsonv_1_1detail_1_1generic__container.html":[3,0,0,0,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1extraction__context.html#a535a385dbf4c089704fe3caff6876b2c":[2,6,9,2],
 "classjsonv_1_1extraction__context.html#a71d973519b73a827f78a308c2d496038":[2,6,9,4],
 "classjsonv_1_1extraction__context.html#a81e0b159f846a1cb8bea1687285835f0":[2,6,9,5],
-"classjsonv_1_1extraction__context.html#a9624a27eea2b7ed047055b51e36cc237":[2,6,9,0],
-"classjsonv_1_1extraction__context.html#ae173d17d09afe5dd5ffba6c0f4399874":[2,6,9,1]
+"classjsonv_1_1extraction__context.html#a9624a27eea2b7ed047055b51e36cc237":[2,6,9,0]
 };
