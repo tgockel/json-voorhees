@@ -284,7 +284,19 @@ before</h4>
 <li><code>before(version)</code></li>
 </ul>
 <p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is less than or equal to the provided <code>version</code>.</p>
-<h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_default_value"></a>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_check_input"></a>
+check_input</h4>
+<ul>
+<li><code>check_input(std::function&lt;void (const TMember&amp;)&gt; check)</code></li>
+<li><code>check_input(std::function&lt;bool (const TMember&amp;)&gt; check, std::function&lt;void (const TMember&amp;)&gt; thrower)</code></li>
+<li><code>check_input(std::function&lt;bool (const TMember&amp;)&gt; check, TException ex)</code></li>
+</ul>
+<p>Checks the extracted value with the given <em>check</em> function. In the first form, you are expected to throw inside the function. In the latter forms, the second parameter will be invoked (in the case of <em>thrower</em>) or thrown directly (in the case of <em>ex</em>).</p>
+<div class="fragment"><div class="line">.member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
+<div class="line">    .check([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">if</span> (x &lt; 0) <span class="keywordflow">throw</span> std::logic_error(<span class="stringliteral">&quot;x must be greater than 0&quot;</span>); })</div>
+<div class="line">    .check([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x &lt; 100; }, [] (<span class="keywordtype">int</span> x) { <span class="keywordflow">throw</span> exceptions::less_than(100, x); })</div>
+<div class="line">    .check([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x % 2 == 0; }, std::logic_error(<span class="stringliteral">&quot;x must be divisible by 2&quot;</span>))</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_default_value"></a>
 default_value</h4>
 <ul>
 <li><code>default_value(TMember value)</code></li>

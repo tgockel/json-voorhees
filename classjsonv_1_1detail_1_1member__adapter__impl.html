@@ -137,13 +137,19 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>encode</b> (c
 <tr class="memitem:a64a6e68fc63257791b111c504da00982"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a64a6e68fc63257791b111c504da00982"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>add_encode_check</b> (std::function&lt; bool(const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;, const TMember &amp;)&gt; check)</td></tr>
 <tr class="separator:a64a6e68fc63257791b111c504da00982"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae4914318cc48f7e096925272366fe719"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae4914318cc48f7e096925272366fe719"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>add_extraction_mutator</b> (std::function&lt; TMember(TMember &amp;&amp;)&gt; mutate)</td></tr>
+<tr class="separator:ae4914318cc48f7e096925272366fe719"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a344b1b47f96a930dc09d7405f75df64a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a344b1b47f96a930dc09d7405f75df64a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>add_extraction_check</b> (std::function&lt; void(const TMember &amp;)&gt; check)</td></tr>
+<tr class="separator:a344b1b47f96a930dc09d7405f75df64a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T, typename TMember&gt;<br />
 class jsonv::detail::member_adapter_impl&lt; T, TMember &gt;</h3>
 
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00407">407</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00424">424</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a></li>
 </ul>
