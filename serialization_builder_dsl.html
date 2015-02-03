@@ -227,7 +227,7 @@ register_container</h4>
 </div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_containers"></a>
 register_containers</h4>
 <ul>
-<li><code>register_containers&lt;T, template... &lt;T, ...&gt; TTContainer&gt;</code></li>
+<li><code>register_containers&lt;T, template &lt;T, ...&gt;... TTContainer&gt;</code></li>
 </ul>
 <p>Convenience function for calling <code>register_container</code> for multiple containers with the same <code>value_type</code>. Unfortunately, it only supports varying the first template parameter of the <code>TTContainer</code> types, so if you wish to do something like vary the allocator, you will have to either call <code>register_container</code> multiple times or use a template alias.</p>
 <div class="fragment"><div class="line">.register_containers&lt;int, std::list, std::deque&gt;()</div>
@@ -254,35 +254,70 @@ Level</h3>
 Narrowing</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_type_narrowing_member"></a>
 member</h4>
-<p>TODO</p>
-<h2><a class="anchor" id="serialization_builder_dsl_ref_member"></a>
+<ul>
+<li><code>member(std::string name, TMember T::*selector)</code></li>
+</ul>
+<p>Adds a member to the type we are currently building. By default, the member will be serialized with the key of the given <em>name</em> and the extractor will search for the given <em>name</em>. If you wish to change properties of this field, use the <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_member">Member Context</a> member context.</p>
+<div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
+<div class="line">    .member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
+<div class="line">    .member(<span class="stringliteral">&quot;y&quot;</span>, &amp;my_type::y)</div>
+</div><!-- fragment --><h2><a class="anchor" id="serialization_builder_dsl_ref_member"></a>
 Member Context</h2>
+<p>Commands in this section modify the behavior of a particular member. Here, <code>T</code> refers to the containing type (the one we are adding a member to) and <code>TMember</code> refers to the type of the member we are modifying.</p>
 <h3><a class="anchor" id="serialization_builder_dsl_ref_member_level"></a>
 Level</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_after"></a>
 after</h4>
-<p>TODO</p>
+<ul>
+<li><code>after(version)</code></li>
+</ul>
+<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is greater than or equal to the provided <code>version</code>.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_alternate_name"></a>
 alternate_name</h4>
-<p>TODO</p>
+<ul>
+<li><code>alternate_name(std::string name)</code></li>
+</ul>
+<p>Provide an alternate name to search for when extracting this member. If a user provides values for multiple names, preference is given to names earlier in the list, starting with the original given name.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_before"></a>
 before</h4>
-<p>TODO</p>
+<ul>
+<li><code>before(version)</code></li>
+</ul>
+<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is less than or equal to the provided <code>version</code>.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_default_value"></a>
 default_value</h4>
-<p>TODO</p>
-<h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_default_on_null"></a>
+<ul>
+<li><code>default_value(TMember value)</code></li>
+<li><code>default_value(std::function&lt;TMember (const extraction_context&amp;, const value&amp;)&gt; create)</code></li>
+</ul>
+<p>Provide a default value for this member if no key is found when extracting. You can use the function implementation to synthesize the key however you want.</p>
+<div class="fragment"><div class="line">.member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
+<div class="line">    .default_value(10)</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_default_on_null"></a>
 default_on_null</h4>
-<p>TODO</p>
+<ul>
+<li><code>default_on_null()</code></li>
+<li><code>default_on_null(bool on)</code></li>
+</ul>
+<p>If the value associated with this key is <code>kind::null</code>, should that be treated as the default value? This option is only considered if a <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_default_value">default_value</a> default_value was provided.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_encode_if"></a>
 encode_if</h4>
-<p>TODO</p>
+<ul>
+<li><code>encode_if(std::function&lt;bool (const serialization_context&amp;, const TMember&amp;)&gt; check)</code></li>
+</ul>
+<p>Only serialize this member if the <em>check</em> function returns true.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_since"></a>
 since</h4>
-<p>TODO</p>
+<ul>
+<li><code>since(version)</code></li>
+</ul>
+<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is greater than the provided <code>version</code>.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_until"></a>
 until</h4>
-<p>TODO </p>
+<ul>
+<li><code>until(version)</code></li>
+</ul>
+<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is less than the provided <code>version</code>. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
