@@ -281,6 +281,23 @@
  *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than or
  *  equal to the provided \c version.
  *  
+ *  \paragraph serialization_builder_dsl_ref_member_level_check_input check_input
+ *  
+ *   - <tt>check_input(std::function&lt;void (const TMember&)&gt; check)</tt>
+ *   - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, std::function&lt;void (const TMember&)&gt; thrower)</tt>
+ *   - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, TException ex)</tt>
+ *  
+ *  Checks the extracted value with the given \a check function. In the first form, you are expected to throw inside the
+ *  function. In the latter forms, the second parameter will be invoked (in the case of \a thrower) or thrown directly
+ *  (in the case of \a ex).
+ *  
+ *  \code
+ *    .member("x", &my_type::x)
+ *        .check([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
+ *        .check([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
+ *        .check([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
+ *  \endcode
+ *  
  *  \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
  *  
  *   - <tt>default_value(TMember value)</tt>
@@ -455,6 +472,28 @@ public:
         }
     }
     
+    void add_extraction_mutator(std::function <TMember (TMember&&)> mutate)
+    {
+        if (_extract_mutate)
+        {
+            auto old_mutate = std::move(_extract_mutate);
+            _extract_mutate = [old_mutate, mutate] (TMember&& member) { return mutate(old_mutate(std::move(member))); };
+        }
+        else
+        {
+            _extract_mutate = std::move(mutate);
+        }
+    }
+    
+    void add_extraction_check(std::function <void (const TMember&)> check)
+    {
+        add_extraction_mutator([check] (TMember&& value)
+        {
+            check(value);
+            return value;
+        });
+    }
+    
 private:
     bool should_encode(const serialization_context& context, const T& from) const
     {
@@ -470,6 +509,7 @@ private:
     std::function<bool (const serialization_context&, const TMember&)> _should_encode;
     std::function<TMember (const extraction_context&, const value&)>   _default_value;
     bool                                                               _default_on_null = true;
+    std::function<TMember (TMember&&)>                                 _extract_mutate;
 };
 
 template <typename T, typename TMember>
@@ -494,6 +534,30 @@ public:
     {
         _adapter->_names.emplace_back(std::move(name));
         return *this;
+    }
+    
+    member_adapter_builder& check_input(std::function<void (const TMember&)> check)
+    {
+        _adapter->add_extraction_check(std::move(check));
+        return *this;
+    }
+    
+    member_adapter_builder& check_input(std::function<bool (const TMember&)> check,
+                                        std::function<void (const TMember&)> thrower
+                                       )
+    {
+        _adapter->add_extraction_check([check, thrower] (const TMember& value)
+            {
+                if (!check(value))
+                    thrower(value);
+            });
+        return *this;
+    }
+    
+    template <typename TException>
+    member_adapter_builder& check_input(std::function<void (const TMember&)> check, const TException& ex)
+    {
+        return check_input(std::move(check), [ex] (const TMember&) { throw ex; });
     }
     
     /** If the key for this member is not in the object when deserializing, call this function to create a value. If a
