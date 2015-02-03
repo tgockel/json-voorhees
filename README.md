@@ -36,6 +36,7 @@ Features include (but are not necessarily limited to):
 [![Build Status](https://travis-ci.org/tgockel/json-voorhees.svg?branch=master)](https://travis-ci.org/tgockel/json-voorhees)
 [![Code Coverage](https://img.shields.io/coveralls/tgockel/json-voorhees.svg)](https://coveralls.io/r/tgockel/json-voorhees)
 [![Github Issues](https://img.shields.io/github/issues/tgockel/json-voorhees.svg)](http://github.com/tgockel/json-voorhees/issues)
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=tgockel&url=https://github.com/tgockel/json-voorhees&title=json-voorhees&language=c++&tags=github&category=software)
 
 ![JSON Conversions](https://raw.githubusercontent.com/tgockel/json-voorhees/master/doc/conversions.png)
 
@@ -212,6 +213,10 @@ I personally do not understand what these alternative build systems give me that
  stick with my plain old `Makefile` until I see a benefit to changing.
 Yes, I am a luddite who does not understand the fancy things the kids are using these days.
 Get off my lawn.
+
+### This is really helpful! Can I give you money?
+
+I would be [Flattr-ed](https://flattr.com/submit/auto?user_id=tgockel&url=https://github.com/tgockel/json-voorhees&title=json-voorhees&language=c++&tags=github&category=software)!
 
 ### With such a cool name, do you have an equally cool logo?
 
