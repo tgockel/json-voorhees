@@ -103,6 +103,10 @@ formats_builder& formats_builder_dsl::reference_type(std::type_index type, std::
     return owner->reference_type(type, from);
 }
 
+formats_builder& formats_builder_dsl::register_adapter(const adapter* p)
+{
+    return owner->register_adapter(p);
+}
 
 formats_builder& formats_builder_dsl::register_adapter(std::shared_ptr<const adapter> p)
 {
