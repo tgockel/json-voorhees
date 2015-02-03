@@ -138,7 +138,7 @@ When developing code, follow this simple workflow to determine which version com
 Character Encoding
 ------------------
 
-This library assumes you [really love UTF-8](http://www.utf8everywhere.org/).
+This library assumes you [really love UTF-8][utf8].
 When parsing JSON, this library happily assumes all sequences of bytes from C++ are UTF-8 encoded strings; it assumes
  you also want UTF-8 encoded strings when converting from JSON in C++ land; and it assumes the non-ASCII contents of a
  source string should be treated as UTF-8.
@@ -158,6 +158,29 @@ There is an [outstanding issue][encode-utf8] to address this shortcoming.
 
 F.A.Q.
 ------
+
+### What makes JSON Voorhees different from the other C++ JSON libraries?
+
+JSON Voorhees was written for a C++ programmer who wants to be productive in this modern world.
+What does that mean?
+There are a *ton* of JSON libraries floating around touting how they are "modern" C++ and so on.
+But who really cares?
+JSON Voorhees puts the focus more on the resulting C++ than any "modern" feature set.
+This means the library does not skip on string encoding details like having full support for [UTF-8][utf8].
+Are there "modern" features?
+Sure, but this library is *not* meant to be a gallery of them -- a good API should get out of your way and let you work.
+
+Another thing JSON Voorhees does not attempt to do is be a lightweight library; in fact, it wants to be the kitchen sink
+ for anything you want to do in JSON in your C++ application.
+This means it is [*configurable*](https://github.com/tgockel/json-voorhees/blob/master/include/jsonv/config.hpp) for your
+ needs.
+That said, the library does not depend on strange environment settings, so you can still drop the `.cpp` and `.hpp` files
+ into your own project if you want.
+
+It also includes a powerful serialization framework for converting from JSON into C++ types and back again.
+There is an extensible [Serialization Builder DSL](http://tgockel.github.io/json-voorhees/serialization_builder_dsl.html)
+ to help you writing your application.
+The serialization framework was designed with the modern application in mind -- you will like it or your money back!
 
 ### Why are `integer` and `decimal` distinct types?
 
@@ -235,3 +258,5 @@ Not really...
     "Future features"
  [JSON]: http://www.json.org/
     "JSON Specification"
+ [utf8]: http://www.utf8everywhere.org/
+    "UTF8 Everywhere!"
