@@ -458,11 +458,17 @@ public:
     **/
     const std::string& as_string() const;
     
+    /** Tests if this \c kind is \c kind::string. **/
+    bool is_string() const;
+    
     /** Get this value as an integer.
      *  
      *  \throws kind_error if this value does not represent an integer.
     **/
     int64_t as_integer() const;
+    
+    /** Tests if this \c kind is \c kind::integer. **/
+    bool is_integer() const;
     
     /** Get this value as a decimal. If the value's underlying kind is actually an integer type, cast the integer to a
      *  double before returning. This ignores the potential loss of precision.
@@ -471,11 +477,26 @@ public:
     **/
     double as_decimal() const;
     
+    /** Tests if this \c kind is \c kind::integer or \c kind::decimal. **/
+    bool is_decimal() const;
+    
     /** Get this value as a boolean.
      *  
      *  \throws kind_error if this value does not represent a boolean.
     **/
     bool as_boolean() const;
+    
+    /** Tests if this \c kind is \c kind::boolean. **/
+    bool is_boolean() const;
+    
+    /** Tests if this \c kind is \c kind::array. **/
+    bool is_array() const;
+    
+    /** Tests if this \c kind is \c kind::object. **/
+    bool is_object() const;
+    
+    /** Tests if this \c kind is \c kind::null. **/
+    bool is_null() const;
     
     /** \} **/
     

@@ -184,6 +184,41 @@ value& value::operator=(value&& source) noexcept
     return *this;
 }
 
+bool value::is_array() const
+{
+    return kind() == jsonv::kind::array;
+}
+
+bool value::is_boolean() const
+{
+    return kind() == jsonv::kind::boolean;
+}
+
+bool value::is_decimal() const
+{
+    return kind() == jsonv::kind::decimal || kind() == jsonv::kind::integer;
+}
+
+bool value::is_integer() const
+{
+    return kind() == jsonv::kind::integer;
+}
+
+bool value::is_null() const
+{
+    return kind() == jsonv::kind::null;
+}
+
+bool value::is_string() const
+{
+    return kind() == jsonv::kind::string;
+}
+
+bool value::is_object() const
+{
+    return kind() == jsonv::kind::object;
+}
+
 template <typename TValueRef, typename TPathIterator, typename FOnNonexistantPath>
 TValueRef walk_path(TValueRef&&               current,
                     TPathIterator             first,
