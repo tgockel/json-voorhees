@@ -148,4 +148,11 @@ TEST(serialization_builder_container_members)
     ensure_eq(p, q);
 }
 
+TEST(serialization_builder_check_references_fails)
+{
+    formats_builder builder;
+    builder.reference_type(std::type_index(typeid(int)));
+    ensure_throws(std::logic_error, builder.check_references(formats()));
+}
+
 }
