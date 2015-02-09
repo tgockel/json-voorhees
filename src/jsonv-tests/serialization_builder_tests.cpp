@@ -119,7 +119,6 @@ TEST(serialization_builder_members_since)
     ensure_eq(1U, to_json_ver({ 3, 0 }).count("b"));
 }
 
-
 TEST(serialization_builder_container_members)
 {
     formats base = formats_builder()
@@ -144,6 +143,40 @@ TEST(serialization_builder_container_members)
                            );
     auto encoded = to_json(p, fmt);
     ensure_eq(expected, encoded);
+    person q = extract<person>(encoded, fmt);
+    ensure_eq(p, q);
+}
+
+
+TEST(serialization_builder_defaults)
+{
+    formats base = formats_builder()
+                    .type<person>()
+                        .member("firstname",        &person::firstname)
+                        .member("lastname",         &person::lastname)
+                        .member("age",              &person::age)
+                            .default_value(20)
+                        .member("favorite_numbers", &person::favorite_numbers)
+                        .member("winning_numbers",  &person::winning_numbers)
+                            .default_value([] (const extraction_context& cxt, const value& val)
+                                           {
+                                               return cxt.extract_sub<std::vector<long>>(val, "favorite_numbers");
+                                           }
+                                          )
+                            .default_on_null()
+                    .register_containers<long, std::set, std::vector>()
+                    .check_references(formats::defaults())
+                ;
+    formats fmt = formats::compose({ base, formats::defaults() });
+    
+    person p("Bob", "Builder", 20, { 1, 2, 3, 4 }, { 1, 2, 3, 4 });
+    value input = object({ { "firstname",        p.firstname          },
+                           { "lastname",         p.lastname           },
+                           { "favorite_numbers", array({ 1, 2, 3, 4 })},
+                           { "winning_numbers",  nullptr              },
+                         }
+                        );
+    auto encoded = to_json(p, fmt);
     person q = extract<person>(encoded, fmt);
     ensure_eq(p, q);
 }

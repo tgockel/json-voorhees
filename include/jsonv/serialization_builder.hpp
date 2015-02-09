@@ -504,6 +504,10 @@ private:
     }
     
 private:
+    template <typename U, typename UMember>
+    friend class member_adapter_builder;
+    
+private:
     std::vector<std::string>                                           _names;
     TMember T::*                                                       _selector;
     std::function<bool (const serialization_context&, const TMember&)> _should_encode;
