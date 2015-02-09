@@ -18,146 +18,6 @@ namespace jsonv
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// value::basic_object_iterator<T>                                                                                    //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-struct object_iter_converter;
-
-template <>
-struct object_iter_converter<value::object_value_type>
-{
-    using object_impl = jsonv::detail::object_impl;
-    
-    union impl
-    {
-        char* storage;
-        object_impl::map_type::iterator* iter;
-    };
-    
-    union const_impl
-    {
-        const char* storage;
-        const object_impl::map_type::iterator* iter;
-    };
-};
-
-template <>
-struct object_iter_converter<const value::object_value_type>
-{
-    using object_impl = jsonv::detail::object_impl;
-    
-    union impl
-    {
-        char* storage;
-        object_impl::map_type::const_iterator* iter;
-    };
-    
-    union const_impl
-    {
-        const char* storage;
-        const object_impl::map_type::const_iterator* iter;
-    };
-};
-
-#define JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(return_, ...)                                                    \
-    template return_ value::basic_object_iterator<value::object_value_type>::__VA_ARGS__;                              \
-    template return_ value::basic_object_iterator<const value::object_value_type>::__VA_ARGS__;                        \
-
-template <typename T>
-value::basic_object_iterator<T>::basic_object_iterator()
-{
-    memset(_storage, 0, sizeof _storage);
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(, basic_object_iterator())
-
-// private
-template <typename T>
-template <typename U>
-value::basic_object_iterator<T>::basic_object_iterator(const U& source)
-{
-    static_assert(sizeof(U) == sizeof(_storage), "Input must be the same size of storage");
-    
-    memcpy(_storage, &source, sizeof _storage);
-}
-
-template <typename T>
-void value::basic_object_iterator<T>::increment()
-{
-    typedef typename object_iter_converter<T>::impl converter_union;
-    converter_union convert;
-    convert.storage = _storage;
-    ++(*convert.iter);
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(void, increment())
-
-template <typename T>
-void value::basic_object_iterator<T>::decrement()
-{
-    typedef typename object_iter_converter<T>::impl converter_union;
-    converter_union convert;
-    convert.storage = _storage;
-    --(*convert.iter);
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(void, decrement())
-
-template <typename T>
-T& value::basic_object_iterator<T>::current() const
-{
-    typedef typename object_iter_converter<T>::const_impl converter_union;
-    converter_union convert;
-    convert.storage = _storage;
-    return **convert.iter;
-}
-template value::object_value_type& value::basic_object_iterator<value::object_value_type>::current() const;
-template const value::object_value_type& value::basic_object_iterator<const value::object_value_type>::current() const;
-
-template <typename T>
-bool value::basic_object_iterator<T>::equals(const char* other_storage) const
-{
-    typedef typename object_iter_converter<T>::const_impl converter_union;
-    converter_union self_convert;
-    self_convert.storage = _storage;
-    converter_union other_convert;
-    other_convert.storage = other_storage;
-    
-    return *self_convert.iter == *other_convert.iter;
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(bool, equals(const char*) const)
-
-template <typename T>
-void value::basic_object_iterator<T>::copy_from(const char* other_storage)
-{
-    typedef typename object_iter_converter<T>::impl       converter_union;
-    typedef typename object_iter_converter<T>::const_impl const_converter_union;
-    converter_union self_convert;
-    self_convert.storage = _storage;
-    const_converter_union other_convert;
-    other_convert.storage = other_storage;
-    
-    *self_convert.iter = *other_convert.iter;
-}
-JSONV_INSTANTIATE_OBJVIEW_BASIC_ITERATOR_FUNC(void, copy_from(const char*))
-
-template <typename T>
-template <typename U>
-value::basic_object_iterator<T>::basic_object_iterator(const basic_object_iterator<U>& source,
-                                                       typename std::enable_if<std::is_convertible<U*, T*>::value>::type*
-                                                      )
-{
-    typedef typename object_iter_converter<T>::impl       converter_union;
-    typedef typename object_iter_converter<U>::const_impl const_converter_union;
-    converter_union self_convert;
-    self_convert.storage = _storage;
-    const_converter_union other_convert;
-    other_convert.storage = source._storage;
-    
-    *self_convert.iter = *other_convert.iter;
-}
-template value::basic_object_iterator<const value::object_value_type>
-              ::basic_object_iterator(const basic_object_iterator<value::object_value_type>&, void*);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // object                                                                                                             //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -264,10 +124,7 @@ value::const_object_iterator value::find(const std::string& key) const
 value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::string, value> pair)
 {
     check_type(jsonv::kind::object, kind());
-    using const_converter_union = object_iter_converter<const value::object_value_type>::const_impl;
-    const_converter_union hint_convert;
-    hint_convert.storage = hint._storage;
-    return object_iterator(_data.object->_values.insert(*hint_convert.iter, std::move(pair)));
+    return object_iterator(_data.object->_values.insert(hint._impl, std::move(pair)));
 }
 
 std::pair<value::object_iterator, bool> value::insert(std::pair<std::string, value> pair)
@@ -293,21 +150,13 @@ value::size_type value::erase(const std::string& key)
 value::object_iterator value::erase(const_object_iterator position)
 {
     check_type(jsonv::kind::object, kind());
-    using const_converter_union = object_iter_converter<const value::object_value_type>::const_impl;
-    const_converter_union pos_convert;
-    pos_convert.storage = position._storage;
-    return object_iterator(_data.object->_values.erase(*pos_convert.iter));
+    return object_iterator(_data.object->_values.erase(position._impl));
 }
 
 value::object_iterator value::erase(const_object_iterator first, const_object_iterator last)
 {
     check_type(jsonv::kind::object, kind());
-    using const_converter_union = object_iter_converter<const value::object_value_type>::const_impl;
-    const_converter_union first_convert;
-    first_convert.storage = first._storage;
-    const_converter_union last_convert;
-    last_convert.storage = last._storage;
-    return object_iterator(_data.object->_values.erase(*first_convert.iter, *last_convert.iter));
+    return object_iterator(_data.object->_values.erase(first._impl, last._impl));
 }
 
 namespace detail

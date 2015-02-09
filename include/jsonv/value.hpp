@@ -21,6 +21,7 @@
 #include <iosfwd>
 #include <iterator>
 #include <functional>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -280,34 +281,36 @@ public:
      *  The base iterator type for iterating over object types. It is a bidirectional iterator similar to a
      *  \c std::map<std::string, jsonv::value>.
     **/
-    template <typename T>
+    template <typename T, typename TIterator>
     struct basic_object_iterator :
             public std::iterator<std::bidirectional_iterator_tag, T>
     {
     public:
-        basic_object_iterator();
+        basic_object_iterator() :
+                _impl()
+        { }
         
-        basic_object_iterator(const basic_object_iterator& source)
-        {
-            copy_from(source._storage);
-        }
+        basic_object_iterator(const basic_object_iterator& source) :
+                _impl(source._impl)
+        { }
         
-        /** This allows assignment from an \c object_iterator to a \c const_object_iterator.
-        **/
-        template <typename U>
-        basic_object_iterator(const basic_object_iterator<U>& source,
+        /** This allows assignment from an \c object_iterator to a \c const_object_iterator. **/
+        template <typename U, typename UIterator>
+        basic_object_iterator(const basic_object_iterator<U, UIterator>& source,
                               typename std::enable_if<std::is_convertible<U*, T*>::value>::type* = 0
-                             );
+                             ) :
+                _impl(source._impl)
+        { }
         
         basic_object_iterator& operator=(const basic_object_iterator& source)
         {
-            copy_from(source._storage);
+            _impl = source._impl;
             return *this;
         }
         
-        template <typename U>
+        template <typename U, typename UIterator>
         typename std::enable_if<std::is_convertible<U*, T*>::value, basic_object_iterator&>::type
-        operator=(const basic_object_iterator<U>& source)
+        operator=(const basic_object_iterator<U, UIterator>& source)
         {
             return operator=(basic_object_iterator(source));
         }
@@ -338,16 +341,16 @@ public:
             return clone;
         }
         
-        template <typename U>
-        bool operator ==(const basic_object_iterator<U>& other) const
+        template <typename U, typename UIterator>
+        bool operator ==(const basic_object_iterator<U, UIterator>& other) const
         {
-            return equals(other._storage);
+            return _impl == other._impl;
         }
         
-        template <typename U>
-        bool operator !=(const basic_object_iterator<U>& other) const
+        template <typename U, typename UIterator>
+        bool operator !=(const basic_object_iterator<U, UIterator>& other) const
         {
-            return !equals(other._storage);
+            return _impl != other._impl;
         }
         
         T& operator *() const
@@ -363,17 +366,28 @@ public:
     private:
         friend class value;
         
-        template <typename U>
-        explicit basic_object_iterator(const U&);
+        template <typename UIterator>
+        explicit basic_object_iterator(const UIterator& iter) :
+                _impl(iter)
+        { }
         
-        void increment();
-        void decrement();
-        T&   current() const;
-        bool equals(const char* other_storage) const;
-        void copy_from(const char* other_storage);
+        void increment()
+        {
+            ++_impl;
+        }
+        
+        void decrement()
+        {
+            --_impl;
+        }
+        
+        T& current() const
+        {
+            return *_impl;
+        }
         
     private:
-        char _storage[sizeof(void*)];
+        TIterator _impl;
     };
     
     /** The type of value stored when \c kind is \c kind::object. **/
@@ -382,8 +396,8 @@ public:
     /** The \c object_iterator is applicable when \c kind is \c kind::object. It allows you to use algorithms as if
      *  a \c value was a normal associative container.
     **/
-    typedef basic_object_iterator<object_value_type>                   object_iterator;
-    typedef basic_object_iterator<const object_value_type>             const_object_iterator;
+    typedef basic_object_iterator<object_value_type,       std::map<std::string, value>::iterator>       object_iterator;
+    typedef basic_object_iterator<const object_value_type, std::map<std::string, value>::const_iterator> const_object_iterator;
     
     /** If \c kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
      *  This is most useful for range-based for loops.

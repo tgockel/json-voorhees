@@ -26,7 +26,9 @@ class JSONV_LOCAL object_impl :
         public cloneable<object_impl>
 {
 public:
-    typedef std::map<std::string, jsonv::value> map_type;
+    using map_type       = std::map<std::string, jsonv::value>;
+    using iterator       = map_type::iterator;
+    using const_iterator = map_type::const_iterator;
     
 public:
     bool empty() const;
