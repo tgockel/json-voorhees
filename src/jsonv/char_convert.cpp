@@ -83,6 +83,15 @@ static const char* find_decoding(char char_after_backslash)
 
 static bool needs_unicode_escaping(char c)
 {
+    #ifdef _MSC_VER
+    // MSVC decided that isprint should ASSERT if the input character has the highest-order bit set, which is really
+    // stupid given how sign extension works (because `char` is signed). To workaround this, we check it here because
+    // this is NOT an error condition in any way, shape or form in UTF-8. That said, I do not think Microsoft ever uses
+    // UTF-8.
+    if (c & '\x80')
+        return true;
+    #endif
+
     return !isprint(c)
         || (c & '\x80');
 }
