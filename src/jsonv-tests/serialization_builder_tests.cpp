@@ -181,6 +181,33 @@ TEST(serialization_builder_defaults)
     ensure_eq(p, q);
 }
 
+TEST(serialization_builder_encode_checks)
+{
+    formats base = formats_builder()
+                    .type<person>()
+                        .member("firstname",        &person::firstname)
+                        .member("lastname",         &person::lastname)
+                        .member("age",              &person::age)
+                            .encode_if([] (const serialization_context&, int age) { return age > 20; })
+                        .member("favorite_numbers", &person::favorite_numbers)
+                            .encode_if([] (const serialization_context&, const std::set<long>& nums) { return nums.size(); })
+                        .member("winning_numbers",  &person::winning_numbers)
+                            .encode_if([] (const serialization_context&, const std::vector<long>& nums) { return nums.size(); })
+                    .register_containers<long, std::set, std::vector>()
+                    .check_references(formats::defaults())
+                ;
+    formats fmt = formats::compose({ base, formats::defaults() });
+    
+    person p("Bob", "Builder", 20, {}, { 1 });
+    value expected = object({ { "firstname", p.firstname },
+                              { "lastname",  p.lastname  },
+                              { "winning_numbers", array({ 1 }) },
+                            }
+                           );
+    value encoded = to_json(p, fmt);
+    ensure_eq(expected, encoded);
+}
+
 TEST(serialization_builder_check_references_fails)
 {
     formats_builder builder;
