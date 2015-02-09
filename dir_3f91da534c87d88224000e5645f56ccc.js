@@ -8,7 +8,5 @@ var dir_3f91da534c87d88224000e5645f56ccc =
     [ "generic_container.hpp", "generic__container_8hpp.html", "generic__container_8hpp" ],
     [ "nested_exception.hpp", "nested__exception_8hpp.html", "nested__exception_8hpp" ],
     [ "scope_exit.hpp", "scope__exit_8hpp.html", "scope__exit_8hpp" ],
-    [ "string_view.hpp", "detail_2string__view_8hpp.html", [
-      [ "string_view", "classjsonv_1_1detail_1_1string__view.html", "classjsonv_1_1detail_1_1string__view" ]
-    ] ]
+    [ "string_view.hpp", "detail_2string__view_8hpp.html", "detail_2string__view_8hpp" ]
 ];
