@@ -7,7 +7,7 @@ digraph jsonv {
   ostream [label="std::ostream"]
   value   [label="value", URL="\ref jsonv::value"]
   class   [label="C++ class"]
-  ast     [label="C++ AST"]
+  dsl     [label="C++ DSL"]
   
   value   -> str     [label="to_string"]
   value   -> ostream [label="operator<<"]
@@ -16,5 +16,5 @@ digraph jsonv {
   value   -> value   [label="map, merge, diff, ..."]
   value   -> class   [label="extract"]
   class   -> value   [label="to_json"]
-  ast     -> value   [label="value, object, array"]
+  dsl     -> value   [label="value, object, array"]
 }
