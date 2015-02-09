@@ -195,10 +195,18 @@ SO_PATHS      ?=
 SO_LIBRARIES  ?= 
 INSTALL        = cp $(INSTALL_FLAGS)
 INSTALL_FLAGS ?= --no-dereference
+VALGRIND      ?=
 
 CXX_FLAGS_cov     = -O3 -fprofile-arcs -ftest-coverage
 LD_FLAGS_cov      = -fprofile-arcs
+CXX_FLAGS_debug   = -Og
 CXX_FLAGS_release = -O3
+
+ifeq ($(VALGRIND),)
+  RUN := ./
+else
+  RUN := valgrind --tool=$(VALGRIND) ./
+endif
 
 ################################################################################
 # Libraries                                                                    #
@@ -265,7 +273,7 @@ define TEST_TEMPLATE
   .PHONY: $1
   $1 : $$(BIN_DIR)/$1
 	$$(QQ)echo " TEST  $1 $$(ARGS)"
-	$$Q./$$< $$(ARGS)
+	$$Q$$(RUN)$$< $$(ARGS)
 
   gdb-$1 : $$(BIN_DIR)/$1
 	$$(QQ)echo " GDB   $1 $$(ARGS)"
