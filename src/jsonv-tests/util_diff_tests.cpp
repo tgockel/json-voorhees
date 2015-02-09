@@ -26,32 +26,28 @@ class json_diff_test :
         public unit_test
 {
 public:
-    json_diff_test(const std::string& test_name,
-                   value              left,
-                   value              right,
-                   value              expected_
-                  ) :
-            unit_test(std::string("diff_test/") + test_name),
-            in_left(std::move(left)),
-            in_right(std::move(right))
-    {
-        expected.same  = std::move(expected_.at("same"));
-        expected.left  = std::move(expected_.at("left"));
-        expected.right = std::move(expected_.at("right"));
-    }
+    json_diff_test(std::string path) :
+            unit_test(std::string("diff_test/") + filename(path)),
+            path(std::move(path))
+    { }
     
     virtual void run_impl() override
     {
-        diff_result result = diff(in_left, in_right);
+        value whole = [this] { std::ifstream in(path.c_str()); return parse(in); }();
+        
+        diff_result result = diff(whole.at_path(".input.left"), whole.at_path(".input.right"));
+        diff_result expected;
+        expected.same  = whole.at_path(".result.same");
+        expected.right = whole.at_path(".result.right");
+        expected.left  = whole.at_path(".result.left");
+        
         ensure_eq(expected.same,  result.same);
         ensure_eq(expected.left,  result.left);
         ensure_eq(expected.right, result.right);
     }
     
 private:
-    value       in_left;
-    value       in_right;
-    diff_result expected;
+    std::string path;
 };
 
 class json_diff_test_initializer
@@ -61,14 +57,7 @@ public:
     {
         recursive_directory_for_each(rootpath, ".json", [this] (const std::string& p)
         {
-            value whole = [&p] { std::ifstream in(p.c_str()); return parse(in); }();
-            
-            _tests.emplace_back(new json_diff_test(filename(p),
-                                                   whole.at_path(".input.left"),
-                                                   whole.at_path(".input.right"),
-                                                   whole.at_path(".result")
-                                                  )
-                               );
+            _tests.emplace_back(new json_diff_test(p));
         });
     }
     
