@@ -128,8 +128,12 @@ var group__Serialization =
       [ "create", "classjsonv_1_1container__adapter.html#ad88e79f33a559f43e90d511e06d28069", null ],
       [ "encode", "classjsonv_1_1container__adapter.html#a04f7c58240f2bfcd20b942495cc943ad", null ]
     ] ],
+    [ "demangle_function", "group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38", null ],
+    [ "demangle", "group__Serialization.html#ga26c620d20cffb45e1145fe95eeb37d00", null ],
     [ "extract", "group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8", null ],
     [ "extract", "group__Serialization.html#gac24f0cb864988715300f4741b5031546", null ],
+    [ "reset_demangle_function", "group__Serialization.html#ga5122b2a35367e3978eecfe18f2c74958", null ],
+    [ "set_demangle_function", "group__Serialization.html#ga736f002ced4a200be19e203b406a9c6c", null ],
     [ "to_json", "group__Serialization.html#gaabee8db6887a255c3b351d127bfad140", null ],
     [ "to_json", "group__Serialization.html#ga52201f62c91cdfb758fdb62a330f6e5f", null ]
 ];

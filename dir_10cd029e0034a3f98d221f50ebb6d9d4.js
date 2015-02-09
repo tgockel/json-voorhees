@@ -5,6 +5,7 @@ var dir_10cd029e0034a3f98d221f50ebb6d9d4 =
     [ "all.hpp", "all_8hpp.html", null ],
     [ "coerce.hpp", "coerce_8hpp.html", "coerce_8hpp" ],
     [ "config.hpp", "config_8hpp.html", "config_8hpp" ],
+    [ "demangle.hpp", "demangle_8hpp.html", "demangle_8hpp" ],
     [ "encode.hpp", "encode_8hpp.html", [
       [ "encoder", "classjsonv_1_1encoder.html", "classjsonv_1_1encoder" ],
       [ "ostream_encoder", "classjsonv_1_1ostream__encoder.html", "classjsonv_1_1ostream__encoder" ],

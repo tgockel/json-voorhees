@@ -77,7 +77,8 @@ var NAVTREEINDEX =
 ".html",
 "classjsonv_1_1encoder.html#ad161a2185b4afd5b140fffa1b1750bae",
 "coerce_8hpp.html#gab8622e02fd1f38c93d11bc9680815627",
-"group__Shared.html#ga5fef3e201f1d7661ca0aab45bdd2d4e9"
+"group__Shared.html#ga22b9339eaca88c988d2fceaa29775e01",
+"value_8hpp.html#gabae5c5bfa8dceec8849cfe0a58ad83b1"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

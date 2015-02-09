@@ -100,6 +100,7 @@ $(document).ready(function(){initNavTree('group__Serialization.html','');});
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Serialization</div>  </div>
@@ -160,8 +161,23 @@ Classes</h2></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An adapter for container types.  <a href="classjsonv_1_1container__adapter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga095e1bea81644c5e5d82e75e1d188e38"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38">jsonv::demangle_function</a> = std::function&lt; std::string(string_view source)&gt;</td></tr>
+<tr class="memdesc:ga095e1bea81644c5e5d82e75e1d188e38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of function used in setting a custom demangler.  <a href="#ga095e1bea81644c5e5d82e75e1d188e38">More...</a><br /></td></tr>
+<tr class="separator:ga095e1bea81644c5e5d82e75e1d188e38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ga26c620d20cffb45e1145fe95eeb37d00"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga26c620d20cffb45e1145fe95eeb37d00">jsonv::demangle</a> (string_view source)</td></tr>
+<tr class="memdesc:ga26c620d20cffb45e1145fe95eeb37d00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert the input <em>source</em> from a mangled type into a human-friendly version.  <a href="#ga26c620d20cffb45e1145fe95eeb37d00">More...</a><br /></td></tr>
+<tr class="separator:ga26c620d20cffb45e1145fe95eeb37d00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga736f002ced4a200be19e203b406a9c6c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga736f002ced4a200be19e203b406a9c6c">jsonv::set_demangle_function</a> (demangle_function func)</td></tr>
+<tr class="memdesc:ga736f002ced4a200be19e203b406a9c6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the global demangle function.  <a href="#ga736f002ced4a200be19e203b406a9c6c">More...</a><br /></td></tr>
+<tr class="separator:ga736f002ced4a200be19e203b406a9c6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5122b2a35367e3978eecfe18f2c74958"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga5122b2a35367e3978eecfe18f2c74958">jsonv::reset_demangle_function</a> ()</td></tr>
+<tr class="memdesc:ga5122b2a35367e3978eecfe18f2c74958"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the demangle function to the default.  <a href="#ga5122b2a35367e3978eecfe18f2c74958">More...</a><br /></td></tr>
+<tr class="separator:ga5122b2a35367e3978eecfe18f2c74958"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga75b53c85ab73bce4a1d0027c556715a8"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ga75b53c85ab73bce4a1d0027c556715a8"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8">jsonv::extract</a> (const value &amp;from, const formats &amp;fmts)</td></tr>
 <tr class="memdesc:ga75b53c85ab73bce4a1d0027c556715a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract a C++ value from <em>from</em> using the provided <em>fmts</em>.  <a href="#ga75b53c85ab73bce4a1d0027c556715a8">More...</a><br /></td></tr>
@@ -201,7 +217,49 @@ template&lt;typename FExtract , typename FEncode , typename  = void&gt; </td></t
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>Serialization components are responsible for conversion between a C++ type and a JSON <code>value</code>. </p>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a class="anchor" id="ga095e1bea81644c5e5d82e75e1d188e38"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38">jsonv::demangle_function</a> = typedef std::function&lt;std::string (string_view source)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Type of function used in setting a custom demangler. </p>
+<dl class="section see"><dt>See also</dt><dd>demangle </dd>
+<dd>
+set_demangle_function </dd></dl>
+
+<p>Definition at line <a class="el" href="demangle_8hpp_source.html#l00040">40</a> of file <a class="el" href="demangle_8hpp_source.html">demangle.hpp</a>.</p>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga26c620d20cffb45e1145fe95eeb37d00"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::string jsonv::demangle </td>
+          <td>(</td>
+          <td class="paramtype">string_view&#160;</td>
+          <td class="paramname"><em>source</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Convert the input <em>source</em> from a mangled type into a human-friendly version. </p>
+<p>This is used by <code>formats</code> (and the associated serialization functions) to give more user-friendly names in type errors.</p>
+<dl class="section see"><dt>See also</dt><dd>demangle_function </dd>
+<dd>
+set_demangle_function </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga75b53c85ab73bce4a1d0027c556715a8"></a>
 <div class="memitem">
 <div class="memproto">
@@ -253,6 +311,44 @@ template&lt;typename T &gt; </div>
 <p>Extract a C++ value from <em>from</em> using <code><a class="el" href="classjsonv_1_1formats.html#a4403758d5e87d0862a04fc5d9171991d" title="Get the global formats instance. ">jsonv::formats::global()</a></code>. </p>
 
 <p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00607">607</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ga5122b2a35367e3978eecfe18f2c74958"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void jsonv::reset_demangle_function </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Resets the demangle function to the default. </p>
+<dl class="section see"><dt>See also</dt><dd>set_demangle_function </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga736f002ced4a200be19e203b406a9c6c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void jsonv::set_demangle_function </td>
+          <td>(</td>
+          <td class="paramtype">demangle_function&#160;</td>
+          <td class="paramname"><em>func</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the global demangle function. </p>
+<p>This controls the behavior of <code>demangle</code> &ndash; the provided <em>func</em> will be called by <code>demangle</code>.</p>
+<dl class="section see"><dt>See also</dt><dd>demangle </dd></dl>
 
 </div>
 </div>
