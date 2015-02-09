@@ -11,6 +11,7 @@
 **/
 #include <jsonv/serialization.hpp>
 #include <jsonv/coerce.hpp>
+#include <jsonv/demangle.hpp>
 #include <jsonv/serialization_util.hpp>
 #include <jsonv/value.hpp>
 
@@ -78,13 +79,14 @@ const path& extraction_error::path() const
 static std::string make_no_serializer_extractor_errmsg(const char* kind, const std::type_index& type)
 {
     std::ostringstream ss;
-    ss << "Could not find " << kind << " for type: " << type.name();
+    ss << "Could not find " << kind << " for type: " << demangle(type.name());
     return ss.str();
 }
 
 no_extractor::no_extractor(const std::type_index& type) :
         runtime_error(make_no_serializer_extractor_errmsg("extractor", type)),
-        _type_index(type)
+        _type_index(type),
+        _type_name(demangle(type.name()))
 { }
 
 no_extractor::no_extractor(const std::type_info& type) :
@@ -99,9 +101,9 @@ std::type_index no_extractor::type_index() const
     return _type_index;
 }
 
-const char* no_extractor::type_name() const
+string_view no_extractor::type_name() const
 {
-    return _type_index.name();
+    return _type_name;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,7 +112,8 @@ const char* no_extractor::type_name() const
 
 no_serializer::no_serializer(const std::type_index& type) :
         runtime_error(make_no_serializer_extractor_errmsg("serializer", type)),
-        _type_index(type)
+        _type_index(type),
+        _type_name(demangle(type.name()))
 { }
 
 no_serializer::no_serializer(const std::type_info& type) :
@@ -125,9 +128,9 @@ std::type_index no_serializer::type_index() const
     return _type_index;
 }
 
-const char* no_serializer::type_name() const
+string_view no_serializer::type_name() const
 {
-    return _type_index.name();
+    return _type_name;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +209,7 @@ public:
         {
             // if we already have a value, search the shared maps to see if it is present
             std::ostringstream os;
-            os << "Already have an extractor for type " << typeidx.name();
+            os << "Already have an extractor for type " << demangle(typeidx.name());
             throw std::invalid_argument(os.str());
         }
         else
@@ -231,7 +234,7 @@ public:
         {
             // if we already have a value, search the shared maps to see if it is present
             std::ostringstream os;
-            os << "Already have a serializer for type " << typeidx.name();
+            os << "Already have a serializer for type " << demangle(typeidx.name());
             throw std::invalid_argument(os.str());
         }
         else

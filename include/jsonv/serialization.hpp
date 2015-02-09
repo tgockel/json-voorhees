@@ -142,13 +142,14 @@ public:
     virtual ~no_extractor() noexcept;
     
     /** The name of the type. **/
-    const char* type_name() const;
+    string_view type_name() const;
     
     /** Get an ID for the type of \c extractor that \c formats::extract could not locate. **/
     std::type_index type_index() const;
     
 private:
     std::type_index _type_index;
+    std::string     _type_name;
 };
 
 /** Thrown when \c formats::encode does not have a \c serializer for the provided type. **/
@@ -163,13 +164,14 @@ public:
     virtual ~no_serializer() noexcept;
     
     /** The name of the type. **/
-    const char* type_name() const;
+    string_view type_name() const;
     
     /** Get an ID for the type of \c serializer that \c formats::encode could not locate. **/
     std::type_index type_index() const;
     
 private:
     std::type_index _type_index;
+    std::string     _type_name;
 };
 
 /** An \c extractor holds the method for converting a \c value into an arbitrary C++ type. **/

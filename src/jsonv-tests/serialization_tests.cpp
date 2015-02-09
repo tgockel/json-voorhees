@@ -10,6 +10,7 @@
 **/
 #include "test.hpp"
 
+#include <jsonv/demangle.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization.hpp>
 #include <jsonv/serialization_util.hpp>
@@ -158,7 +159,7 @@ TEST(extract_basics)
         }
         catch (const no_extractor& noex)
         {
-            ensure_eq(std::string(typeid(unassociated).name()), noex.type_name());
+            ensure_eq(demangle(typeid(unassociated).name()), noex.type_name());
             ensure(noex.type_index() == std::type_index(typeid(unassociated)));
         }
     }
@@ -282,7 +283,7 @@ TEST(serialize_basics)
     catch (const no_serializer& noser)
     {
         ensure(noser.type_index() == std::type_index(typeid(unassociated)));
-        ensure_eq(string_view(noser.type_name()), string_view(typeid(unassociated).name()));
+        ensure_eq(demangle(noser.type_name()), demangle(typeid(unassociated).name()));
     }
 }
 
