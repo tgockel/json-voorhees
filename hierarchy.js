@@ -59,7 +59,7 @@ var hierarchy =
     [ "std::hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", null ],
     [ "iterator", null, [
       [ "jsonv::value::basic_array_iterator< T, TArrayView >", "structjsonv_1_1value_1_1basic__array__iterator.html", null ],
-      [ "jsonv::value::basic_object_iterator< T >", "structjsonv_1_1value_1_1basic__object__iterator.html", null ]
+      [ "jsonv::value::basic_object_iterator< T, TIterator >", "structjsonv_1_1value_1_1basic__object__iterator.html", null ]
     ] ],
     [ "jsonv::detail::member_adapter< T >", "classjsonv_1_1detail_1_1member__adapter.html", [
       [ "jsonv::detail::member_adapter_impl< T, TMember >", "classjsonv_1_1detail_1_1member__adapter__impl.html", null ]

@@ -112,7 +112,7 @@ $(document).ready(function(){initNavTree('group__Object.html','');});
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">jsonv::value::basic_object_iterator&lt; T &gt;</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">jsonv::value::basic_object_iterator&lt; T, TIterator &gt;</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -121,14 +121,18 @@ Typedefs</h2></td></tr>
 std::string, value &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabf0673825595a5326e65544af770b4dd">jsonv::value::object_value_type</a></td></tr>
 <tr class="memdesc:gabf0673825595a5326e65544af770b4dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type of value stored when <code>kind</code> is <code>kind::object</code>.  <a href="#gabf0673825595a5326e65544af770b4dd">More...</a><br /></td></tr>
 <tr class="separator:gabf0673825595a5326e65544af770b4dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabe865fe7b043bceae9f2630410e406b7"><td class="memItemLeft" align="right" valign="top">typedef basic_object_iterator<br class="typebreak" />
-&lt; object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">jsonv::value::object_iterator</a></td></tr>
-<tr class="memdesc:gabe865fe7b043bceae9f2630410e406b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>object_iterator</code> is applicable when <code>kind</code> is <code>kind::object</code>.  <a href="#gabe865fe7b043bceae9f2630410e406b7">More...</a><br /></td></tr>
-<tr class="separator:gabe865fe7b043bceae9f2630410e406b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaee495e9858cbf3a238f80afd946fbd8c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaee495e9858cbf3a238f80afd946fbd8c"></a>
+<tr class="memitem:ga318c2006b4bc53859c444604995ebc05"><td class="memItemLeft" align="right" valign="top">typedef basic_object_iterator<br class="typebreak" />
+&lt; object_value_type, std::map<br class="typebreak" />
+&lt; std::string, value &gt;<br class="typebreak" />
+::iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga318c2006b4bc53859c444604995ebc05">jsonv::value::object_iterator</a></td></tr>
+<tr class="memdesc:ga318c2006b4bc53859c444604995ebc05"><td class="mdescLeft">&#160;</td><td class="mdescRight">The <code>object_iterator</code> is applicable when <code>kind</code> is <code>kind::object</code>.  <a href="#ga318c2006b4bc53859c444604995ebc05">More...</a><br /></td></tr>
+<tr class="separator:ga318c2006b4bc53859c444604995ebc05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gadfdaa72edbf78da2dbf960942e946bde"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gadfdaa72edbf78da2dbf960942e946bde"></a>
 typedef basic_object_iterator<br class="typebreak" />
-&lt; const object_value_type &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_object_iterator</b></td></tr>
-<tr class="separator:gaee495e9858cbf3a238f80afd946fbd8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+&lt; const object_value_type, <br class="typebreak" />
+std::map&lt; std::string, value &gt;<br class="typebreak" />
+::const_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::value::const_object_iterator</b></td></tr>
+<tr class="separator:gadfdaa72edbf78da2dbf960942e946bde"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga39d2820f80eac817a14d5e129de46449"><td class="memItemLeft" align="right" valign="top">typedef detail::basic_view<br class="typebreak" />
 &lt; object_iterator, <br class="typebreak" />
 const_object_iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Object.html#ga39d2820f80eac817a14d5e129de46449">jsonv::value::object_view</a></td></tr>
@@ -214,12 +218,12 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 <p>These functions are only applicable if the kind of this value is an object.</p>
 <p>It is a bidirectional iterator similar to a <code>std::map&lt;std::string, jsonv::value&gt;</code>. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="gabe865fe7b043bceae9f2630410e406b7"></a>
+<a class="anchor" id="ga318c2006b4bc53859c444604995ebc05"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef basic_object_iterator&lt;object_value_type&gt; <a class="el" href="group__Object.html#gabe865fe7b043bceae9f2630410e406b7">jsonv::value::object_iterator</a></td>
+          <td class="memname">typedef basic_object_iterator&lt;object_value_type, std::map&lt;std::string, value&gt;::iterator&gt; <a class="el" href="group__Object.html#ga318c2006b4bc53859c444604995ebc05">jsonv::value::object_iterator</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -227,7 +231,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 <p>The <code>object_iterator</code> is applicable when <code>kind</code> is <code>kind::object</code>. </p>
 <p>It allows you to use algorithms as if a <code>value</code> was a normal associative container. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00385">385</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00399">399</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -243,7 +247,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 
 <p>The type of value stored when <code>kind</code> is <code>kind::object</code>. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00380">380</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00394">394</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -260,7 +264,7 @@ object_iterator&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::val
 <p>If <code>kind</code> is <code>kind::object</code>, an <code>object_view</code> allows you to access a value as an associative container. </p>
 <p>This is most useful for range-based for loops. </p>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00391">391</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00405">405</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -558,7 +562,7 @@ template&lt;typename TForwardIterator &gt; </div>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00824">824</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00838">838</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
