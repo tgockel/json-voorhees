@@ -1,5 +1,6 @@
 var NAVTREEINDEX1 =
 {
+"classjsonv_1_1encoder.html#ad161a2185b4afd5b140fffa1b1750bae":[3,0,0,7,7],
 "classjsonv_1_1encoder.html#adc4c685d9633c53ab01ecd57650372b7":[3,0,0,7,8],
 "classjsonv_1_1encoder.html#aec505c124a25aca218bd0f437383f701":[3,0,0,7,10],
 "classjsonv_1_1encoder.html#af1f63e294b42cac44a4ebc93dfddd1d3":[3,0,0,7,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX1 =
 "coerce_8hpp.html#ga7e3fd5c6922f9ead68a46031b0af3e49":[4,0,0,3,9],
 "coerce_8hpp.html#ga7ef79a40e8ad18e599287552546fca16":[4,0,0,3,3],
 "coerce_8hpp.html#ga82b464dbe1081e60ddcd82c434b28c34":[4,0,0,3,7],
-"coerce_8hpp.html#ga98485441d78ea2cdfc00ce97b2563b73":[4,0,0,3,6],
-"coerce_8hpp.html#gab8622e02fd1f38c93d11bc9680815627":[4,0,0,3,4]
+"coerce_8hpp.html#ga98485441d78ea2cdfc00ce97b2563b73":[4,0,0,3,6]
 };

@@ -75,8 +75,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classjsonv_1_1encoder.html#adc4c685d9633c53ab01ecd57650372b7",
-"coerce_8hpp.html#gae17eed7144363cc743cf143f13c377c1",
+"classjsonv_1_1encoder.html#ad161a2185b4afd5b140fffa1b1750bae",
+"coerce_8hpp.html#gab8622e02fd1f38c93d11bc9680815627",
 "group__Shared.html#ga5fef3e201f1d7661ca0aab45bdd2d4e9"
 ];
 

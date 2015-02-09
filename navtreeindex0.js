@@ -157,6 +157,7 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1detail_1_1member__adapter__impl.html#a344b1b47f96a930dc09d7405f75df64a":[3,0,0,0,9,2],
 "classjsonv_1_1detail_1_1member__adapter__impl.html#a64a6e68fc63257791b111c504da00982":[3,0,0,0,9,1],
 "classjsonv_1_1detail_1_1member__adapter__impl.html#aaf0a0e616ff384c832e091c426190708":[3,0,0,0,9,5],
+"classjsonv_1_1detail_1_1member__adapter__impl.html#acdbf370e19df2f546b66a7a29400b1bc":[3,0,0,0,9,6],
 "classjsonv_1_1detail_1_1member__adapter__impl.html#ace3b04ff6eb148eb5fa183e9f60a98b6":[3,0,0,0,9,4],
 "classjsonv_1_1detail_1_1member__adapter__impl.html#acfde7d1d208aa2c27f4a1bb7b453c855":[3,0,0,0,9,0],
 "classjsonv_1_1detail_1_1member__adapter__impl.html#ae4914318cc48f7e096925272366fe719":[3,0,0,0,9,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1encoder.html#a87379e446c9882bbef43ba07eaa79921":[3,0,0,7,11],
 "classjsonv_1_1encoder.html#a8c314dfcaa9df22f72ed16cf771a4849":[3,0,0,7,1],
 "classjsonv_1_1encoder.html#aba6a24adf01225563d39fc5fc3f3149d":[3,0,0,7,0],
-"classjsonv_1_1encoder.html#ace3ca4df06ca8d7db6ec87ff17d26964":[3,0,0,7,12],
-"classjsonv_1_1encoder.html#ad161a2185b4afd5b140fffa1b1750bae":[3,0,0,7,7]
+"classjsonv_1_1encoder.html#ace3ca4df06ca8d7db6ec87ff17d26964":[3,0,0,7,12]
 };
