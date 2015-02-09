@@ -135,9 +135,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a6197746954effe33956f51c9bdc85e5b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6197746954effe33956f51c9bdc85e5b"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>no_serializer</b> (const std::type_index &amp;type)</td></tr>
 <tr class="separator:a6197746954effe33956f51c9bdc85e5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01073f3eea6ad3dd4f5af32c0f9b0c1a"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1no__serializer.html#a01073f3eea6ad3dd4f5af32c0f9b0c1a">type_name</a> () const </td></tr>
-<tr class="memdesc:a01073f3eea6ad3dd4f5af32c0f9b0c1a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the type.  <a href="#a01073f3eea6ad3dd4f5af32c0f9b0c1a">More...</a><br /></td></tr>
-<tr class="separator:a01073f3eea6ad3dd4f5af32c0f9b0c1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c8458ac1a33e00212a1b8c7d31874e0"><td class="memItemLeft" align="right" valign="top">string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1no__serializer.html#a2c8458ac1a33e00212a1b8c7d31874e0">type_name</a> () const </td></tr>
+<tr class="memdesc:a2c8458ac1a33e00212a1b8c7d31874e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">The name of the type.  <a href="#a2c8458ac1a33e00212a1b8c7d31874e0">More...</a><br /></td></tr>
+<tr class="separator:a2c8458ac1a33e00212a1b8c7d31874e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c91ea9edbddbdfefbc4a33581a42ea1"><td class="memItemLeft" align="right" valign="top">std::type_index&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1no__serializer.html#a2c91ea9edbddbdfefbc4a33581a42ea1">type_index</a> () const </td></tr>
 <tr class="memdesc:a2c91ea9edbddbdfefbc4a33581a42ea1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get an ID for the type of <code>serializer</code> that <code><a class="el" href="classjsonv_1_1formats.html#aedd77cea1a8fe4831fbe561a6507ff76" title="Encode the provided value from into a JSON value. ">formats::encode</a></code> could not locate.  <a href="#a2c91ea9edbddbdfefbc4a33581a42ea1">More...</a><br /></td></tr>
 <tr class="separator:a2c91ea9edbddbdfefbc4a33581a42ea1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -145,7 +145,7 @@ Public Member Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Thrown when <code><a class="el" href="classjsonv_1_1formats.html#aedd77cea1a8fe4831fbe561a6507ff76" title="Encode the provided value from into a JSON value. ">formats::encode</a></code> does not have a <code>serializer</code> for the provided type. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00155">155</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00156">156</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a24f76c4f20e7d6772c8e227c03a45d69"></a>
 <div class="memitem">
@@ -191,12 +191,12 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a01073f3eea6ad3dd4f5af32c0f9b0c1a"></a>
+<a class="anchor" id="a2c8458ac1a33e00212a1b8c7d31874e0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* jsonv::no_serializer::type_name </td>
+          <td class="memname">string_view jsonv::no_serializer::type_name </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
