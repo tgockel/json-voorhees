@@ -299,6 +299,42 @@ private:
     size_type _length;
 };
 
+template <typename UAllocator>
+bool operator==(const std::basic_string<UAllocator> lhs, const string_view& rhs)
+{
+    return string_view(lhs) == rhs;
+}
+
+template <typename UAllocator>
+bool operator!=(const std::basic_string<UAllocator> lhs, const string_view& rhs)
+{
+    return string_view(lhs) != rhs;
+}
+
+template <typename UAllocator>
+bool operator<(const std::basic_string<UAllocator> lhs, const string_view& rhs)
+{
+    return string_view(lhs) < rhs;
+}
+
+template <typename UAllocator>
+bool operator<=(const std::basic_string<UAllocator> lhs, const string_view& rhs)
+{
+    return string_view(lhs) <= rhs;
+}
+
+template <typename UAllocator>
+bool operator>(const std::basic_string<UAllocator> lhs, const string_view& rhs)
+{
+    return string_view(lhs) > rhs;
+}
+
+template <typename UAllocator>
+bool operator>=(const std::basic_string<UAllocator> lhs, const string_view& rhs)
+{
+    return string_view(lhs) >= rhs;
+}
+
 }
 }
 
