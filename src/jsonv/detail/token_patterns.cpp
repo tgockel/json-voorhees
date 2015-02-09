@@ -23,13 +23,51 @@ namespace detail
 
 namespace regex_ns = JSONV_REGEX_NAMESPACE;
 
-const regex_ns::regex_constants::syntax_option_type syntax_options = regex_ns::regex_constants::ECMAScript
-                                                                   | regex_ns::regex_constants::optimize;
+class re_values
+{
+public:
+    static const regex_ns::regex& number()
+    {
+        return instance().re_number;
+    }
 
-const regex_ns::regex re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options);
-const regex_ns::regex re_whitespace(  R"(^[ \t\r\n]+)",                                       syntax_options);
-const regex_ns::regex re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)",                           syntax_options);
-const regex_ns::regex re_simplestring(R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options);
+    static const regex_ns::regex& whitespace()
+    {
+        return instance().re_whitespace;
+    }
+
+    static const regex_ns::regex& comment()
+    {
+        return instance().re_comment;
+    }
+
+    static const regex_ns::regex& simplestring()
+    {
+        return instance().re_simplestring;
+    }
+
+private:
+    static const re_values& instance()
+    {
+        static re_values x;
+        return x;
+    }
+
+    re_values() :
+            syntax_options(regex_ns::regex_constants::ECMAScript | regex_ns::regex_constants::optimize),
+            re_number(      R"(-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options),
+            re_whitespace(  R"([ \t\r\n]+)",                                       syntax_options),
+            re_comment(     R"(/\*([^\*]*|\*[^/])*\*/)",                           syntax_options),
+            re_simplestring(R"([a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
+    { }
+
+private:
+    const regex_ns::regex_constants::syntax_option_type syntax_options;
+    const regex_ns::regex re_number;
+    const regex_ns::regex re_whitespace;
+    const regex_ns::regex re_comment;
+    const regex_ns::regex re_simplestring;
+};
 
 template <std::ptrdiff_t N>
 static match_result match_literal(const char* begin, const char* end, const char (& literal)[N], std::size_t& length)
@@ -84,7 +122,7 @@ static match_result match_pattern(const char*            begin,
 static match_result match_number(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
     kind = token_kind::number;
-    return match_pattern(begin, end, re_number, length);
+    return match_pattern(begin, end, re_values::number(), length);
 }
 
 static match_result match_string(const char* begin, const char* end, token_kind& kind, std::size_t& length)
@@ -121,13 +159,13 @@ static match_result match_string(const char* begin, const char* end, token_kind&
 static match_result match_whitespace(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
     kind = token_kind::whitespace;
-    return match_pattern(begin, end, re_whitespace, length);
+    return match_pattern(begin, end, re_values::whitespace(), length);
 }
 
 static match_result match_comment(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
     kind = token_kind::comment;
-    return match_pattern(begin, end, re_comment, length);
+    return match_pattern(begin, end, re_values::comment(), length);
 }
 
 match_result attempt_match(const char* begin, const char* end, token_kind& kind, std::size_t& length)
@@ -193,7 +231,7 @@ path_match_result path_match(string_view input, string_view& match_contents)
     switch (input.at(0))
     {
     case '.':
-        result = match_pattern(input.data() + 1, input.data() + input.size(), re_simplestring, length);
+        result = match_pattern(input.data() + 1, input.data() + input.size(), re_values::simplestring(), length);
         if (result == match_result::complete || result == match_result::complete_eof)
         {
             match_contents = input.substr(0, length + 1);
