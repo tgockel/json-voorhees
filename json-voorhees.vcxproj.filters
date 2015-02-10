@@ -96,6 +96,9 @@
     <ClInclude Include="include\jsonv\detail\nested_exception.hpp">
       <Filter>include/jsonv\detail</Filter>
     </ClInclude>
+    <ClInclude Include="include\jsonv\demangle.hpp">
+      <Filter>include/jsonv</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\jsonv\algorithm_map.cpp">
@@ -145,6 +148,9 @@
     </ClCompile>
     <ClCompile Include="src\jsonv\detail\token_patterns.cpp">
       <Filter>src/jsonv\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="src\jsonv\demangle.cpp">
+      <Filter>src/jsonv</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

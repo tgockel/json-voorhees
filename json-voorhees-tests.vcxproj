@@ -90,6 +90,7 @@
     <ClCompile Include="src\jsonv-tests\array_tests.cpp" />
     <ClCompile Include="src\jsonv-tests\char_convert_tests.cpp" />
     <ClCompile Include="src\jsonv-tests\coerce_tests.cpp" />
+    <ClCompile Include="src\jsonv-tests\demangle_tests.cpp" />
     <ClCompile Include="src\jsonv-tests\detail\token_patterns_tests.cpp" />
     <ClCompile Include="src\jsonv-tests\encode_tests.cpp" />
     <ClCompile Include="src\jsonv-tests\filesystem_util.cpp" />
