@@ -22,7 +22,8 @@ namespace jsonv_test
 
 std::string filename(std::string path)
 {
-    return path;
+    auto pos = path.find_last_of('\\');
+    return path.substr(pos + 1);
 }
 
 void recursive_directory_for_each(const std::string&                             root_path_name,
