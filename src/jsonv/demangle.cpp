@@ -11,12 +11,20 @@
 #include <jsonv/demangle.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 
+#ifndef _MSC_VER
 #include <cxxabi.h>
+#endif
 #include <cstdlib>
 
 namespace jsonv
 {
 
+#ifdef _MSC_VER
+static std::string demangle_impl(string_view source)
+{
+    return std::string(source);
+}
+#else
 static std::string demangle_impl(string_view source)
 {
     namespace cxxabi = __cxxabiv1;
@@ -32,6 +40,7 @@ static std::string demangle_impl(string_view source)
         return std::string(source);
     }
 }
+#endif
 
 static demangle_function& demangle_function_ref()
 {
