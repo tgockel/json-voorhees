@@ -1,6 +1,5 @@
 var NAVTREEINDEX1 =
 {
-"classjsonv_1_1encoder.html#ad161a2185b4afd5b140fffa1b1750bae":[3,0,0,7,7],
 "classjsonv_1_1encoder.html#adc4c685d9633c53ab01ecd57650372b7":[3,0,0,7,8],
 "classjsonv_1_1encoder.html#aec505c124a25aca218bd0f437383f701":[3,0,0,7,10],
 "classjsonv_1_1encoder.html#af1f63e294b42cac44a4ebc93dfddd1d3":[3,0,0,7,5],
@@ -51,15 +50,13 @@ var NAVTREEINDEX1 =
 "classjsonv_1_1formats__builder.html":[3,0,0,14],
 "classjsonv_1_1formats__builder.html#a149f644e52dc9d1ea35990cb92f608e1":[3,0,0,14,3],
 "classjsonv_1_1formats__builder.html#a215d65d0ceddd17e8c5cc137b7800fed":[3,0,0,14,4],
-"classjsonv_1_1formats__builder.html#a29ddd28f1cfccac630a99e01995d5348":[3,0,0,14,10],
-"classjsonv_1_1formats__builder.html#a41bd2225d030016961d2fdd160812377":[3,0,0,14,8],
+"classjsonv_1_1formats__builder.html#a29ddd28f1cfccac630a99e01995d5348":[3,0,0,14,8],
 "classjsonv_1_1formats__builder.html#a454a1a3af73249491c006b7e08955332":[3,0,0,14,6],
 "classjsonv_1_1formats__builder.html#a8f4052163f27e150ae0ad26042a03edb":[3,0,0,14,1],
 "classjsonv_1_1formats__builder.html#ab3723240bd62f5e8a56072ffc78b351a":[3,0,0,14,7],
 "classjsonv_1_1formats__builder.html#ab613c888e1cadbcdacaecb695decfb7b":[3,0,0,14,0],
 "classjsonv_1_1formats__builder.html#ab659729e41d3c7e7346180ec25c11730":[3,0,0,14,2],
 "classjsonv_1_1formats__builder.html#ae3f5e20cc8fbdf0eff03df46cfad8fc8":[3,0,0,14,5],
-"classjsonv_1_1formats__builder.html#afec272b2f981dfd32bdfeab332ad03cd":[3,0,0,14,9],
 "classjsonv_1_1function__adapter.html":[2,6,17],
 "classjsonv_1_1function__adapter.html#a373462ff3ef23c19d3931d5ead5081bd":[2,6,17,0],
 "classjsonv_1_1function__adapter.html#a9b270a7c675681aa26245b15ad8aefd0":[2,6,17,2],
@@ -249,5 +246,8 @@ var NAVTREEINDEX1 =
 "coerce_8hpp.html#ga7e3fd5c6922f9ead68a46031b0af3e49":[4,0,0,3,9],
 "coerce_8hpp.html#ga7ef79a40e8ad18e599287552546fca16":[4,0,0,3,3],
 "coerce_8hpp.html#ga82b464dbe1081e60ddcd82c434b28c34":[4,0,0,3,7],
-"coerce_8hpp.html#ga98485441d78ea2cdfc00ce97b2563b73":[4,0,0,3,6]
+"coerce_8hpp.html#ga98485441d78ea2cdfc00ce97b2563b73":[4,0,0,3,6],
+"coerce_8hpp.html#gab8622e02fd1f38c93d11bc9680815627":[4,0,0,3,4],
+"coerce_8hpp.html#gae17eed7144363cc743cf143f13c377c1":[4,0,0,3,2],
+"coerce_8hpp.html#gae9a1f603c9ce75f7bd479f022e43dc91":[4,0,0,3,8]
 };

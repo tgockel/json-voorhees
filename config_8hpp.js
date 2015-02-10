@@ -1,6 +1,7 @@
 var config_8hpp =
 [
     [ "JSONV_ALWAYS_INLINE", "config_8hpp.html#ae938237d8a45efd2ad056a08c99bb1a5", null ],
+    [ "JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES", "config_8hpp.html#a8de2272ac6e7c4feb09012afe5fbb6d0", null ],
     [ "JSONV_COMPILING", "config_8hpp.html#a8e9d7c4d5906433298b398c2d051e7f3", null ],
     [ "JSONV_INTEGER_ALTERNATES_LIST", "config_8hpp.html#aa12a2d545e94053d3d0cfc63ecbbf828", null ],
     [ "JSONV_LOCAL", "config_8hpp.html#a2faaa50c0935f9bcfa2e115a0f92b2a0", null ],

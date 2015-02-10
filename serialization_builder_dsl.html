@@ -232,7 +232,8 @@ register_containers</h4>
 <p>Convenience function for calling <code>register_container</code> for multiple containers with the same <code>value_type</code>. Unfortunately, it only supports varying the first template parameter of the <code>TTContainer</code> types, so if you wish to do something like vary the allocator, you will have to either call <code>register_container</code> multiple times or use a template alias.</p>
 <div class="fragment"><div class="line">.register_containers&lt;int, std::list, std::deque&gt;()</div>
 <div class="line">.register_containers&lt;double, std::vector, std::set&gt;()</div>
-</div><!-- fragment --><h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
+</div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>Not supported in MSVC 14 (CTP 5).</dd></dl>
+<h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
 Narrowing</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing_type"></a>
 type&lt;T&gt;</h4>

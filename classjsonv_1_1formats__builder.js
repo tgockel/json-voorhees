@@ -8,7 +8,5 @@ var classjsonv_1_1formats__builder =
     [ "register_adapter", "classjsonv_1_1formats__builder.html#ae3f5e20cc8fbdf0eff03df46cfad8fc8", null ],
     [ "register_adapter", "classjsonv_1_1formats__builder.html#a454a1a3af73249491c006b7e08955332", null ],
     [ "register_container", "classjsonv_1_1formats__builder.html#ab3723240bd62f5e8a56072ffc78b351a", null ],
-    [ "register_containers", "classjsonv_1_1formats__builder.html#a41bd2225d030016961d2fdd160812377", null ],
-    [ "register_containers", "classjsonv_1_1formats__builder.html#afec272b2f981dfd32bdfeab332ad03cd", null ],
     [ "type", "classjsonv_1_1formats__builder.html#a29ddd28f1cfccac630a99e01995d5348", null ]
 ];
