@@ -427,6 +427,12 @@ static formats create_default_formats()
     register_integer_adapter<std::uint32_t>(fmt);
     register_integer_adapter<std::int64_t>(fmt);
     register_integer_adapter<std::uint64_t>(fmt);
+    #ifdef _MSC_VER
+    // In MSVC's 64-bit compiler, `std::int64_t` is a distinct type from `long`. Since these are really common types,
+    // we will add them explicitly.
+    register_integer_adapter<long>(fmt);
+    register_integer_adapter<unsigned long>(fmt);
+    #endif
     
     static auto double_extractor = make_adapter([] (const value& from) { return from.as_decimal(); },
                                                 [] (const double& from) { return value(from); }
