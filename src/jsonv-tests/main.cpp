@@ -22,11 +22,10 @@
 
 #include "test.hpp"
 
-int benchmark(const std::string& filename)
+int benchmark(const std::string& filename, const int ntimes = 1000)
 {
     std::ifstream inputfile(filename.c_str());
     std::string to_parse;
-    const int ntimes = 1000;
 
     inputfile.seekg(0, std::ios::end);
     to_parse.reserve(inputfile.tellg());
@@ -36,7 +35,8 @@ int benchmark(const std::string& filename)
                      std::istreambuf_iterator<char>());
     
     std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
-    for (int i = 0; i < ntimes; ++i) {
+    for (int i = 0; i < ntimes; ++i)
+    {
         jsonv::value x = jsonv::parse(to_parse);
     }
     std::chrono::steady_clock::time_point end_time = std::chrono::steady_clock::now();
@@ -48,7 +48,7 @@ int benchmark(const std::string& filename)
 
 TEST(benchmark)
 {
-    benchmark("src/jsonv-tests/data/generated.json");
+    benchmark("src/jsonv-tests/data/generated.json", 10);
 }
 
 TEST(demo)
@@ -79,6 +79,5 @@ int main(int argc, char** argv)
         if (shouldrun && !test->run())
             ++fail_count;
     }
-    
     return fail_count;
 }
