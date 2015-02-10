@@ -33,7 +33,11 @@ public:
     
     virtual void run_impl() override
     {
-        value whole = [this] { std::ifstream in(path.c_str()); return parse(in); }();
+        value whole;
+        {
+            std::ifstream in(path.c_str());
+            whole = parse(in);
+        }
         
         diff_result result = diff(whole.at_path(".input.left"), whole.at_path(".input.right"));
         diff_result expected;
