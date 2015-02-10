@@ -167,4 +167,15 @@
 #   error "JSONV_REGEX_INCLUDE is unset, but JSONV_REGEX_NAMESPACE is. You must set both."
 #endif
 
+/** \def JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
+ *  Does the compiler properly support template templates? Most compilers do, MSVC does not.
+**/
+#ifndef JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
+#   ifdef _MSC_VER
+#       define JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES 0
+#   else
+#       define JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES 1
+#   endif
+#endif
+
 #endif/*__JSONV_CONFIG_HPP_INCLUDED__*/

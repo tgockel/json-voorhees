@@ -213,6 +213,9 @@
  *    .register_containers<double, std::vector, std::set>()
  *  \endcode
  *  
+ *  \note
+ *  Not supported in MSVC 14 (CTP 5).
+ *  
  *  \subsubsection serialization_builder_dsl_ref_formats_narrowing Narrowing
  *  
  *  \paragraph serialization_builder_dsl_ref_formats_narrowing_type type&lt;T&gt;
@@ -384,8 +387,10 @@ public:
     template <typename TContainer>
     formats_builder& register_container();
     
+    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
     template <typename T, template <class...> class... TTContainers>
     formats_builder& register_containers();
+    #endif
     
     operator formats() const;
     
@@ -729,6 +734,7 @@ public:
         return *this;
     }
     
+    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
     template <typename T>
     formats_builder& register_containers()
     {
@@ -741,6 +747,7 @@ public:
         register_container<TTContainer<T>>();
         return register_containers<T, TTRest...>();
     }
+    #endif
     
     operator formats() const
     {
@@ -781,12 +788,14 @@ formats_builder& formats_builder_dsl::register_container()
 {
     return owner->register_container<TContainer>();
 }
-    
+
+#if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
 template <typename T, template <class...> class... TTContainers>
 formats_builder& formats_builder_dsl::register_containers()
 {
     return owner->register_containers<T, TTContainers...>();
 }
+#endif
 
 template <typename T>
 template <typename TMember>

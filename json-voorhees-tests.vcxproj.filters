@@ -78,6 +78,9 @@
     <ClCompile Include="src\jsonv-tests\detail\token_patterns_tests.cpp">
       <Filter>src/jsonv-tests\detail</Filter>
     </ClCompile>
+    <ClCompile Include="src\jsonv-tests\demangle_tests.cpp">
+      <Filter>src/jsonv-tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\jsonv-tests\filesystem_util.hpp">
