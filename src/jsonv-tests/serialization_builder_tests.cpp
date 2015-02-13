@@ -111,7 +111,7 @@ TEST(serialization_builder_members_since)
     auto to_json_ver = [&fmt] (const version& v)
                        {
                         serialization_context context(fmt, v);
-                        return context.encode(my_pair(5, 10));
+                        return context.to_json(my_pair(5, 10));
                        };
     
     ensure_eq(0U, to_json_ver({ 1, 0 }).count("b"));

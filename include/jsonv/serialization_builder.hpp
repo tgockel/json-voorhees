@@ -422,7 +422,7 @@ public:
     
     virtual void mutate(const extraction_context& context, const value& from, T& out) const = 0;
     
-    virtual void encode(const serialization_context& context, const T& from, value& out) const = 0;
+    virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
 };
 
 template <typename T, typename TMember>
@@ -455,10 +455,10 @@ public:
             (out.*_selector) = context.extract_sub<TMember>(from, iter->first);
     }
     
-    virtual void encode(const serialization_context& context, const T& from, value& out) const override
+    virtual void to_json(const serialization_context& context, const T& from, value& out) const override
     {
         if (should_encode(context, from))
-            out.insert({ _names.at(0), context.encode(from.*_selector) });
+            out.insert({ _names.at(0), context.to_json(from.*_selector) });
     }
     
     void add_encode_check(std::function<bool (const serialization_context&, const TMember&)> check)
@@ -686,11 +686,11 @@ private:
             return out;
         }
         
-        virtual value encode(const serialization_context& context, const T& from) const override
+        virtual value to_json(const serialization_context& context, const T& from) const override
         {
             value out = object();
             for (const auto& member : _members)
-                member->encode(context, from, out);
+                member->to_json(context, from, out);
             return out;
         }
         

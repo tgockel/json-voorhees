@@ -63,9 +63,9 @@ struct my_thing
         static auto instance = make_serializer<my_thing>([] (const serialization_context& context, const my_thing& self)
             {
                 return object({
-                               { "a", context.encode(self.a) },
-                               { "b", context.encode(self.b) },
-                               { "c", context.encode(self.c) },
+                               { "a", context.to_json(self.a) },
+                               { "b", context.to_json(self.b) },
+                               { "c", context.to_json(self.c) },
                               }
                              );
             });
@@ -264,21 +264,21 @@ TEST(serialize_basics)
 {
     serialization_context cxt(formats::defaults());
     ensure(cxt.user_data() == nullptr);
-    ensure_eq(value(5), cxt.encode(std::int8_t(5)));
-    ensure_eq(value(5), cxt.encode(std::uint8_t(5)));
-    ensure_eq(value(5), cxt.encode(std::int16_t(5)));
-    ensure_eq(value(5), cxt.encode(std::uint16_t(5)));
-    ensure_eq(value(5), cxt.encode(std::int32_t(5)));
-    ensure_eq(value(5), cxt.encode(std::uint32_t(5)));
-    ensure_eq(value(5), cxt.encode(std::int64_t(5)));
-    ensure_eq(value(5), cxt.encode(std::uint64_t(5)));
-    ensure_eq(value(4.5), cxt.encode(4.5));
-    ensure_eq(value(4.5), cxt.encode(4.5f));
-    ensure_eq(value("thing"), cxt.encode(std::string("thing")));
+    ensure_eq(value(5), cxt.to_json(std::int8_t(5)));
+    ensure_eq(value(5), cxt.to_json(std::uint8_t(5)));
+    ensure_eq(value(5), cxt.to_json(std::int16_t(5)));
+    ensure_eq(value(5), cxt.to_json(std::uint16_t(5)));
+    ensure_eq(value(5), cxt.to_json(std::int32_t(5)));
+    ensure_eq(value(5), cxt.to_json(std::uint32_t(5)));
+    ensure_eq(value(5), cxt.to_json(std::int64_t(5)));
+    ensure_eq(value(5), cxt.to_json(std::uint64_t(5)));
+    ensure_eq(value(4.5), cxt.to_json(4.5));
+    ensure_eq(value(4.5), cxt.to_json(4.5f));
+    ensure_eq(value("thing"), cxt.to_json(std::string("thing")));
     
     try
     {
-        cxt.encode(unassociated{});
+        cxt.to_json(unassociated{});
     }
     catch (const no_serializer& noser)
     {

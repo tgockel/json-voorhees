@@ -320,7 +320,7 @@ void formats::extract(const std::type_info&     type,
     get_extractor(type).extract(context, from, into);
 }
 
-const serializer& formats::get_encoder(std::type_index type) const
+const serializer& formats::get_serializer(std::type_index type) const
 {
     const serializer* ser = _data->find_serializer(type);
     if (ser)
@@ -329,17 +329,17 @@ const serializer& formats::get_encoder(std::type_index type) const
         throw no_serializer(type);
 }
 
-const serializer& formats::get_encoder(const std::type_info& type) const
+const serializer& formats::get_serializer(const std::type_info& type) const
 {
-    return get_encoder(std::type_index(type));
+    return get_serializer(std::type_index(type));
 }
 
-value formats::encode(const std::type_info& type,
-                      const void* from,
-                      const serialization_context& context
-                     ) const
+value formats::to_json(const std::type_info& type,
+                       const void* from,
+                       const serialization_context& context
+                      ) const
 {
-    return get_encoder(type).encode(context, from);
+    return get_serializer(type).to_json(context, from);
 }
 
 void formats::register_extractor(const extractor* ex)

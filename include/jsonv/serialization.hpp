@@ -152,7 +152,7 @@ private:
     std::string     _type_name;
 };
 
-/** Thrown when \c formats::encode does not have a \c serializer for the provided type. **/
+/** Thrown when \c formats::to_json does not have a \c serializer for the provided type. **/
 class JSONV_PUBLIC no_serializer :
         public std::runtime_error
 {
@@ -166,7 +166,7 @@ public:
     /** The name of the type. **/
     string_view type_name() const;
     
-    /** Get an ID for the type of \c serializer that \c formats::encode could not locate. **/
+    /** Get an ID for the type of \c serializer that \c formats::to_json could not locate. **/
     std::type_index type_index() const;
     
 private:
@@ -217,12 +217,13 @@ public:
      *  \param context Extra information to help you encode sub-objects for your type, such as the ability to find other
      *                 \c formats. It also tracks the progression of types in the encoding heirarchy, so any exceptions
      *                 thrown will have \c type information in the error message.
-     *  \param from The region of memory that represents the C++ value to encode. The pointer comes as the result of a
-     *              <tt>static_cast&lt;void*&gt;</tt>, so performing a \c static_cast back to your type is okay.
+     *  \param from The region of memory that represents the C++ value to convert to JSON. The pointer comes as the
+     *              result of a <tt>static_cast&lt;void*&gt;</tt>, so performing a \c static_cast back to your type is
+     *              okay.
     **/
-    virtual value encode(const serialization_context& context,
-                         const void*                  from
-                        ) const = 0;
+    virtual value to_json(const serialization_context& context,
+                          const void*                  from
+                         ) const = 0;
 };
 
 /** An \c adapter is both an \c extractor and a \c serializer. It is made with the idea that for \e most types, you want
@@ -376,26 +377,26 @@ public:
     
     /** Encode the provided value \a from into a JSON \c value. The \a context is passed to the \c serializer which
      *  performs the conversion. In general, this should not be used directly as it is painful to do so -- prefer
-     *  \c serialization_context::encode or the free function \c jsonv::to_json.
+     *  \c serialization_context::to_json or the free function \c jsonv::to_json.
      *  
      *  \throws no_serializer if a \c serializer for \a type could not be found.
     **/
-    value encode(const std::type_info&        type,
-                 const void*                  from,
-                 const serialization_context& context
-                ) const;
+    value to_json(const std::type_info&        type,
+                  const void*                  from,
+                  const serialization_context& context
+                 ) const;
     
     /** Gets the \c serializer for the given \a type.
      *  
      *  \throws no_serializer if a \c serializer for \a type could not be found.
     **/
-    const serializer& get_encoder(std::type_index type) const;
+    const serializer& get_serializer(std::type_index type) const;
     
     /** Gets the \c serializer for the given \a type.
      *  
      *  \throws no_serializer if a \c serializer for \a type could not be found.
     **/
-    const serializer& get_encoder(const std::type_info& type) const;
+    const serializer& get_serializer(const std::type_info& type) const;
     
     /** Register an \c extractor that lives in some unmanaged space.
      *  
@@ -628,9 +629,9 @@ public:
     virtual ~serialization_context() noexcept;
     
     template <typename T>
-    value encode(const T& from) const
+    value to_json(const T& from) const
     {
-        return formats().encode(typeid(T), static_cast<const void*>(&from), *this);
+        return formats().to_json(typeid(T), static_cast<const void*>(&from), *this);
     }
 };
 
@@ -639,7 +640,7 @@ template <typename T>
 value to_json(const T& from, const formats& fmts)
 {
     serialization_context context(fmts);
-    return context.encode(from);
+    return context.to_json(from);
 }
 
 /** Encode a JSON \c value from \a from using \c jsonv::formats::global(). **/
@@ -647,7 +648,7 @@ template <typename T>
 value to_json(const T& from)
 {
     serialization_context context;
-    return context.encode(from);
+    return context.to_json(from);
 }
 
 /** \} **/

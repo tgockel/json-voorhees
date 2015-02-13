@@ -42,8 +42,8 @@ formats_builder& formats_builder::check_references(formats other, const std::str
     {
         const std::type_index& type = pair.first;
         
-        bool has_extractor  = [&] { try { searching.get_extractor(type); return true; } catch (const no_extractor&)  { return false; } }();
-        bool has_serializer = [&] { try { searching.get_encoder(type);   return true; } catch (const no_serializer&) { return false; } }();
+        bool has_extractor  = [&] { try { searching.get_extractor(type);  return true; } catch (const no_extractor&)  { return false; } }();
+        bool has_serializer = [&] { try { searching.get_serializer(type); return true; } catch (const no_serializer&) { return false; } }();
         
         if (!has_extractor || !has_serializer)
             failed_types.emplace_back(type, has_extractor, has_serializer);

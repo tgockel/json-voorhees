@@ -154,59 +154,59 @@ public:
         return typeid(T);
     }
     
-    virtual value encode(const serialization_context& context,
-                         const void*                  from
-                        ) const override
+    virtual value to_json(const serialization_context& context,
+                          const void*                  from
+                         ) const override
     {
-        return encode(context, *static_cast<const T*>(from));
+        return to_json(context, *static_cast<const T*>(from));
     }
     
 protected:
-    virtual value encode(const serialization_context& context,
-                         const T&                     from
-                        ) const = 0;
+    virtual value to_json(const serialization_context& context,
+                          const T&                     from
+                         ) const = 0;
 };
 
-template <typename T, typename FEncode>
+template <typename T, typename FToJson>
 class function_serializer :
         public serializer_for<T>
 {
 public:
-    template <typename FUEncode>
-    explicit function_serializer(FUEncode&& encode_) :
-            _encode(std::forward<FUEncode>(encode_))
+    template <typename FUToJson>
+    explicit function_serializer(FUToJson&& to_json_) :
+            _to_json(std::forward<FUToJson>(to_json_))
     { }
     
 protected:
     
-    virtual value encode(const serialization_context& context, const T& from) const override
+    virtual value to_json(const serialization_context& context, const T& from) const override
     {
-        return encode_impl(_encode, context, from);
+        return to_json_impl(_to_json, context, from);
     }
     
 private:
-    template <typename FUEncode>
-    static auto encode_impl(const FUEncode& func, const serialization_context& context, const T& from)
+    template <typename FUToJson>
+    static auto to_json_impl(const FUToJson& func, const serialization_context& context, const T& from)
             -> decltype(func(context, from))
     {
         return func(context, from);
     }
     
-    template <typename FUEncode, typename = void>
-    static auto encode_impl(const FUEncode& func, const serialization_context&, const T& from)
+    template <typename FUToJson, typename = void>
+    static auto to_json_impl(const FUToJson& func, const serialization_context&, const T& from)
             -> decltype(func(from))
     {
         return func(from);
     }
     
 private:
-    FEncode _encode;
+    FToJson _to_json;
 };
 
-template <typename T, typename FEncode>
-function_serializer<T, FEncode> make_serializer(FEncode encode)
+template <typename T, typename FToJson>
+function_serializer<T, FToJson> make_serializer(FToJson to_json_)
 {
-    return function_serializer<T, FEncode>(std::move(encode));
+    return function_serializer<T, FToJson>(std::move(to_json_));
 }
 
 template <typename T>
@@ -227,28 +227,28 @@ public:
         new(into) T(create(context, from));
     }
     
-    virtual value encode(const serialization_context& context,
-                         const void*                  from
-                        ) const override
+    virtual value to_json(const serialization_context& context,
+                          const void*                  from
+                         ) const override
     {
-        return encode(context, *static_cast<const T*>(from));
+        return to_json(context, *static_cast<const T*>(from));
     }
     
 protected:
     virtual T create(const extraction_context& context, const value& from) const = 0;
     
-    virtual value encode(const serialization_context& context, const T& from) const = 0;
+    virtual value to_json(const serialization_context& context, const T& from) const = 0;
 };
 
-template <typename T, typename FExtract, typename FEncode>
+template <typename T, typename FExtract, typename FToJson>
 class function_adapter :
         public adapter_for<T>
 {
 public:
-    template <typename FUExtract, typename FUEncode>
-    explicit function_adapter(FUExtract&& extract_, FUEncode&& encode_) :
+    template <typename FUExtract, typename FUToJson>
+    explicit function_adapter(FUExtract&& extract_, FUToJson&& to_json_) :
             _extract(std::forward<FUExtract>(extract_)),
-            _encode(std::forward<FUEncode>(encode_))
+            _to_json(std::forward<FUToJson>(to_json_))
     { }
     
 protected:
@@ -257,9 +257,9 @@ protected:
         return create_impl(_extract, context, from);
     }
     
-    virtual value encode(const serialization_context& context, const T& from) const override
+    virtual value to_json(const serialization_context& context, const T& from) const override
     {
-        return encode_impl(_encode, context, from);
+        return to_json_impl(_to_json, context, from);
     }
     
 private:
@@ -277,15 +277,15 @@ private:
         return func(from);
     }
     
-    template <typename FUEncode>
-    static auto encode_impl(const FUEncode& func, const serialization_context& context, const T& from)
+    template <typename FUToJson>
+    static auto to_json_impl(const FUToJson& func, const serialization_context& context, const T& from)
             -> decltype(func(context, from))
     {
         return func(context, from);
     }
     
-    template <typename FUEncode, typename = void>
-    static auto encode_impl(const FUEncode& func, const serialization_context&, const T& from)
+    template <typename FUToJson, typename = void>
+    static auto to_json_impl(const FUToJson& func, const serialization_context&, const T& from)
             -> decltype(func(from))
     {
         return func(from);
@@ -293,35 +293,35 @@ private:
     
 private:
     FExtract _extract;
-    FEncode  _encode;
+    FToJson  _to_json;
 };
 
-template <typename FExtract, typename FEncode>
-auto make_adapter(FExtract extract, FEncode encode)
+template <typename FExtract, typename FToJson>
+auto make_adapter(FExtract extract, FToJson to_json_)
     -> function_adapter<decltype(extract(std::declval<const extraction_context&>(), std::declval<const value&>())),
                         FExtract,
-                        FEncode
+                        FToJson
                        >
 {
     return function_adapter<decltype(extract(std::declval<const extraction_context&>(), std::declval<const value&>())),
                             FExtract,
-                            FEncode
+                            FToJson
                            >
-            (std::move(extract), std::move(encode));
+            (std::move(extract), std::move(to_json_));
 }
 
-template <typename FExtract, typename FEncode, typename = void>
-auto make_adapter(FExtract extract, FEncode encode)
+template <typename FExtract, typename FToJson, typename = void>
+auto make_adapter(FExtract extract, FToJson to_json_)
     -> function_adapter<decltype(extract(std::declval<const value&>())),
                         FExtract,
-                        FEncode
+                        FToJson
                        >
 {
     return function_adapter<decltype(extract(std::declval<const value&>())),
                             FExtract,
-                            FEncode
+                            FToJson
                            >
-            (std::move(extract), std::move(encode));
+            (std::move(extract), std::move(to_json_));
 }
 
 /** An adapter for container types. This is for convenience of creating an \c adapter for things like \c std::vector,
@@ -348,11 +348,11 @@ protected:
         return out;
     }
     
-    virtual value encode(const serialization_context& context, const TContainer& from) const override
+    virtual value to_json(const serialization_context& context, const TContainer& from) const override
     {
         value out = array();
         for (const element_type& x : from)
-            out.push_back(context.encode(x));
+            out.push_back(context.to_json(x));
         return out;
     }
 };
