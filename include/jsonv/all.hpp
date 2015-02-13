@@ -13,10 +13,13 @@
 #define __JSONV_ALL_HPP_INCLUDED__
 
 /** \mainpage Overview
- *  JSON Voorhees is yet another library for parsing JSON in C++. This one touts new C++11 features for
- *  developer-friendliness, a high-speed parser and no dependencies beyond compliant compiler. It is hosted on
- *  <a href="https://github.com/tgockel/json-voorhees">GitHub</a> and sports an Apache License, so use it anywhere you
- *  need.
+ *  JSON Voorhees is a JSON library written for the C++ programmer who wants to be productive in this modern world. What
+ *  does that mean? There are a ton of JSON libraries floating around touting how they are "modern" C++ and so on. But
+ *  who really cares? JSON Voorhees puts the focus more on the resulting C++ than any "modern" feature set. This means
+ *  the library does not skip on string encoding details like having full support for UTF-8. Are there "modern"
+ *  features? Sure, but this library is not meant to be a gallery of them -- a good API should get out of your way and
+ *  let you work. It is hosted on <a href="https://github.com/tgockel/json-voorhees">GitHub</a> and sports an Apache
+ *  License, so use it anywhere you need.
  * 
  *  Features include (but are not necessarily limited to):
  *  
@@ -48,9 +51,9 @@
  *  
  *  \section demo_value The jsonv::value
  *  
- *  The central class of JSON Voorhees is the \c value. This class represents a JSON AST and is somewhat of a dynamic
- *  type. This can make things a little bit awkward for C++ programmers who are used to static typing. Don't worry about
- *  it -- you can learn to love it.
+ *  The central class of JSON Voorhees is the \c jsonv::value. This class represents a JSON AST and is somewhat of a
+ *  dynamic type. This can make things a little bit awkward for C++ programmers who are used to static typing. Don't
+ *  worry about it -- you can learn to love it.
  *  
  *  Putting values of different types is super-easy.
  *  
@@ -238,7 +241,8 @@
  *  \section demo_parsing Encoding and decoding
  *  
  *  Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services
- *  or storing things in a file or a database. JSON Voorhees makes this very easy for you.
+ *  or storing things in a file or a database. To do this, you need to \e encode your \c json::value into an
+ *  \c std::string and \e parse it back. JSON Voorhees makes this very easy for you.
  *  
  *  \code
  *  #include <jsonv/value.hpp>
@@ -281,7 +285,7 @@
  *  Loading "file.json"...{"array":[1,2,3,4,5],"infinity":null,"taco":"cat"}
  *  \endcode
  *  
- *  If you are paying close attention, you might have notice that the value for the \c "infinity" looks a little bit
+ *  If you are paying close attention, you might have noticed that the value for the \c "infinity" looks a little bit
  *  more \c null than \c infinity. This is because, much like mathematicians before Anaximander, JSON has no concept of
  *  infinity, so it is actually \e illegal to serialize a token like \c infinity anywhere. By default, when an encoder
  *  encounters an unrepresentable value in the JSON it is trying to encode, it outputs \c null instead. If you wish to
@@ -446,7 +450,7 @@
  *  \c my_type. Now, \c local_formats \e only knows how to extract instances of \c my_type -- it does \e not know even
  *  the most basic things like how to extract an \c int. We use \c jsonv::formats::compose to create a new instance of
  *  \c jsonv::formats that combines the qualities of \c local_formats (which knows how to deal with \c my_type) and the
- *  \c jsonv::formats::defaults (which knows how to deal with things like \c int and \c std::string). The \c format
+ *  \c jsonv::formats::defaults (which knows how to deal with things like \c int and \c std::string). The \c formats
  *  instance now has the power to do everything we need!
  *  
  *  \code
@@ -486,9 +490,9 @@
  *                                 (
  *                                  [] (const jsonv::serialization_context& context, const my_type& self)
  *                                  {
- *                                      return jsonv::object({ { "a", context.encode(self.a) },
- *                                                             { "b", context.encode(self.b) },
- *                                                             { "c", context.encode(self.c) }
+ *                                      return jsonv::object({ { "a", context.to_json(self.a) },
+ *                                                             { "b", context.to_json(self.b) },
+ *                                                             { "c", context.to_json(self.c) }
  *                                                           }
  *                                                          );
  *                                  }
@@ -576,8 +580,8 @@
  *  provided at the template parameter. All of the calls before the second \c type call modify the adapter for \c foo.
  *  There, we attach members with the \c member function. This tells the \c formats how to encode and extract each of
  *  the specified members to and from a JSON object using the provided string as the key. The extra function calls like
- *  \c default_value, \c since and \c until are just some of the many functions available to modify how the members of
- *  the type get transformed.
+ *  \c default_value, \c since and \c until are just a could of the many functions available to modify how the members
+ *  of the type get transformed.
  *  
  *  The \c formats we built would be perfectly capable of serializing to and extracting from this JSON document:
  *  
@@ -705,8 +709,8 @@
  *  {"a":"taco","b":"cat","c":"burrito","d":"dog"}
  *  \endcode
  *  
- *  You might have noticed the use of \c std::move into the \c merge function. \c merge, like most functions in JSON
- *  Voorhees, takes advantage of move semantics. In this case, the implementation will move the contents of the values
+ *  You might have noticed the use of \c std::move into the \c merge function. Like most functions in JSON Voorhees,
+ *  \c merge takes advantage of move semantics. In this case, the implementation will move the contents of the values
  *  instead of copying them around. While it may not matter in this simple case, if you have large JSON structures, the
  *  support for movement will save you a ton of memory.
  *  

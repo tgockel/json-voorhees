@@ -8,8 +8,24 @@
  *  version.
  *
  *  \author Travis Gockel (travis@gockelhut.com)
- *  
- *  \page serialization_builder_dsl Serialization Builder DSL
+**/
+#ifndef __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
+#define __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
+
+#include <jsonv/config.hpp>
+#include <jsonv/serialization.hpp>
+#include <jsonv/serialization_util.hpp>
+
+#include <deque>
+#include <map>
+#include <memory>
+#include <set>
+#include <type_traits>
+
+namespace jsonv
+{
+
+/** \page serialization_builder_dsl Serialization Builder DSL
  *  
  *  Most applications tend to have a lot of structure types. While it is possible to write an \c extractor and
  *  \c serializer (or \c adapter) for each type, this can get a little bit tedious. Beyond that, it is very difficult to
@@ -166,10 +182,10 @@
  *  Explicitly add a reference to the provided \a type in the DSL. If \a from is provided, also add a back reference for
  *  tracking purposes. The \a from field is useful for tracking \e why the \a type is referenced.
  *  
- *  Type references are used in \ref serialization_builder_dsl_ref_formats_level_check_references check_references to
- *  both check and generate error messages if the \c formats the DSL is building cannot fully create and extract JSON
- *  values. You do not usually have to call this, as each call to
- *  \ref serialization_builder_dsl_ref_type_narrowing_member member calls this automatically.
+ *  Type references are used in \ref serialization_builder_dsl_ref_formats_level_check_references to both check and
+ *  generate error messages if the \c formats the DSL is building cannot fully create and extract JSON values. You do
+ *  not usually have to call this, as each call to \ref serialization_builder_dsl_ref_type_narrowing_member calls this
+ *  automatically.
  *  
  *  \code
  *    .reference_type(std::type_index(typeid(int)), std::type_index(typeid(my_type)))
@@ -247,7 +263,7 @@
  *  
  *  Adds a member to the type we are currently building. By default, the member will be serialized with the key of the
  *  given \a name and the extractor will search for the given \a name. If you wish to change properties of this field,
- *  use the \ref serialization_builder_dsl_ref_member member context.
+ *  use the \ref serialization_builder_dsl_ref_member.
  *  
  *  \code
  *    .type<my_type>()
@@ -342,21 +358,6 @@
  *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than the
  *  provided \c version.
 **/
-#ifndef __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
-#define __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
-
-#include <jsonv/config.hpp>
-#include <jsonv/serialization.hpp>
-#include <jsonv/serialization_util.hpp>
-
-#include <deque>
-#include <map>
-#include <memory>
-#include <set>
-#include <type_traits>
-
-namespace jsonv
-{
 
 class formats_builder;
 
