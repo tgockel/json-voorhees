@@ -14,7 +14,7 @@ var hierarchy =
       [ "jsonv::extraction_context", "classjsonv_1_1extraction__context.html", null ],
       [ "jsonv::serialization_context", "classjsonv_1_1serialization__context.html", null ]
     ] ],
-    [ "jsonv::diff_result", "structjsonv_1_1diff__result.html", null ],
+    [ "jsonv::diff_result", "group__Utility.html#structjsonv_1_1diff__result", null ],
     [ "jsonv::encoder", "classjsonv_1_1encoder.html", [
       [ "jsonv::ostream_encoder", "classjsonv_1_1ostream__encoder.html", [
         [ "jsonv::ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", null ]

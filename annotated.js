@@ -20,7 +20,7 @@ var annotated =
       [ "adapter_for", "classjsonv_1_1adapter__for.html", "classjsonv_1_1adapter__for" ],
       [ "container_adapter", "classjsonv_1_1container__adapter.html", "classjsonv_1_1container__adapter" ],
       [ "context_base", "classjsonv_1_1context__base.html", "classjsonv_1_1context__base" ],
-      [ "diff_result", "structjsonv_1_1diff__result.html", "structjsonv_1_1diff__result" ],
+      [ "diff_result", "group__Utility.html#structjsonv_1_1diff__result", "group__Utility_structjsonv_1_1diff__result" ],
       [ "dynamic_merge_rules", "classjsonv_1_1dynamic__merge__rules.html", "classjsonv_1_1dynamic__merge__rules" ],
       [ "encoder", "classjsonv_1_1encoder.html", "classjsonv_1_1encoder" ],
       [ "extraction_context", "classjsonv_1_1extraction__context.html", "classjsonv_1_1extraction__context" ],

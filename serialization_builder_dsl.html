@@ -205,7 +205,7 @@ reference_type</h4>
 <li><code>reference_type(std::type_index type, std::type_index from)</code></li>
 </ul>
 <p>Explicitly add a reference to the provided <em>type</em> in the DSL. If <em>from</em> is provided, also add a back reference for tracking purposes. The <em>from</em> field is useful for tracking <em>why</em> the <em>type</em> is referenced.</p>
-<p>Type references are used in <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_check_references">check_references</a> check_references to both check and generate error messages if the <code>formats</code> the DSL is building cannot fully create and extract JSON values. You do not usually have to call this, as each call to <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member">member</a> member calls this automatically.</p>
+<p>Type references are used in <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_check_references">check_references</a> to both check and generate error messages if the <code>formats</code> the DSL is building cannot fully create and extract JSON values. You do not usually have to call this, as each call to <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member">member</a> calls this automatically.</p>
 <div class="fragment"><div class="line">.reference_type(std::type_index(<span class="keyword">typeid</span>(<span class="keywordtype">int</span>)), std::type_index(<span class="keyword">typeid</span>(my_type)))</div>
 <div class="line">.reference_type(std::type_index(<span class="keyword">typeid</span>(my_type))</div>
 </div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_adapter"></a>
@@ -221,7 +221,7 @@ register_container</h4>
 <ul>
 <li><code>register_container&lt;TContainer&gt;()</code></li>
 </ul>
-<p>Similar to <code>register_adapter</code>, but automatically create a <code>container_adapter&lt;TContainer&gt;</code> to store.</p>
+<p>Similar to <code>register_adapter</code>, but automatically create a <code><a class="el" href="classjsonv_1_1container__adapter.html" title="An adapter for container types. ">container_adapter</a>&lt;TContainer&gt;</code> to store.</p>
 <div class="fragment"><div class="line">.register_container&lt;std::vector&lt;int&gt;&gt;()</div>
 <div class="line">.register_container&lt;std::list&lt;std::string&gt;&gt;()</div>
 </div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_containers"></a>
@@ -258,7 +258,7 @@ member</h4>
 <ul>
 <li><code>member(std::string name, TMember T::*selector)</code></li>
 </ul>
-<p>Adds a member to the type we are currently building. By default, the member will be serialized with the key of the given <em>name</em> and the extractor will search for the given <em>name</em>. If you wish to change properties of this field, use the <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_member">Member Context</a> member context.</p>
+<p>Adds a member to the type we are currently building. By default, the member will be serialized with the key of the given <em>name</em> and the extractor will search for the given <em>name</em>. If you wish to change properties of this field, use the <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_member">Member Context</a>.</p>
 <div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
 <div class="line">    .member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
 <div class="line">    .member(<span class="stringliteral">&quot;y&quot;</span>, &amp;my_type::y)</div>
@@ -272,7 +272,7 @@ after</h4>
 <ul>
 <li><code>after(version)</code></li>
 </ul>
-<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is greater than or equal to the provided <code>version</code>.</p>
+<p>Only serialize this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is not <code><a class="el" href="structjsonv_1_1version.html#a0571c645cd90fdc6fbdfb55a5a1438b5" title="Check if this version is an &quot;empty&quot; value – meaning major and minor are both 0. ">version::empty</a></code> and is greater than or equal to the provided <code>version</code>.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_alternate_name"></a>
 alternate_name</h4>
 <ul>
@@ -284,7 +284,7 @@ before</h4>
 <ul>
 <li><code>before(version)</code></li>
 </ul>
-<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is less than or equal to the provided <code>version</code>.</p>
+<p>Only serialize this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is not <code><a class="el" href="structjsonv_1_1version.html#a0571c645cd90fdc6fbdfb55a5a1438b5" title="Check if this version is an &quot;empty&quot; value – meaning major and minor are both 0. ">version::empty</a></code> and is less than or equal to the provided <code>version</code>.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_check_input"></a>
 check_input</h4>
 <ul>
@@ -301,7 +301,7 @@ check_input</h4>
 default_value</h4>
 <ul>
 <li><code>default_value(TMember value)</code></li>
-<li><code>default_value(std::function&lt;TMember (const extraction_context&amp;, const value&amp;)&gt; create)</code></li>
+<li><code>default_value(std::function&lt;TMember (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp;, const value&amp;)&gt; create)</code></li>
 </ul>
 <p>Provide a default value for this member if no key is found when extracting. You can use the function implementation to synthesize the key however you want.</p>
 <div class="fragment"><div class="line">.member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
@@ -316,7 +316,7 @@ default_on_null</h4>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_encode_if"></a>
 encode_if</h4>
 <ul>
-<li><code>encode_if(std::function&lt;bool (const serialization_context&amp;, const TMember&amp;)&gt; check)</code></li>
+<li><code>encode_if(std::function&lt;bool (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a>&amp;, const TMember&amp;)&gt; check)</code></li>
 </ul>
 <p>Only serialize this member if the <em>check</em> function returns true.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_since"></a>
@@ -324,13 +324,13 @@ since</h4>
 <ul>
 <li><code>since(version)</code></li>
 </ul>
-<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is greater than the provided <code>version</code>.</p>
+<p>Only serialize this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is not <code><a class="el" href="structjsonv_1_1version.html#a0571c645cd90fdc6fbdfb55a5a1438b5" title="Check if this version is an &quot;empty&quot; value – meaning major and minor are both 0. ">version::empty</a></code> and is greater than the provided <code>version</code>.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_until"></a>
 until</h4>
 <ul>
 <li><code>until(version)</code></li>
 </ul>
-<p>Only serialize this member if the <code>serialization_context::version</code> is not <code>version::empty</code> and is less than the provided <code>version</code>. </p>
+<p>Only serialize this member if the <code><a class="el" href="classjsonv_1_1context__base.html#ad561e860ce9209021de176f646538f3f" title="Get the version this extraction_context was created with. ">serialization_context::version</a></code> is not <code><a class="el" href="structjsonv_1_1version.html#a0571c645cd90fdc6fbdfb55a5a1438b5" title="Check if this version is an &quot;empty&quot; value – meaning major and minor are both 0. ">version::empty</a></code> and is less than the provided <code>version</code>. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

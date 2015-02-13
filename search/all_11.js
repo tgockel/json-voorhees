@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['same',['same',['../structjsonv_1_1diff__result.html#a9b97bd901a23e479ed482ed56184f86a',1,'jsonv::diff_result']]],
+  ['same',['same',['../group__Utility.html#a9b97bd901a23e479ed482ed56184f86a',1,'jsonv::diff_result']]],
   ['scope_5fexit_2ehpp',['scope_exit.hpp',['../scope__exit_8hpp.html',1,'']]],
   ['scope_5fexit_5finvoker',['scope_exit_invoker',['../classjsonv_1_1detail_1_1scope__exit__invoker.html',1,'jsonv::detail']]],
   ['serialization',['Serialization',['../group__Serialization.html',1,'']]],

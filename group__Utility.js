@@ -23,10 +23,10 @@ var group__Utility =
       [ "resolve_same_key", "classjsonv_1_1recursive__merge__rules.html#a6a3317aa96e43a28ccc7d3fdb5adf8b0", null ],
       [ "resolve_type_conflict", "classjsonv_1_1recursive__merge__rules.html#a1b7578354c574acdcde3d77998754401", null ]
     ] ],
-    [ "diff_result", "structjsonv_1_1diff__result.html", [
-      [ "left", "structjsonv_1_1diff__result.html#af1285a35bafce2c3e6943e8a6204f28f", null ],
-      [ "right", "structjsonv_1_1diff__result.html#aea2653c65f11342d8fcfae4e4a8ac9d3", null ],
-      [ "same", "structjsonv_1_1diff__result.html#a9b97bd901a23e479ed482ed56184f86a", null ]
+    [ "diff_result", "group__Utility.html#structjsonv_1_1diff__result", [
+      [ "left", "group__Utility.html#af1285a35bafce2c3e6943e8a6204f28f", null ],
+      [ "right", "group__Utility.html#aea2653c65f11342d8fcfae4e4a8ac9d3", null ],
+      [ "same", "group__Utility.html#a9b97bd901a23e479ed482ed56184f86a", null ]
     ] ],
     [ "validation_error", "classjsonv_1_1validation__error.html", [
       [ "code", "classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bf", [
