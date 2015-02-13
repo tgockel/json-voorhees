@@ -53,6 +53,13 @@ If you have `boost`, `g++` and `make` installed, simply:
 If you want to customize your compilation or installation, see the top of the `Makefile` for easy-to-use configuration
  options.
 
+### Arch Linux
+
+If you use [Arch Linux](https://www.archlinux.org/), JSON Voorhees is easily installable via AUR.
+The "latest stable" is called [json-voorhees](https://aur.archlinux.org/packages/json-voorhees), while there is a "close
+ to tip" package called [json-voorhees-git](https://aur.archlinux.org/packages/json-voorhees-git).
+With Arch, installation is as easy as `yaourt json-voorhees`!
+
 Future
 ------
 
