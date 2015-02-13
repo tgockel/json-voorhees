@@ -123,12 +123,12 @@ Inheritance diagram for jsonv::adapter:</div>
  <div class="center">
   <img src="classjsonv_1_1adapter.png" usemap="#jsonv::adapter_map" alt=""/>
   <map id="jsonv::adapter_map" name="jsonv::adapter_map">
-<area href="classjsonv_1_1extractor.html" title="An extractor holds the method for converting a value into an arbitrary C++ type. " alt="jsonv::extractor" shape="rect" coords="0,0,290,24"/>
-<area href="classjsonv_1_1serializer.html" title="A serializer holds the method for converting an arbitrary C++ type into a value. " alt="jsonv::serializer" shape="rect" coords="300,0,590,24"/>
-<area href="classjsonv_1_1adapter__for.html" alt="jsonv::adapter_for&lt; TContainer &gt;" shape="rect" coords="0,112,290,136"/>
-<area href="classjsonv_1_1adapter__for.html" alt="jsonv::adapter_for&lt; T &gt;" shape="rect" coords="300,112,590,136"/>
-<area href="classjsonv_1_1container__adapter.html" title="An adapter for container types. " alt="jsonv::container_adapter&lt; TContainer &gt;" shape="rect" coords="0,168,290,192"/>
-<area href="classjsonv_1_1function__adapter.html" alt="jsonv::function_adapter&lt; T, FExtract, FEncode &gt;" shape="rect" coords="300,168,590,192"/>
+<area href="classjsonv_1_1extractor.html" title="An extractor holds the method for converting a value into an arbitrary C++ type. " alt="jsonv::extractor" shape="rect" coords="0,0,288,24"/>
+<area href="classjsonv_1_1serializer.html" title="A serializer holds the method for converting an arbitrary C++ type into a value. " alt="jsonv::serializer" shape="rect" coords="298,0,586,24"/>
+<area href="classjsonv_1_1adapter__for.html" alt="jsonv::adapter_for&lt; TContainer &gt;" shape="rect" coords="0,112,288,136"/>
+<area href="classjsonv_1_1adapter__for.html" alt="jsonv::adapter_for&lt; T &gt;" shape="rect" coords="298,112,586,136"/>
+<area href="classjsonv_1_1container__adapter.html" title="An adapter for container types. " alt="jsonv::container_adapter&lt; TContainer &gt;" shape="rect" coords="0,168,288,192"/>
+<area href="classjsonv_1_1function__adapter.html" alt="jsonv::function_adapter&lt; T, FExtract, FToJson &gt;" shape="rect" coords="298,168,586,192"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -145,15 +145,15 @@ Additional Inherited Members</h2></td></tr>
 <tr class="memitem:ab66dee52dec1bbb163b1ba76e7243cee inherit pub_methods_classjsonv_1_1serializer"><td class="memItemLeft" align="right" valign="top">virtual const std::type_info &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1serializer.html#ab66dee52dec1bbb163b1ba76e7243cee">get_type</a> () const =0</td></tr>
 <tr class="memdesc:ab66dee52dec1bbb163b1ba76e7243cee inherit pub_methods_classjsonv_1_1serializer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the run-time type this <code>serialize</code> knows how to encode.  <a href="#ab66dee52dec1bbb163b1ba76e7243cee">More...</a><br /></td></tr>
 <tr class="separator:ab66dee52dec1bbb163b1ba76e7243cee inherit pub_methods_classjsonv_1_1serializer"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab68474e7a0bdcfbe57e7ff95fadd5ab0 inherit pub_methods_classjsonv_1_1serializer"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1serializer.html#ab68474e7a0bdcfbe57e7ff95fadd5ab0">encode</a> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const void *from) const =0</td></tr>
-<tr class="memdesc:ab68474e7a0bdcfbe57e7ff95fadd5ab0 inherit pub_methods_classjsonv_1_1serializer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>value</code> <em>from</em> the value in the given region of memory.  <a href="#ab68474e7a0bdcfbe57e7ff95fadd5ab0">More...</a><br /></td></tr>
-<tr class="separator:ab68474e7a0bdcfbe57e7ff95fadd5ab0 inherit pub_methods_classjsonv_1_1serializer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35dbf8b8a615aab006eb1b8f098a6191 inherit pub_methods_classjsonv_1_1serializer"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1serializer.html#a35dbf8b8a615aab006eb1b8f098a6191">to_json</a> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const void *from) const =0</td></tr>
+<tr class="memdesc:a35dbf8b8a615aab006eb1b8f098a6191 inherit pub_methods_classjsonv_1_1serializer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>value</code> <em>from</em> the value in the given region of memory.  <a href="#a35dbf8b8a615aab006eb1b8f098a6191">More...</a><br /></td></tr>
+<tr class="separator:a35dbf8b8a615aab006eb1b8f098a6191 inherit pub_methods_classjsonv_1_1serializer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>An <code>adapter</code> is both an <code>extractor</code> and a <code>serializer</code>. </p>
 <p>It is made with the idea that for <em>most</em> types, you want to both encode and decode JSON. </p>
 
-<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00231">231</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization_8hpp_source.html#l00232">232</a> of file <a class="el" href="serialization_8hpp_source.html">serialization.hpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="serialization_8hpp_source.html">serialization.hpp</a></li>
 </ul>

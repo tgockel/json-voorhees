@@ -1,6 +1,6 @@
 var classjsonv_1_1serializer__for =
 [
-    [ "encode", "classjsonv_1_1serializer__for.html#a98c24e2e1d651600520b179a10799d50", null ],
-    [ "encode", "classjsonv_1_1serializer__for.html#a931f7364d6488e693b2f7666ac01189e", null ],
-    [ "get_type", "classjsonv_1_1serializer__for.html#a72493b3e3b31bd091e30feb52d36711c", null ]
+    [ "get_type", "classjsonv_1_1serializer__for.html#a72493b3e3b31bd091e30feb52d36711c", null ],
+    [ "to_json", "classjsonv_1_1serializer__for.html#a1b5b587e8100ac45c2daa613096f0a1e", null ],
+    [ "to_json", "classjsonv_1_1serializer__for.html#af35b0aac990c977b63e011b873ecd496", null ]
 ];

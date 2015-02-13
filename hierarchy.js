@@ -38,7 +38,7 @@ var hierarchy =
           [ "jsonv::container_adapter< TContainer >", "classjsonv_1_1container__adapter.html", null ]
         ] ],
         [ "jsonv::adapter_for< T >", "classjsonv_1_1adapter__for.html", [
-          [ "jsonv::function_adapter< T, FExtract, FEncode >", "classjsonv_1_1function__adapter.html", null ]
+          [ "jsonv::function_adapter< T, FExtract, FToJson >", "classjsonv_1_1function__adapter.html", null ]
         ] ]
       ] ],
       [ "jsonv::extractor_construction< T >", "classjsonv_1_1extractor__construction.html", null ],
@@ -79,7 +79,7 @@ var hierarchy =
     [ "jsonv::serializer", "classjsonv_1_1serializer.html", [
       [ "jsonv::adapter", "classjsonv_1_1adapter.html", null ],
       [ "jsonv::serializer_for< T >", "classjsonv_1_1serializer__for.html", [
-        [ "jsonv::function_serializer< T, FEncode >", "classjsonv_1_1function__serializer.html", null ]
+        [ "jsonv::function_serializer< T, FToJson >", "classjsonv_1_1function__serializer.html", null ]
       ] ]
     ] ],
     [ "jsonv::detail::string_view", "classjsonv_1_1detail_1_1string__view.html", null ],

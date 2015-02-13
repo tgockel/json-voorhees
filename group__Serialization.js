@@ -40,8 +40,8 @@ var group__Serialization =
     ] ],
     [ "serializer", "classjsonv_1_1serializer.html", [
       [ "~serializer", "classjsonv_1_1serializer.html#a9809c7891bea3579cdb443a038ae8c92", null ],
-      [ "encode", "classjsonv_1_1serializer.html#ab68474e7a0bdcfbe57e7ff95fadd5ab0", null ],
-      [ "get_type", "classjsonv_1_1serializer.html#ab66dee52dec1bbb163b1ba76e7243cee", null ]
+      [ "get_type", "classjsonv_1_1serializer.html#ab66dee52dec1bbb163b1ba76e7243cee", null ],
+      [ "to_json", "classjsonv_1_1serializer.html#a35dbf8b8a615aab006eb1b8f098a6191", null ]
     ] ],
     [ "adapter", "classjsonv_1_1adapter.html", [
       [ "~adapter", "classjsonv_1_1adapter.html#a026f2676519ea647ea64e7f2f487d08f", null ]
@@ -50,12 +50,11 @@ var group__Serialization =
       [ "list", "classjsonv_1_1formats.html#a827304b0c977f7ef178daff0f3e75a1a", null ],
       [ "formats", "classjsonv_1_1formats.html#af0b63e3e4525b64c5aca47933f04f929", null ],
       [ "~formats", "classjsonv_1_1formats.html#a656580c8138fb24a4723ee64f6a364a6", null ],
-      [ "encode", "classjsonv_1_1formats.html#aedd77cea1a8fe4831fbe561a6507ff76", null ],
       [ "extract", "classjsonv_1_1formats.html#a4f5ccf3fbaf50aee040a6dbaa3859447", null ],
-      [ "get_encoder", "classjsonv_1_1formats.html#a20364d4722399188f962500909ee1c32", null ],
-      [ "get_encoder", "classjsonv_1_1formats.html#a16195cf9f8eda8962c9fa1fa1ab0ff87", null ],
       [ "get_extractor", "classjsonv_1_1formats.html#a8457bf42fe91f4b664b709c5993168f6", null ],
       [ "get_extractor", "classjsonv_1_1formats.html#adf2e4f404fcbaca68e6831047e850758", null ],
+      [ "get_serializer", "classjsonv_1_1formats.html#a1b4f75998cebabcfd487eb984ed3f961", null ],
+      [ "get_serializer", "classjsonv_1_1formats.html#a85eb6124f29a0b3dac6852ca016757bd", null ],
       [ "operator!=", "classjsonv_1_1formats.html#ab7e5f101767bb57e73c58a77deffa24c", null ],
       [ "operator==", "classjsonv_1_1formats.html#a2f8e8bdba52fd094cb34635015957df7", null ],
       [ "register_adapter", "classjsonv_1_1formats.html#a9bf59b5db670a92d3b4d4d4094c78b86", null ],
@@ -63,7 +62,8 @@ var group__Serialization =
       [ "register_extractor", "classjsonv_1_1formats.html#aef7abfdef5b868b5eca94929466bdae3", null ],
       [ "register_extractor", "classjsonv_1_1formats.html#aeb526b687bfd89d08b3c57809c689620", null ],
       [ "register_serializer", "classjsonv_1_1formats.html#ad67618fd14da466da0c6d03735790811", null ],
-      [ "register_serializer", "classjsonv_1_1formats.html#ab68a85ae007fec577661d916c41242ec", null ]
+      [ "register_serializer", "classjsonv_1_1formats.html#ab68a85ae007fec577661d916c41242ec", null ],
+      [ "to_json", "classjsonv_1_1formats.html#afd80a13509c2d95d3ea2053e57a85d8a", null ]
     ] ],
     [ "context_base", "classjsonv_1_1context__base.html", [
       [ "context_base", "classjsonv_1_1context__base.html#a43f445f3d44d5bd78e1cc9dee440ca63", null ],
@@ -86,7 +86,7 @@ var group__Serialization =
       [ "serialization_context", "classjsonv_1_1serialization__context.html#a2cc730476dc157437e76e3eca2659c90", null ],
       [ "serialization_context", "classjsonv_1_1serialization__context.html#a884e5ab82b0954db49ff05df6b5d1727", null ],
       [ "~serialization_context", "classjsonv_1_1serialization__context.html#a284af47fb1f20e7dd13f72978a1392ec", null ],
-      [ "encode", "classjsonv_1_1serialization__context.html#ad56ed264ef12d93395af53509cee4ad7", null ]
+      [ "to_json", "classjsonv_1_1serialization__context.html#a4185f1964c08027f88500435583c7bb7", null ]
     ] ],
     [ "extractor_construction", "classjsonv_1_1extractor__construction.html", [
       [ "extract", "classjsonv_1_1extractor__construction.html#afc01fbc4bd7fefca6cb932e5c60ac387", null ],
@@ -104,29 +104,29 @@ var group__Serialization =
       [ "create", "classjsonv_1_1function__extractor.html#a515a13fa7044ceb80130782115993f34", null ]
     ] ],
     [ "serializer_for", "classjsonv_1_1serializer__for.html", [
-      [ "encode", "classjsonv_1_1serializer__for.html#a98c24e2e1d651600520b179a10799d50", null ],
-      [ "encode", "classjsonv_1_1serializer__for.html#a931f7364d6488e693b2f7666ac01189e", null ],
-      [ "get_type", "classjsonv_1_1serializer__for.html#a72493b3e3b31bd091e30feb52d36711c", null ]
+      [ "get_type", "classjsonv_1_1serializer__for.html#a72493b3e3b31bd091e30feb52d36711c", null ],
+      [ "to_json", "classjsonv_1_1serializer__for.html#a1b5b587e8100ac45c2daa613096f0a1e", null ],
+      [ "to_json", "classjsonv_1_1serializer__for.html#af35b0aac990c977b63e011b873ecd496", null ]
     ] ],
     [ "function_serializer", "classjsonv_1_1function__serializer.html", [
-      [ "function_serializer", "classjsonv_1_1function__serializer.html#ae8a204cf59f768ac3d9f94db6c9218cd", null ],
-      [ "encode", "classjsonv_1_1function__serializer.html#a0bc13c38e9fb7418c3cac2fa008c3b19", null ]
+      [ "function_serializer", "classjsonv_1_1function__serializer.html#aabcc2ee3c433ef7fb8eb18fd2819933f", null ],
+      [ "to_json", "classjsonv_1_1function__serializer.html#a0008e381b3fce2a77a2b7c1562597e46", null ]
     ] ],
     [ "adapter_for", "classjsonv_1_1adapter__for.html", [
       [ "create", "classjsonv_1_1adapter__for.html#ab6163d56219609a9236b7009f2e48cd5", null ],
-      [ "encode", "classjsonv_1_1adapter__for.html#a598a599b0398d9a4917c4fd626c6c5bc", null ],
-      [ "encode", "classjsonv_1_1adapter__for.html#af4c479db079158d9557f790a9d188c13", null ],
       [ "extract", "classjsonv_1_1adapter__for.html#a3205a83144e12aefdeb4211f1b9dce92", null ],
-      [ "get_type", "classjsonv_1_1adapter__for.html#a2b2f3795b0ec91f79504d9dd0b3d19bc", null ]
+      [ "get_type", "classjsonv_1_1adapter__for.html#a2b2f3795b0ec91f79504d9dd0b3d19bc", null ],
+      [ "to_json", "classjsonv_1_1adapter__for.html#a7a26f2b656dd5cce61940ad8f269a077", null ],
+      [ "to_json", "classjsonv_1_1adapter__for.html#abf6cb5287c83b91abe7cf61f9f571c81", null ]
     ] ],
     [ "function_adapter", "classjsonv_1_1function__adapter.html", [
-      [ "function_adapter", "classjsonv_1_1function__adapter.html#a373462ff3ef23c19d3931d5ead5081bd", null ],
-      [ "create", "classjsonv_1_1function__adapter.html#aabe0ca724cfea9ef050272322f9467f6", null ],
-      [ "encode", "classjsonv_1_1function__adapter.html#a9b270a7c675681aa26245b15ad8aefd0", null ]
+      [ "function_adapter", "classjsonv_1_1function__adapter.html#abca80d4e424374a347cd77494057b027", null ],
+      [ "create", "classjsonv_1_1function__adapter.html#ae8041119c52497af42bf6e8d5e413f87", null ],
+      [ "to_json", "classjsonv_1_1function__adapter.html#aa7ba1e30a06bdd2b0cc2d80058ecb0f8", null ]
     ] ],
     [ "container_adapter", "classjsonv_1_1container__adapter.html", [
       [ "create", "classjsonv_1_1container__adapter.html#ad88e79f33a559f43e90d511e06d28069", null ],
-      [ "encode", "classjsonv_1_1container__adapter.html#a04f7c58240f2bfcd20b942495cc943ad", null ]
+      [ "to_json", "classjsonv_1_1container__adapter.html#a9ce6d0eeeb0724990bc2e6aac8179c02", null ]
     ] ],
     [ "demangle_function", "group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38", null ],
     [ "demangle", "group__Serialization.html#ga26c620d20cffb45e1145fe95eeb37d00", null ],
