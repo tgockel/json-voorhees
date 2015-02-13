@@ -56,13 +56,11 @@ If you want to customize your compilation or installation, see the top of the `M
 Future
 ------
 
-This library is still in a "working prototype" stage, so there are a number of things that are not really implemented.
-Future planned features can be found on the [issue tracker][future-features], but here is a list of things that matter
- most to me:
-
- - [A system for converting between JSON and C++ types](https://github.com/tgockel/json-voorhees/issues/8)
- - Compiler support
-     - [MSVC](https://github.com/tgockel/json-voorhees/issues/7)
+The goal release date for version 1.0 is Friday 13 March 2015.
+Version 0.5 should be considered as a "release candidate" -- there should not be any major features added between it and
+ version 1.0.
+This does not mean feature development will completely cease.
+Future planned features can be found on the [issue tracker][future-features].
 
 License
 -------
@@ -91,8 +89,8 @@ Compiler Support
      - MSVC 14.0 CTP5+ (Visual C++ 2015)
 
 While GCC 4.8 and Clang 3.3 are supported, you must compile them with `make USE_BOOST_REGEX=1`.
-Early versions will happy compile regular expressions, but will fail at runtime with a `regex_error`, which is not very
- useful.
+Early versions will happily compile regular expressions, but will fail at runtime with a `regex_error`, which is not
+ very useful.
 However, you can use [Boost.Regex][Boost.Regex] as the regular expression engine for compilers with incomplete `<regex>`
  implementations.
 The downside of this is your application must link with the Boost libraries (`-lboost_regex -lboost_system`).
@@ -100,15 +98,16 @@ The downside of this is your application must link with the Boost libraries (`-l
     $> make USE_BOOST_REGEX=1
     $> sudo make install
 
-In the long-term, this library should be ported to MSVC, but there is no timeline for doing so at the moment.
-For progress updates, check in at [the MSVC support issue](https://github.com/tgockel/json-voorhees/issues/7).
+Support for MSVC is deemed as *experimental*, as this library can only be compiled with MSVC 14.0 CTP5 at the moment.
+When Visual Studio 2015 is released as a non-beta product, JSON Voorhees will work with it as a fully-supported
+ platform.
 
 Versioning
 ----------
 
 Like every software system ever, JSON Voorhees describes versions in 3 part [semantic versioning](http://semver.org/):
  `${major}.${minor}.${patch}`.
-Unlike most software, it actually means something when the versions change.
+The version components changing have very specific meanings:
 
  - `major`: There are no guarantees whatsoever across major releases.
  - `minor`: For a given minor release, all code is forward-compatible source-code compliant.
