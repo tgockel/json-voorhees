@@ -12,6 +12,9 @@
 #ifndef __JSONV_ALL_HPP_INCLUDED__
 #define __JSONV_ALL_HPP_INCLUDED__
 
+namespace jsonv
+{
+
 /** \mainpage Overview
  *  JSON Voorhees is a JSON library written for the C++ programmer who wants to be productive in this modern world. What
  *  does that mean? There are a ton of JSON libraries floating around touting how they are "modern" C++ and so on. But
@@ -717,6 +720,8 @@
  *  \see https://github.com/tgockel/json-voorhees
  *  \see http://json.org/
 **/
+
+}
 
 #include "algorithm.hpp"
 #include "coerce.hpp"
