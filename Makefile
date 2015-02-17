@@ -208,6 +208,10 @@ else
   RUN := valgrind --tool=$(VALGRIND) ./
 endif
 
+ifneq ($(GDB),)
+  RUN := gdb -args $(RUN)
+endif
+
 ################################################################################
 # Libraries                                                                    #
 ################################################################################
@@ -274,10 +278,6 @@ define TEST_TEMPLATE
   $1 : $$(BIN_DIR)/$1
 	$$(QQ)echo " TEST  $1 $$(ARGS)"
 	$$Q$$(RUN)$$< $$(ARGS)
-
-  gdb-$1 : $$(BIN_DIR)/$1
-	$$(QQ)echo " GDB   $1 $$(ARGS)"
-	$$Qgdb -args $$< $$(ARGS)
 endef
 
 $(foreach test,$(TESTS),$(eval $(call TEST_TEMPLATE,$(test))))
