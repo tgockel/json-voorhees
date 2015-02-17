@@ -103,7 +103,7 @@ static std::size_t position_in_buffer(const std::vector<char>& buffer, const str
     
     std::ptrdiff_t pos = current.data() - buffer.data();
     assert(pos >= 0);
-    assert(std::size_t(pos) < buffer.size());
+    assert(std::size_t(pos) <= buffer.size());
     return std::size_t(pos);
 }
 
@@ -160,9 +160,10 @@ bool tokenizer::next()
     
     size_type pos;
     bool nth_pass = false;
+    _current.text.remove_prefix(_current.text.size());
     while (true)
     {
-        if (_buffer.empty() || (position_in_buffer(_buffer, _current.text) + _current.text.size()) == _buffer.size())
+        if (_buffer.empty() || (position_in_buffer(_buffer, _current.text)) == _buffer.size())
         {
             if (!read_input(nth_pass))
                 return invalid();
@@ -192,6 +193,8 @@ bool tokenizer::next()
 bool tokenizer::read_input(bool grow_buffer)
 {
     auto old_buffer_pos = position_in_buffer(_buffer, _current.text);
+    if (old_buffer_pos == _buffer.size())
+        old_buffer_pos = 0;
     
     char* buffer_write_pos;
     size_type buffer_write_size;
