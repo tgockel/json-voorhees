@@ -375,6 +375,7 @@ static bool parse_boolean(parse_context& context, value& out)
         return true;
     default:
         assert(false);
+        return false;
     }
 }
 
