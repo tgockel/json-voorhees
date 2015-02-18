@@ -11,6 +11,12 @@
 
 The focus of this release is extensible serialization between JSON values and C++ types.
 
+ - [0.5.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.5.1): 2015 February 17
+   - Creates `null` to be used in place of `nullptr`
+   - Adds the ability to set the default size of `tokenizer`'s buffer
+   - Fixes issue in parsing where string divisions on buffer boundaries would yield incorrect results (and potentially
+     crash)
+
  - [0.5.0](https://github.com/tgockel/json-voorhees/releases/tag/v0.5.0): 2015 February 13
    - Creates `formats`, `extractor`, `serializer` and `adapter` classes
    - Creates the `extract` and `to_json` free functions for conversion
