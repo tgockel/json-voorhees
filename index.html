@@ -152,7 +152,7 @@ The jsonv::value</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <span class="keyword">nullptr</span>;</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = jsonv::null;</div>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
 <div class="line">    x = 5.9;</div>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
@@ -196,7 +196,7 @@ The jsonv::value</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <span class="keyword">nullptr</span>;</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = jsonv::null;</div>
 <div class="line">    <span class="keywordflow">try</span></div>
 <div class="line">    {</div>
 <div class="line">        x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a>();</div>
@@ -267,7 +267,7 @@ The jsonv::value</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> arr = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;taco&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span>, 3, -2, <span class="keyword">nullptr</span>, <span class="stringliteral">&quot;beef&quot;</span>, 4.8, 5 });</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> arr = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;taco&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span>, 3, -2, jsonv::null, <span class="stringliteral">&quot;beef&quot;</span>, 4.8, 5 });</div>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Initial: &quot;</span>;</div>
 <div class="line">    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; val : arr.<a class="code" href="group__Array.html#ga3c76f4a236a6d3ad0bc6fbeb4fd2a834">as_array</a>())</div>
 <div class="line">        std::cout &lt;&lt; val &lt;&lt; <span class="charliteral">&#39;\t&#39;</span>;</div>
