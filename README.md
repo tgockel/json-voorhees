@@ -95,14 +95,15 @@ Compiler Support
  - Experimental
      - MSVC 14.0 CTP5+ (Visual C++ 2015)
 
-While GCC 4.8 and Clang 3.3 are supported, you must compile them with `make USE_BOOST_REGEX=1`.
+While GCC 4.8 and Clang 3.3 are supported, you must compile them with `USE_BOOST_REGEX=1`.
 Early versions will happily compile regular expressions, but will fail at runtime with a `regex_error`, which is not
  very useful.
 However, you can use [Boost.Regex][Boost.Regex] as the regular expression engine for compilers with incomplete `<regex>`
  implementations.
 The downside of this is your application must link with the Boost libraries (`-lboost_regex -lboost_system`).
 
-    $> make USE_BOOST_REGEX=1
+    $> cmake -DUSE_BOOST_REGEX=1
+    $> make
     $> sudo make install
 
 Support for MSVC is deemed as *experimental*, as this library can only be compiled with MSVC 14.0 CTP5 at the moment.
@@ -233,16 +234,6 @@ This is because it is unclear what should happen when the library detects someth
 The library could `assert`, but that seems overbearing when there is a reasonable option to fall back to.
 Alternatively, the library could throw in these cases, but that leads to innocuous-looking operations like `x == y`
  being able to throw, which is somewhat disconcerning.
-
-### Why do you use GNU Make instead of a modern build system?
-
-There are a lot of build automation tools that can work with C++ code, from [CMake](http://www.cmake.org/) to
- [SCons](http://www.scons.org/), yet this project uses GNU Make.
-This is done so all you have to do to build the project is type `make`.
-I personally do not understand what these alternative build systems give me that GNU Make does not already do, so I will
- stick with my plain old `Makefile` until I see a benefit to changing.
-Yes, I am a luddite who does not understand the fancy things the kids are using these days.
-Get off my lawn.
 
 ### This is really helpful! Can I give you money?
 

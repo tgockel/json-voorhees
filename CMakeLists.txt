@@ -59,7 +59,7 @@ endif(COVERAGE)
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
-    set(CMAKE_CXX_FLAGS "--std=c++11 -pedantic -Werror -Wall -Wextra -ggdb")
+    set(CMAKE_CXX_FLAGS "--std=c++11 -pedantic -Wall -Wextra -ggdb")
 endif(WIN32)
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
@@ -86,9 +86,9 @@ set_target_properties(jsonv
                           VERSION   ${JSONV_VERSION}
                      )
 
-file(GLOB_RECURSE jsonv_test_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
-add_executable(jsonv-test ${jsonv_test_cpps})
-target_link_libraries(jsonv-test
+file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
+add_executable(jsonv-tests ${jsonv_tests_cpps})
+target_link_libraries(jsonv-tests
         "jsonv"
         ${Boost_LIBRARIES}
     )
