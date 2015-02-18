@@ -30,7 +30,7 @@ class extractor_construction :
         public extractor
 {
 public:
-    virtual const std::type_info& get_type() const
+    virtual const std::type_info& get_type() const override
     {
         return typeid(T);
     }
@@ -70,7 +70,7 @@ class extractor_for :
         public extractor
 {
 public:
-    virtual const std::type_info& get_type() const
+    virtual const std::type_info& get_type() const override
     {
         return typeid(T);
     }
