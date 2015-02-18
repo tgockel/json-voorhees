@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['min_5fbuffer_5fsize',['min_buffer_size',['../classjsonv_1_1tokenizer.html#a037a4c098832c587693267171c08d15c',1,'jsonv::tokenizer']]]
+  ['right',['right',['../group__Utility.html#aea2653c65f11342d8fcfae4e4a8ac9d3',1,'jsonv::diff_result']]]
 ];

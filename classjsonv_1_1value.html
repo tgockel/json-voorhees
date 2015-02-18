@@ -194,9 +194,9 @@ typedef <br class="typebreak" />
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a758c919cef3b8158e5275ff6b456a56e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a758c919cef3b8158e5275ff6b456a56e">value</a> ()</td></tr>
-<tr class="memdesc:a758c919cef3b8158e5275ff6b456a56e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default-construct this to null.  <a href="#a758c919cef3b8158e5275ff6b456a56e">More...</a><br /></td></tr>
-<tr class="separator:a758c919cef3b8158e5275ff6b456a56e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1406cf5e3dbed488dfb62805db3ba43f"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a1406cf5e3dbed488dfb62805db3ba43f">value</a> ()</td></tr>
+<tr class="memdesc:a1406cf5e3dbed488dfb62805db3ba43f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default-construct this to null.  <a href="#a1406cf5e3dbed488dfb62805db3ba43f">More...</a><br /></td></tr>
+<tr class="separator:a1406cf5e3dbed488dfb62805db3ba43f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f11d28ea224ed300b726a85f95cee2b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a0f11d28ea224ed300b726a85f95cee2b">value</a> (std::nullptr_t)</td></tr>
 <tr class="memdesc:a0f11d28ea224ed300b726a85f95cee2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::null</code>.  <a href="#a0f11d28ea224ed300b726a85f95cee2b">More...</a><br /></td></tr>
 <tr class="separator:a0f11d28ea224ed300b726a85f95cee2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -518,22 +518,32 @@ Friends</h2></td></tr>
 <a href="http://tools.ietf.org/html/rfc7159">http://tools.ietf.org/html/rfc7159</a> </dd></dl>
 <dl><dt><b>Examples: </b></dt><dd><a class="el" href="parse_07std_1_1istream_6_00_01const_01parse_options_6_08-example.html#_a0">parse(std::istream&amp;, const parse_options&amp;)</a>, and <a class="el" href="parse_07tokenizer_6_00_01const_01parse_options_6_08-example.html#_a3">parse(tokenizer&amp;, const parse_options&amp;)</a>.</dd>
 </dl>
-<p>Definition at line <a class="el" href="value_8hpp_source.html#l00117">117</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00121">121</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="a758c919cef3b8158e5275ff6b456a56e"></a>
+<a class="anchor" id="a1406cf5e3dbed488dfb62805db3ba43f"></a>
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">jsonv::value::value </td>
+          <td class="memname">constexpr jsonv::value::value </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Default-construct this to null. </p>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00417">417</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
 
 </div>
 </div>
@@ -552,6 +562,7 @@ Friends</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Create a <code>kind::null</code>. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000001">Deprecated:</a></b></dt><dd>This conversion will be removed in 1.0. Use <code>jsonv::null</code> instead. </dd></dl>
 
 </div>
 </div>

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['right',['right',['../group__Utility.html#aea2653c65f11342d8fcfae4e4a8ac9d3',1,'jsonv::diff_result']]]
+  ['same',['same',['../group__Utility.html#a9b97bd901a23e479ed482ed56184f86a',1,'jsonv::diff_result']]]
 ];

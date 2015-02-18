@@ -110,7 +110,7 @@ $(document).ready(function(){initNavTree('classjsonv_1_1tokenizer.html','');});
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
+<a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="classjsonv_1_1tokenizer-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">jsonv::tokenizer Class Reference</div>  </div>
@@ -152,11 +152,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a23b1a2cf8aa90aa52e4f0a104577e15a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reserve a certain amount of space in the buffer.  <a href="#a23b1a2cf8aa90aa52e4f0a104577e15a">More...</a><br /></td></tr>
 <tr class="separator:a23b1a2cf8aa90aa52e4f0a104577e15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a037a4c098832c587693267171c08d15c"><td class="memItemLeft" align="right" valign="top">static const size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#a037a4c098832c587693267171c08d15c">min_buffer_size</a></td></tr>
-<tr class="memdesc:a037a4c098832c587693267171c08d15c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The minimum size of the internal buffer.  <a href="#a037a4c098832c587693267171c08d15c">More...</a><br /></td></tr>
-<tr class="separator:a037a4c098832c587693267171c08d15c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Static Public Member Functions</h2></td></tr>
+<tr class="memitem:aeb60c50524ebcb6dad94eb9ad639a984"><td class="memItemLeft" align="right" valign="top">static size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#aeb60c50524ebcb6dad94eb9ad639a984">min_buffer_size</a> ()</td></tr>
+<tr class="memdesc:aeb60c50524ebcb6dad94eb9ad639a984"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the minimum size of the internal buffer.  <a href="#aeb60c50524ebcb6dad94eb9ad639a984">More...</a><br /></td></tr>
+<tr class="separator:aeb60c50524ebcb6dad94eb9ad639a984"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcbc1833dec761c8e01b0390aa816e95"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1tokenizer.html#adcbc1833dec761c8e01b0390aa816e95">set_min_buffer_size</a> (size_type sz)</td></tr>
+<tr class="memdesc:adcbc1833dec761c8e01b0390aa816e95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the minimum size of the internal buffer of the tokenizer.  <a href="#adcbc1833dec761c8e01b0390aa816e95">More...</a><br /></td></tr>
+<tr class="separator:adcbc1833dec761c8e01b0390aa816e95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Splits input into tokens, allowing traversal of JSON without verification. </p>
@@ -210,7 +213,7 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reserve a certain amount of space in the buffer. </p>
-<p>This will have an effect of performance. </p>
+<p>This will have an effect of performance. No matter what the value of <em>sz</em> is, this will never allow the buffer to shrink below <code>min_buffer_size</code>. </p>
 
 </div>
 </div>
@@ -255,6 +258,32 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="aeb60c50524ebcb6dad94eb9ad639a984"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static size_type jsonv::tokenizer::min_buffer_size </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the minimum size of the internal buffer. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classjsonv_1_1tokenizer.html#adcbc1833dec761c8e01b0390aa816e95" title="Set the minimum size of the internal buffer of the tokenizer. ">set_min_buffer_size</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="a6cb4f97577999ebc4dd898acdf6f3454"></a>
 <div class="memitem">
 <div class="memproto">
@@ -274,8 +303,7 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<h2 class="groupheader">Member Data Documentation</h2>
-<a class="anchor" id="a037a4c098832c587693267171c08d15c"></a>
+<a class="anchor" id="adcbc1833dec761c8e01b0390aa816e95"></a>
 <div class="memitem">
 <div class="memproto">
 <table class="mlabels">
@@ -283,7 +311,11 @@ Static Public Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const size_type jsonv::tokenizer::min_buffer_size</td>
+          <td class="memname">static void jsonv::tokenizer::set_min_buffer_size </td>
+          <td>(</td>
+          <td class="paramtype">size_type&#160;</td>
+          <td class="paramname"><em>sz</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -293,9 +325,9 @@ Static Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>The minimum size of the internal buffer. </p>
-
-<p>Definition at line <a class="el" href="tokenizer_8hpp_source.html#l00104">104</a> of file <a class="el" href="tokenizer_8hpp_source.html">tokenizer.hpp</a>.</p>
+<p>Set the minimum size of the internal buffer of the tokenizer. </p>
+<p>If you expect to be parsing large JSON strings and have the memory, performance will be improved by increasing this value.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classjsonv_1_1tokenizer.html#a23b1a2cf8aa90aa52e4f0a104577e15a" title="Reserve a certain amount of space in the buffer. ">buffer_reserve</a> </dd></dl>
 
 </div>
 </div>

@@ -6,5 +6,6 @@ var searchData=
   ['merge',['merge',['../group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f',1,'jsonv']]],
   ['merge_5fexplicit',['merge_explicit',['../group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1',1,'jsonv']]],
   ['merge_5frecursive',['merge_recursive',['../group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42',1,'jsonv']]],
-  ['message',['message',['../structjsonv_1_1parse__error_1_1problem.html#ac557310d768e355372bc569854cf38d1',1,'jsonv::parse_error::problem']]]
+  ['message',['message',['../structjsonv_1_1parse__error_1_1problem.html#ac557310d768e355372bc569854cf38d1',1,'jsonv::parse_error::problem']]],
+  ['min_5fbuffer_5fsize',['min_buffer_size',['../classjsonv_1_1tokenizer.html#aeb60c50524ebcb6dad94eb9ad639a984',1,'jsonv::tokenizer']]]
 ];

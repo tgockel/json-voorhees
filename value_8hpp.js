@@ -23,5 +23,6 @@ var value_8hpp =
     [ "operator\"\"_json", "value_8hpp.html#acbd9685699111e35574f44d3793f600c", null ],
     [ "operator<<", "value_8hpp.html#a28b56e4bcc6db35b78e8a5c075994202", null ],
     [ "swap", "value_8hpp.html#a6dcde9d9d0ea0a03bde8bcdff760e10f", null ],
-    [ "to_string", "value_8hpp.html#a2d5017f8b832a4b66bd16923ebde1c3d", null ]
+    [ "to_string", "value_8hpp.html#a2d5017f8b832a4b66bd16923ebde1c3d", null ],
+    [ "null", "value_8hpp.html#adfc02eaef2e93e367cb9f2922cdfe490", null ]
 ];

@@ -163,49 +163,50 @@ $(document).ready(function(){initNavTree('tokenizer_8hpp_source.html','');});
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <span class="keyword">using</span> size_type = std::vector&lt;char&gt;::size_type;</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    </div>
-<div class="line"><a name="l00104"></a><span class="lineno"><a class="line" href="classjsonv_1_1tokenizer.html#a037a4c098832c587693267171c08d15c">  104</a></span>&#160;    <span class="keyword">static</span> <span class="keyword">const</span> size_type <a class="code" href="classjsonv_1_1tokenizer.html#a037a4c098832c587693267171c08d15c">min_buffer_size</a>;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    </div>
-<div class="line"><a name="l00107"></a><span class="lineno"><a class="line" href="structjsonv_1_1tokenizer_1_1token.html">  107</a></span>&#160;    <span class="keyword">struct </span><a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a></div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    {</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        string_view text;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;        token_kind kind;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        </div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        <span class="keyword">operator</span> std::pair&lt;string_view, token_kind&gt;()</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;        {</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;            <span class="keywordflow">return</span> { text, kind };</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;        }</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    };</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    </div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>(std::istream&amp; input);</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;    </div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    ~<a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>() noexcept;</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    </div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    const std::istream&amp; input() const;</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    </div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    <span class="keywordtype">bool</span> next();</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <span class="keyword">static</span> size_type min_buffer_size();</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    </div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> set_min_buffer_size(size_type sz);</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    </div>
+<div class="line"><a name="l00117"></a><span class="lineno"><a class="line" href="structjsonv_1_1tokenizer_1_1token.html">  117</a></span>&#160;    <span class="keyword">struct </span><a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a></div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    {</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        string_view text;</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        token_kind kind;</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        </div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;        <span class="keyword">operator</span> std::pair&lt;string_view, token_kind&gt;()</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;        {</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;            <span class="keywordflow">return</span> { text, kind };</div>
+<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;        }</div>
+<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    };</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    </div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>(std::istream&amp; input);</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    </div>
+<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    ~<a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>() noexcept;</div>
 <div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    </div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;    const <a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a>&amp; current() const;</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;    </div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    <span class="keywordtype">void</span> buffer_reserve(size_type sz);</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    const std::istream&amp; input() const;</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;    </div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    <span class="keywordtype">bool</span> next();</div>
 <div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    </div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;private:</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    <span class="keywordtype">bool</span> read_input(<span class="keywordtype">bool</span> grow_buffer);</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    </div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;private:</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    std::istream&amp;     _input;</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    std::vector&lt;<span class="keywordtype">char</span>&gt; _buffer;</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    <a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a>             _current;      </div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;};</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;}</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_TOKENIZER_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    const <a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a>&amp; current() const;</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    </div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    <span class="keywordtype">void</span> buffer_reserve(size_type sz);</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;    </div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;private:</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    <span class="keywordtype">bool</span> read_input(<span class="keywordtype">bool</span> grow_buffer);</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    </div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;private:</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    std::istream&amp;     _input;</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    std::vector&lt;<span class="keywordtype">char</span>&gt; _buffer;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    <a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a>             _current;      </div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;};</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;}</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_TOKENIZER_INCLUDED__*/</span><span class="preprocessor"></span></div>
 <div class="ttc" id="config_8hpp_html"><div class="ttname"><a href="config_8hpp.html">config.hpp</a></div><div class="ttdoc">Copyright (c) 2014 by Travis Gockel. </div></div>
 <div class="ttc" id="classjsonv_1_1tokenizer_html"><div class="ttname"><a href="classjsonv_1_1tokenizer.html">jsonv::tokenizer</a></div><div class="ttdoc">Splits input into tokens, allowing traversal of JSON without verification. </div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8hpp_source.html#l00098">tokenizer.hpp:98</a></div></div>
 <div class="ttc" id="string__view_8hpp_html"><div class="ttname"><a href="string__view_8hpp.html">string_view.hpp</a></div><div class="ttdoc">Pulls in an implementation of string_view. </div></div>
-<div class="ttc" id="classjsonv_1_1tokenizer_html_a037a4c098832c587693267171c08d15c"><div class="ttname"><a href="classjsonv_1_1tokenizer.html#a037a4c098832c587693267171c08d15c">jsonv::tokenizer::min_buffer_size</a></div><div class="ttdeci">static const size_type min_buffer_size</div><div class="ttdoc">The minimum size of the internal buffer. </div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8hpp_source.html#l00104">tokenizer.hpp:104</a></div></div>
-<div class="ttc" id="structjsonv_1_1tokenizer_1_1token_html"><div class="ttname"><a href="structjsonv_1_1tokenizer_1_1token.html">jsonv::tokenizer::token</a></div><div class="ttdoc">A representation of what this tokenizer has. </div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8hpp_source.html#l00107">tokenizer.hpp:107</a></div></div>
+<div class="ttc" id="structjsonv_1_1tokenizer_1_1token_html"><div class="ttname"><a href="structjsonv_1_1tokenizer_1_1token.html">jsonv::tokenizer::token</a></div><div class="ttdoc">A representation of what this tokenizer has. </div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8hpp_source.html#l00117">tokenizer.hpp:117</a></div></div>
 <div class="ttc" id="config_8hpp_html_acd0703012bd724b356c177b7bc3d761d"><div class="ttname"><a href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a></div><div class="ttdeci">#define JSONV_PUBLIC</div><div class="ttdoc">This function or class is part of the public API for JsonVoorhees. </div><div class="ttdef"><b>Definition:</b> <a href="config_8hpp_source.html#l00078">config.hpp:78</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
