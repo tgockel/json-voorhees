@@ -2,7 +2,7 @@
 # mkaurball
 _pkgbase=json-voorhees
 pkgname=${_pkgbase}-git
-pkgver=0.5.0.r0.g8532cb7
+pkgver=1.0.0.r0.gd3266bf
 pkgver() {
 	cd "${srcdir}/${_pkgbase}"
 	git describe --long | sed -r 's/([^-]*-g)/r\1/;s/-/./g' | cut -c2-
@@ -25,7 +25,7 @@ backup=()
 options=()
 install=
 changelog=
-source=("${_pkgbase}::git+https://github.com/tgockel/${_pkgbase}.git")
+source=("${_pkgbase}::git+https://github.com/tgockel/${_pkgbase}.git#branch=v1.0")
 noextract=()
 md5sums=('SKIP')
 
