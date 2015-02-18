@@ -100,8 +100,18 @@ class JSONV_PUBLIC tokenizer
 public:
     using size_type = std::vector<char>::size_type;
     
-    /** The minimum size of the internal buffer. **/
-    static const size_type min_buffer_size;
+    /** Get the minimum size of the internal buffer.
+     *  
+     *  \see set_min_buffer_size
+    **/
+    static size_type min_buffer_size();
+    
+    /** Set the minimum size of the internal buffer of the tokenizer. If you expect to be parsing large JSON strings and
+     *  have the memory, performance will be improved by increasing this value.
+     *  
+     *  \see buffer_reserve
+    **/
+    static void set_min_buffer_size(size_type sz);
     
     /** A representation of what this tokenizer has. **/
     struct token
@@ -138,7 +148,9 @@ public:
     **/
     const token& current() const;
     
-    /** Reserve a certain amount of space in the buffer. This will have an effect of performance. **/
+    /** Reserve a certain amount of space in the buffer. This will have an effect of performance. No matter what the
+     *  value of \a sz is, this will never allow the buffer to shrink below \c min_buffer_size.
+    **/
     void buffer_reserve(size_type sz);
     
 private:

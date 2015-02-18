@@ -93,7 +93,21 @@ std::string to_string(const token_kind& value)
 // tokenizer                                                                                                          //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const tokenizer::size_type tokenizer::min_buffer_size = 4096;
+static tokenizer::size_type& min_buffer_size_ref()
+{
+    static tokenizer::size_type instance = 1024 * sizeof(void*);
+    return instance;
+}
+
+tokenizer::size_type tokenizer::min_buffer_size()
+{
+    return min_buffer_size_ref();
+}
+
+void tokenizer::set_min_buffer_size(tokenizer::size_type sz)
+{
+    min_buffer_size_ref() = std::max(sz, 1UL);
+}
 
 static std::size_t position_in_buffer(const std::vector<char>& buffer, const string_view& current)
 {
@@ -110,7 +124,7 @@ static std::size_t position_in_buffer(const std::vector<char>& buffer, const str
 tokenizer::tokenizer(std::istream& input) :
         _input(input)
 {
-    buffer_reserve(min_buffer_size);
+    buffer_reserve(min_buffer_size());
 }
 
 tokenizer::~tokenizer() noexcept
@@ -200,7 +214,7 @@ bool tokenizer::read_input(bool grow_buffer)
     size_type buffer_write_size;
     if (grow_buffer)
     {
-        buffer_write_size = min_buffer_size;
+        buffer_write_size = min_buffer_size();
         auto offset = _buffer.size();
         _buffer.resize(_buffer.size() + buffer_write_size);
         buffer_write_pos = _buffer.data() + offset;
@@ -231,7 +245,7 @@ bool tokenizer::read_input(bool grow_buffer)
 
 void tokenizer::buffer_reserve(size_type sz)
 {
-    _buffer.reserve(std::max(sz, min_buffer_size));
+    _buffer.reserve(std::max(sz, min_buffer_size()));
 }
 
 }
