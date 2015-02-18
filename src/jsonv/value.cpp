@@ -69,12 +69,6 @@ kind_error::~kind_error() noexcept
 // value                                                                                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-value::value() :
-        _kind(jsonv::kind::null)
-{
-    _data.object = nullptr;
-}
-
 value::value(std::nullptr_t) :
         value()
 { }
@@ -599,6 +593,10 @@ void swap(value& a, value& b) noexcept
 {
     a.swap(b);
 }
+
+// There are no static initialization issues here -- the memory of a static variable starts as all 0, which is identical
+// to a value with kind::null.
+const value null = value();
 
 }
 

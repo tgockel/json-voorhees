@@ -47,6 +47,10 @@ union value_storage
     int64_t      integer;
     double       decimal;
     bool         boolean;
+    
+    constexpr value_storage() :
+            object(nullptr)
+    { }
 };
 
 }
@@ -410,9 +414,15 @@ public:
     
 public:
     /** Default-construct this to null. **/
-    value();
+    constexpr value() :
+            _kind(jsonv::kind::null)
+    { }
     
-    /** Create a \c kind::null. **/
+    /** Create a \c kind::null.
+     *  
+     *  \deprecated
+     *  This conversion will be removed in 1.0. Use \c jsonv::null instead.
+    **/
     value(std::nullptr_t);
     
     /** Copy the contents of \a source into a new instance. **/
@@ -937,6 +947,11 @@ private:
     detail::value_storage _data;
     jsonv::kind           _kind;
 };
+
+/** An instance with \c kind::null. This is intended to be used for convenience and readability (as opposed to using the
+ *  default constructor of \c value.
+**/
+JSONV_PUBLIC extern const value null;
 
 /** A user-defined literal for parsing JSON. Uses the default (non-strict) \c parse_options.
  *  
