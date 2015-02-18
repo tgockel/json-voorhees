@@ -92,3 +92,12 @@ target_link_libraries(jsonv-tests
         "jsonv"
         ${Boost_LIBRARIES}
     )
+
+################################################################################
+# Installation                                                                 #
+################################################################################
+
+install(TARGETS jsonv
+        LIBRARY DESTINATION lib
+       )
+install(DIRECTORY "include/jsonv" DESTINATION "include")
