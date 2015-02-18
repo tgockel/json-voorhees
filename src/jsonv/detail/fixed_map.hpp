@@ -49,6 +49,7 @@ public:
         using std::end;
         
         auto last = std::copy(begin(init), end(init), begin(_data));
+        static_cast<void>(last);
         assert(last == end(_data));
         
         std::sort(begin(_data), end(_data), [this] (const value_type& a, const value_type& b) { return _cmp(a.first, b.first); });
