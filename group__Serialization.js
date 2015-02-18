@@ -92,12 +92,12 @@ var group__Serialization =
       [ "extract", "classjsonv_1_1extractor__construction.html#afc01fbc4bd7fefca6cb932e5c60ac387", null ],
       [ "extract_impl", "classjsonv_1_1extractor__construction.html#a2d67ef9a8b97cddfd45b7dd8668540a7", null ],
       [ "extract_impl", "classjsonv_1_1extractor__construction.html#a1338df97f1485d6ba2acadb303fc64cb", null ],
-      [ "get_type", "classjsonv_1_1extractor__construction.html#a62b6923cb67527582698dfb1c54af8b4", null ]
+      [ "get_type", "classjsonv_1_1extractor__construction.html#a990e28ebb89f5931e68d32e8ee553836", null ]
     ] ],
     [ "extractor_for", "classjsonv_1_1extractor__for.html", [
       [ "create", "classjsonv_1_1extractor__for.html#a52d5520b2b340ce20025686d62e6e81e", null ],
       [ "extract", "classjsonv_1_1extractor__for.html#acc9524fcaf0506c7247d959f9618453f", null ],
-      [ "get_type", "classjsonv_1_1extractor__for.html#a900535dacf134ff04415ea2cf1f7b8e5", null ]
+      [ "get_type", "classjsonv_1_1extractor__for.html#a5662723a452e8e55476d2de2d866e099", null ]
     ] ],
     [ "function_extractor", "classjsonv_1_1function__extractor.html", [
       [ "function_extractor", "classjsonv_1_1function__extractor.html#aeaedea66895fa7dded92350dc18cfcb6", null ],
