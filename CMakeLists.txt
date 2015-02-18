@@ -59,7 +59,7 @@ endif(COVERAGE)
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
-    set(CMAKE_CXX_FLAGS "--std=c++11 -pedantic -Wall -Wextra -ggdb")
+    set(CMAKE_CXX_FLAGS "--std=c++11 -pedantic -Wall -Wextra")
 endif(WIN32)
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
