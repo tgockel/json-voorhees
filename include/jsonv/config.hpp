@@ -26,11 +26,15 @@
 #endif
 
 /** \def JSONV_COMPILING
- *  \brief Is JsonVoorhees currently compiling?
- *  You probably do not want to set this by hand. It is set by the Makefile when the library is compiled.
+ *  \brief Is JSON Voorhees currently compiling?
+ *  You probably do not want to set this by hand. It is set by the build system when the library is compiled.
 **/
 #ifndef JSONV_COMPILING
-#   define JSONV_COMPILING 0
+#   ifdef jsonv_EXPORTS
+#      define JSONV_COMPILING 1
+#   else
+#      define JSONV_COMPILING 0
+#   endif
 #endif
 
 /** \def JSONV_EXPORT
