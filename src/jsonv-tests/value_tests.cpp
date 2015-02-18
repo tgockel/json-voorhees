@@ -117,7 +117,7 @@ TEST(is_operations)
     jsonv::value obj = jsonv::object({ {"arr", arr } });
     jsonv::value str = "SOMETHING";
     jsonv::value bol = true;
-    jsonv::value nul = nullptr;
+    jsonv::value nul = jsonv::null;
     
     ensure(num.is_decimal());
     ensure(in_.is_integer());
@@ -136,7 +136,7 @@ TEST(hash_set_operations)
     jsonv::value obj = jsonv::object({ {"arr", arr } });
     jsonv::value str = "SOMETHING";
     jsonv::value bol = true;
-    jsonv::value nul = nullptr;
+    jsonv::value nul = jsonv::null;
     
     std::unordered_set<jsonv::value> set = { num, arr, obj, str, bol, nul };
     ensure_eq(6U, set.size());

@@ -152,7 +152,7 @@ TEST(array_view)
 {
     using namespace jsonv;
     
-    const value arr1 = array({ "pie", 5, nullptr, 0 });
+    const value arr1 = array({ "pie", 5, null, 0 });
     value arr2 = array();
     for (const value& val : arr1.as_array())
         arr2.push_back(val);
@@ -182,8 +182,8 @@ TEST(array_push_pop)
     ensure_eq(3U, arr.size());
     arr.pop_back();
     ensure_eq(2U, arr.size());
-    arr.assign(5, nullptr);
-    ensure_eq(array({ nullptr, nullptr, nullptr, nullptr, nullptr }), arr);
+    arr.assign(5, null);
+    ensure_eq(array({ null, null, null, null, null }), arr);
 }
 
 TEST(array_insertion)

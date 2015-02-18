@@ -165,7 +165,7 @@ TEST(path_value_construction)
     
     value expected = object({
                              { "a", object({
-                                            { "b", array({ nullptr, "Yo", "Hello!", 3 }) }
+                                            { "b", array({ null, "Yo", "Hello!", 3 }) }
                                           })
                              }
                            });

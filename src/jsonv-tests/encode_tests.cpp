@@ -51,7 +51,7 @@ TEST(encode_nan)
     ensure_ne(val, decoded);
     
     // change val to have null in place of the NaN
-    val.at_path(".a[2]") = nullptr;
+    val.at_path(".a[2]") = jsonv::null;
     ensure_eq(val, decoded);
 }
 

@@ -41,7 +41,7 @@ value map(const std::function<value (const value&)>& func,
         return out;
     }
     default:
-        return nullptr;
+        return null;
     }
 }
 
@@ -62,7 +62,7 @@ value map(const std::function<value (value)>& func,
         value out = array();
         for (value& sub : input.as_array())
             out.push_back(func(std::move(sub)));
-        input = nullptr;
+        input = null;
         return out;
     }
     case kind::object:
@@ -70,11 +70,11 @@ value map(const std::function<value (value)>& func,
         value out = object();
         for (value::object_value_type& sub : input.as_object())
             out.insert({ sub.first, func(std::move(sub.second)) });
-        input = nullptr;
+        input = null;
         return out;
     }
     default:
-        return nullptr;
+        return null;
     }
 }
 

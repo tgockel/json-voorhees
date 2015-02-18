@@ -69,10 +69,6 @@ kind_error::~kind_error() noexcept
 // value                                                                                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-value::value(std::nullptr_t) :
-        value()
-{ }
-
 value::value(const std::string& val) :
         _kind(jsonv::kind::null)
 {
@@ -306,7 +302,7 @@ value& value::path(const jsonv::path& p)
                          case path_element_kind::object_key:
                              if (current.kind() == jsonv::kind::null)
                                  current = object();
-                             current.insert({ elem.key(), nullptr });
+                             current.insert({ elem.key(), null });
                              break;
                          }
                      }

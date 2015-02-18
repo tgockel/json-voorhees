@@ -331,7 +331,7 @@ private:
         jsonv::parse_error::problem problem(line, column, character, stream.str());
         if (options.failure_mode() == parse_options::on_error::fail_immediately)
         {
-            throw jsonv::parse_error({ problem }, value(nullptr));
+            throw jsonv::parse_error({ problem }, null);
         }
         else
         {
@@ -381,7 +381,7 @@ static bool parse_boolean(parse_context& context, value& out)
 static bool parse_null(parse_context& context, value& out)
 {
     assert(context.current_kind() == token_kind::null);
-    out = nullptr;
+    out = null;
     check_token(context, "null");
     return true;
 }
@@ -420,7 +420,7 @@ static bool parse_number(parse_context& context, value& out)
             // this should be unreachable -- the only way to get here would be if the regular expression for numeric
             // types was wrong
             context.parse_error("Could not extract number from \"", characters, "\"");
-            out = nullptr;
+            out = null;
         }
     }
     return true;

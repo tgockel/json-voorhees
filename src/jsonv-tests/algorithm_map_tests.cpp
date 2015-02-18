@@ -46,7 +46,7 @@ TEST(map_scalar_rvalue)
 {
     value init = 2;
     value result = std::move(init).map([] (const value& x) { return x.as_integer() * 2; });
-    ensure_eq(init,   value(nullptr));
+    ensure_eq(init,   value(null));
     ensure_eq(result, 4);
 }
 
@@ -54,7 +54,7 @@ TEST(map_array_rvalue)
 {
     value init = array({ 1, 2, 3 });
     value result = std::move(init).map([] (const value& x) { return x.as_integer() * 2; });
-    ensure_eq(init,   value(nullptr));
+    ensure_eq(init,   value(null));
     ensure_eq(result, array({ 2, 4, 6 }));
 }
 
@@ -62,7 +62,7 @@ TEST(map_object_rvalue)
 {
     value init = object({ { "one", 1 }, { "two", 2 } });
     value result = std::move(init).map([] (const value& x) { return x.as_integer() * 2; });
-    ensure_eq(init, value(nullptr));
+    ensure_eq(init, value(null));
     ensure_eq(result, object({ { "one", 2 }, { "two", 4 } }));
 }
 

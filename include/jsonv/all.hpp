@@ -66,7 +66,7 @@ namespace jsonv
  *  
  *  int main()
  *  {
- *      jsonv::value x = nullptr;
+ *      jsonv::value x = jsonv::null;
  *      std::cout << x << std::endl;
  *      x = 5.9;
  *      std::cout << x << std::endl;
@@ -126,7 +126,7 @@ namespace jsonv
  *  
  *  int main()
  *  {
- *      jsonv::value x = nullptr;
+ *      jsonv::value x = jsonv::null;
  *      try
  *      {
  *          x.as_string();
@@ -220,7 +220,7 @@ namespace jsonv
  *  
  *  int main()
  *  {
- *      jsonv::value arr = jsonv::array({ "taco", "cat", 3, -2, nullptr, "beef", 4.8, 5 });
+ *      jsonv::value arr = jsonv::array({ "taco", "cat", 3, -2, jsonv::null, "beef", 4.8, 5 });
  *      std::cout << "Initial: ";
  *      for (const auto& val : arr.as_array())
  *          std::cout << val << '\t';

@@ -99,10 +99,10 @@ TEST_PARSE(object_empties_in_array)
                               { "c", 23.9 },
                               { "d", array({ object({ { "e", object() },
                                                       { "f", 41.4 },
-                                                      { "g", nullptr },
+                                                      { "g", null },
                                                       { "h", 5 },
                                                    }),
-                                             object({ { "i", nullptr } })
+                                             object({ { "i", null } })
                                           })
                               }
                            });
@@ -112,21 +112,21 @@ TEST_PARSE(object_empties_in_array)
 TEST_PARSE(null)
 {
     value result = parse("null");
-    value expected = value(nullptr);
+    value expected = value(null);
     ensure_eq(expected, result);
 }
 
 TEST_PARSE(null_in_arr)
 {
     value result = parse("[null,4]");
-    value expected = array({ nullptr, 4 });
+    value expected = array({ null, 4 });
     ensure_eq(expected, result);
 }
 
 TEST_PARSE(null_in_obj)
 {
     value result = parse(R"({"a": null})");
-    value expected = object({ { "a", nullptr } });
+    value expected = object({ { "a", null } });
     ensure_eq(expected, result);
 }
 
@@ -148,13 +148,13 @@ TEST_PARSE(object_in_array)
                          R"("h": [{"i": 3, "j": null, "k": "l", "m": 4, "n": "o", "p": "q", "r": 5}, )"
                          R"({"s": 6, "t": 7, "u": null}, {"v": "w"}]}})"
                         );
-    value expected = object({ { "a", nullptr },
+    value expected = object({ { "a", null },
                               { "b", object({ { "c", 1 },
                                               { "d", "e" },
-                                              { "f", nullptr },
+                                              { "f", null },
                                               { "g", 2 },
                                               { "h", array({ object({ { "i", 3 },
-                                                                      { "j", nullptr },
+                                                                      { "j", null },
                                                                       { "k", "l" },
                                                                       { "m", 4 },
                                                                       { "n", "o" },
@@ -163,7 +163,7 @@ TEST_PARSE(object_in_array)
                                                                    }),
                                                              object({ { "s", 6 },
                                                                       { "t", 7 },
-                                                                      { "u", nullptr },
+                                                                      { "u", null },
                                                                    }),
                                                              object({ { "v", "w" } })
                                                           })
@@ -229,7 +229,7 @@ TEST_PARSE(partial_array)
         // just check that we can...
         to_string(err);
         to_string(err.problems().at(0));
-        value expected = array({ 1, 2, nullptr });
+        value expected = array({ 1, 2, null });
         ensure_eq(expected, err.partial_result());
     }
 }

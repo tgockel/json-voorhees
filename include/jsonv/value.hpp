@@ -418,12 +418,8 @@ public:
             _kind(jsonv::kind::null)
     { }
     
-    /** Create a \c kind::null.
-     *  
-     *  \deprecated
-     *  This conversion will be removed in 1.0. Use \c jsonv::null instead.
-    **/
-    value(std::nullptr_t);
+    /** The nullptr overload will fail to compile -- use \c null if you want a \c kind::null. **/
+    value(std::nullptr_t) = delete;
     
     /** Copy the contents of \a source into a new instance. **/
     value(const value& source);

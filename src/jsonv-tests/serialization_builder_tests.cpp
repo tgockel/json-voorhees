@@ -183,7 +183,7 @@ TEST(serialization_builder_defaults)
     value input = object({ { "firstname",        p.firstname          },
                            { "lastname",         p.lastname           },
                            { "favorite_numbers", array({ 1, 2, 3, 4 })},
-                           { "winning_numbers",  nullptr              },
+                           { "winning_numbers",  null                 },
                          }
                         );
     auto encoded = to_json(p, fmt);

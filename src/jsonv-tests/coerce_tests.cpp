@@ -43,7 +43,7 @@ TEST(coerce_object_invalid)
     ensure_throws(kind_error, coerce_object("x"));
     ensure_throws(kind_error, coerce_object(1));
     ensure_throws(kind_error, coerce_object(1.2));
-    ensure_throws(kind_error, coerce_object(nullptr));
+    ensure_throws(kind_error, coerce_object(null));
 }
 
 TEST(coerce_array_valid)
@@ -60,18 +60,18 @@ TEST(coerce_array_invalid)
     ensure_throws(kind_error, coerce_array("x"));
     ensure_throws(kind_error, coerce_array(1));
     ensure_throws(kind_error, coerce_array(1.2));
-    ensure_throws(kind_error, coerce_array(nullptr));
+    ensure_throws(kind_error, coerce_array(null));
 }
 
 TEST(coerce_string_valid)
 {
-    ensure_eq(coerce_string(nullptr), "null");
+    ensure_eq(coerce_string(null), "null");
     ensure_eq(coerce_string("blah"), "blah");
 }
 
 TEST(coerce_integer_null)
 {
-    ensure_throws(kind_error, coerce_integer(nullptr));
+    ensure_throws(kind_error, coerce_integer(null));
 }
 
 TEST(coerce_integer_boolean)
@@ -142,7 +142,7 @@ TEST(coerce_integer_string_decimal_clamp_min)
 
 TEST(coerce_decimal_null)
 {
-    ensure_throws(kind_error, coerce_decimal(nullptr));
+    ensure_throws(kind_error, coerce_decimal(null));
 }
 
 TEST(coerce_decimal_boolean)
@@ -193,7 +193,7 @@ TEST(coerce_decimal_string_nested_valid)
 
 TEST(coerce_boolean_null)
 {
-    ensure(!coerce_boolean(nullptr));
+    ensure(!coerce_boolean(null));
 }
 
 TEST(coerce_boolean_boolean)
@@ -229,7 +229,7 @@ TEST(coerce_boolean_object)
 
 TEST(coerce_nulls)
 {
-    ensure(nullptr == coerce_null(nullptr));
+    ensure(nullptr == coerce_null(null));
     ensure_throws(kind_error, coerce_null(object()));
     ensure_throws(kind_error, coerce_null(array()));
     ensure_throws(kind_error, coerce_null("string"));
