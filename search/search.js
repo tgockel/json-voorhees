@@ -18,7 +18,7 @@ var indexSectionsWithContent =
   8: "aot",
   9: "j",
   10: "acosu",
-  11: "os"
+  11: "dos"
 };
 
 var indexSectionNames =

@@ -197,9 +197,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1406cf5e3dbed488dfb62805db3ba43f"><td class="memItemLeft" align="right" valign="top">constexpr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a1406cf5e3dbed488dfb62805db3ba43f">value</a> ()</td></tr>
 <tr class="memdesc:a1406cf5e3dbed488dfb62805db3ba43f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default-construct this to null.  <a href="#a1406cf5e3dbed488dfb62805db3ba43f">More...</a><br /></td></tr>
 <tr class="separator:a1406cf5e3dbed488dfb62805db3ba43f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a153f8e5b0bfd9a142fd8d472e1ba7848"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a153f8e5b0bfd9a142fd8d472e1ba7848">value</a> (std::nullptr_t)=delete</td></tr>
-<tr class="memdesc:a153f8e5b0bfd9a142fd8d472e1ba7848"><td class="mdescLeft">&#160;</td><td class="mdescRight">The nullptr overload will fail to compile &ndash; use <code>null</code> if you want a <code>kind::null</code>.  <a href="#a153f8e5b0bfd9a142fd8d472e1ba7848">More...</a><br /></td></tr>
-<tr class="separator:a153f8e5b0bfd9a142fd8d472e1ba7848"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0f11d28ea224ed300b726a85f95cee2b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a0f11d28ea224ed300b726a85f95cee2b">value</a> (std::nullptr_t)</td></tr>
+<tr class="memdesc:a0f11d28ea224ed300b726a85f95cee2b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::null</code>.  <a href="#a0f11d28ea224ed300b726a85f95cee2b">More...</a><br /></td></tr>
+<tr class="separator:a0f11d28ea224ed300b726a85f95cee2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae8213bbe2c15829705a12e06f3a7291"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#aae8213bbe2c15829705a12e06f3a7291">value</a> (const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;source)</td></tr>
 <tr class="memdesc:aae8213bbe2c15829705a12e06f3a7291"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy the contents of <em>source</em> into a new instance.  <a href="#aae8213bbe2c15829705a12e06f3a7291">More...</a><br /></td></tr>
 <tr class="separator:aae8213bbe2c15829705a12e06f3a7291"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -547,12 +547,9 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="a153f8e5b0bfd9a142fd8d472e1ba7848"></a>
+<a class="anchor" id="a0f11d28ea224ed300b726a85f95cee2b"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">jsonv::value::value </td>
@@ -562,14 +559,10 @@ Friends</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>The nullptr overload will fail to compile &ndash; use <code>null</code> if you want a <code>kind::null</code>. </p>
+<p>Create a <code>kind::null</code>. </p>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000001">Deprecated:</a></b></dt><dd>This conversion will be removed in 1.0. Use <code>jsonv::null</code> instead. </dd></dl>
 
 </div>
 </div>
