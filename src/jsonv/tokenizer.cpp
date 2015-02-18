@@ -118,7 +118,7 @@ tokenizer::~tokenizer() noexcept
     // getting destroyed -- need to put our buffer back into the istream
     try
     {
-        if (_current.text.data())
+        if (_current.text.size() > 0 && _buffer.size() > 0)
         {
             for (std::size_t idx = _buffer.size() - 1; idx != position_in_buffer(_buffer, _current.text); --idx)
                 _input.putback(_buffer[idx]);
