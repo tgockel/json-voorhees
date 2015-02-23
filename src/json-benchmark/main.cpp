@@ -1,3 +1,15 @@
+/** \file
+ *  
+ *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
+ *
+ *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+ *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+ *  version.
+ *
+ *  \author Travis Gockel (travis@gockelhut.com)
+**/
+#include "core.hpp"
+
 #include <jsonv/all.hpp>
 
 #include <chrono>
@@ -158,45 +170,45 @@ public:
     duration    total_time;
 };
 
-void test_jsonv(const std::string& input)
+static std::string get_encoded_json()
 {
-    jsonv::parse(input);
+    std::ifstream in("temp.json");
+    if (in.good())
+        return std::string(std::istream_iterator<char>(in),
+                           std::istream_iterator<char>()
+                          );
+    
+    std::ostringstream encoded_stream;
+    ostream_pretty_encoder out(encoded_stream);
+    std::mt19937_64 rng{std::random_device()()};
+    generated_json_settings settings;
+    value val = generate_json(rng, settings);
+    out.encode(val);
+    std::string encoded = encoded_stream.str();
+    
+    // save the string to a file in case we want to re-use it
+    std::ofstream file("temp.json", std::ofstream::out | std::ofstream::trunc);
+    file << encoded;
+    return encoded;
 }
 
 int main(int argc, char** argv)
 {
-    // First -- create a "pretty" encoded string that all tests will read from
-    std::string encoded;
-    {
-        std::ostringstream encoded_stream;
-        ostream_pretty_encoder out(encoded_stream);
-        std::mt19937_64 rng{std::random_device()()};
-        generated_json_settings settings;
-        value val = generate_json(rng, settings);
-        out.encode(val);
-        encoded = encoded_stream.str();
-        
-        // save the string to a file in case we want to re-use it
-        std::ofstream file("temp.json", std::ofstream::out | std::ofstream::trunc);
-        file << encoded;
-    }
+    using namespace json_benchmark;
     
-    using test_function = void (*)(const std::string&);
-    std::map<std::string, test_function> tests = {
-            { "JSON Voorhees", test_jsonv }
-        };
+    std::string encoded = get_encoded_json();
     
-    for (const auto& pair : tests)
+    for (const benchmark_suite* suite : benchmark_suite::all())
     {
         stopwatch watch;
         for (int idx = 0; idx < 10; ++idx)
         {
             std::cout << idx << '/' << 10 << std::endl;
             auto ticker = watch.start();
-            pair.second(encoded);
+            suite->parse_test(encoded);
         }
         
         auto average = std::chrono::duration_cast<std::chrono::microseconds>(watch.total_time) / watch.tick_count;
-        std::cout << pair.first << '\t' << average.count() << "us" << std::endl;
+        std::cout << suite->name() << '\t' << average.count() << "us" << std::endl;
     }
 }
