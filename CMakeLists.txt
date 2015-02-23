@@ -56,10 +56,15 @@ if (COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -profile-arcs -ftest-coverage")
 endif(COVERAGE)
 
+option(BENCHMARK
+       "Enable compilation of the json-benchmark program."
+       OFF
+      )
+
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
-    set(CMAKE_CXX_FLAGS "--std=c++11 -pedantic -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "--std=c++11 -pedantic -Wall -Wextra -ggdb")
 endif(WIN32)
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
@@ -92,6 +97,15 @@ target_link_libraries(jsonv-tests
         "jsonv"
         ${Boost_LIBRARIES}
     )
+
+if (BENCHMARK)
+    file(GLOB_RECURSE json_benchmark_cpps RELATIVE_PATH "." "src/json-benchmark/*.cpp")
+    add_executable(json-benchmark ${json_benchmark_cpps})
+    target_link_libraries(json-benchmark
+        "jsonv"
+        ${Boost_LIBRARIES}
+    )
+endif(BENCHMARK)
 
 ################################################################################
 # Installation                                                                 #
