@@ -199,14 +199,14 @@ int main(int argc, char** argv)
     using namespace json_benchmark;
     
     std::string encoded = get_encoded_json();
-    std::cout << encoded << std::endl;
+    static const int LOOP_COUNT = 10;
     
     for (const benchmark_suite* suite : benchmark_suite::all())
     {
         stopwatch watch;
-        for (int idx = 0; idx < 10; ++idx)
+        for (int idx = 1; idx <= LOOP_COUNT; ++idx)
         {
-            std::cout << idx << '/' << 10 << std::endl;
+            std::cout << idx << '/' << LOOP_COUNT << std::endl;
             auto ticker = watch.start();
             suite->parse_test(encoded);
         }
