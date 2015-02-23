@@ -87,6 +87,6 @@ public:
     
 private:
     std::deque<std::unique_ptr<json_checker_test>> _tests;
-} json_checker_test_initializer_instance("src/jsonv-tests/data/json_checker");
+} json_checker_test_initializer_instance(test_path("json_checker"));
 
 }

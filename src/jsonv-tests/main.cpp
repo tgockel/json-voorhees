@@ -20,6 +20,7 @@
 #include <jsonv/value.hpp>
 #include <jsonv/parse.hpp>
 
+#include "filesystem_util.hpp"
 #include "test.hpp"
 
 int benchmark(const std::string& filename, const int ntimes = 1000)
@@ -48,7 +49,7 @@ int benchmark(const std::string& filename, const int ntimes = 1000)
 
 TEST(benchmark)
 {
-    benchmark("src/jsonv-tests/data/generated.json", 10);
+    benchmark(jsonv_test::test_path("generated.json"), 10);
 }
 
 TEST(demo)

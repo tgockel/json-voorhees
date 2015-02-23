@@ -67,6 +67,6 @@ public:
     
 private:
     std::deque<std::unique_ptr<unit_test>> _tests;
-} json_diff_test_initializer_instance("src/jsonv-tests/data/diffs");
+} json_diff_test_initializer_instance(test_path("diffs"));
 
 }

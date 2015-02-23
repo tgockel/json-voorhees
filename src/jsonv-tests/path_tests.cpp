@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include "test.hpp"
+#include "filesystem_util.hpp"
 
 #include <jsonv/algorithm.hpp>
 #include <jsonv/parse.hpp>
@@ -124,7 +125,7 @@ TEST(path_traverse)
 {
     value tree;
     {
-        std::ifstream stream("src/jsonv-tests/data/paths.json");
+        std::ifstream stream(test_path("paths.json").c_str());
         tree = parse(stream);
     }
     

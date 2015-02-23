@@ -13,6 +13,20 @@
 
 #include <jsonv/detail/scope_exit.hpp>
 
+#ifndef JSONV_TEST_DATA_DIR
+#   define JSONV_TEST_DATA_DIR "."
+#endif
+
+namespace jsonv_test
+{
+
+std::string test_path(const std::string& path)
+{
+    return std::string(JSONV_TEST_DATA_DIR) + "/" + path;
+}
+
+}
+
 #ifdef _MSC_VER
 
 #include <Windows.h>

@@ -19,6 +19,8 @@
 namespace jsonv_test
 {
 
+std::string test_path(const std::string& path);
+
 std::string filename(std::string path);
 
 void recursive_directory_for_each(const std::string&                             root_path,

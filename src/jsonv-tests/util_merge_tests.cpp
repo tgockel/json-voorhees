@@ -108,6 +108,6 @@ private:
     
 private:
     std::deque<std::unique_ptr<unit_test>> _tests;
-} json_merge_test_initializer_instance("src/jsonv-tests/data/merges");
+} json_merge_test_initializer_instance(test_path("merges"));
 
 }

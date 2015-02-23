@@ -79,6 +79,8 @@ if (REQUIRED_BOOST_LIBRARIES)
                 )
 endif(REQUIRED_BOOST_LIBRARIES)
 
+add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
+
 ################################################################################
 # Building                                                                     #
 ################################################################################
