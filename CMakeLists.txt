@@ -53,7 +53,7 @@ option(COVERAGE
        OFF
       )
 if (COVERAGE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -profile-arcs -ftest-coverage")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 endif(COVERAGE)
 
 option(BENCHMARK
@@ -64,7 +64,7 @@ option(BENCHMARK
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
-    set(CMAKE_CXX_FLAGS "--std=c++11 -pedantic -Wall -Wextra -ggdb")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pedantic -Wall -Wextra -ggdb")
 endif(WIN32)
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
@@ -97,6 +97,11 @@ target_link_libraries(jsonv-tests
         "jsonv"
         ${Boost_LIBRARIES}
     )
+
+if (COVERAGE)
+    target_link_libraries(jsonv "gcov")
+    target_link_libraries(jsonv-tests "gcov")
+endif(COVERAGE)
 
 if (BENCHMARK)
     file(GLOB_RECURSE json_benchmark_cpps RELATIVE_PATH "." "src/json-benchmark/*.cpp")
