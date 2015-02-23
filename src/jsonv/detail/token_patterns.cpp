@@ -30,6 +30,12 @@ public:
     {
         return instance().re_number;
     }
+    
+    /** Like \c number, but will successfully match an EOF-ed value. **/
+    static const regex_ns::regex& number_trunc()
+    {
+        return instance().re_number_trunc;
+    }
 
     static const regex_ns::regex& whitespace()
     {
@@ -56,6 +62,7 @@ private:
     re_values() :
             syntax_options(regex_ns::regex_constants::ECMAScript | regex_ns::regex_constants::optimize),
             re_number(      R"(-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options),
+            re_number_trunc(R"(-?[0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*(\.[0-9]*)?)?)", syntax_options),
             re_whitespace(  R"([ \t\r\n]+)",                                       syntax_options),
             re_comment(     R"(/\*([^\*]*|\*[^/])*\*/)",                           syntax_options),
             re_simplestring(R"([a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
@@ -64,6 +71,7 @@ private:
 private:
     const regex_ns::regex_constants::syntax_option_type syntax_options;
     const regex_ns::regex re_number;
+    const regex_ns::regex re_number_trunc;
     const regex_ns::regex re_whitespace;
     const regex_ns::regex re_comment;
     const regex_ns::regex re_simplestring;
@@ -122,7 +130,32 @@ static match_result match_pattern(const char*            begin,
 static match_result match_number(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
     kind = token_kind::number;
-    return match_pattern(begin, end, re_values::number(), length);
+    regex_ns::cmatch match;
+    if (regex_ns::regex_search(begin, end, match, re_values::number()))
+    {
+        length = match.length(0);
+        if (begin + length == end)
+            return match_result::complete_eof;
+        else switch (begin[length])
+        {
+        case '.':
+        case '-':
+        case '+':
+        case 'e':
+        case 'E':
+            return match_result::incomplete_eof;
+        default:
+            return match_result::complete;
+        }
+    }
+    else
+    {
+        length = 1;
+        return regex_ns::regex_search(begin, end, match, re_values::number_trunc())
+               ? match_result::unmatched
+               : match_result::incomplete_eof;
+    }
+    
 }
 
 static match_result match_string(const char* begin, const char* end, token_kind& kind, std::size_t& length)
