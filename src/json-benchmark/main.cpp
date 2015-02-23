@@ -174,9 +174,11 @@ static std::string get_encoded_json()
 {
     std::ifstream in("temp.json");
     if (in.good())
-        return std::string(std::istream_iterator<char>(in),
-                           std::istream_iterator<char>()
-                          );
+    {
+        std::stringstream buff;
+        buff << in.rdbuf();
+        return buff.str();
+    }
     
     std::ostringstream encoded_stream;
     ostream_pretty_encoder out(encoded_stream);
@@ -197,6 +199,7 @@ int main(int argc, char** argv)
     using namespace json_benchmark;
     
     std::string encoded = get_encoded_json();
+    std::cout << encoded << std::endl;
     
     for (const benchmark_suite* suite : benchmark_suite::all())
     {
