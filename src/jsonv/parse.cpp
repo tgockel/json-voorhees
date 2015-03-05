@@ -402,7 +402,10 @@ static bool parse_number(parse_context& context, value& out)
             context.parse_error("Numbers cannot start with a leading '0'");
         }
         
-        if (characters[0] == '-')
+        // optimization: a numeric token is "decimal-like" if it has . in it
+        if (characters.find_first_of('.') != string_view::npos)
+            out = boost::lexical_cast<double>(characters.data(), characters.size());
+        else if (characters[0] == '-')
             out = boost::lexical_cast<std::int64_t>(characters.data(), characters.size());
         else
             // For non-negative integer types, use lexical_cast of a uint64_t then static_cast to an int64_t. This is
