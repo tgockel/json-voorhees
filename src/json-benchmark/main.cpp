@@ -198,11 +198,18 @@ int main(int argc, char** argv)
 {
     using namespace json_benchmark;
     
+    std::string filter;
+    if (argc == 2)
+        filter = argv[1];
+    
     std::string encoded = get_encoded_json();
     static const int LOOP_COUNT = 10;
     
     for (const benchmark_suite* suite : benchmark_suite::all())
     {
+        if (!filter.empty() && filter != suite->name())
+            continue;
+        
         std::cout << suite->name() << "..." << std::endl;
         stopwatch watch;
         for (int idx = 1; idx <= LOOP_COUNT; ++idx)
