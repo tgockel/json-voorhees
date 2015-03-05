@@ -145,7 +145,7 @@ if (BENCHMARK)
         add_benchmark_suite("jq_benchmark.cpp" "jq")
     endif()
     
-    add_executable(json-benchmark "${BENCHMARK_CPPS}")
+    add_executable(json-benchmark ${BENCHMARK_CPPS})
     target_link_libraries(json-benchmark
         ${BENCHMARK_LIBS}
         ${Boost_LIBRARIES}
