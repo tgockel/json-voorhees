@@ -64,6 +64,16 @@ TEST(token_attempt_match_number_integer_complete)
     ensure_eq(10, length);
 }
 
+TEST(token_attempt_match_number_integer_only_minus)
+{
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match("-", kind, length);
+    ensure(result == match_result::incomplete_eof);
+    ensure_eq(token_kind::number, kind);
+    ensure_eq(1, length);
+}
+
 TEST(token_attempt_match_string_complete)
 {
     token_kind kind;

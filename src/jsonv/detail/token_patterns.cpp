@@ -61,11 +61,11 @@ private:
 
     re_values() :
             syntax_options(regex_ns::regex_constants::ECMAScript | regex_ns::regex_constants::optimize),
-            re_number(      R"(-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options),
-            re_number_trunc(R"(-?[0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*(\.[0-9]*)?)?)", syntax_options),
-            re_whitespace(  R"([ \t\r\n]+)",                                       syntax_options),
-            re_comment(     R"(/\*([^\*]*|\*[^/])*\*/)",                           syntax_options),
-            re_simplestring(R"([a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
+            re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options),
+            re_number_trunc(R"(^-?[0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*(\.[0-9]*)?)?)", syntax_options),
+            re_whitespace(  R"(^[ \t\r\n]+)",                                       syntax_options),
+            re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)",                           syntax_options),
+            re_simplestring(R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
     { }
 
 private:
@@ -152,8 +152,8 @@ static match_result match_number(const char* begin, const char* end, token_kind&
     {
         length = 1;
         return regex_ns::regex_search(begin, end, match, re_values::number_trunc())
-               ? match_result::unmatched
-               : match_result::incomplete_eof;
+               ? match_result::incomplete_eof
+               : match_result::unmatched;
     }
     
 }
