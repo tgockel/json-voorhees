@@ -124,6 +124,10 @@ option(BENCHMARK_JQ
        NO
       )
 
+option(BENCHMARK_JANSSON
+       "Enable benchmark suite for jansson?"
+       NO
+      )
 
 if (BENCHMARK)
     set(BENCHMARK_CPPS src/json-benchmark/core.cpp src/json-benchmark/main.cpp)
@@ -143,6 +147,10 @@ if (BENCHMARK)
     
     if (BENCHMARK_JQ)
         add_benchmark_suite("jq_benchmark.cpp" "jq")
+    endif()
+    
+    if (BENCHMARK_JANSSON)
+        add_benchmark_suite("jansson_benchmark.cpp" "jansson")
     endif()
     
     add_executable(json-benchmark ${BENCHMARK_CPPS})
