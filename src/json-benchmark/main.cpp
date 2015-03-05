@@ -20,6 +20,8 @@
 #include <random>
 #include <sstream>
 
+#include <boost/lexical_cast.hpp>
+
 using namespace jsonv;
 
 struct generated_json_settings
@@ -199,11 +201,14 @@ int main(int argc, char** argv)
     using namespace json_benchmark;
     
     std::string filter;
-    if (argc == 2)
+    if (argc >= 2)
         filter = argv[1];
     
+    int loop_count = 10;
+    if (argc >= 3)
+        loop_count = boost::lexical_cast<int>(argv[2]);
+    
     std::string encoded = get_encoded_json();
-    static const int LOOP_COUNT = 10;
     
     for (const benchmark_suite* suite : benchmark_suite::all())
     {
@@ -212,9 +217,9 @@ int main(int argc, char** argv)
         
         std::cout << suite->name() << "..." << std::endl;
         stopwatch watch;
-        for (int idx = 1; idx <= LOOP_COUNT; ++idx)
+        for (int idx = 1; idx <= loop_count; ++idx)
         {
-            std::cout << "  " << idx << '/' << LOOP_COUNT << std::endl;
+            std::cout << "  " << idx << '/' << loop_count << std::endl;
             auto ticker = watch.start();
             suite->parse_test(encoded);
         }
