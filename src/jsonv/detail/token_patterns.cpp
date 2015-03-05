@@ -37,11 +37,6 @@ public:
         return instance().re_number_trunc;
     }
 
-    static const regex_ns::regex& whitespace()
-    {
-        return instance().re_whitespace;
-    }
-
     static const regex_ns::regex& comment()
     {
         return instance().re_comment;
@@ -63,7 +58,6 @@ private:
             syntax_options(regex_ns::regex_constants::ECMAScript | regex_ns::regex_constants::optimize),
             re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options),
             re_number_trunc(R"(^-?[0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*(\.[0-9]*)?)?)", syntax_options),
-            re_whitespace(  R"(^[ \t\r\n]+)",                                       syntax_options),
             re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)",                           syntax_options),
             re_simplestring(R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
     { }
@@ -72,7 +66,6 @@ private:
     const regex_ns::regex_constants::syntax_option_type syntax_options;
     const regex_ns::regex re_number;
     const regex_ns::regex re_number_trunc;
-    const regex_ns::regex re_whitespace;
     const regex_ns::regex re_comment;
     const regex_ns::regex re_simplestring;
 };
@@ -192,7 +185,18 @@ static match_result match_string(const char* begin, const char* end, token_kind&
 static match_result match_whitespace(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
     kind = token_kind::whitespace;
-    return match_pattern(begin, end, re_values::whitespace(), length);
+    for (length = 0; begin != end; ++length, ++begin)
+        switch (*begin)
+        {
+        case ' ':
+        case '\t':
+        case '\r':
+        case '\n':
+            continue;
+        default:
+            return match_result::complete;
+        }
+    return match_result::complete_eof;
 }
 
 static match_result match_comment(const char* begin, const char* end, token_kind& kind, std::size_t& length)
