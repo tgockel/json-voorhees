@@ -21,6 +21,7 @@
 #include <istream>
 #include <set>
 #include <sstream>
+#include <streambuf>
 #include <vector>
 
 #include <boost/lexical_cast.hpp>
@@ -746,11 +747,23 @@ value parse(std::istream& input, const parse_options& options)
     return parse(tokens, options);
 }
 
+class zero_copy_streambuf :
+        public std::streambuf
+{
+public:
+    zero_copy_streambuf(string_view input)
+    {
+        // We are just going to read from it, so this const_cast is okay
+        char* p = const_cast<char*>(input.data());
+        setg(p, p, p + input.size());
+    }
+};
+
 value parse(const string_view& input, const parse_options& options)
 {
-    std::stringstream sstream;
-    sstream.write(input.data(), input.size());
-    return parse(sstream, options);
+    zero_copy_streambuf buff(input);
+    std::istream stream(&buff);
+    return parse(stream, options);
 }
 
 value operator"" _json(const char* str, std::size_t len)
