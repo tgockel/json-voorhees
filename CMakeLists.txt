@@ -105,11 +105,49 @@ if (COVERAGE)
     target_link_libraries(jsonv-tests "gcov")
 endif(COVERAGE)
 
+################################################################################
+# Benchmarking Tool                                                            #
+################################################################################
+
+option(BENCHMARK_JSONV
+       "Enable benchmark suite for JSON Voorhees?"
+       YES
+      )
+
+option(BENCHMARK_JSONCPP
+       "Enable benchmark suite for JsonCpp?"
+       YES
+      )
+
+option(BENCHMARK_JQ
+       "Enable benchmark suite for jq?"
+       NO
+      )
+
+
 if (BENCHMARK)
-    file(GLOB_RECURSE json_benchmark_cpps RELATIVE_PATH "." "src/json-benchmark/*.cpp")
-    add_executable(json-benchmark ${json_benchmark_cpps})
+    set(BENCHMARK_CPPS src/json-benchmark/core.cpp src/json-benchmark/main.cpp)
+    set(BENCHMARK_LIBS "")
+    macro(add_benchmark_suite CPP_FILE LIB_NAME)
+        list(APPEND BENCHMARK_CPPS "src/json-benchmark/${CPP_FILE}")
+        list(APPEND BENCHMARK_LIBS "${LIB_NAME}")
+    endmacro()
+    
+    if (BENCHMARK_JSONV)
+        add_benchmark_suite("jsonv_benchmark.cpp" "jsonv")
+    endif()
+    
+    if (BENCHMARK_JSONCPP)
+        add_benchmark_suite("jsoncpp_benchmark.cpp" "jsoncpp")
+    endif()
+    
+    if (BENCHMARK_JQ)
+        add_benchmark_suite("jq_benchmark.cpp" "jq")
+    endif()
+    
+    add_executable(json-benchmark "${BENCHMARK_CPPS}")
     target_link_libraries(json-benchmark
-        "jsonv"
+        ${BENCHMARK_LIBS}
         ${Boost_LIBRARIES}
     )
 endif(BENCHMARK)

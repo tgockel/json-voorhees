@@ -203,10 +203,11 @@ int main(int argc, char** argv)
     
     for (const benchmark_suite* suite : benchmark_suite::all())
     {
+        std::cout << suite->name() << "..." << std::endl;
         stopwatch watch;
         for (int idx = 1; idx <= LOOP_COUNT; ++idx)
         {
-            std::cout << idx << '/' << LOOP_COUNT << std::endl;
+            std::cout << "  " << idx << '/' << LOOP_COUNT << std::endl;
             auto ticker = watch.start();
             suite->parse_test(encoded);
         }
