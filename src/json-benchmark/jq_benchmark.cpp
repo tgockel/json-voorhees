@@ -29,7 +29,7 @@ protected:
     virtual jq_value parse(const std::string& source) const
     {
         jq_value x(new jv, [] (jv* p) { jv_free(*p); delete p; });
-        *x = jv_object();
+        *x = jv_parse_sized(source.c_str(), source.size());
         return x;
     }
     
