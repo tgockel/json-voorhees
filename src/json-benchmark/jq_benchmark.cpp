@@ -10,7 +10,12 @@
 **/
 #include "core.hpp"
 
+extern "C"
+{
+
 #include <jv.h>
+
+}
 
 namespace json_benchmark
 {
