@@ -27,8 +27,8 @@ var NAVTREE =
         ] ],
         [ "Type Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type", [
           [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level", [
-            [ "serialization_builder_dsl_ref_type_level_pre_extract", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_pre_extract", null ],
-            [ "serialization_builder_dsl_ref_type_level_on_extract_extra_keys", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_on_extract_extra_keys", null ]
+            [ "pre_extract", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_pre_extract", null ],
+            [ "on_extract_extra_keys", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_on_extract_extra_keys", null ]
           ] ],
           [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing", [
             [ "member", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member", null ]
