@@ -258,14 +258,14 @@ namespace jsonv
  *  
  *  \subsubsection serialization_builder_dsl_ref_type_level Level
  *  
- *  \paragraph serialization_builder_dsl_ref_type_level_pre_extract
+ *  \paragraph serialization_builder_dsl_ref_type_level_pre_extract pre_extract
  *  
  *   - <tt>pre_extract(std::function&lt;void (const extraction_context& context, const value& from)&gt; perform)</tt>
  *  
  *  Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
  *  be called multiple times -- all functions will be called in the order they are provided.
  *  
- *  \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys
+ *  \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys on_extract_extra_keys
  *  
  *   - <tt>on_extract_extra_keys(std::function&lt;void (const extraction_context&   context,
  *                                                      const value&                from,
