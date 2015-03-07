@@ -18,13 +18,13 @@ before_install:
   - sudo apt-add-repository --yes ppa:ubuntu-toolchain-r/test
   - sudo apt-add-repository --yes ppa:boost-latest/ppa
   - sudo add-apt-repository --yes ppa:libreoffice/ppa 
-  - [[ ${COMPILER} == *"clang"* ]] && sudo sh -c 'echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" >> /etc/apt/sources.list'
+  - if [[ ${COMPILER} == *"clang"* ]]; then sudo sh -c 'echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" >> /etc/apt/sources.list'; fi
   - sudo apt-get update
 install:
   - sudo apt-get install --yes --force-yes libboost1.55-all-dev cmake
-  - [[ ${COMPILER} == *"g++"* ]]   && sudo apt-get install --yes --force-yes ${COMPILER}
-  - [[ ${COMPILER} == *"clang"* ]] && sudo apt-get install --yes --force-yes clang-3.7
-  - [[ ${COVERAGE} -eq 1 ]]        && sudo pip install cpp-coveralls pyyaml
+  - if [[ ${COMPILER} == *"g++"* ]];   then sudo apt-get install --yes --force-yes ${COMPILER}; fi
+  - if [[ ${COMPILER} == *"clang"* ]]; then sudo apt-get install --yes --force-yes clang-3.7;   fi
+  - if [[ ${COVERAGE} -eq 1 ]];        then  sudo pip install cpp-coveralls pyyaml;             fi
 script:
   - ${COMPILER} --version
   - cmake -DCMAKE_CXX_COMPILER=${COMPILER}
