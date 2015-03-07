@@ -239,8 +239,9 @@ Narrowing</h3>
 type&lt;T&gt;</h4>
 <ul>
 <li><code>type&lt;T&gt;()</code></li>
+<li><code>type&lt;T&gt;(std::function&lt;void (adapter_builder&lt;T&gt;)&gt; func)</code></li>
 </ul>
-<p>Create an <code>adapter</code> for type <code>T</code> and begin building the members for it.</p>
+<p>Create an <code>adapter</code> for type <code>T</code> and begin building the members for it. If <em>func</em> is provided, it will be called with the adapter_builder&lt;T&gt; this call to <code>type</code> creates, which can be used for creating common extension functions.</p>
 <div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
 <div class="line">    .member(...)</div>
 <div class="line">    .</div>
@@ -251,7 +252,27 @@ Type Context</h2>
 <p>Commands in this section modify the behavior of the <code><a class="el" href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. ">jsonv::adapter</a></code> for a particular type.</p>
 <h3><a class="anchor" id="serialization_builder_dsl_ref_type_level"></a>
 Level</h3>
-<h3><a class="anchor" id="serialization_builder_dsl_ref_type_narrowing"></a>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_pre_extract"></a>
+serialization_builder_dsl_ref_type_level_pre_extract</h4>
+<ul>
+<li><code>pre_extract(std::function&lt;void (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context, const value&amp; from)&gt; perform)</code></li>
+</ul>
+<p>Call the given <em>perform</em> function during the <code>extract</code> operation, but before performing any extraction. This can be called multiple times &ndash; all functions will be called in the order they are provided.</p>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_on_extract_extra_keys"></a>
+serialization_builder_dsl_ref_type_level_on_extract_extra_keys</h4>
+<ul>
+<li><code>on_extract_extra_keys(std::function&lt;void (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context, const value&amp; from, std::set&lt;std::string&gt; extra_keys)&gt; action )</code></li>
+</ul>
+<p>When extracting, perform some <em>action</em> if extra keys are provided. By default, extra keys are usually simply ignored, so this is useful if you wish to throw an exception (or anything you want).</p>
+<div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
+<div class="line">    .member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
+<div class="line">    .member(<span class="stringliteral">&quot;y&quot;</span>, &amp;my_type::y)</div>
+<div class="line">    .on_extract_extra_keys([] (<span class="keyword">const</span> extraction_context&amp;, <span class="keyword">const</span> value&amp;, std::set&lt;std::string&gt; extra_keys)</div>
+<div class="line">                           {</div>
+<div class="line">                               <span class="keywordflow">throw</span> extracted_extra_keys(<span class="stringliteral">&quot;my_type&quot;</span>, std::move(extra_keys));</div>
+<div class="line">                           }</div>
+<div class="line">                          )</div>
+</div><!-- fragment --><h3><a class="anchor" id="serialization_builder_dsl_ref_type_narrowing"></a>
 Narrowing</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_type_narrowing_member"></a>
 member</h4>
