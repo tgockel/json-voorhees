@@ -237,8 +237,11 @@ namespace jsonv
  *  \paragraph serialization_builder_dsl_ref_formats_narrowing_type type&lt;T&gt;
  *  
  *   - <tt>type&lt;T&gt;()</tt>
+ *   - <tt>type&lt;T&gt;(std::function&lt;void (adapter_builder&lt;T&gt;)&gt; func)</tt>
  *  
- *  Create an \c adapter for type \c T and begin building the members for it.
+ *  Create an \c adapter for type \c T and begin building the members for it. If \a func is provided, it will be called
+ *  with the adapter_builder&lt;T&gt; this call to \c type creates, which can be used for creating common extension
+ *  functions.
  *  
  *  \code
  *    .type<my_type>()
@@ -254,6 +257,34 @@ namespace jsonv
  *  Commands in this section modify the behavior of the \c jsonv::adapter for a particular type.
  *  
  *  \subsubsection serialization_builder_dsl_ref_type_level Level
+ *  
+ *  \paragraph serialization_builder_dsl_ref_type_level_pre_extract
+ *  
+ *   - <tt>pre_extract(std::function&lt;void (const extraction_context& context, const value& from)&gt; perform)</tt>
+ *  
+ *  Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
+ *  be called multiple times -- all functions will be called in the order they are provided.
+ *  
+ *  \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys
+ *  
+ *   - <tt>on_extract_extra_keys(std::function&lt;void (const extraction_context&   context,
+ *                                                      const value&                from,
+ *                                                      std::set&lt;std::string&gt; extra_keys)&gt; action
+ *                              )</tt>
+ *  
+ *  When extracting, perform some \a action if extra keys are provided. By default, extra keys are usually simply
+ *  ignored, so this is useful if you wish to throw an exception (or anything you want).
+ *  
+ *  \code
+ *    .type<my_type>()
+ *        .member("x", &my_type::x)
+ *        .member("y", &my_type::y)
+ *        .on_extract_extra_keys([] (const extraction_context&, const value&, std::set<std::string> extra_keys)
+ *                               {
+ *                                   throw extracted_extra_keys("my_type", std::move(extra_keys));
+ *                               }
+ *                              )
+ *  \endcode
  *  
  *  \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
  *  
@@ -376,6 +407,9 @@ public:
     
     template <typename T>
     detail::adapter_builder<T> type();
+    
+    template <typename T, typename F>
+    detail::adapter_builder<T> type(F&&);
     
     formats_builder& register_adapter(const adapter* p);
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
@@ -663,14 +697,21 @@ class adapter_builder :
         public formats_builder_dsl
 {
 public:
-    explicit adapter_builder(formats_builder* owner) :
+    template <typename F>
+    explicit adapter_builder(formats_builder* owner, F&& f) :
             formats_builder_dsl(owner),
             _adapter(nullptr)
     {
         auto adapter = std::make_shared<adapter_impl>();
         register_adapter(adapter);
         _adapter = adapter.get();
+        
+        std::forward<F>(f)(*this);
     }
+    
+    explicit adapter_builder(formats_builder* owner) :
+            adapter_builder(owner, [] (const adapter_builder<T>&) { })
+    { }
     
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector)
@@ -771,6 +812,12 @@ public:
         return detail::adapter_builder<T>(this);
     }
     
+    template <typename T, typename F>
+    detail::adapter_builder<T> type(F&& f)
+    {
+        return detail::adapter_builder<T>(this, std::forward<F>(f));
+    }
+    
     formats_builder& register_adapter(const adapter* p)
     {
         _formats.register_adapter(p);
@@ -838,6 +885,12 @@ template <typename T>
 adapter_builder<T> formats_builder_dsl::type()
 {
     return owner->type<T>();
+}
+
+template <typename T, typename F>
+adapter_builder<T> formats_builder_dsl::type(F&& f)
+{
+    return owner->type<T>(std::forward<F>(f));
 }
 
 template <typename TContainer>
