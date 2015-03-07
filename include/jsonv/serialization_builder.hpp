@@ -410,6 +410,10 @@ public:
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector);
     
+    adapter_builder<T>& pre_extract(std::function<void (const extraction_context&, const value& from)> perform);
+    
+    adapter_builder<T>& on_extract_extra_keys(std::function<void (const extraction_context&, const value& from, std::set<std::string> extra_keys)> handler);
+    
 protected:
     adapter_builder<T>* owner;
 };
@@ -424,6 +428,8 @@ public:
     virtual void mutate(const extraction_context& context, const value& from, T& out) const = 0;
     
     virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
+    
+    virtual bool has_extract_key(string_view key) const = 0;
 };
 
 template <typename T, typename TMember>
@@ -460,6 +466,11 @@ public:
     {
         if (should_encode(context, from))
             out.insert({ _names.at(0), context.to_json(from.*_selector) });
+    }
+    
+    virtual bool has_extract_key(string_view key) const override
+    {
+        return std::any_of(begin(_names), end(_names), [key] (const std::string& name) { return name == key; });
     }
     
     void add_encode_check(std::function<bool (const serialization_context&, const TMember&)> check)
@@ -673,6 +684,47 @@ public:
         return builder;
     }
     
+    adapter_builder<T>& pre_extract(std::function<void (const extraction_context&, const value& from)> perform)
+    {
+        if (_adapter->_pre_extract)
+        {
+            std::function<void (const extraction_context&, const value&)> old_perform = std::move(_adapter->_pre_extract);
+            _adapter->_pre_extract = [old_perform, perform] (const extraction_context& context, const value& from)
+                                     {
+                                         old_perform(context, from);
+                                         perform(context, from);
+                                     };
+        }
+        else
+        {
+            _adapter->_pre_extract = std::move(perform);
+        }
+        return *this;
+    }
+    
+    adapter_builder<T>& on_extract_extra_keys(std::function<void (const extraction_context&, const value& from, std::set<std::string> extra_keys)> handler)
+    {
+        adapter_impl* adapter = _adapter;
+        return pre_extract([adapter, handler] (const extraction_context& context, const value& from)
+        {
+            auto is_key = [adapter] (string_view key) -> bool
+                          {
+                              return std::any_of(begin(adapter->_members), end(adapter->_members),
+                                                 [key] (const std::unique_ptr<member_adapter<T>>& mem)
+                                                 {
+                                                     return mem->has_extract_key(key);
+                                                 }
+                                                );
+                          };
+            std::set<std::string> extra_keys;
+            for (const auto& pair : from.as_object())
+                if (!is_key(pair.first))
+                    extra_keys.insert(pair.first);
+            if (!extra_keys.empty())
+                handler(context, from, std::move(extra_keys));
+        });
+    }
+    
 private:
     class adapter_impl :
             public adapter_for<T>
@@ -681,6 +733,9 @@ private:
     
         virtual T create(const extraction_context& context, const value& from) const override
         {
+            if (_pre_extract)
+                _pre_extract(context, from);
+            
             T out;
             for (const auto& member : _members)
                 member->mutate(context, from, out);
@@ -695,7 +750,8 @@ private:
             return out;
         }
         
-        std::deque<std::unique_ptr<member_adapter<T>>> _members;
+        std::deque<std::unique_ptr<member_adapter<T>>>                     _members;
+        std::function<void (const extraction_context&, const value& from)> _pre_extract;
     };
     
 private:
@@ -803,6 +859,20 @@ template <typename TMember>
 member_adapter_builder<T, TMember> adapter_builder_dsl<T>::member(std::string name, TMember T::*selector)
 {
     return owner->member(std::move(name), selector);
+}
+
+template <typename T>
+adapter_builder<T>& adapter_builder_dsl<T>
+::pre_extract(std::function<void (const extraction_context&, const value& from)> perform)
+{
+    return owner->pre_extract(std::move(perform));
+}
+
+template <typename T>
+adapter_builder<T>& adapter_builder_dsl<T>
+::on_extract_extra_keys(std::function<void (const extraction_context&, const value& from, std::set<std::string> extra_keys)> handler)
+{
+    return owner->on_extract_extra_keys(std::move(handler));
 }
 
 }

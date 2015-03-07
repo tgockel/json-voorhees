@@ -152,6 +152,37 @@ TEST(serialization_builder_container_members)
     ensure_eq(p, q);
 }
 
+TEST(serialization_builder_extract_extra_keys)
+{
+    std::set<std::string> extra_keys;
+    auto extra_keys_handler = [&extra_keys] (const extraction_context&, const value&, std::set<std::string> x)
+                              {
+                                  extra_keys = std::move(x);
+                              };
+    
+    formats base = formats_builder()
+                    .type<person>()
+                        .member("firstname", &person::firstname)
+                        .member("lastname",  &person::lastname)
+                        .member("age",       &person::age)
+                        .on_extract_extra_keys(extra_keys_handler)
+                    .check_references(formats::defaults())
+                ;
+    formats fmt = formats::compose({ base, formats::defaults() });
+    
+    person p("Bob", "Builder", 29);
+    value encoded = object({ { "firstname", p.firstname },
+                             { "lastname",  p.lastname  },
+                             { "age",       p.age       },
+                             { "extra1",    10          },
+                             { "extra2",    "pie"       }
+                           }
+                          );
+    
+    person q = extract<person>(encoded, fmt);
+    ensure_eq(p, q);
+    ensure(extra_keys == std::set<std::string>({ "extra1", "extra2" }));
+}
 
 TEST(serialization_builder_defaults)
 {
