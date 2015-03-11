@@ -1,7 +1,7 @@
 language: cpp
 env:
   global:
-    - GIT_CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    - GIT_CURRENT_BRANCH=$(git branch | grep -P '^\*' | awk '{print $2}')
     - GIT_REMOTE_NAME=$(git remote)
     - GIT_REMOTE_FETCH_PATH=$(git remote --verbose | perl -ne "while(/^${GIT_REMOTE_NAME}(.*)\(fetch\)/g) { print \"$1\n\"; }" | xargs echo)
   matrix:
