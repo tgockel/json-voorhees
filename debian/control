@@ -9,7 +9,7 @@ Homepage: https://github.com/tgockel/jsonv
 Package: libjsonv-dev
 Section: libdevel
 Architecture: any
-Depends: jsonv1 (= ${binary:Version}), ${misc:Depends}
+Depends: libjsonv1.0.0-pre0 (= ${binary:Version}), ${misc:Depends}
 Description: development files for jsonv
  Yet another JSON library for C++.
  This one touts new C++11 features for developer-friendliness,
