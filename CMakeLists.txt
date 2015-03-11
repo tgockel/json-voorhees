@@ -81,6 +81,8 @@ endif(REQUIRED_BOOST_LIBRARIES)
 
 add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
 
+configure_file(libjsonv.pc.in libjsonv.pc)
+
 ################################################################################
 # Building                                                                     #
 ################################################################################
@@ -168,3 +170,4 @@ install(TARGETS jsonv
         LIBRARY DESTINATION lib
        )
 install(DIRECTORY "include/jsonv" DESTINATION "include")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "lib/pkgconfig")
