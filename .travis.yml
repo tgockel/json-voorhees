@@ -4,7 +4,7 @@ env:
     - GIT_CURRENT_HASH=$(git rev-parse HEAD)
     - GIT_MASTER_HASH=$(git rev-parse master)
     - GIT_REMOTE_NAME=$(git remote)
-    - GIT_REMOTE_FETCH_PATH=$(git remote --verbose | perl -ne "while(/^${GIT_REMOTE_NAME}(.*)\\(fetch\\)/g) { print \"\$1\\n\"; }" | xargs echo)
+    - GIT_REMOTE_FETCH_PATH=$(git remote --verbose | grep -P '^'${GIT_REMOTE_NAME}'.* \(fetch\)' | awk '{print $2}')
     - GIT_EXPECTED_PATH=git://github.com/tgockel/json-voorhees.git
   matrix:
     - CONF=Debug   COMPILER=g++-4.9     COVERAGE=0 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=0 PUBLISH_DOCS=0
