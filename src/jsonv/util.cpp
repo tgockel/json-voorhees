@@ -13,6 +13,7 @@
 #include <jsonv/string_view.hpp>
 #include <jsonv/coerce.hpp>
 
+#include <cmath>
 #include <sstream>
 #include <stdexcept>
 
