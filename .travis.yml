@@ -1,5 +1,9 @@
 language: cpp
 env:
+  global:
+    - GIT_CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    - GIT_REMOTE_NAME=$(git remote)
+    - GIT_REMOTE_FETCH_PATH=$(git remote --verbose | perl -ne "while(/^${GIT_REMOTE_NAME}(.*)\(fetch\)/g) { print \"$1\n\"; }" | xargs echo)
   matrix:
     - CONF=Debug   COMPILER=g++-4.9     COVERAGE=0 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=0 PUBLISH_DOCS=0
     - CONF=Debug   COMPILER=g++-4.9     COVERAGE=0 USE_BOOST_STRING_VIEW=1 USE_BOOST_REGEX=0 PUBLISH_DOCS=0
@@ -36,7 +40,9 @@ script:
   - ./jsonv-tests
   - if [[ ${COVERAGE} == 1 ]]; then ./config/upload-coverage; fi
 after_success:
-  - if [[ ${PUBLISH_DOCS} == 0 ]]; then echo "Skipping documentation publishing."; exit 0; fi
+  - if [[ ${PUBLISH_DOCS} == 0 ]]; then                           echo "Skipping documentation publishing due PUBLISH_DOCS=${PUBLISH_DOCS}";                   exit 0; fi
+  - if [[ $(git rev-parse --abbrev-ref HEAD) != "master" ]]; then echo "Skipping documentation publishing due to non-master branch ${GIT_CURRENT_BRANCH}";     exit 0; fi
+  - if [[ -e $(${GIT_REMOTE_FETCH_PATH} | grep tgockel) ]]; then  echo "Skipping documentation publishing due to non-tgockel remote ${GIT_REMOTE_FETCH_PATH}"; exit 0; fi
   - sudo apt-get install --yes doxygen graphviz
   - openssl aes-256-cbc
     -K $encrypted_da53dd2710a4_key
