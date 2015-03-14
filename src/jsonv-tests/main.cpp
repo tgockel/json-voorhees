@@ -80,5 +80,10 @@ int main(int argc, char** argv)
         if (shouldrun && !test->run())
             ++fail_count;
     }
+    #ifdef _MSC_VER
+    // Visual Studio doesn't seem to treat non-zero exits as an error...so we'll just throw an exception.
+    if (fail_count > 0)
+        throw std::runtime_error("Not all unit tests passed...");
+    #endif
     return fail_count;
 }
