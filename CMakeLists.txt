@@ -21,7 +21,14 @@ set(JSONV_VERSION "1.0.0-pre0"
     CACHE STRING "The version of the library."
    )
 
-set(REQUIRED_BOOST_LIBRARIES "filesystem" "system")
+option(JSONV_BUILD_TESTS
+       "Should the unit test library get built?"
+       ON
+      )
+
+if (JSONV_BUILD_TESTS)
+    set(REQUIRED_BOOST_LIBRARIES "filesystem" "system")
+endif()
 
 option(USE_BOOST_REGEX
        "Controls the variable JSONV_REGEX_USE_BOOST (see C++ documentation)."
@@ -104,16 +111,20 @@ set_target_properties(jsonv
                           VERSION   ${JSONV_VERSION}
                      )
 
-file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
-add_executable(jsonv-tests ${jsonv_tests_cpps})
-target_link_libraries(jsonv-tests
-        "jsonv"
-        ${Boost_LIBRARIES}
-    )
+if (JSONV_BUILD_TESTS)
+    file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
+    add_executable(jsonv-tests ${jsonv_tests_cpps})
+    target_link_libraries(jsonv-tests
+            "jsonv"
+            ${Boost_LIBRARIES}
+        )
+endif()
 
 if (COVERAGE)
     target_link_libraries(jsonv "gcov")
-    target_link_libraries(jsonv-tests "gcov")
+    if (JSONV_BUILD_TESTS)
+        target_link_libraries(jsonv-tests "gcov")
+    endif()
 endif(COVERAGE)
 
 ################################################################################
