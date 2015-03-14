@@ -7,4 +7,5 @@ build
 *.kdev4
 packages/
 .vs
+x64/
 *sdf
