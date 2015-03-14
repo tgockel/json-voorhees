@@ -43,15 +43,19 @@ Features include (but are not necessarily limited to):
 Compile and Install
 -------------------
 
-JSON Voorhees uses plain-old [GNU Make](http://www.gnu.org/software/make/) as the build and installation system so you
- do not have to deal with any wonky custom build systems or automatic configuration software.
-If you have `boost`, `g++` and `make` installed, simply:
+JSON Voorhees uses plain-old [CMake](http://www.cmake.org/) as the automatic configuration software.
+On Linux or Mac OSX, if you have `boost`, `cmake`, `g++` and `make` installed, simply:
 
+    $> cmake .
     $> make
     $> sudo make install
 
-If you want to customize your compilation or installation, see the top of the `Makefile` for easy-to-use configuration
- options.
+If you want to customize your compilation or installation, see the options in `CMakeLists.txt` for easy-to-use
+ configuration options.
+
+If you are on Windows, you can also use CMake if you want.
+However, it is probably easier to use the provided Visual Studio project files in `msvc/vs2015` to get going.
+Hitting F5 should perform a NuGet restore, then compile and run all the unit tests.
 
 ### Arch Linux
 
@@ -98,7 +102,7 @@ However, you can use [Boost.Regex][Boost.Regex] as the regular expression engine
  implementations.
 The downside of this is your application must link with the Boost libraries (`-lboost_regex -lboost_system`).
 
-    $> cmake -DUSE_BOOST_REGEX=1
+    $> cmake -DUSE_BOOST_REGEX=1 ..
     $> make
     $> sudo make install
 
