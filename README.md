@@ -63,10 +63,6 @@ With Arch, installation is as easy as `yaourt json-voorhees`!
 Future
 ------
 
-The goal release date for version 1.0 is Friday 13 March 2015.
-Version 0.5 should be considered as a "release candidate" -- there should not be any major features added between it and
- version 1.0.
-This does not mean feature development will completely cease.
 Future planned features can be found on the [issue tracker][future-features].
 
 License
