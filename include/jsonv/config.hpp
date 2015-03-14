@@ -54,9 +54,15 @@
 #       define JSONV_IMPORT
 #       define JSONV_HIDDEN          __attribute__((visibility("hidden")))
 #   elif defined(_MSC_VER)
-#       define JSONV_EXPORT          __declspec(dllexport)
-#       define JSONV_IMPORT          __declspec(dllimport)
-#       define JSONV_HIDDEN
+#       if defined(_LIB)
+#           define JSONV_EXPORT
+#           define JSONV_IMPORT
+#           define JSONV_HIDDEN
+#       else
+#           define JSONV_EXPORT      __declspec(dllexport)
+#           define JSONV_IMPORT      __declspec(dllimport)
+#           define JSONV_HIDDEN
+#       endif
 #   else
 #       error "Unknown shared object semantics for this compiler."
 #   endif

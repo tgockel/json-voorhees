@@ -936,8 +936,8 @@ public:
     /** \} **/
     
 private:
-    friend value array();
-    friend value object();
+    friend JSONV_PUBLIC value array();
+    friend JSONV_PUBLIC value object();
     
 private:
     detail::value_storage _data;

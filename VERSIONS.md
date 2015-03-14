@@ -1,7 +1,17 @@
 1._ Series
 ==========
 
-*TODO*
+[1.0](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av1.0)
+-------------------------------------------------------------------------
+
+Stabilizing the API and finalizing things for a release.
+
+ - [1.0.0](https://github.com/tgockel/json-voorhees/releases/tag/v1.0.0): 2015 March 13
+   - Moves to CMake as the build system
+   - Greatly improves the speed of the parser
+   - Removes nullptr as a type for null in preference of `jsonv::null`
+   - Better support for MSVC
+
 
 0._ Series
 ==========

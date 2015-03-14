@@ -106,7 +106,7 @@ tokenizer::size_type tokenizer::min_buffer_size()
 
 void tokenizer::set_min_buffer_size(tokenizer::size_type sz)
 {
-    min_buffer_size_ref() = std::max(sz, 1UL);
+    min_buffer_size_ref() = std::max(sz, tokenizer::size_type(1));
 }
 
 static std::size_t position_in_buffer(const std::vector<char>& buffer, const string_view& current)

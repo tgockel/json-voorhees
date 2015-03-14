@@ -45,12 +45,12 @@ void recursive_directory_for_each(const std::string&                            
                                   const std::function<void (const std::string&)> action
                                  )
 {
-    WIN32_FIND_DATA found_file;
+    WIN32_FIND_DATAA found_file;
     HANDLE search_handle = NULL;
 
     std::string filter = root_path_name + "\\*" + extension_filter;
     
-    if ((search_handle = FindFirstFile(filter.c_str(), &found_file)) == INVALID_HANDLE_VALUE)
+    if ((search_handle = FindFirstFileA(filter.c_str(), &found_file)) == INVALID_HANDLE_VALUE)
         return;
 
     auto clean_handle = jsonv::detail::on_scope_exit([&search_handle] { FindClose(search_handle); });
@@ -73,7 +73,7 @@ void recursive_directory_for_each(const std::string&                            
             else
                 action(path);
         }
-    } while (FindNextFile(search_handle, &found_file));
+    } while (FindNextFileA(search_handle, &found_file));
 }
 
 }

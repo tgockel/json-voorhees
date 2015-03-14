@@ -14,6 +14,8 @@
 
 #include "detail.hpp"
 
+#include <cmath>
+
 namespace jsonv
 {
 

@@ -17,11 +17,18 @@ project(json-voorhees)
 # Configuration                                                                #
 ################################################################################
 
-set(JSONV_VERSION "1.0.0-pre0"
+set(JSONV_VERSION "1.0.1-pre0"
     CACHE STRING "The version of the library."
    )
 
-set(REQUIRED_BOOST_LIBRARIES "filesystem" "system")
+option(JSONV_BUILD_TESTS
+       "Should the unit test library get built?"
+       ON
+      )
+
+if (JSONV_BUILD_TESTS)
+    set(REQUIRED_BOOST_LIBRARIES "filesystem" "system")
+endif()
 
 option(USE_BOOST_REGEX
        "Controls the variable JSONV_REGEX_USE_BOOST (see C++ documentation)."
@@ -56,6 +63,17 @@ if (COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 endif(COVERAGE)
 
+if (WIN32)
+    # DLLs in Windows appear to have not been fully thought through
+    set(DEFAULT_LIBRARY_TYPE "STATIC")
+else()
+    set(DEFAULT_LIBRARY_TYPE "SHARED")
+endif()
+
+set(LIBRARY_TYPE ${DEFAULT_LIBRARY_TYPE}
+    CACHE STRING "The type of library to build (SHARED or STATIC)"
+   )
+
 option(BENCHMARK
        "Enable compilation of the json-benchmark program."
        OFF
@@ -81,28 +99,34 @@ endif(REQUIRED_BOOST_LIBRARIES)
 
 add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
 
+configure_file(libjsonv.pc.in libjsonv.pc)
+
 ################################################################################
 # Building                                                                     #
 ################################################################################
 
 file(GLOB_RECURSE jsonv_cpps RELATIVE_PATH "." "src/jsonv/*.cpp")
-add_library(jsonv SHARED ${jsonv_cpps})
+add_library(jsonv ${LIBRARY_TYPE} ${jsonv_cpps})
 set_target_properties(jsonv
                       PROPERTIES
                           SOVERSION ${JSONV_VERSION}
                           VERSION   ${JSONV_VERSION}
                      )
 
-file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
-add_executable(jsonv-tests ${jsonv_tests_cpps})
-target_link_libraries(jsonv-tests
-        "jsonv"
-        ${Boost_LIBRARIES}
-    )
+if (JSONV_BUILD_TESTS)
+    file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
+    add_executable(jsonv-tests ${jsonv_tests_cpps})
+    target_link_libraries(jsonv-tests
+            "jsonv"
+            ${Boost_LIBRARIES}
+        )
+endif()
 
 if (COVERAGE)
     target_link_libraries(jsonv "gcov")
-    target_link_libraries(jsonv-tests "gcov")
+    if (JSONV_BUILD_TESTS)
+        target_link_libraries(jsonv-tests "gcov")
+    endif()
 endif(COVERAGE)
 
 ################################################################################
@@ -165,7 +189,12 @@ endif(BENCHMARK)
 # Installation                                                                 #
 ################################################################################
 
-install(TARGETS jsonv
-        LIBRARY DESTINATION lib
-       )
-install(DIRECTORY "include/jsonv" DESTINATION "include")
+if (WIN32)
+  message("Windows doesn't have a reasonable way to install.")
+else()
+  install(TARGETS jsonv
+          LIBRARY DESTINATION lib
+         )
+  install(DIRECTORY "include/jsonv" DESTINATION "include")
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "lib/pkgconfig")
+endif()
