@@ -56,6 +56,17 @@ if (COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 endif(COVERAGE)
 
+if (WIN32)
+    # DLLs in Windows appear to have not been fully thought through
+    set(DEFAULT_LIBRARY_TYPE "STATIC")
+else()
+    set(DEFAULT_LIBRARY_TYPE "SHARED")
+endif()
+
+set(LIBRARY_TYPE ${DEFAULT_LIBRARY_TYPE}
+    CACHE STRING "The type of library to build (SHARED or STATIC)"
+   )
+
 option(BENCHMARK
        "Enable compilation of the json-benchmark program."
        OFF
@@ -86,7 +97,7 @@ add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/dat
 ################################################################################
 
 file(GLOB_RECURSE jsonv_cpps RELATIVE_PATH "." "src/jsonv/*.cpp")
-add_library(jsonv SHARED ${jsonv_cpps})
+add_library(jsonv ${LIBRARY_TYPE} ${jsonv_cpps})
 set_target_properties(jsonv
                       PROPERTIES
                           SOVERSION ${JSONV_VERSION}
@@ -164,7 +175,11 @@ endif(BENCHMARK)
 # Installation                                                                 #
 ################################################################################
 
-install(TARGETS jsonv
-        LIBRARY DESTINATION lib
-       )
-install(DIRECTORY "include/jsonv" DESTINATION "include")
+if (WIN32)
+  message("Windows doesn't have a reasonable way to install.")
+else()
+  install(TARGETS jsonv
+          LIBRARY DESTINATION lib
+         )
+  install(DIRECTORY "include/jsonv" DESTINATION "include")
+endif()
