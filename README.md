@@ -43,7 +43,7 @@ Features include (but are not necessarily limited to):
 Compile and Install
 -------------------
 
-JSON Voorhees uses plain-old [CMake](http://www.cmake.org/) as the automatic configuration software.
+JSON Voorhees uses [CMake](http://www.cmake.org/) as the automatic configuration software.
 On Linux or Mac OSX, if you have `boost`, `cmake`, `g++` and `make` installed, simply:
 
     $> cmake .
