@@ -143,6 +143,7 @@ if (BENCHMARK)
     
     if (BENCHMARK_JSONCPP)
         add_benchmark_suite("jsoncpp_benchmark.cpp" "jsoncpp")
+        include_directories("/usr/include/jsoncpp")
     endif()
     
     if (BENCHMARK_JQ)
