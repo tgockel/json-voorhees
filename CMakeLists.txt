@@ -17,7 +17,7 @@ project(json-voorhees)
 # Configuration                                                                #
 ################################################################################
 
-set(JSONV_VERSION "1.0.0"
+set(JSONV_VERSION "1.0.1-pre0"
     CACHE STRING "The version of the library."
    )
 
