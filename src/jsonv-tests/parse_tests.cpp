@@ -199,6 +199,12 @@ TEST_PARSE(malformed_decimal_ignore)
     parse("123.456.789", options);
 }
 
+TEST_PARSE(malformed_string_unterminated)
+{
+    ensure_throws(jsonv::parse_error, parse(R"("abc)"));
+    ensure_throws(jsonv::parse_error, parse(R"(")"));
+}
+
 TEST_PARSE(option_complete_parse_false)
 {
     auto options = jsonv::parse_options()

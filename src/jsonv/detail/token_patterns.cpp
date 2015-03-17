@@ -161,7 +161,7 @@ static match_result match_string(const char* begin, const char* end, token_kind&
     while (true)
     {
         if (begin + length == end)
-            return match_result::complete_eof;
+            return match_result::incomplete_eof;
         
         if (begin[length] == '\"')
         {
@@ -171,7 +171,7 @@ static match_result match_string(const char* begin, const char* end, token_kind&
         else if (begin[length] == '\\')
         {
             if (begin + length + 1 == end)
-                return match_result::complete_eof;
+                return match_result::incomplete_eof;
             else
                 length += 2;
         }
