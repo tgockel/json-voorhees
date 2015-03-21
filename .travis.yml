@@ -42,6 +42,7 @@ script:
   - ./jsonv-tests
   - if [[ ${COVERAGE} == 1 ]]; then ./config/upload-coverage; fi
 after_success:
+  - echo "GIT_CURRENT_HASH=${GIT_CURRENT_HASH} GIT_REMOTE=${GIT_REMOTE} GIT_REMOTE_FETCH_PATH=${GIT_REMOTE_FETCH_PATH}"
   - if [[ ${PUBLISH_DOCS} == 0 ]]; then                             echo "Skipping documentation publishing due PUBLISH_DOCS=${PUBLISH_DOCS}";                                   exit 0; fi
   - if [[ ${GIT_CURRENT_HASH} != ${GIT_MASTER_HASH} ]]; then        echo "Skipping documentation publishing due to non-master ${GIT_CURRENT_HASH} (master: ${GIT_MASTER_HASH})"; exit 0; fi
   - if [[ ${GIT_REMOTE_FETCH_PATH} != ${GIT_EXPECTED_PATH} ]]; then echo "Skipping documentation publishing due to non-mainline remote ${GIT_REMOTE_FETCH_PATH}";                exit 0; fi
