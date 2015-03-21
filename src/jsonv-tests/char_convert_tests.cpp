@@ -162,10 +162,10 @@ TEST(string_decode_unicode_surrogates_invalid_incomplete_escapes)
 
 TEST(string_decode_unicode_surrogates_invalid_non_hex)
 {
-    ensure_throws(std::range_error, string_decode_static(R"(\ud92b\uPIKA)"));
-    ensure_throws(std::range_error, string_decode_static(R"(\ud92b\ucattle)"));
-    ensure_throws(std::range_error, string_decode_static(R"(\ud92b\u_________)"));
-    ensure_throws(std::range_error, string_decode_static(R"(\ud92b\ujust bogus)"));
+    ensure_throws(decode_error, string_decode_static(R"(\ud92b\uPIKA)"));
+    ensure_throws(decode_error, string_decode_static(R"(\ud92b\ucattle)"));
+    ensure_throws(decode_error, string_decode_static(R"(\ud92b\u_________)"));
+    ensure_throws(decode_error, string_decode_static(R"(\ud92b\ujust bogus)"));
 }
 
 TEST(string_decode_unicode_surrogates_invalid_not_low_follower)

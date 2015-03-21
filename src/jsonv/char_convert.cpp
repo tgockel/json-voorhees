@@ -247,7 +247,7 @@ std::ostream& string_encode(std::ostream& stream, string_view source)
     return stream;
 }
 
-static uint16_t from_hex_digit(char c)
+static uint16_t from_hex_digit(char c, std::size_t idx)
 {
     switch (c)
     {
@@ -291,16 +291,16 @@ static uint16_t from_hex_digit(char c)
     case 'F':
         return 0xf;
     default:
-        throw std::range_error(std::string("The character '") + c + "' is not a valid hexidecimal digit.");
+        throw decode_error(idx, std::string("The character '") + c + "' is not a valid hexidecimal digit.");
     }
 }
 
-static uint16_t from_hex(const char* s)
+static uint16_t from_hex(const char* s, std::size_t idx_base)
 {
     uint16_t x = 0U;
     for (int idx = 3; idx >= 0; --idx)
     {
-        x = uint16_t(x + (from_hex_digit(*s) << (idx * 4)));
+        x = uint16_t(x + (from_hex_digit(*s, idx_base + idx) << (idx * 4)));
         ++s;
     }
     
@@ -416,7 +416,7 @@ std::string string_decode(string_view source)
                 {
                     if (idx + 6 > source.size())
                         throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
-                    uint16_t hexval = from_hex(&source[idx + 2]);
+                    uint16_t hexval = from_hex(&source[idx + 2], idx + 2);
                     
                     if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
                     {
@@ -434,7 +434,7 @@ std::string string_decode(string_view source)
                            || source[idx + 7] != 'u'
                            )
                             throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
-                        uint16_t hexlowval = from_hex(&source[idx + 8]);
+                        uint16_t hexlowval = from_hex(&source[idx + 8], idx + 8);
                         char32_t codepoint;
                         if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
                             throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
