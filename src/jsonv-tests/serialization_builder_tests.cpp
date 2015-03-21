@@ -1,5 +1,5 @@
 /** \file
- *  
+ *
  *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -29,12 +29,17 @@ namespace
 struct person
 {
     person() = default;
-    
+
     person(std::string       f,
            std::string       l,
            int               a,
+#ifdef __APPLE__
+           std::set<long>    favorite_numbers = std::set<long>{},
+           std::vector<long> winning_numbers  = std::vector<long>{}
+#else
            std::set<long>    favorite_numbers = {},
            std::vector<long> winning_numbers  = {}
+#endif
           ) :
             firstname(std::move(f)),
             lastname(std::move(l)),
@@ -42,24 +47,24 @@ struct person
             favorite_numbers(std::move(favorite_numbers)),
             winning_numbers(std::move(winning_numbers))
     { }
-    
+
     std::string       firstname;
     std::string       lastname;
     int               age;
     std::set<long>    favorite_numbers;
     std::vector<long> winning_numbers;
-    
+
     bool operator==(const person& other) const
     {
         return std::tie(firstname,       lastname,       age,       favorite_numbers,       winning_numbers)
             == std::tie(other.firstname, other.lastname, other.age, other.favorite_numbers, other.winning_numbers);
     }
-    
+
     friend std::ostream& operator<<(std::ostream& os, const person& p)
     {
         return os << p.firstname << " " << p.lastname << " (" << p.age << ")";
     }
-    
+
     friend std::string to_string(const person& p)
     {
         std::ostringstream os;
@@ -80,7 +85,7 @@ TEST(serialization_builder_members)
                     .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
-    
+
     person p("Bob", "Builder", 29);
     to_string(p);
     value expected = object({ { "firstname", p.firstname },
@@ -90,7 +95,7 @@ TEST(serialization_builder_members)
                            );
     value encoded = to_json(p, fmt);
     ensure_eq(expected, encoded);
-    
+
     person q = extract<person>(encoded, fmt);
     ensure_eq(expected, encoded);
 }
@@ -98,7 +103,7 @@ TEST(serialization_builder_members)
 TEST(serialization_builder_members_since)
 {
     using my_pair = std::pair<int, int>;
-    
+
     formats base =
         formats_builder()
             .type<my_pair>()
@@ -107,13 +112,13 @@ TEST(serialization_builder_members_since)
                     .since({ 2, 0 })
         ;
     formats fmt = formats::compose({ base, formats::defaults() });
-    
+
     auto to_json_ver = [&fmt] (const version& v)
                        {
                         serialization_context context(fmt, v);
                         return context.to_json(my_pair(5, 10));
                        };
-    
+
     ensure_eq(0U, to_json_ver({ 1, 0 }).count("b"));
     ensure_eq(1U, to_json_ver({ 2, 0 }).count("b"));
     ensure_eq(1U, to_json_ver({ 3, 0 }).count("b"));
@@ -137,7 +142,7 @@ TEST(serialization_builder_container_members)
                     .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
-    
+
     person p("Bob", "Builder", 29, { 1, 2, 3, 4 }, { 5, 6, 7, 8 });
     value expected = object({ { "firstname",        p.firstname          },
                               { "lastname",         p.lastname           },
@@ -159,7 +164,7 @@ TEST(serialization_builder_extract_extra_keys)
                               {
                                   extra_keys = std::move(x);
                               };
-    
+
     formats base = formats_builder()
                     .type<person>()
                         .member("firstname", &person::firstname)
@@ -169,7 +174,7 @@ TEST(serialization_builder_extract_extra_keys)
                     .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
-    
+
     person p("Bob", "Builder", 29);
     value encoded = object({ { "firstname", p.firstname },
                              { "lastname",  p.lastname  },
@@ -178,7 +183,7 @@ TEST(serialization_builder_extract_extra_keys)
                              { "extra2",    "pie"       }
                            }
                           );
-    
+
     person q = extract<person>(encoded, fmt);
     ensure_eq(p, q);
     ensure(extra_keys == std::set<std::string>({ "extra1", "extra2" }));
@@ -209,7 +214,7 @@ TEST(serialization_builder_defaults)
                     .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
-    
+
     person p("Bob", "Builder", 20, { 1, 2, 3, 4 }, { 1, 2, 3, 4 });
     value input = object({ { "firstname",        p.firstname          },
                            { "lastname",         p.lastname           },
@@ -243,8 +248,12 @@ TEST(serialization_builder_encode_checks)
                     .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
-    
+
+#ifdef __APPLE__
+    person p("Bob", "Builder", 20, std::set<long>{}, { 1 });
+#else
     person p("Bob", "Builder", 20, {}, { 1 });
+#endif
     value expected = object({ { "firstname", p.firstname },
                               { "lastname",  p.lastname  },
                               { "winning_numbers", array({ 1 }) },

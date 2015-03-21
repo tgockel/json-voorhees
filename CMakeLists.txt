@@ -1,12 +1,12 @@
 # File: CMakeLists used for generating a Makefile (or whatever your build system is).
 #
 # Copyright 2015 by Travis Gockel
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
@@ -160,24 +160,24 @@ if (BENCHMARK)
         list(APPEND BENCHMARK_CPPS "src/json-benchmark/${CPP_FILE}")
         list(APPEND BENCHMARK_LIBS "${LIB_NAME}")
     endmacro()
-    
+
     if (BENCHMARK_JSONV)
         add_benchmark_suite("jsonv_benchmark.cpp" "jsonv")
     endif()
-    
+
     if (BENCHMARK_JSONCPP)
         add_benchmark_suite("jsoncpp_benchmark.cpp" "jsoncpp")
         include_directories("/usr/include/jsoncpp")
     endif()
-    
+
     if (BENCHMARK_JQ)
         add_benchmark_suite("jq_benchmark.cpp" "jq")
     endif()
-    
+
     if (BENCHMARK_JANSSON)
         add_benchmark_suite("jansson_benchmark.cpp" "jansson")
     endif()
-    
+
     add_executable(json-benchmark ${BENCHMARK_CPPS})
     target_link_libraries(json-benchmark
         ${BENCHMARK_LIBS}
