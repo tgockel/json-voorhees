@@ -253,3 +253,8 @@ TEST_PARSE(literal)
     value v = "[1, 2, 3, 4]"_json;
     ensure_eq(array({ 1, 2, 3, 4 }), v);
 }
+
+TEST_PARSE(comments_invalid_leading_slash_then_bogus)
+{
+    ensure_throws(parse_error, parse("{}/1"));
+}

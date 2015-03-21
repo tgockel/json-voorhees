@@ -112,4 +112,54 @@ TEST(token_attempt_match_string_double_reverse_solidus_before_escaped_quote)
     ensure_eq(sstrlen(tokens), length);
 }
 
+TEST(token_attempt_match_comment)
+{
+    static const char tokens[] = "/**/";
+    
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match(tokens, kind, length);
+    
+    ensure(result == match_result::complete);
+    ensure_eq(token_kind::comment, kind);
+    ensure_eq(sstrlen(tokens), length);
+}
+
+TEST(token_attempt_match_comment_eof)
+{
+    static const char tokens[] = "/* whatever goes here*";
+    
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match(tokens, kind, length);
+    
+    ensure(result == match_result::incomplete_eof);
+    ensure_eq(token_kind::comment, kind);
+    ensure_eq(sstrlen(tokens), length);
+}
+
+TEST(token_attempt_match_comment_too_short_eof)
+{
+    static const char tokens[] = "/*/";
+    
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match(tokens, kind, length);
+    
+    ensure(result == match_result::incomplete_eof);
+    ensure_eq(token_kind::comment, kind);
+    ensure_eq(sstrlen(tokens), length);
+}
+
+TEST(token_attempt_match_comment_slash_invalid)
+{
+    static const char tokens[] = "//";
+    
+    token_kind kind;
+    std::size_t length;
+    match_result result = static_attempt_match(tokens, kind, length);
+    
+    ensure(result == match_result::unmatched);
+}
+
 }

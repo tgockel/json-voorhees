@@ -37,11 +37,6 @@ public:
         return instance().re_number_trunc;
     }
 
-    static const regex_ns::regex& comment()
-    {
-        return instance().re_comment;
-    }
-
     static const regex_ns::regex& simplestring()
     {
         return instance().re_simplestring;
@@ -58,7 +53,6 @@ private:
             syntax_options(regex_ns::regex_constants::ECMAScript | regex_ns::regex_constants::optimize),
             re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options),
             re_number_trunc(R"(^-?[0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*(\.[0-9]*)?)?)", syntax_options),
-            re_comment(     R"(^/\*([^\*]*|\*[^/])*\*/)",                           syntax_options),
             re_simplestring(R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
     { }
 
@@ -66,7 +60,6 @@ private:
     const regex_ns::regex_constants::syntax_option_type syntax_options;
     const regex_ns::regex re_number;
     const regex_ns::regex re_number_trunc;
-    const regex_ns::regex re_comment;
     const regex_ns::regex re_simplestring;
 };
 
@@ -201,8 +194,41 @@ static match_result match_whitespace(const char* begin, const char* end, token_k
 
 static match_result match_comment(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
+    assert(*begin == '/');
+    
     kind = token_kind::comment;
-    return match_pattern(begin, end, re_values::comment(), length);
+    if (std::distance(begin, end) == 1)
+    {
+        length = 1;
+        return match_result::incomplete_eof;
+    }
+    else if (begin[1] == '*')
+    {
+        bool saw_asterisk = false;
+        for (length = 2, begin += 2; begin != end; ++length, ++begin)
+        {
+            if (*begin == '*')
+            {
+                saw_asterisk = true;
+            }
+            else if (saw_asterisk && *begin == '/')
+            {
+                ++length;
+                return match_result::complete;
+            }
+            else
+            {
+                saw_asterisk = false;
+            }
+        }
+        return match_result::incomplete_eof;
+    }
+    else
+    {
+        length = 1;
+        return match_result::unmatched;
+    }
+    
 }
 
 match_result attempt_match(const char* begin, const char* end, token_kind& kind, std::size_t& length)
