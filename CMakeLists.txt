@@ -82,7 +82,9 @@ option(BENCHMARK
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pedantic -Wall -Wextra -ggdb")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pedantic -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
 endif(WIN32)
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
