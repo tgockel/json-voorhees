@@ -429,10 +429,10 @@ std::string string_decode(string_view source)
                     {
                         auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
                         if (  idx + 12 > source.size()
-                        || idx +  8 > source.size()
-                        || source[idx + 6] != '\\'
-                        || source[idx + 7] != 'u'
-                        )
+                           || idx +  8 > source.size()
+                           || source[idx + 6] != '\\'
+                           || source[idx + 7] != 'u'
+                           )
                             throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
                         uint16_t hexlowval = from_hex(&source[idx + 8]);
                         char32_t codepoint;
