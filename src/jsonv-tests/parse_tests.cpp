@@ -258,3 +258,13 @@ TEST_PARSE(comments_invalid_leading_slash_then_bogus)
 {
     ensure_throws(parse_error, parse("{}/1"));
 }
+
+TEST_PARSE(malformed_comment_complete)
+{
+    ensure_throws(parse_error, parse("/1"));
+}
+
+TEST_PARSE(malformed_comment_in_object)
+{
+    ensure_throws(parse_error, parse(R"({"a": ////////"b"})"));
+}

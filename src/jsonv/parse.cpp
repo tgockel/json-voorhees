@@ -709,7 +709,11 @@ static value post_parse(detail::parse_context& context, value&& out_)
                && context.current_kind() != token_kind::unknown
                )
             {
-                context.parse_error("Found non-trivial data after final token. ", context.current_kind());
+                // At the end of input, we might have a few nulls -- this is expected for string literals, so ignore
+                // them.
+                string_view current_text = context.current().text;
+                if (std::any_of(current_text.begin(), current_text.end(), [] (char c) { return c != '\0'; }))
+                    context.parse_error("Found non-trivial data after final token. ", context.current_kind());
             }
         }
     }
