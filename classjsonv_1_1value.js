@@ -109,8 +109,8 @@ var classjsonv_1_1value =
     [ "resize", "group__Array.html#ga961156664c4bf71ebe27c516be6d8ae9", null ],
     [ "size", "group__Shared.html#ga79c3e426d63d6c658470ee2295b35f82", null ],
     [ "swap", "group__Shared.html#gacea6f1f938880b1b1761324e59abad83", null ],
-    [ "array", "classjsonv_1_1value.html#aa1fd9607c1bf9834c565f36ebc7a2086", null ],
-    [ "object", "classjsonv_1_1value.html#a04162079a8874da80f0f74a1babb423d", null ],
+    [ "array", "classjsonv_1_1value.html#a300b3a8329971c996c116513055cd72d", null ],
+    [ "object", "classjsonv_1_1value.html#a8d361da4d3ed314d2a56a24c723190d2", null ],
     [ "operator<<", "group__Shared.html#gacff1f9d0e10df14e2a1440911e30ef7e", null ],
     [ "to_string", "group__Shared.html#gadac006e646d57212ae0de2f87917a584", null ]
 ];
