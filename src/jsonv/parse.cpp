@@ -135,6 +135,7 @@ parse_options parse_options::create_strict()
            .max_structure_depth(20)
            .require_document(true)
            .complete_parse(true)
+           .comments(false)
            ;
 }
 
@@ -226,6 +227,17 @@ parse_options& parse_options::complete_parse(bool complete_parse_)
     return *this;
 }
 
+bool parse_options::comments() const
+{
+    return _comments;
+}
+
+parse_options& parse_options::comments(bool val)
+{
+    _comments = val;
+    return *this;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // parsing internals                                                                                                  //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -291,9 +303,19 @@ struct JSONV_LOCAL parse_context
         {
             JSONV_DBG_NEXT("(" << input.current().text << " cxt:" << input.current().kind << ")");
             if (current_kind() == token_kind::whitespace)
+            {
                 return next();
+            }
+            else if (current_kind() == token_kind::comment)
+            {
+                if (!options.comments())
+                    parse_error("JSON comment is not allowed");
+                return next();
+            }
             else
+            {
                 return true;
+            }
         }
         else
         {

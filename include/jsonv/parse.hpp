@@ -193,6 +193,7 @@ public:
      *  max_structure_depth() == 20
      *  require_document() == true
      *  complete_parse() == true
+     *  comments() == false
      *  \endcode
     **/
     static parse_options create_strict();
@@ -252,6 +253,14 @@ public:
     bool complete_parse() const;
     parse_options& complete_parse(bool);
     
+    /** Are JSON comments allowed?
+     *  
+     *  \warning
+     *  There is no "official" syntax for JSON comments, but this system allows
+    **/
+    bool comments() const;
+    parse_options& comments(bool);
+    
 private:
     // For the purposes of ABI compliance, most modifications to the variables in this class should bump the minor
     // version number.
@@ -263,6 +272,7 @@ private:
     size_type   _max_struct_depth = 0;
     bool        _require_document = false;
     bool        _complete_parse   = true;
+    bool        _comments         = true;
 };
 
 /** Reads a JSON value from the input stream.

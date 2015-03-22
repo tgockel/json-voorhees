@@ -273,3 +273,15 @@ TEST_PARSE(malformed_comment_in_object)
 {
     ensure_throws(parse_error, parse(R"({"a": ////////"b"})"));
 }
+
+TEST_PARSE(comment_in_object)
+{
+    value val = parse(R"({"a": /* yo */"b"})");
+    ensure_eq(object({ { "a", "b" } }), val);
+}
+
+TEST_PARSE(comment_in_array)
+{
+    value val = parse(R"(["a", /* yo */"b"])");
+    ensure_eq(array({ "a", "b" }), val);
+}
