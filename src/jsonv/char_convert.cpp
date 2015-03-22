@@ -214,7 +214,6 @@ std::ostream& string_encode(std::ostream& stream, string_view source)
             unsigned length;
             char bitmask;
             utf8_extract_info(current, length, bitmask);
-            assert(idx + length <= source_size);
             
             if (!needs_unicode_escaping(current))
             {
@@ -222,7 +221,8 @@ std::ostream& string_encode(std::ostream& stream, string_view source)
             }
             else
             {
-                char32_t code = utf8_extract_code(&current, length, bitmask);
+                char32_t code = (idx + length <= source_size) ? utf8_extract_code(&current, length, bitmask)
+                                                              : char32_t(0xfffd); // < Unicode replacement character
                 if (code < 0x10000)
                 {
                     stream << "\\u";

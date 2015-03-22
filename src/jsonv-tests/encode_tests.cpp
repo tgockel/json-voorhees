@@ -55,4 +55,11 @@ TEST(encode_nan)
     ensure_eq(val, decoded);
 }
 
+TEST(encode_invalid_utf8_uses_replacement)
+{
+    jsonv::value val = "\xe8";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"\\ufffd\"");
+}
+
 }
