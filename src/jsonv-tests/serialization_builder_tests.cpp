@@ -33,13 +33,8 @@ struct person
     person(std::string       f,
            std::string       l,
            int               a,
-#ifdef __APPLE__
            std::set<long>    favorite_numbers = std::set<long>{},
            std::vector<long> winning_numbers  = std::vector<long>{}
-#else
-           std::set<long>    favorite_numbers = {},
-           std::vector<long> winning_numbers  = {}
-#endif
           ) :
             firstname(std::move(f)),
             lastname(std::move(l)),
