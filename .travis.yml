@@ -34,8 +34,8 @@ script:
           -DCOVERAGE=${COVERAGE}
   - make VERBOSE=1
   - ./jsonv-tests
-  - if [[ ${COVERAGE} == 1 ]]; then ./config/upload-coverage; fi
 after_success:
+  - if [[ ${COVERAGE} == 1 ]]; then ./config/upload-coverage; fi
   - GIT_CURRENT_HASH=$(git rev-parse HEAD)
   - GIT_MASTER_HASH=$(git rev-parse master)
   - GIT_REMOTE_NAME=$(git remote)
