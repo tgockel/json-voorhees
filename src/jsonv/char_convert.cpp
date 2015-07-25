@@ -83,17 +83,8 @@ static const char* find_decoding(char char_after_backslash)
 
 static bool needs_unicode_escaping(char c)
 {
-    #ifdef _MSC_VER
-    // MSVC decided that isprint should ASSERT if the input character has the highest-order bit set, which is really
-    // stupid given how sign extension works (because `char` is signed). To workaround this, we check it here because
-    // this is NOT an error condition in any way, shape or form in UTF-8. That said, I do not think Microsoft ever uses
-    // UTF-8.
-    if (c & '\x80')
-        return true;
-    #endif
-
-    return !isprint(c)
-        || (c & '\x80');
+    return bool(c & '\x80')
+        || !std::isprint(c);
 }
 
 static constexpr bool char_bitmatch(char c, char pos, char neg)
@@ -151,26 +142,35 @@ static void utf8_extract_info(char c, unsigned& length, char& bitmask, const FOn
         bitmask = '\x7f';
     }
 }
-static void utf8_extract_info(char c, unsigned& length, char& bitmask)
+static bool utf8_extract_info(char c, unsigned& length, char& bitmask)
 {
-    utf8_extract_info(c, length, bitmask, [] (char) { assert(false && "Bad encoding."); });
+    bool rc = true;
+    utf8_extract_info(c, length, bitmask, [&rc] (char) { rc = false; });
+    return rc;
 }
 
-static char32_t utf8_extract_code(const char* c, unsigned length, char bitmask)
+static bool utf8_extract_code(const char* c, unsigned length, char bitmask, char32_t& num)
 {
     const char submask = '\x3f';
     
-    char32_t num(*c & bitmask);
+    num = char32_t(*c & bitmask);
     ++c;
     
     for (unsigned i = 1; i < length; ++i, ++c)
     {
-        assert(char_bitmatch(*c, '\x80', '\x40'));
-        num = char32_t(num << 6);
-        num = char32_t(num | (*c & submask));
+        if (char_bitmatch(*c, '\x80', '\x40'))
+        {
+            num = char32_t(num << 6);
+            num = char32_t(num | (*c & submask));
+        }
+        else
+        {
+            // bad encoding -- let the caller know
+            return false;
+        }
     }
     
-    return num;
+    return true;
 }
 
 static const char hex_codes[] = "0123456789abcdef";
@@ -213,8 +213,7 @@ std::ostream& string_encode(std::ostream& stream, string_view source)
         {
             unsigned length;
             char bitmask;
-            utf8_extract_info(current, length, bitmask);
-            assert(idx + length <= source_size);
+            bool valid_utf8 = utf8_extract_info(current, length, bitmask);
             
             if (!needs_unicode_escaping(current))
             {
@@ -222,7 +221,18 @@ std::ostream& string_encode(std::ostream& stream, string_view source)
             }
             else
             {
-                char32_t code = utf8_extract_code(&current, length, bitmask);
+                char32_t code;
+                if (!valid_utf8
+                   || idx + length > source_size
+                   || !utf8_extract_code(&current, length, bitmask, code)
+                   )
+                {
+                    // Invalid UTF-8 encoding -- we're either at the end of the string or the bytes were not a valid
+                    // UTF-8 sequence. In either case, we will drop in a numeric encoding (\u00NN) for the bytes.
+                    length = 1;
+                    code = char32_t(current) & 0xff;
+                }
+                    
                 if (code < 0x10000)
                 {
                     stream << "\\u";
@@ -247,7 +257,7 @@ std::ostream& string_encode(std::ostream& stream, string_view source)
     return stream;
 }
 
-static uint16_t from_hex_digit(char c)
+static uint16_t from_hex_digit(char c, std::size_t idx)
 {
     switch (c)
     {
@@ -291,16 +301,16 @@ static uint16_t from_hex_digit(char c)
     case 'F':
         return 0xf;
     default:
-        throw std::range_error(std::string("The character '") + c + "' is not a valid hexidecimal digit.");
+        throw decode_error(idx, std::string("The character '") + c + "' is not a valid hexidecimal digit.");
     }
 }
 
-static uint16_t from_hex(const char* s)
+static uint16_t from_hex(const char* s, std::size_t idx_base)
 {
     uint16_t x = 0U;
     for (int idx = 3; idx >= 0; --idx)
     {
-        x = uint16_t(x + (from_hex_digit(*s) << (idx * 4)));
+        x = uint16_t(x + (from_hex_digit(*s, idx_base + idx) << (idx * 4)));
         ++s;
     }
     
@@ -416,7 +426,7 @@ std::string string_decode(string_view source)
                 {
                     if (idx + 6 > source.size())
                         throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
-                    uint16_t hexval = from_hex(&source[idx + 2]);
+                    uint16_t hexval = from_hex(&source[idx + 2], idx + 2);
                     
                     if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
                     {
@@ -429,12 +439,12 @@ std::string string_decode(string_view source)
                     {
                         auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
                         if (  idx + 12 > source.size()
-                        || idx +  8 > source.size()
-                        || source[idx + 6] != '\\'
-                        || source[idx + 7] != 'u'
-                        )
+                           || idx +  8 > source.size()
+                           || source[idx + 6] != '\\'
+                           || source[idx + 7] != 'u'
+                           )
                             throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
-                        uint16_t hexlowval = from_hex(&source[idx + 8]);
+                        uint16_t hexlowval = from_hex(&source[idx + 8], idx + 8);
                         char32_t codepoint;
                         if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
                             throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");

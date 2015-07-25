@@ -1,6 +1,6 @@
 /** \file
  *  Conversion between C++ types and JSON values.
- *  
+ *
  *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -15,6 +15,7 @@
 #include <jsonv/serialization_util.hpp>
 #include <jsonv/value.hpp>
 
+#include <cstdint>
 #include <set>
 #include <sstream>
 #include <unordered_map>
@@ -49,13 +50,13 @@ std::string make_extraction_error_errmsg(const extraction_context& context, cons
 {
     std::ostringstream os;
     os << "Extraction error";
-    
+
     if (!context.path().empty())
         os << " at " << context.path();
-    
+
     if (!message.empty())
         os << ": " << message;
-    
+
     return os.str();
 }
 
@@ -144,21 +145,21 @@ public:
     using extractor_map   = std::unordered_map<std::type_index, const extractor*>;
     using serializer_map  = std::unordered_map<std::type_index, const serializer*>;
     using owned_items_set = std::unordered_set<std::shared_ptr<const void>>;
-    
+
 public:
     /// The previous data this comes from...this allows us to make a huge tree of formats with custom extension points.
     roots_list roots;
-    
+
     extractor_map extractors;
-    
+
     owned_items_set owned_items;
-    
+
     serializer_map serializers;
-    
+
     explicit data(roots_list roots) :
             roots(std::move(roots))
     { }
-    
+
 public:
     const extractor* find_extractor(const std::type_index& typeidx) const
     {
@@ -167,7 +168,7 @@ public:
                                     [] (const data* self) -> const extractor_map& { return self->extractors; }
                                    );
     }
-    
+
     const serializer* find_serializer(const std::type_index& typeidx) const
     {
         return find_impl<serializer>(this,
@@ -175,7 +176,7 @@ public:
                                      [] (const data* self) -> const serializer_map& { return self->serializers; }
                                     );
     }
-    
+
     template <typename T, typename FSelectMap>
     static const T* find_impl(const data* self,
                               const std::type_index& typeidx,
@@ -199,7 +200,7 @@ public:
             return nullptr;
         }
     }
-    
+
 public:
     extractor_map::iterator insert_extractor(const extractor* ex)
     {
@@ -217,7 +218,7 @@ public:
             return extractors.emplace(typeidx, ex).first;
         }
     }
-    
+
     void insert_extractor(std::shared_ptr<const extractor> ex)
     {
         auto iter = insert_extractor(ex.get());
@@ -225,7 +226,7 @@ public:
         owned_items.insert(std::move(ex));
         rollback.release();
     }
-    
+
     serializer_map::iterator insert_serializer(const serializer* ser)
     {
         std::type_index typeidx(ser->get_type());
@@ -242,7 +243,7 @@ public:
             return serializers.emplace(typeidx, ser).first;
         }
     }
-    
+
     void insert_serializer(std::shared_ptr<const serializer> ser)
     {
         auto iter = insert_serializer(ser.get());
@@ -250,7 +251,7 @@ public:
         owned_items.insert(std::move(ser));
         rollback.release();
     }
-    
+
     void insert_adapter(const adapter* adp)
     {
         auto iter = insert_extractor(adp);
@@ -258,7 +259,7 @@ public:
         insert_serializer(adp);
         rollback.release();
     }
-    
+
     void insert_adapter(std::shared_ptr<const adapter> adp)
     {
         auto iter_ex = insert_extractor(adp.get());
@@ -398,27 +399,27 @@ static void register_integer_adapter(formats& fmt)
 static formats create_default_formats()
 {
     formats fmt;
-    
+
     static auto json_extractor = make_adapter([] (const value& from) { return from; },
                                               [] (const value& from) { return from; }
                                              );
     fmt.register_adapter(&json_extractor);
-    
+
     static auto string_extractor = make_adapter([] (const value& from) { return from.as_string(); },
                                                 [] (const std::string& from) { return value(from); }
                                                );
     fmt.register_adapter(&string_extractor);
-    
+
     static auto cchar_ptr_serializer = make_serializer<const char*>([] (const char* from) { return value(from); });
     fmt.register_serializer(&cchar_ptr_serializer);
     static auto char_ptr_serializer = make_serializer<char*>([] (char* from) { return value(from); });
     fmt.register_serializer(&char_ptr_serializer);
-    
+
     static auto bool_extractor = make_adapter([] (const value& from) { return from.as_boolean(); },
                                               [] (const bool& from) { return value(from); }
                                              );
     fmt.register_adapter(&bool_extractor);
-    
+
     register_integer_adapter<std::int8_t>(fmt);
     register_integer_adapter<std::uint8_t>(fmt);
     register_integer_adapter<std::int16_t>(fmt);
@@ -427,13 +428,16 @@ static formats create_default_formats()
     register_integer_adapter<std::uint32_t>(fmt);
     register_integer_adapter<std::int64_t>(fmt);
     register_integer_adapter<std::uint64_t>(fmt);
-    #ifdef _MSC_VER
+    #if defined(__APPLE__)
+    register_integer_adapter<std::size_t>(fmt);
+    register_integer_adapter<long>(fmt);
+    #elif defined(_MSC_VER)
     // In MSVC's 64-bit compiler, `std::int64_t` is a distinct type from `long`. Since these are really common types,
     // we will add them explicitly.
     register_integer_adapter<long>(fmt);
     register_integer_adapter<unsigned long>(fmt);
     #endif
-    
+
     static auto double_extractor = make_adapter([] (const value& from) { return from.as_decimal(); },
                                                 [] (const double& from) { return value(from); }
                                                );
@@ -442,7 +446,7 @@ static formats create_default_formats()
                                                [] (const float& from) { return value(from); }
                                               );
     fmt.register_adapter(&float_extractor);
-    
+
     return fmt;
 }
 
@@ -496,13 +500,13 @@ static void register_integer_coerce_extractor(formats& fmt)
 static formats create_coerce_formats()
 {
     formats fmt;
-    
+
     static auto string_extractor = make_extractor([] (const value& from) { return coerce_string(from); });
     fmt.register_extractor(&string_extractor);
-    
+
     static auto bool_extractor = make_extractor([] (const value& from) { return coerce_boolean(from); });
     fmt.register_extractor(&bool_extractor);
-    
+
     register_integer_coerce_extractor<std::int8_t>(fmt);
     register_integer_coerce_extractor<std::uint8_t>(fmt);
     register_integer_coerce_extractor<std::int16_t>(fmt);
@@ -511,12 +515,12 @@ static formats create_coerce_formats()
     register_integer_coerce_extractor<std::uint32_t>(fmt);
     register_integer_coerce_extractor<std::int64_t>(fmt);
     register_integer_coerce_extractor<std::uint64_t>(fmt);
-    
+
     static auto double_extractor = make_extractor([] (const value& from) { return coerce_decimal(from); });
     fmt.register_extractor(&double_extractor);
     static auto float_extractor = make_extractor([] (const value& from) { return float(coerce_decimal(from)); });
     fmt.register_extractor(&float_extractor);
-    
+
     return fmt;
 }
 

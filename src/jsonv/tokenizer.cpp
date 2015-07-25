@@ -200,6 +200,11 @@ bool tokenizer::next()
                 // we couldn't read more data due to EOF...but we have an incomplete match
                 kind = kind | token_kind::parse_error_indicator;
         }
+        else if (result == detail::match_result::unmatched)
+        {
+            // unmatched entry -- this token is invalid
+            kind = kind | token_kind::parse_error_indicator;
+        }
         return valid(string_view(_buffer.data() + pos, match_len), kind);
     }
 }

@@ -11,6 +11,9 @@
 #include "test.hpp"
 
 #include <iostream>
+#include <typeinfo>
+
+#include <jsonv/demangle.hpp>
 
 namespace jsonv_test
 {
@@ -38,7 +41,7 @@ bool unit_test::run()
     catch (const std::exception& ex)
     {
         _success = false;
-        _failstring = std::string("Threw exception: ") + ex.what();
+        _failstring = std::string("Threw exception of type ") + jsonv::demangle(typeid(ex).name()) + ": " + ex.what();
     }
     catch (...)
     {

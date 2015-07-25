@@ -31,6 +31,7 @@ namespace jsonv
 {
 
 class path;
+class value;
 
 namespace detail
 {
@@ -75,6 +76,9 @@ JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const kind&);
 
 /** Get the name of the \c kind. **/
 JSONV_PUBLIC std::string to_string(const kind&);
+
+/** Get a string representation of the given \c value. **/
+JSONV_PUBLIC std::string to_string(const value&);
 
 /** Thrown from various \c value methods when attempting to perform an operation which is not valid for the \c kind of
  *  value.

@@ -55,4 +55,53 @@ TEST(encode_nan)
     ensure_eq(val, decoded);
 }
 
+TEST(encode_invalid_utf8_uses_replacement_for_bogus_2_byte)
+{
+    jsonv::value val = "N\xc1pX";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"N\\u00c1pX\"");
+}
+
+TEST(encode_invalid_utf8_uses_replacement_for_bogus_3_byte)
+{
+    jsonv::value val = "N\xe0hiX";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"N\\u00e0hiX\"");
+}
+
+TEST(encode_invalid_utf8_uses_replacement_for_bogus_4_byte)
+{
+    jsonv::value val = "N\xf0himX";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"N\\u00f0himX\"");
+}
+
+TEST(encode_invalid_utf8_uses_replacement_for_bogus_5_byte)
+{
+    jsonv::value val = "N\xf9himsX";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"N\\u00f9himsX\"");
+}
+
+TEST(encode_invalid_utf8_uses_replacement_for_bogus_6_byte)
+{
+    jsonv::value val = "N\xfchimsiX";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"N\\u00fchimsiX\"");
+}
+
+TEST(encode_invalid_utf8_uses_replacement_for_bogus_mask)
+{
+    jsonv::value val = "N\xffR\xfeX";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"N\\u00ffR\\u00feX\"");
+}
+
+TEST(encode_invalid_utf8_uses_replacement_at_end)
+{
+    jsonv::value val = "\xe8";
+    std::string output = jsonv::to_string(val);
+    ensure_eq(output, "\"\\u00e8\"");
+}
+
 }

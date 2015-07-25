@@ -199,6 +199,17 @@ TEST_PARSE(malformed_decimal_ignore)
     parse("123.456.789", options);
 }
 
+TEST_PARSE(malformed_string_unterminated)
+{
+    ensure_throws(jsonv::parse_error, parse(R"("abc)"));
+    ensure_throws(jsonv::parse_error, parse(R"(")"));
+}
+
+TEST_PARSE(malformed_boolean)
+{
+    ensure_throws(jsonv::parse_error, parse("try"));
+}
+
 TEST_PARSE(option_complete_parse_false)
 {
     auto options = jsonv::parse_options()
@@ -246,4 +257,19 @@ TEST_PARSE(literal)
 {
     value v = "[1, 2, 3, 4]"_json;
     ensure_eq(array({ 1, 2, 3, 4 }), v);
+}
+
+TEST_PARSE(comments_invalid_leading_slash_then_bogus)
+{
+    ensure_throws(parse_error, parse("{}/1"));
+}
+
+TEST_PARSE(malformed_comment_complete)
+{
+    ensure_throws(parse_error, parse("/1"));
+}
+
+TEST_PARSE(malformed_comment_in_object)
+{
+    ensure_throws(parse_error, parse(R"({"a": ////////"b"})"));
 }
