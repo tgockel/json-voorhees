@@ -10,10 +10,10 @@ env:
     - CONF=Release COMPILER=g++-4.8     COVERAGE=1 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=1 PUBLISH_DOCS=0
     - CONF=Release COMPILER=g++-4.8     COVERAGE=0 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=1 PUBLISH_DOCS=0
     - CONF=Release COMPILER=g++-4.8     COVERAGE=0 USE_BOOST_STRING_VIEW=1 USE_BOOST_REGEX=1 PUBLISH_DOCS=0
-    - CONF=Release COMPILER=clang++-3.7 COVERAGE=0 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=0 PUBLISH_DOCS=0
-    - CONF=Release COMPILER=clang++-3.7 COVERAGE=0 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=1 PUBLISH_DOCS=0
-    - CONF=Release COMPILER=clang++-3.7 COVERAGE=0 USE_BOOST_STRING_VIEW=1 USE_BOOST_REGEX=0 PUBLISH_DOCS=0
-    - CONF=Release COMPILER=clang++-3.7 COVERAGE=0 USE_BOOST_STRING_VIEW=1 USE_BOOST_REGEX=1 PUBLISH_DOCS=0
+    - CONF=Release COMPILER=clang++-3.8 COVERAGE=0 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=0 PUBLISH_DOCS=0
+    - CONF=Release COMPILER=clang++-3.8 COVERAGE=0 USE_BOOST_STRING_VIEW=0 USE_BOOST_REGEX=1 PUBLISH_DOCS=0
+    - CONF=Release COMPILER=clang++-3.8 COVERAGE=0 USE_BOOST_STRING_VIEW=1 USE_BOOST_REGEX=0 PUBLISH_DOCS=0
+    - CONF=Release COMPILER=clang++-3.8 COVERAGE=0 USE_BOOST_STRING_VIEW=1 USE_BOOST_REGEX=1 PUBLISH_DOCS=0
 before_install:
   - "sudo apt-add-repository --yes ppa:ubuntu-toolchain-r/test"
   - "sudo apt-add-repository --yes ppa:boost-latest/ppa"
@@ -23,7 +23,7 @@ before_install:
 install:
   - sudo apt-get install --yes --force-yes libboost1.55-all-dev cmake
   - if [[ ${COMPILER} != *"clang"* ]]; then sudo apt-get install --yes --force-yes ${COMPILER}; fi
-  - if [[ ${COMPILER} == *"clang"* ]]; then sudo apt-get install --yes --force-yes clang-3.7;   fi
+  - if [[ ${COMPILER} == *"clang"* ]]; then sudo apt-get install --yes --force-yes clang-3.8;   fi
   - if [[ ${COVERAGE} -eq 1 ]];        then  sudo pip install cpp-coveralls pyyaml;             fi
 script:
   - ${COMPILER} --version
