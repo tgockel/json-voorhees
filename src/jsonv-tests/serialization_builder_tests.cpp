@@ -262,4 +262,59 @@ TEST(serialization_builder_check_references_fails)
     ensure_throws(std::logic_error, builder.check_references(formats(), "test"));
 }
 
+namespace
+{
+
+struct foo
+{
+  int         a;
+  int         b;
+  std::string c;
+};
+
+struct bar
+{
+  foo         x;
+  foo         y;
+  std::string z;
+  std::string w;
+};
+
+
+TEST(serialization_builder_extra_unchecked_key)
+{
+
+  jsonv::formats local_formats =
+      jsonv::formats_builder()
+          .type<foo>()
+             .member("a", &foo::a)
+             .member("b", &foo::b)
+                 .default_value(10)
+             .member("c", &foo::c)
+          .type<bar>()
+             .member("x", &bar::x)
+             .member("y", &bar::y)
+             .member("z", &bar::z)
+                 .since(jsonv::version(2, 0))
+             .member("w", &bar::w)
+                 .until(jsonv::version(5, 0))
+  ;
+
+
+  std::string json_string = R"({
+     "x": { "aaaaa": 50, "b": 20, "c": "Blah" }, 
+     "y": { "a": 10,              "c": "No B?" },
+     "z": "Only serialized in 2.0+",
+     "w": "Only serialized before 5.0"
+    })";
+
+
+    jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+    
+    jsonv::value val = jsonv::parse(json_string);
+    bar x = jsonv::extract<bar>(val, format);  
+}
+
+}
+
 }

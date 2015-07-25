@@ -484,10 +484,15 @@ public:
                 break;
         
         bool use_default = false;
-        if (_default_value)
+        if (iter == from.end_object())
         {
-            use_default = (iter == from.end_object())
-                       || (_default_on_null && iter->second.kind() == kind::null);
+            use_default = bool(_default_value);
+            if (!use_default)
+                return;
+        }
+        else if (_default_on_null && iter->second.kind() == kind::null)
+        {
+            use_default = true;
         }
         
         if (use_default)
