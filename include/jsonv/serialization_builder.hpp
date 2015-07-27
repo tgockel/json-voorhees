@@ -577,7 +577,7 @@ private:
     TMember T::*                                                       _selector;
     std::function<bool (const serialization_context&, const TMember&)> _should_encode;
     std::function<TMember (const extraction_context&, const value&)>   _default_value;
-    bool                                                               _default_on_null = true;
+    bool                                                               _default_on_null = false;
     std::function<TMember (TMember&&)>                                 _extract_mutate;
 };
 
