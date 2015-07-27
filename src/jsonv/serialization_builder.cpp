@@ -120,4 +120,24 @@ formats_builder& formats_builder_dsl::check_references(formats other, const std:
 
 }
 
+void throw_extra_keys_extraction_error(const extraction_context&    context,
+                                       const value&,
+                                       const std::set<std::string>& extra_keys
+                                      )
+{
+    std::ostringstream os;
+    bool plural = extra_keys.size() != 1;
+    os << "Found extra key" << (plural ? "s" : "") << " in value: ";
+    bool first = true;
+    for (const std::string& key : extra_keys)
+    {
+        if (first)
+            first = false;
+        else
+            os << ", ";
+        os << key;
+    }
+    throw extraction_error(context, os.str());
+}
+
 }

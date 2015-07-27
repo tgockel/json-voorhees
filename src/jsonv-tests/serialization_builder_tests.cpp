@@ -286,7 +286,6 @@ struct bar
 
 TEST(serialization_builder_extra_unchecked_key)
 {
-
     jsonv::formats local_formats =
         jsonv::formats_builder()
             .type<foo>()
@@ -312,6 +311,44 @@ TEST(serialization_builder_extra_unchecked_key)
                               }
                              );
     bar x = jsonv::extract<bar>(val, format);  
+}
+
+TEST(serialization_builder_extra_unchecked_key_throws)
+{
+    jsonv::formats local_formats =
+        jsonv::formats_builder()
+            .type<foo>()
+               .on_extract_extra_keys(jsonv::throw_extra_keys_extraction_error)
+               .member("a", &foo::a)
+               .member("b", &foo::b)
+                   .default_value(10)
+                   .default_on_null()
+               .member("c", &foo::c)
+            .type<bar>()
+               .member("x", &bar::x)
+               .member("y", &bar::y)
+               .member("z", &bar::z)
+                   .since(jsonv::version(2, 0))
+               .member("w", &bar::w)
+                   .until(jsonv::version(5, 0))
+    ;
+    jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+    
+    jsonv::value val = object({ { "x", object({ { "aaaaa", 50 }, { "b", 20 }, { "c", "Blah"  } }) },
+                                { "y", object({ { "a",     10 },              { "c", "No B?" } }) },
+                                { "z", "Only serialized in 2.0+" },
+                                { "w", "Only serialized before 5.0" }
+                              }
+                             );
+    try
+    {
+        jsonv::extract<bar>(val, format);
+        throw std::runtime_error("Should have thrown an extraction_error");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(path({"x"}), err.path());
+    }
 }
 
 }

@@ -286,6 +286,15 @@ namespace jsonv
  *                              )
  *  \endcode
  *  
+ *  There is a convenience function named \c throw_extra_keys_extraction_error which does this for you.
+ *  
+ *  \code
+ *    .type<my_type>()
+ *        .member("x", &my_type::x)
+ *        .member("y", &my_type::y)
+ *        .on_extract_extra_keys(jsonv::throw_extra_keys_extraction_error)
+ *  \endcode
+ *  
  *  \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
  *  
  *  \paragraph serialization_builder_dsl_ref_type_narrowing_member member
@@ -934,6 +943,16 @@ adapter_builder<T>& adapter_builder_dsl<T>
 }
 
 }
+
+/** Throw an \a extraction_error indicating that \a from had extra keys.
+ *  
+ *  \throws extraction_error always.
+**/
+JSONV_PUBLIC JSONV_NO_RETURN
+void throw_extra_keys_extraction_error(const extraction_context&    context,
+                                       const value&                 from,
+                                       const std::set<std::string>& extra_keys
+                                      );
 
 }
 
