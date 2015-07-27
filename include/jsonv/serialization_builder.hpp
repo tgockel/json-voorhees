@@ -401,11 +401,11 @@ namespace jsonv
 
 class formats_builder;
 
-namespace detail
-{
-
 template <typename T> class adapter_builder;
 template <typename T, typename TMember> class member_adapter_builder;
+
+namespace detail
+{
 
 class formats_builder_dsl
 {
@@ -415,10 +415,10 @@ public:
     { }
     
     template <typename T>
-    detail::adapter_builder<T> type();
+    adapter_builder<T> type();
     
     template <typename T, typename F>
-    detail::adapter_builder<T> type(F&&);
+    adapter_builder<T> type(F&&);
     
     formats_builder& register_adapter(const adapter* p);
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
@@ -581,18 +581,20 @@ private:
     std::function<TMember (TMember&&)>                                 _extract_mutate;
 };
 
+}
+
 template <typename T, typename TMember>
 class member_adapter_builder :
-        public formats_builder_dsl,
-        public adapter_builder_dsl<T>
+        public detail::formats_builder_dsl,
+        public detail::adapter_builder_dsl<T>
 {
 public:
-    explicit member_adapter_builder(formats_builder*                 fmt_builder,
-                                    adapter_builder<T>*              adapt_builder,
-                                    member_adapter_impl<T, TMember>* adapter
+    explicit member_adapter_builder(formats_builder*                         fmt_builder,
+                                    adapter_builder<T>*                      adapt_builder,
+                                    detail::member_adapter_impl<T, TMember>* adapter
                                    ) :
             formats_builder_dsl(fmt_builder),
-            adapter_builder_dsl<T>(adapt_builder),
+            detail::adapter_builder_dsl<T>(adapt_builder),
             _adapter(adapter)
     {
         reference_type(std::type_index(typeid(TMember)), std::type_index(typeid(T)));
@@ -703,12 +705,12 @@ public:
     }
     
 private:
-    member_adapter_impl<T, TMember>* _adapter;
+    detail::member_adapter_impl<T, TMember>* _adapter;
 };
 
 template <typename T>
 class adapter_builder :
-        public formats_builder_dsl
+        public detail::formats_builder_dsl
 {
 public:
     template <typename F>
@@ -730,9 +732,9 @@ public:
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector)
     {
-        std::unique_ptr<member_adapter_impl<T, TMember>> ptr
+        std::unique_ptr<detail::member_adapter_impl<T, TMember>> ptr
             (
-                new member_adapter_impl<T, TMember>(std::move(name), selector)
+                new detail::member_adapter_impl<T, TMember>(std::move(name), selector)
             );
         member_adapter_builder<T, TMember> builder(formats_builder_dsl::owner, this, ptr.get());
         _adapter->_members.emplace_back(std::move(ptr));
@@ -765,7 +767,7 @@ public:
             auto is_key = [adapter] (string_view key) -> bool
                           {
                               return std::any_of(begin(adapter->_members), end(adapter->_members),
-                                                 [key] (const std::unique_ptr<member_adapter<T>>& mem)
+                                                 [key] (const std::unique_ptr<detail::member_adapter<T>>& mem)
                                                  {
                                                      return mem->has_extract_key(key);
                                                  }
@@ -805,7 +807,7 @@ private:
             return out;
         }
         
-        std::deque<std::unique_ptr<member_adapter<T>>>                     _members;
+        std::deque<std::unique_ptr<detail::member_adapter<T>>>             _members;
         std::function<void (const extraction_context&, const value& from)> _pre_extract;
     };
     
@@ -813,23 +815,21 @@ private:
     adapter_impl* _adapter;
 };
 
-}
-
 class JSONV_PUBLIC formats_builder
 {
 public:
     formats_builder();
     
     template <typename T>
-    detail::adapter_builder<T> type()
+    adapter_builder<T> type()
     {
-        return detail::adapter_builder<T>(this);
+        return adapter_builder<T>(this);
     }
     
     template <typename T, typename F>
-    detail::adapter_builder<T> type(F&& f)
+    adapter_builder<T> type(F&& f)
     {
-        return detail::adapter_builder<T>(this, std::forward<F>(f));
+        return adapter_builder<T>(this, std::forward<F>(f));
     }
     
     formats_builder& register_adapter(const adapter* p)
