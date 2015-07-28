@@ -32,7 +32,7 @@ unit_test::unit_test(const std::string& name) :
     
 bool unit_test::run()
 {
-    std::cout << "TEST: " << _name << " ...";
+    std::cout << "TEST: " << name() << " ...";
     _success = true;
     try
     {
