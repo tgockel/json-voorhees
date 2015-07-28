@@ -97,7 +97,7 @@ if (REQUIRED_BOOST_LIBRARIES)
                  COMPONENTS ${REQUIRED_BOOST_LIBRARIES}
                  REQUIRED
                 )
-    include_directories(${Boost_INCLUDE_DIRECTORIES})
+    include_directories(${Boost_INCLUDE_DIRS})
 endif(REQUIRED_BOOST_LIBRARIES)
 
 add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
