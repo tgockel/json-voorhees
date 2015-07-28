@@ -4,7 +4,7 @@ var searchData=
   ['max_5ffailures',['max_failures',['../classjsonv_1_1parse__options.html#a0044af7c29cd709225303015ad9dedf9',1,'jsonv::parse_options']]],
   ['max_5fstructure_5fdepth',['max_structure_depth',['../classjsonv_1_1parse__options.html#a7129a3bbe69dd6f1a4bd269cef399c53',1,'jsonv::parse_options']]],
   ['member_5fadapter',['member_adapter',['../classjsonv_1_1detail_1_1member__adapter.html',1,'jsonv::detail']]],
-  ['member_5fadapter_5fbuilder',['member_adapter_builder',['../classjsonv_1_1detail_1_1member__adapter__builder.html',1,'jsonv::detail']]],
+  ['member_5fadapter_5fbuilder',['member_adapter_builder',['../classjsonv_1_1member__adapter__builder.html',1,'jsonv']]],
   ['member_5fadapter_5fimpl',['member_adapter_impl',['../classjsonv_1_1detail_1_1member__adapter__impl.html',1,'jsonv::detail']]],
   ['merge',['merge',['../group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f',1,'jsonv']]],
   ['merge_5fexplicit',['merge_explicit',['../group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1',1,'jsonv']]],

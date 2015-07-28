@@ -1,7 +1,7 @@
 var hierarchy =
 [
     [ "jsonv::detail::adapter_builder_dsl< T >", "classjsonv_1_1detail_1_1adapter__builder__dsl.html", [
-      [ "jsonv::detail::member_adapter_builder< T, TMember >", "classjsonv_1_1detail_1_1member__adapter__builder.html", null ]
+      [ "jsonv::member_adapter_builder< T, TMember >", "classjsonv_1_1member__adapter__builder.html", null ]
     ] ],
     [ "jsonv::detail::basic_owner< T >", "classjsonv_1_1detail_1_1basic__owner.html", null ],
     [ "jsonv::detail::basic_owner< TContainer >", "classjsonv_1_1detail_1_1basic__owner.html", [
@@ -49,8 +49,8 @@ var hierarchy =
     [ "jsonv::formats", "classjsonv_1_1formats.html", null ],
     [ "jsonv::formats_builder", "classjsonv_1_1formats__builder.html", null ],
     [ "jsonv::detail::formats_builder_dsl", "classjsonv_1_1detail_1_1formats__builder__dsl.html", [
-      [ "jsonv::detail::adapter_builder< T >", "classjsonv_1_1detail_1_1adapter__builder.html", null ],
-      [ "jsonv::detail::member_adapter_builder< T, TMember >", "classjsonv_1_1detail_1_1member__adapter__builder.html", null ]
+      [ "jsonv::adapter_builder< T >", "classjsonv_1_1adapter__builder.html", null ],
+      [ "jsonv::member_adapter_builder< T, TMember >", "classjsonv_1_1member__adapter__builder.html", null ]
     ] ],
     [ "jsonv::detail::generic_container< TStorage >", "classjsonv_1_1detail_1_1generic__container.html", null ],
     [ "jsonv::detail::generic_container< std::vector< path_element > >", "classjsonv_1_1detail_1_1generic__container.html", [

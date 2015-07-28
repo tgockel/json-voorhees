@@ -2,7 +2,6 @@ var annotated =
 [
     [ "jsonv", null, [
       [ "detail", null, [
-        [ "adapter_builder", "classjsonv_1_1detail_1_1adapter__builder.html", "classjsonv_1_1detail_1_1adapter__builder" ],
         [ "adapter_builder_dsl", "classjsonv_1_1detail_1_1adapter__builder__dsl.html", "classjsonv_1_1detail_1_1adapter__builder__dsl" ],
         [ "basic_owner", "classjsonv_1_1detail_1_1basic__owner.html", "classjsonv_1_1detail_1_1basic__owner" ],
         [ "basic_owning_view", "classjsonv_1_1detail_1_1basic__owning__view.html", "classjsonv_1_1detail_1_1basic__owning__view" ],
@@ -10,13 +9,13 @@ var annotated =
         [ "formats_builder_dsl", "classjsonv_1_1detail_1_1formats__builder__dsl.html", "classjsonv_1_1detail_1_1formats__builder__dsl" ],
         [ "generic_container", "classjsonv_1_1detail_1_1generic__container.html", "classjsonv_1_1detail_1_1generic__container" ],
         [ "member_adapter", "classjsonv_1_1detail_1_1member__adapter.html", "classjsonv_1_1detail_1_1member__adapter" ],
-        [ "member_adapter_builder", "classjsonv_1_1detail_1_1member__adapter__builder.html", "classjsonv_1_1detail_1_1member__adapter__builder" ],
         [ "member_adapter_impl", "classjsonv_1_1detail_1_1member__adapter__impl.html", "classjsonv_1_1detail_1_1member__adapter__impl" ],
         [ "scope_exit_invoker", "classjsonv_1_1detail_1_1scope__exit__invoker.html", "classjsonv_1_1detail_1_1scope__exit__invoker" ],
         [ "string_view", "classjsonv_1_1detail_1_1string__view.html", "classjsonv_1_1detail_1_1string__view" ],
         [ "value_storage", "unionjsonv_1_1detail_1_1value__storage.html", "unionjsonv_1_1detail_1_1value__storage" ]
       ] ],
       [ "adapter", "classjsonv_1_1adapter.html", "classjsonv_1_1adapter" ],
+      [ "adapter_builder", "classjsonv_1_1adapter__builder.html", "classjsonv_1_1adapter__builder" ],
       [ "adapter_for", "classjsonv_1_1adapter__for.html", "classjsonv_1_1adapter__for" ],
       [ "container_adapter", "classjsonv_1_1container__adapter.html", "classjsonv_1_1container__adapter" ],
       [ "context_base", "classjsonv_1_1context__base.html", "classjsonv_1_1context__base" ],
@@ -34,6 +33,7 @@ var annotated =
       [ "function_extractor", "classjsonv_1_1function__extractor.html", "classjsonv_1_1function__extractor" ],
       [ "function_serializer", "classjsonv_1_1function__serializer.html", "classjsonv_1_1function__serializer" ],
       [ "kind_error", "classjsonv_1_1kind__error.html", "classjsonv_1_1kind__error" ],
+      [ "member_adapter_builder", "classjsonv_1_1member__adapter__builder.html", "classjsonv_1_1member__adapter__builder" ],
       [ "merge_rules", "classjsonv_1_1merge__rules.html", "classjsonv_1_1merge__rules" ],
       [ "no_extractor", "classjsonv_1_1no__extractor.html", "classjsonv_1_1no__extractor" ],
       [ "no_serializer", "classjsonv_1_1no__serializer.html", "classjsonv_1_1no__serializer" ],
