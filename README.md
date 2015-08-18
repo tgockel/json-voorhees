@@ -34,8 +34,7 @@ Features include (but are not necessarily limited to):
      - Clang++ (3.3+)
 
 [![Build Status](https://travis-ci.org/tgockel/json-voorhees.svg?branch=master)](https://travis-ci.org/tgockel/json-voorhees)
-[![Code Coverage](https://img.shields.io/coveralls/tgockel/json-voorhees.svg)](https://coveralls.io/r/tgockel/json-voorhees)
-[![Github Issues](https://img.shields.io/github/issues/tgockel/json-voorhees.svg)](http://github.com/tgockel/json-voorhees/issues)
+[![Coverage Status](https://coveralls.io/repos/tgockel/json-voorhees/badge.svg?branch=master&service=github)](https://coveralls.io/github/tgockel/json-voorhees?branch=master)
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=tgockel&url=https://github.com/tgockel/json-voorhees&title=json-voorhees&language=c++&tags=github&category=software)
 
 ![JSON Conversions](https://raw.githubusercontent.com/tgockel/json-voorhees/master/doc/conversions.png)
