@@ -286,6 +286,15 @@ namespace jsonv
  *                              )
  *  \endcode
  *  
+ *  There is a convenience function named \c throw_extra_keys_extraction_error which does this for you.
+ *  
+ *  \code
+ *    .type<my_type>()
+ *        .member("x", &my_type::x)
+ *        .member("y", &my_type::y)
+ *        .on_extract_extra_keys(jsonv::throw_extra_keys_extraction_error)
+ *  \endcode
+ *  
  *  \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
  *  
  *  \paragraph serialization_builder_dsl_ref_type_narrowing_member member
@@ -392,11 +401,11 @@ namespace jsonv
 
 class formats_builder;
 
-namespace detail
-{
-
 template <typename T> class adapter_builder;
 template <typename T, typename TMember> class member_adapter_builder;
+
+namespace detail
+{
 
 class formats_builder_dsl
 {
@@ -406,10 +415,10 @@ public:
     { }
     
     template <typename T>
-    detail::adapter_builder<T> type();
+    adapter_builder<T> type();
     
     template <typename T, typename F>
-    detail::adapter_builder<T> type(F&&);
+    adapter_builder<T> type(F&&);
     
     formats_builder& register_adapter(const adapter* p);
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
@@ -484,10 +493,15 @@ public:
                 break;
         
         bool use_default = false;
-        if (_default_value)
+        if (iter == from.end_object())
         {
-            use_default = (iter == from.end_object())
-                       || (_default_on_null && iter->second.kind() == kind::null);
+            use_default = bool(_default_value);
+            if (!use_default)
+                return;
+        }
+        else if (_default_on_null && iter->second.kind() == kind::null)
+        {
+            use_default = true;
         }
         
         if (use_default)
@@ -563,22 +577,24 @@ private:
     TMember T::*                                                       _selector;
     std::function<bool (const serialization_context&, const TMember&)> _should_encode;
     std::function<TMember (const extraction_context&, const value&)>   _default_value;
-    bool                                                               _default_on_null = true;
+    bool                                                               _default_on_null = false;
     std::function<TMember (TMember&&)>                                 _extract_mutate;
 };
 
+}
+
 template <typename T, typename TMember>
 class member_adapter_builder :
-        public formats_builder_dsl,
-        public adapter_builder_dsl<T>
+        public detail::formats_builder_dsl,
+        public detail::adapter_builder_dsl<T>
 {
 public:
-    explicit member_adapter_builder(formats_builder*                 fmt_builder,
-                                    adapter_builder<T>*              adapt_builder,
-                                    member_adapter_impl<T, TMember>* adapter
+    explicit member_adapter_builder(formats_builder*                         fmt_builder,
+                                    adapter_builder<T>*                      adapt_builder,
+                                    detail::member_adapter_impl<T, TMember>* adapter
                                    ) :
             formats_builder_dsl(fmt_builder),
-            adapter_builder_dsl<T>(adapt_builder),
+            detail::adapter_builder_dsl<T>(adapt_builder),
             _adapter(adapter)
     {
         reference_type(std::type_index(typeid(TMember)), std::type_index(typeid(T)));
@@ -689,12 +705,12 @@ public:
     }
     
 private:
-    member_adapter_impl<T, TMember>* _adapter;
+    detail::member_adapter_impl<T, TMember>* _adapter;
 };
 
 template <typename T>
 class adapter_builder :
-        public formats_builder_dsl
+        public detail::formats_builder_dsl
 {
 public:
     template <typename F>
@@ -716,9 +732,9 @@ public:
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector)
     {
-        std::unique_ptr<member_adapter_impl<T, TMember>> ptr
+        std::unique_ptr<detail::member_adapter_impl<T, TMember>> ptr
             (
-                new member_adapter_impl<T, TMember>(std::move(name), selector)
+                new detail::member_adapter_impl<T, TMember>(std::move(name), selector)
             );
         member_adapter_builder<T, TMember> builder(formats_builder_dsl::owner, this, ptr.get());
         _adapter->_members.emplace_back(std::move(ptr));
@@ -751,7 +767,7 @@ public:
             auto is_key = [adapter] (string_view key) -> bool
                           {
                               return std::any_of(begin(adapter->_members), end(adapter->_members),
-                                                 [key] (const std::unique_ptr<member_adapter<T>>& mem)
+                                                 [key] (const std::unique_ptr<detail::member_adapter<T>>& mem)
                                                  {
                                                      return mem->has_extract_key(key);
                                                  }
@@ -791,7 +807,7 @@ private:
             return out;
         }
         
-        std::deque<std::unique_ptr<member_adapter<T>>>                     _members;
+        std::deque<std::unique_ptr<detail::member_adapter<T>>>             _members;
         std::function<void (const extraction_context&, const value& from)> _pre_extract;
     };
     
@@ -799,23 +815,21 @@ private:
     adapter_impl* _adapter;
 };
 
-}
-
 class JSONV_PUBLIC formats_builder
 {
 public:
     formats_builder();
     
     template <typename T>
-    detail::adapter_builder<T> type()
+    adapter_builder<T> type()
     {
-        return detail::adapter_builder<T>(this);
+        return adapter_builder<T>(this);
     }
     
     template <typename T, typename F>
-    detail::adapter_builder<T> type(F&& f)
+    adapter_builder<T> type(F&& f)
     {
-        return detail::adapter_builder<T>(this, std::forward<F>(f));
+        return adapter_builder<T>(this, std::forward<F>(f));
     }
     
     formats_builder& register_adapter(const adapter* p)
@@ -929,6 +943,16 @@ adapter_builder<T>& adapter_builder_dsl<T>
 }
 
 }
+
+/** Throw an \a extraction_error indicating that \a from had extra keys.
+ *  
+ *  \throws extraction_error always.
+**/
+JSONV_PUBLIC JSONV_NO_RETURN
+void throw_extra_keys_extraction_error(const extraction_context&    context,
+                                       const value&                 from,
+                                       const std::set<std::string>& extra_keys
+                                      );
 
 }
 

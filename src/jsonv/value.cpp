@@ -351,10 +351,8 @@ void value::swap(value& other) noexcept
 {
     using std::swap;
     
-    // We swap the objects here because all types of the union a trivially swappable and swap needs to work on a type,
-    // not a union.
-    static_assert(sizeof _data == sizeof _data.object, "!!");
-    swap(_data.object, other._data.object);
+    // All types of this union a trivially swappable
+    swap(_data, other._data);
     swap(_kind, other._kind);
 }
 
