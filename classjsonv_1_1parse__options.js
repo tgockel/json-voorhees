@@ -23,6 +23,8 @@ var classjsonv_1_1parse__options =
     [ "~parse_options", "classjsonv_1_1parse__options.html#aa54c494b2ac06f9d9c8ab58ab448e9a5", null ],
     [ "comma_policy", "classjsonv_1_1parse__options.html#a24b93f3fc4a36c850b103228290a6758", null ],
     [ "comma_policy", "classjsonv_1_1parse__options.html#ab900a856ab6eb2b40826893ceececb44", null ],
+    [ "comments", "classjsonv_1_1parse__options.html#a6cbf6c1541ff3e58d36cd48f63b4c5fc", null ],
+    [ "comments", "classjsonv_1_1parse__options.html#a8a2c87b54fd34826cdeb779e2fc4cbb6", null ],
     [ "complete_parse", "classjsonv_1_1parse__options.html#af1f27e329e44ce74b51edbe14a732907", null ],
     [ "complete_parse", "classjsonv_1_1parse__options.html#a88902d1ea1a01f4e91c3522161b7d9bb", null ],
     [ "failure_mode", "classjsonv_1_1parse__options.html#a16b85fa454dcd89fada05abe80eded52", null ],

@@ -128,7 +128,14 @@ var group__Serialization =
       [ "create", "classjsonv_1_1container__adapter.html#ad88e79f33a559f43e90d511e06d28069", null ],
       [ "to_json", "classjsonv_1_1container__adapter.html#a9ce6d0eeeb0724990bc2e6aac8179c02", null ]
     ] ],
+    [ "enum_adapter", "classjsonv_1_1enum__adapter.html", [
+      [ "enum_adapter", "classjsonv_1_1enum__adapter.html#adfa33ef1727c5fefc0785950b21cac23", null ],
+      [ "enum_adapter", "classjsonv_1_1enum__adapter.html#a59f05d6b86d00c4b895bb1976cda4f95", null ],
+      [ "create", "classjsonv_1_1enum__adapter.html#ae202f0475f1582f12348ec741f73046d", null ],
+      [ "to_json", "classjsonv_1_1enum__adapter.html#a0cf1c6cabe510405d455acd23b2f8159", null ]
+    ] ],
     [ "demangle_function", "group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38", null ],
+    [ "enum_adapter_icase", "group__Serialization.html#ga6cc69243779f3517d743c08fb8ead60f", null ],
     [ "demangle", "group__Serialization.html#ga26c620d20cffb45e1145fe95eeb37d00", null ],
     [ "extract", "group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8", null ],
     [ "extract", "group__Serialization.html#gac24f0cb864988715300f4741b5031546", null ],

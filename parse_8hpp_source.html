@@ -225,54 +225,58 @@ $(document).ready(function(){initNavTree('parse_8hpp_source.html','');});
 <div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;    </div>
 <div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    static parse_options create_default();</div>
 <div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;    </div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    static parse_options create_strict();</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    </div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    on_error failure_mode() const;</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    parse_options&amp; failure_mode(on_error mode);</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    </div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    std::<span class="keywordtype">size_t</span> max_failures() const;</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    parse_options&amp; max_failures(std::<span class="keywordtype">size_t</span> limit);</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    </div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;    encoding string_encoding() const;</div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    parse_options&amp; string_encoding(encoding);</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    </div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    numbers number_encoding() const;</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    parse_options&amp; number_encoding(numbers);</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    </div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    commas comma_policy() const;</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    parse_options&amp; comma_policy(commas);</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    </div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    size_type max_structure_depth() const;</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    parse_options&amp; max_structure_depth(size_type depth);</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    </div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    <span class="keywordtype">bool</span> require_document() const;</div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    parse_options&amp; require_document(<span class="keywordtype">bool</span>);</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    </div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    <span class="keywordtype">bool</span> complete_parse() const;</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    parse_options&amp; complete_parse(<span class="keywordtype">bool</span>);</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    </div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;private:</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    <span class="comment">// For the purposes of ABI compliance, most modifications to the variables in this class should bump the minor</span></div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    <span class="comment">// version number.</span></div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    on_error    _failure_mode     = on_error::fail_immediately;</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;    std::<span class="keywordtype">size_t</span> _max_failures     = 10;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    encoding    _string_encoding  = encoding::utf8;</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    numbers     _number_encoding  = numbers::decimal;</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    commas      _comma_policy     = commas::allow_trailing;</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    size_type   _max_struct_depth = 0;</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    <span class="keywordtype">bool</span>        _require_document = false;</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    <span class="keywordtype">bool</span>        _complete_parse   = true;</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;};</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;</div>
-<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> parse(std::istream&amp; input, const parse_options&amp; = parse_options());</div>
-<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;</div>
-<div class="line"><a name="l00290"></a><span class="lineno">  290</span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> parse(const string_view&amp; input, const parse_options&amp; = parse_options());</div>
-<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;</div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> parse(<a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>&amp; input, const parse_options&amp; = parse_options());</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;}</div>
-<div class="line"><a name="l00309"></a><span class="lineno">  309</span>&#160;</div>
-<div class="line"><a name="l00310"></a><span class="lineno">  310</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_PARSE_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;    static parse_options create_strict();</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    </div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    on_error failure_mode() const;</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    parse_options&amp; failure_mode(on_error mode);</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;    </div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    std::<span class="keywordtype">size_t</span> max_failures() const;</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;    parse_options&amp; max_failures(std::<span class="keywordtype">size_t</span> limit);</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;    </div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    encoding string_encoding() const;</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    parse_options&amp; string_encoding(encoding);</div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;    </div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    numbers number_encoding() const;</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;    parse_options&amp; number_encoding(numbers);</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;    </div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    commas comma_policy() const;</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    parse_options&amp; comma_policy(commas);</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    </div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    size_type max_structure_depth() const;</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    parse_options&amp; max_structure_depth(size_type depth);</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    </div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    <span class="keywordtype">bool</span> require_document() const;</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    parse_options&amp; require_document(<span class="keywordtype">bool</span>);</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    </div>
+<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    <span class="keywordtype">bool</span> complete_parse() const;</div>
+<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;    parse_options&amp; complete_parse(<span class="keywordtype">bool</span>);</div>
+<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;    </div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    <span class="keywordtype">bool</span> comments() const;</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    parse_options&amp; comments(<span class="keywordtype">bool</span>);</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    </div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;private:</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    <span class="comment">// For the purposes of ABI compliance, most modifications to the variables in this class should bump the minor</span></div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="comment">// version number.</span></div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    on_error    _failure_mode     = on_error::fail_immediately;</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    std::<span class="keywordtype">size_t</span> _max_failures     = 10;</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    encoding    _string_encoding  = encoding::utf8;</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    numbers     _number_encoding  = numbers::decimal;</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    commas      _comma_policy     = commas::allow_trailing;</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;    size_type   _max_struct_depth = 0;</div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    <span class="keywordtype">bool</span>        _require_document = false;</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    <span class="keywordtype">bool</span>        _complete_parse   = true;</div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    <span class="keywordtype">bool</span>        _comments         = true;</div>
+<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;};</div>
+<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;</div>
+<div class="line"><a name="l00291"></a><span class="lineno">  291</span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> parse(std::istream&amp; input, const parse_options&amp; = parse_options());</div>
+<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> parse(const string_view&amp; input, const parse_options&amp; = parse_options());</div>
+<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;</div>
+<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> parse(<a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>&amp; input, const parse_options&amp; = parse_options());</div>
+<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;</div>
+<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;}</div>
+<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;</div>
+<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_PARSE_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
 <div class="ttc" id="classjsonv_1_1parse__options_html"><div class="ttname"><a href="classjsonv_1_1parse__options.html">jsonv::parse_options</a></div><div class="ttdoc">Configuration for various parsing options. </div><div class="ttdef"><b>Definition:</b> <a href="parse_8hpp_source.html#l00114">parse.hpp:114</a></div></div>
 <div class="ttc" id="structjsonv_1_1parse__error_1_1problem_html_aa5b23e576a2125610123d532728e6240"><div class="ttname"><a href="structjsonv_1_1parse__error_1_1problem.html#aa5b23e576a2125610123d532728e6240">jsonv::parse_error::problem::line</a></div><div class="ttdeci">size_type line() const </div><div class="ttdoc">The line of input this error was encountered on. </div><div class="ttdef"><b>Definition:</b> <a href="parse_8hpp_source.html#l00047">parse.hpp:47</a></div></div>
 <div class="ttc" id="classjsonv_1_1parse__error_html"><div class="ttname"><a href="classjsonv_1_1parse__error.html">jsonv::parse_error</a></div><div class="ttdoc">An error encountered when parsing. </div><div class="ttdef"><b>Definition:</b> <a href="parse_8hpp_source.html#l00031">parse.hpp:31</a></div></div>

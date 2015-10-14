@@ -160,12 +160,19 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1container__adapter.html">jsonv::container_adapter&lt; TContainer &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An adapter for container types.  <a href="classjsonv_1_1container__adapter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1enum__adapter.html">jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An adapter for enumeration types.  <a href="classjsonv_1_1enum__adapter.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:ga095e1bea81644c5e5d82e75e1d188e38"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38">jsonv::demangle_function</a> = std::function&lt; std::string(string_view source)&gt;</td></tr>
 <tr class="memdesc:ga095e1bea81644c5e5d82e75e1d188e38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of function used in setting a custom demangler.  <a href="#ga095e1bea81644c5e5d82e75e1d188e38">More...</a><br /></td></tr>
 <tr class="separator:ga095e1bea81644c5e5d82e75e1d188e38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6cc69243779f3517d743c08fb8ead60f"><td class="memTemplParams" colspan="2">template&lt;typename TEnum , typename FEnumComp  = std::less&lt;TEnum&gt;&gt; </td></tr>
+<tr class="memitem:ga6cc69243779f3517d743c08fb8ead60f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga6cc69243779f3517d743c08fb8ead60f">jsonv::enum_adapter_icase</a> = enum_adapter&lt; TEnum, FEnumComp, value_less_icase &gt;</td></tr>
+<tr class="memdesc:ga6cc69243779f3517d743c08fb8ead60f"><td class="mdescLeft">&#160;</td><td class="mdescRight">An adapter for enumeration types which ignores the case when extracting from JSON.  <a href="#ga6cc69243779f3517d743c08fb8ead60f">More...</a><br /></td></tr>
+<tr class="separator:ga6cc69243779f3517d743c08fb8ead60f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -234,6 +241,25 @@ template&lt;typename FExtract , typename FToJson , typename  = void&gt; </td></t
 set_demangle_function </dd></dl>
 
 <p>Definition at line <a class="el" href="demangle_8hpp_source.html#l00040">40</a> of file <a class="el" href="demangle_8hpp_source.html">demangle.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ga6cc69243779f3517d743c08fb8ead60f"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename TEnum , typename FEnumComp  = std::less&lt;TEnum&gt;&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="group__Serialization.html#ga6cc69243779f3517d743c08fb8ead60f">jsonv::enum_adapter_icase</a> = typedef enum_adapter&lt;TEnum, FEnumComp, value_less_icase&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>An adapter for enumeration types which ignores the case when extracting from JSON. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="classjsonv_1_1enum__adapter.html" title="An adapter for enumeration types. ">enum_adapter</a> </dd></dl>
+
+<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00462">462</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
 
 </div>
 </div>

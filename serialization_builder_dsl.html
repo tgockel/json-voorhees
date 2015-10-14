@@ -233,13 +233,43 @@ register_containers</h4>
 <div class="fragment"><div class="line">.register_containers&lt;int, std::list, std::deque&gt;()</div>
 <div class="line">.register_containers&lt;double, std::vector, std::set&gt;()</div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>Not supported in MSVC 14 (CTP 5).</dd></dl>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_enum_type"></a>
+enum_type</h4>
+<ul>
+<li><code>enum_type&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, <a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a>&gt;&gt;)</code></li>
+<li><code>enum_type_icase&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, <a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a>&gt;&gt;)</code></li>
+</ul>
+<p>Create an adapter for the <code>TEnum</code> type with a mapping of C++ values to JSON values and vice versa. The most common use of this is to map <code>enum</code> values in C++ to string representations in JSON. <code>TEnum</code> is not restricted to types which are <code>enum</code>, but can be anything which you would like to restrict to a limited subset of possible values. Likewise, JSON representations are not restricted to being of <code>kind::string</code>.</p>
+<p>The sibling function <code>enum_type_icase</code> will create an adapter which uses case-insensitive checking when converting to C++ values in <code>extract</code>.</p>
+<div class="fragment"><div class="line">.enum_type&lt;ring&gt;(<span class="stringliteral">&quot;ring&quot;</span>,</div>
+<div class="line">                 {</div>
+<div class="line">                   { ring::fire,  <span class="stringliteral">&quot;fire&quot;</span>    },</div>
+<div class="line">                   { ring::wind,  <span class="stringliteral">&quot;wind&quot;</span>    },</div>
+<div class="line">                   { ring::earth, <span class="stringliteral">&quot;earth&quot;</span>   },</div>
+<div class="line">                   { ring::water, <span class="stringliteral">&quot;water&quot;</span>   },</div>
+<div class="line">                   { ring::heart, <span class="stringliteral">&quot;heart&quot;</span>   }, <span class="comment">// &quot;heart&quot; is preferred for to_json</span></div>
+<div class="line">                   { ring::heart, <span class="stringliteral">&quot;useless&quot;</span> }, <span class="comment">// &quot;useless&quot; is interpreted as ring::heart in extract</span></div>
+<div class="line">                   { ring::fire,  1         }, <span class="comment">// the JSON value 1 will also be interpreted as ring::fire in extract</span></div>
+<div class="line">                   { ring::ussr,  <span class="stringliteral">&quot;wind&quot;</span>    }, <span class="comment">// old C++ value ring::ussr will get output as &quot;wind&quot;</span></div>
+<div class="line">                 }</div>
+<div class="line">                )</div>
+<div class="line">.enum_type_icase&lt;int&gt;(<span class="stringliteral">&quot;integer&quot;</span>,</div>
+<div class="line">                      {</div>
+<div class="line">                        { 0, <span class="stringliteral">&quot;zero&quot;</span>   },</div>
+<div class="line">                        { 0, <span class="stringliteral">&quot;naught&quot;</span> },</div>
+<div class="line">                        { 1, <span class="stringliteral">&quot;one&quot;</span>    },</div>
+<div class="line">                        { 2, <span class="stringliteral">&quot;two&quot;</span>    },</div>
+<div class="line">                        { 3, <span class="stringliteral">&quot;three&quot;</span>  },</div>
+<div class="line">                      }</div>
+<div class="line">                     )</div>
+</div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="classjsonv_1_1enum__adapter.html" title="An adapter for enumeration types. ">enum_adapter</a></dd></dl>
 <h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
 Narrowing</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing_type"></a>
 type&lt;T&gt;</h4>
 <ul>
 <li><code>type&lt;T&gt;()</code></li>
-<li><code>type&lt;T&gt;(std::function&lt;void (<a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt;T&gt;)&gt; func)</code></li>
+<li><code>type&lt;T&gt;(std::function&lt;void (<a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt;T&gt;&amp;)&gt; func)</code></li>
 </ul>
 <p>Create an <code>adapter</code> for type <code>T</code> and begin building the members for it. If <em>func</em> is provided, it will be called with the <a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt;T&gt; this call to <code>type</code> creates, which can be used for creating common extension functions.</p>
 <div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
@@ -320,9 +350,9 @@ check_input</h4>
 </ul>
 <p>Checks the extracted value with the given <em>check</em> function. In the first form, you are expected to throw inside the function. In the latter forms, the second parameter will be invoked (in the case of <em>thrower</em>) or thrown directly (in the case of <em>ex</em>).</p>
 <div class="fragment"><div class="line">.member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
-<div class="line">    .check([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">if</span> (x &lt; 0) <span class="keywordflow">throw</span> std::logic_error(<span class="stringliteral">&quot;x must be greater than 0&quot;</span>); })</div>
-<div class="line">    .check([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x &lt; 100; }, [] (<span class="keywordtype">int</span> x) { <span class="keywordflow">throw</span> exceptions::less_than(100, x); })</div>
-<div class="line">    .check([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x % 2 == 0; }, std::logic_error(<span class="stringliteral">&quot;x must be divisible by 2&quot;</span>))</div>
+<div class="line">    .check_input([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">if</span> (x &lt; 0) <span class="keywordflow">throw</span> std::logic_error(<span class="stringliteral">&quot;x must be greater than 0&quot;</span>); })</div>
+<div class="line">    .check_input([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x &lt; 100; }, [] (<span class="keywordtype">int</span> x) { <span class="keywordflow">throw</span> exceptions::less_than(100, x); })</div>
+<div class="line">    .check_input([] (<span class="keywordtype">int</span> x) { <span class="keywordflow">return</span> x % 2 == 0; }, std::logic_error(<span class="stringliteral">&quot;x must be divisible by 2&quot;</span>))</div>
 </div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_member_level_default_value"></a>
 default_value</h4>
 <ul>

@@ -105,6 +105,7 @@ $(document).ready(function(){initNavTree('algorithm_8hpp.html','');});
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">algorithm.hpp File Reference</div>  </div>
@@ -114,12 +115,29 @@ $(document).ready(function(){initNavTree('algorithm_8hpp.html','');});
 <p>A collection of algorithms a la <code></code> &lt;algorithm&gt;.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;<a class="el" href="config_8hpp_source.html">jsonv/config.hpp</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="value_8hpp_source.html">jsonv/value.hpp</a>&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 </div>
 <p><a href="algorithm_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1compare__traits.html">jsonv::compare_traits</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traits describing how to perform various aspects of comparison.  <a href="structjsonv_1_1compare__traits.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ga18053a6a38a0ddd3739a9b253e6f8301"><td class="memTemplParams" colspan="2">template&lt;typename TCompareTraits &gt; </td></tr>
+<tr class="memitem:ga18053a6a38a0ddd3739a9b253e6f8301"><td class="memTemplItemLeft" align="right" valign="top">int&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga18053a6a38a0ddd3739a9b253e6f8301">jsonv::compare</a> (const value &amp;a, const value &amp;b, const TCompareTraits &amp;traits)</td></tr>
+<tr class="memdesc:ga18053a6a38a0ddd3739a9b253e6f8301"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare the values <em>a</em> and <em>b</em> using the comparison <em>traits</em>.  <a href="group__Algorithm.html#ga18053a6a38a0ddd3739a9b253e6f8301">More...</a><br /></td></tr>
+<tr class="separator:ga18053a6a38a0ddd3739a9b253e6f8301"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae72c162e414d753ba60c1e84b49ff2ab"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#gae72c162e414d753ba60c1e84b49ff2ab">jsonv::compare</a> (const value &amp;a, const value &amp;b)</td></tr>
+<tr class="memdesc:gae72c162e414d753ba60c1e84b49ff2ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare the values <em>a</em> and <em>b</em> with strict comparison traits.  <a href="group__Algorithm.html#gae72c162e414d753ba60c1e84b49ff2ab">More...</a><br /></td></tr>
+<tr class="separator:gae72c162e414d753ba60c1e84b49ff2ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga74b55f49e5cab8746e5304c132ae1e87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga74b55f49e5cab8746e5304c132ae1e87">jsonv::compare_icase</a> (const value &amp;a, const value &amp;b)</td></tr>
+<tr class="memdesc:ga74b55f49e5cab8746e5304c132ae1e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare the values <em>a</em> and <em>b</em>, but use case-insensitive matching on <code>kind::string</code> values.  <a href="group__Algorithm.html#ga74b55f49e5cab8746e5304c132ae1e87">More...</a><br /></td></tr>
+<tr class="separator:ga74b55f49e5cab8746e5304c132ae1e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6f0abfde4a15bb3d727727d17e055d4d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">jsonv::map</a> (const std::function&lt; value(const value &amp;)&gt; &amp;func, const value &amp;input)</td></tr>
 <tr class="memdesc:ga6f0abfde4a15bb3d727727d17e055d4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function over the values in the <em>input</em>.  <a href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">More...</a><br /></td></tr>
 <tr class="separator:ga6f0abfde4a15bb3d727727d17e055d4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -135,7 +153,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>A collection of algorithms a la <code></code> &lt;algorithm&gt;. </p>
-<p>Copyright (c) 2014 by Travis Gockel. All rights reserved.</p>
+<p>Copyright (c) 2014-2015 by Travis Gockel. All rights reserved.</p>
 <p>This program is free software: you can redistribute it and/or modify it under the terms of the Apache License as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later version.</p>
 <dl class="section author"><dt>Author</dt><dd>Travis Gockel (<a href="#" onclick="location.href='mai'+'lto:'+'tra'+'vi'+'s@g'+'oc'+'kel'+'hu'+'t.c'+'om'; return false;">travi<span style="display: none;">.nosp@m.</span>s@go<span style="display: none;">.nosp@m.</span>ckelh<span style="display: none;">.nosp@m.</span>ut.c<span style="display: none;">.nosp@m.</span>om</a>) </dd></dl>
 

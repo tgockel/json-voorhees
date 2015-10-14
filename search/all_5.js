@@ -10,5 +10,6 @@ var searchData=
   ['forward_2ehpp',['forward.hpp',['../forward_8hpp.html',1,'']]],
   ['function_5fadapter',['function_adapter',['../classjsonv_1_1function__adapter.html',1,'jsonv']]],
   ['function_5fextractor',['function_extractor',['../classjsonv_1_1function__extractor.html',1,'jsonv']]],
-  ['function_5fserializer',['function_serializer',['../classjsonv_1_1function__serializer.html',1,'jsonv']]]
+  ['function_5fserializer',['function_serializer',['../classjsonv_1_1function__serializer.html',1,'jsonv']]],
+  ['functional_2ehpp',['functional.hpp',['../functional_8hpp.html',1,'']]]
 ];

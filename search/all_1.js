@@ -6,6 +6,7 @@ var searchData=
   ['basic_5fowner',['basic_owner',['../classjsonv_1_1detail_1_1basic__owner.html',1,'jsonv::detail']]],
   ['basic_5fowner_3c_20tcontainer_20_3e',['basic_owner&lt; TContainer &gt;',['../classjsonv_1_1detail_1_1basic__owner.html',1,'jsonv::detail']]],
   ['basic_5fowning_5fview',['basic_owning_view',['../classjsonv_1_1detail_1_1basic__owning__view.html',1,'jsonv::detail']]],
+  ['basic_5fvalue_5fbinary_5fpredicate',['basic_value_binary_predicate',['../structjsonv_1_1basic__value__binary__predicate.html',1,'jsonv']]],
   ['basic_5fview',['basic_view',['../classjsonv_1_1detail_1_1basic__view.html',1,'jsonv::detail']]],
   ['basic_5fview_2ehpp',['basic_view.hpp',['../basic__view_8hpp.html',1,'']]],
   ['before',['before',['../classjsonv_1_1member__adapter__builder.html#a743d6783310bab4fd2f6394698e93c5a',1,'jsonv::member_adapter_builder']]],

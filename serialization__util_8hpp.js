@@ -1,5 +1,6 @@
 var serialization__util_8hpp =
 [
+    [ "enum_adapter_icase", "serialization__util_8hpp.html#ga6cc69243779f3517d743c08fb8ead60f", null ],
     [ "make_adapter", "serialization__util_8hpp.html#ga61a12a0a37816093a912c93332b50602", null ],
     [ "make_adapter", "serialization__util_8hpp.html#ga38ba86c52138b27482d55f9449daed52", null ],
     [ "make_extractor", "serialization__util_8hpp.html#ga0bd79426477091433b93dfd5228fe205", null ],

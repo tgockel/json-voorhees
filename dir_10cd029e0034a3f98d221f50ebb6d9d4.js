@@ -13,6 +13,7 @@ var dir_10cd029e0034a3f98d221f50ebb6d9d4 =
     ] ],
     [ "extract.hpp", "extract_8hpp.html", null ],
     [ "forward.hpp", "forward_8hpp.html", null ],
+    [ "functional.hpp", "functional_8hpp.html", "functional_8hpp" ],
     [ "parse.hpp", "parse_8hpp.html", "parse_8hpp" ],
     [ "path.hpp", "path_8hpp.html", "path_8hpp" ],
     [ "serialization.hpp", "serialization_8hpp.html", "serialization_8hpp" ],

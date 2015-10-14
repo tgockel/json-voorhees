@@ -10,6 +10,7 @@ var hierarchy =
     [ "jsonv::detail::basic_view< TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__view.html", [
       [ "jsonv::detail::basic_owning_view< TContainer, TIterator, TConstIterator >", "classjsonv_1_1detail_1_1basic__owning__view.html", null ]
     ] ],
+    [ "jsonv::compare_traits", "structjsonv_1_1compare__traits.html", null ],
     [ "jsonv::context_base", "classjsonv_1_1context__base.html", [
       [ "jsonv::extraction_context", "classjsonv_1_1extraction__context.html", null ],
       [ "jsonv::serialization_context", "classjsonv_1_1serialization__context.html", null ]
@@ -37,6 +38,9 @@ var hierarchy =
         [ "jsonv::adapter_for< TContainer >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::container_adapter< TContainer >", "classjsonv_1_1container__adapter.html", null ]
         ] ],
+        [ "jsonv::adapter_for< TEnum >", "classjsonv_1_1adapter__for.html", [
+          [ "jsonv::enum_adapter< TEnum, FEnumComp, FValueComp >", "classjsonv_1_1enum__adapter.html", null ]
+        ] ],
         [ "jsonv::adapter_for< T >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::function_adapter< T, FExtract, FToJson >", "classjsonv_1_1function__adapter.html", null ]
         ] ]
@@ -46,11 +50,17 @@ var hierarchy =
         [ "jsonv::function_extractor< T, FExtract >", "classjsonv_1_1function__extractor.html", null ]
       ] ]
     ] ],
+    [ "FCompare", null, [
+      [ "jsonv::basic_value_binary_predicate< FCompare, FResult >", "structjsonv_1_1basic__value__binary__predicate.html", null ]
+    ] ],
     [ "jsonv::formats", "classjsonv_1_1formats.html", null ],
     [ "jsonv::formats_builder", "classjsonv_1_1formats__builder.html", null ],
     [ "jsonv::detail::formats_builder_dsl", "classjsonv_1_1detail_1_1formats__builder__dsl.html", [
       [ "jsonv::adapter_builder< T >", "classjsonv_1_1adapter__builder.html", null ],
       [ "jsonv::member_adapter_builder< T, TMember >", "classjsonv_1_1member__adapter__builder.html", null ]
+    ] ],
+    [ "FResult", null, [
+      [ "jsonv::basic_value_binary_predicate< FCompare, FResult >", "structjsonv_1_1basic__value__binary__predicate.html", null ]
     ] ],
     [ "jsonv::detail::generic_container< TStorage >", "classjsonv_1_1detail_1_1generic__container.html", null ],
     [ "jsonv::detail::generic_container< std::vector< path_element > >", "classjsonv_1_1detail_1_1generic__container.html", [
@@ -86,6 +96,8 @@ var hierarchy =
     [ "jsonv::tokenizer::token", "structjsonv_1_1tokenizer_1_1token.html", null ],
     [ "jsonv::tokenizer", "classjsonv_1_1tokenizer.html", null ],
     [ "jsonv::value", "classjsonv_1_1value.html", null ],
+    [ "jsonv::value_compare", "structjsonv_1_1value__compare.html", null ],
+    [ "jsonv::value_compare_icase", "structjsonv_1_1value__compare__icase.html", null ],
     [ "jsonv::detail::value_storage", "unionjsonv_1_1detail_1_1value__storage.html", null ],
     [ "jsonv::version", "structjsonv_1_1version.html", null ]
 ];

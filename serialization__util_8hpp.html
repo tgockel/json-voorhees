@@ -106,6 +106,7 @@ $(document).ready(function(){initNavTree('serialization__util_8hpp.html','');});
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">serialization_util.hpp File Reference</div>  </div>
@@ -115,7 +116,11 @@ $(document).ready(function(){initNavTree('serialization__util_8hpp.html','');});
 <p>Helper types and functions for serialization.  
 <a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;<a class="el" href="config_8hpp_source.html">jsonv/config.hpp</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="functional_8hpp_source.html">jsonv/functional.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="serialization_8hpp_source.html">jsonv/serialization.hpp</a>&gt;</code><br />
+<code>#include &lt;initializer_list&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
+<code>#include &lt;map&gt;</code><br />
 <code>#include &lt;type_traits&gt;</code><br />
 </div>
 <p><a href="serialization__util_8hpp_source.html">Go to the source code of this file.</a></p>
@@ -139,6 +144,16 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1container__adapter.html">jsonv::container_adapter&lt; TContainer &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An adapter for container types.  <a href="classjsonv_1_1container__adapter.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1enum__adapter.html">jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An adapter for enumeration types.  <a href="classjsonv_1_1enum__adapter.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga6cc69243779f3517d743c08fb8ead60f"><td class="memTemplParams" colspan="2">template&lt;typename TEnum , typename FEnumComp  = std::less&lt;TEnum&gt;&gt; </td></tr>
+<tr class="memitem:ga6cc69243779f3517d743c08fb8ead60f"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga6cc69243779f3517d743c08fb8ead60f">jsonv::enum_adapter_icase</a> = enum_adapter&lt; TEnum, FEnumComp, value_less_icase &gt;</td></tr>
+<tr class="memdesc:ga6cc69243779f3517d743c08fb8ead60f"><td class="mdescLeft">&#160;</td><td class="mdescRight">An adapter for enumeration types which ignores the case when extracting from JSON.  <a href="group__Serialization.html#ga6cc69243779f3517d743c08fb8ead60f">More...</a><br /></td></tr>
+<tr class="separator:ga6cc69243779f3517d743c08fb8ead60f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>

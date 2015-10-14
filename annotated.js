@@ -17,11 +17,14 @@ var annotated =
       [ "adapter", "classjsonv_1_1adapter.html", "classjsonv_1_1adapter" ],
       [ "adapter_builder", "classjsonv_1_1adapter__builder.html", "classjsonv_1_1adapter__builder" ],
       [ "adapter_for", "classjsonv_1_1adapter__for.html", "classjsonv_1_1adapter__for" ],
+      [ "basic_value_binary_predicate", "structjsonv_1_1basic__value__binary__predicate.html", "structjsonv_1_1basic__value__binary__predicate" ],
+      [ "compare_traits", "structjsonv_1_1compare__traits.html", null ],
       [ "container_adapter", "classjsonv_1_1container__adapter.html", "classjsonv_1_1container__adapter" ],
       [ "context_base", "classjsonv_1_1context__base.html", "classjsonv_1_1context__base" ],
       [ "diff_result", "group__Utility.html#structjsonv_1_1diff__result", "group__Utility_structjsonv_1_1diff__result" ],
       [ "dynamic_merge_rules", "classjsonv_1_1dynamic__merge__rules.html", "classjsonv_1_1dynamic__merge__rules" ],
       [ "encoder", "classjsonv_1_1encoder.html", "classjsonv_1_1encoder" ],
+      [ "enum_adapter", "classjsonv_1_1enum__adapter.html", "classjsonv_1_1enum__adapter" ],
       [ "extraction_context", "classjsonv_1_1extraction__context.html", "classjsonv_1_1extraction__context" ],
       [ "extraction_error", "classjsonv_1_1extraction__error.html", "classjsonv_1_1extraction__error" ],
       [ "extractor", "classjsonv_1_1extractor.html", "classjsonv_1_1extractor" ],
@@ -51,6 +54,8 @@ var annotated =
       [ "tokenizer", "classjsonv_1_1tokenizer.html", "classjsonv_1_1tokenizer" ],
       [ "validation_error", "classjsonv_1_1validation__error.html", "classjsonv_1_1validation__error" ],
       [ "value", "classjsonv_1_1value.html", "classjsonv_1_1value" ],
+      [ "value_compare", "structjsonv_1_1value__compare.html", "structjsonv_1_1value__compare" ],
+      [ "value_compare_icase", "structjsonv_1_1value__compare__icase.html", "structjsonv_1_1value__compare__icase" ],
       [ "version", "structjsonv_1_1version.html", "structjsonv_1_1version" ]
     ] ],
     [ "std", null, [
