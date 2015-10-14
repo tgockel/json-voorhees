@@ -232,12 +232,52 @@ namespace jsonv
  *  \note
  *  Not supported in MSVC 14 (CTP 5).
  *  
+ *  \paragraph serialization_builder_dsl_ref_formats_level_enum_type enum_type
+ *  
+ *   - <tt>enum_type&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, jsonv::value&gt;&gt;)</tt>
+ *   - <tt>enum_type_icase&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, jsonv::value&gt;&gt;)</tt>
+ *  
+ *  Create an adapter for the \c TEnum type with a mapping of C++ values to JSON values and vice versa. The most common
+ *  use of this is to map \c enum values in C++ to string representations in JSON. \c TEnum is not restricted to types
+ *  which are \c enum, but can be anything which you would like to restrict to a limited subset of possible values.
+ *  Likewise, JSON representations are not restricted to being of \c kind::string.
+ *  
+ *  The sibling function \c enum_type_icase will create an adapter which uses case-insensitive checking when converting
+ *  to C++ values in \c extract.
+ *  
+ *  \code
+ *    .enum_type<ring>("ring",
+ *                     {
+ *                       { ring::fire,  "fire"    },
+ *                       { ring::wind,  "wind"    },
+ *                       { ring::earth, "earth"   },
+ *                       { ring::water, "water"   },
+ *                       { ring::heart, "heart"   }, // "heart" is preferred for to_json
+ *                       { ring::heart, "useless" }, // "useless" is interpreted as ring::heart in extract
+ *                       { ring::fire,  1         }, // the JSON value 1 will also be interpreted as ring::fire in extract
+ *                       { ring::ussr,  "wind"    }, // old C++ value ring::ussr will get output as "wind"
+ *                     }
+ *                    )
+ *    .enum_type_icase<int>("integer",
+ *                          {
+ *                            { 0, "zero"   },
+ *                            { 0, "naught" },
+ *                            { 1, "one"    },
+ *                            { 2, "two"    },
+ *                            { 3, "three"  },
+ *                          }
+ *                         )
+ *  \endcode
+ *  
+ *  \see enum_adapter
+ *  
+ *  
  *  \subsubsection serialization_builder_dsl_ref_formats_narrowing Narrowing
  *  
  *  \paragraph serialization_builder_dsl_ref_formats_narrowing_type type&lt;T&gt;
  *  
  *   - <tt>type&lt;T&gt;()</tt>
- *   - <tt>type&lt;T&gt;(std::function&lt;void (adapter_builder&lt;T&gt;)&gt; func)</tt>
+ *   - <tt>type&lt;T&gt;(std::function&lt;void (adapter_builder&lt;T&gt;&amp;)&gt; func)</tt>
  *  
  *  Create an \c adapter for type \c T and begin building the members for it. If \a func is provided, it will be called
  *  with the adapter_builder&lt;T&gt; this call to \c type creates, which can be used for creating common extension
@@ -419,6 +459,12 @@ public:
     
     template <typename T, typename F>
     adapter_builder<T> type(F&&);
+    
+    template <typename TEnum>
+    formats_builder& enum_type(std::string enum_name, std::initializer_list<std::pair<TEnum, value>> mapping);
+    
+    template <typename TEnum>
+    formats_builder& enum_type_icase(std::string enum_name, std::initializer_list<std::pair<TEnum, value>> mapping);
     
     formats_builder& register_adapter(const adapter* p);
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
@@ -832,6 +878,22 @@ public:
         return adapter_builder<T>(this, std::forward<F>(f));
     }
     
+    template <typename TEnum>
+    formats_builder& enum_type(std::string                                    enum_name,
+                               std::initializer_list<std::pair<TEnum, value>> mapping
+                              )
+    {
+        return register_adapter(std::make_shared<enum_adapter<TEnum>>(std::move(enum_name), mapping));
+    }
+    
+    template <typename TEnum>
+    formats_builder& enum_type_icase(std::string                                    enum_name,
+                                     std::initializer_list<std::pair<TEnum, value>> mapping
+                                    )
+    {
+        return register_adapter(std::make_shared<enum_adapter_icase<TEnum>>(std::move(enum_name), mapping));
+    }
+    
     formats_builder& register_adapter(const adapter* p)
     {
         _formats.register_adapter(p);
@@ -905,6 +967,22 @@ template <typename T, typename F>
 adapter_builder<T> formats_builder_dsl::type(F&& f)
 {
     return owner->type<T>(std::forward<F>(f));
+}
+
+template <typename TEnum>
+formats_builder& formats_builder_dsl::enum_type(std::string                                    enum_name,
+                                                std::initializer_list<std::pair<TEnum, value>> mapping
+                                               )
+{
+    return owner->enum_type<TEnum>(std::move(enum_name), mapping);
+}
+
+template <typename TEnum>
+formats_builder& formats_builder_dsl::enum_type_icase(std::string                                    enum_name,
+                                                      std::initializer_list<std::pair<TEnum, value>> mapping
+                                                     )
+{
+    return owner->enum_type_icase<TEnum>(std::move(enum_name), mapping);
 }
 
 template <typename TContainer>

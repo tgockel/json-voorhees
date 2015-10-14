@@ -353,4 +353,131 @@ TEST(serialization_builder_extra_unchecked_key_throws)
 
 }
 
+namespace x
+{
+
+enum class ring
+{
+    fire,
+    wind,
+    water,
+    earth,
+    heart,
+};
+
+}
+
+TEST(serialization_builder_enum_strings)
+{
+    using namespace x;
+    
+    jsonv::formats formats =
+        jsonv::formats_builder()
+            .enum_type<ring>("ring",
+                             {
+                               { ring::fire,  "fire"  },
+                               { ring::wind,  "wind"  },
+                               { ring::water, "water" },
+                               { ring::earth, "earth" },
+                               { ring::heart, "heart" },
+                             }
+                            )
+            .register_containers<ring, std::vector>()
+            .check_references(jsonv::formats::defaults());
+    
+    ensure(ring::fire  == jsonv::extract<ring>("fire",  formats));
+    ensure(ring::wind  == jsonv::extract<ring>("wind",  formats));
+    ensure(ring::water == jsonv::extract<ring>("water", formats));
+    ensure(ring::earth == jsonv::extract<ring>("earth", formats));
+    ensure(ring::heart == jsonv::extract<ring>("heart", formats));
+    
+    jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
+    std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
+    std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
+    ensure(val == exp);
+    
+    value enc = jsonv::to_json(exp, formats);
+    ensure(enc == jsons);
+    
+    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>("FIRE",    formats));
+    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>("useless", formats));
+}
+
+TEST(serialization_builder_enum_strings_icase)
+{
+    using namespace x;
+    
+    jsonv::formats formats =
+        jsonv::formats_builder()
+            .enum_type_icase<ring>("ring",
+                             {
+                               { ring::fire,  "fire"  },
+                               { ring::wind,  "wind"  },
+                               { ring::water, "water" },
+                               { ring::earth, "earth" },
+                               { ring::heart, "heart" },
+                             }
+                            )
+            .register_containers<ring, std::vector>()
+            .check_references(jsonv::formats::defaults());
+    
+    ensure(ring::fire  == jsonv::extract<ring>("fiRe",  formats));
+    ensure(ring::wind  == jsonv::extract<ring>("wIND",  formats));
+    ensure(ring::water == jsonv::extract<ring>("Water", formats));
+    ensure(ring::earth == jsonv::extract<ring>("EARTH", formats));
+    ensure(ring::heart == jsonv::extract<ring>("HEART", formats));
+    
+    jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
+    std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
+    std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
+    ensure(val == exp);
+    
+    value enc = jsonv::to_json(exp, formats);
+    ensure(enc == jsons);
+    
+    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>("useless", formats));
+}
+
+TEST(serialization_builder_enum_strings_icase_multimapping)
+{
+    using namespace x;
+    
+    jsonv::formats formats =
+        jsonv::formats_builder()
+            .enum_type_icase<ring>("ring",
+                             {
+                               { ring::fire,  "fire"  },
+                               { ring::fire,  666     },
+                               { ring::wind,  "wind"  },
+                               { ring::water, "water" },
+                               { ring::earth, "earth" },
+                               { ring::earth, true    },
+                               { ring::heart, "heart" },
+                               { ring::heart, "useless" },
+                             }
+                            )
+            .register_containers<ring, std::vector>()
+            .check_references(jsonv::formats::defaults());
+    
+    ensure(ring::fire  == jsonv::extract<ring>("fiRe",  formats));
+    ensure(ring::fire  == jsonv::extract<ring>(666,     formats));
+    ensure(ring::wind  == jsonv::extract<ring>("wIND",  formats));
+    ensure(ring::water == jsonv::extract<ring>("Water", formats));
+    ensure(ring::earth == jsonv::extract<ring>("EARTH", formats));
+    ensure(ring::earth == jsonv::extract<ring>(true, formats));
+    ensure(ring::heart == jsonv::extract<ring>("HEART", formats));
+    ensure(ring::heart == jsonv::extract<ring>("useless", formats));
+    
+    jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
+    std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
+    std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
+    ensure(val == exp);
+    
+    value enc = jsonv::to_json(exp, formats);
+    ensure(enc == jsons);
+    
+    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(false, formats));
+    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(5,     formats));
+}
+
 }
