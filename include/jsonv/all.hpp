@@ -729,6 +729,7 @@ namespace jsonv
 #include "demangle.hpp"
 #include "encode.hpp"
 #include "forward.hpp"
+#include "functional.hpp"
 #include "parse.hpp"
 #include "path.hpp"
 #include "serialization.hpp"
