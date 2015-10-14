@@ -605,6 +605,16 @@ public:
         });
     }
     
+    void default_value(std::function<TMember (const extraction_context&, const value&)>&& create)
+    {
+        _default_value = std::move(create);
+    }
+    
+    void default_on_null(bool on)
+    {
+        _default_on_null = on;
+    }
+    
 private:
     bool should_encode(const serialization_context& context, const T& from) const
     {
@@ -682,7 +692,7 @@ public:
     **/
     member_adapter_builder& default_value(std::function<TMember (const extraction_context&, const value&)> create)
     {
-        _adapter->_default_value = std::move(create);
+        _adapter->default_value(std::move(create));
         return *this;
     }
     
@@ -697,7 +707,7 @@ public:
     /** Should a \c kind::null for a key be interpreted as a missing value? **/
     member_adapter_builder& default_on_null(bool on = true)
     {
-        _adapter->_default_on_null = on;
+        _adapter->default_on_null(on);
         return *this;
     }
     
