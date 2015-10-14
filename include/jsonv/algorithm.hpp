@@ -176,8 +176,16 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
 /** Compare the values \a a and \a b with strict comparison traits.
  *  
  *  \see value::compare
+ *  \see compare_icase
 **/
 JSONV_PUBLIC int compare(const value& a, const value& b);
+
+/** Compare the values \a a and \a b, but use case-insensitive matching on \c kind::string values. This does \e not use
+ *  case-insensitive matching on the keys of objects!
+ *  
+ *  \see compare
+**/
+JSONV_PUBLIC int compare_icase(const value& a, const value& b);
 
 /** Run a function over the values in the \a input. The behavior of this function is different, depending on the \c kind
  *  of \a input. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If
