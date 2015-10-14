@@ -436,22 +436,22 @@ int value::compare(const value& other) const
 
 bool value::operator< (const value& other) const
 {
-    return compare(other) == -1;
+    return compare(other) < 0;
 }
 
 bool value::operator<=(const value& other) const
 {
-    return compare(other) != 1;
+    return compare(other) <= 0;
 }
 
 bool value::operator> (const value& other) const
 {
-    return compare(other) == 1;
+    return compare(other) > 0;
 }
 
 bool value::operator>=(const value& other) const
 {
-    return compare(other) != -1;
+    return compare(other) >= 0;
 }
 
 std::ostream& operator<<(std::ostream& stream, const value& val)

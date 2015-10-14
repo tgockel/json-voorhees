@@ -44,3 +44,44 @@ TEST(parse_strict_string_unprintables)
     ensure_throws(jsonv::parse_error, jsonv::parse("\"\r\"",   options));
     ensure_throws(jsonv::parse_error, jsonv::parse("\"\x01\"", options));
 }
+
+TEST(string_comparisons)
+{
+    using namespace jsonv;
+    
+    value fire  = "fire";
+    value wind  = "wind";
+    value water = "water";
+    value earth = "earth";
+    value heart = "heart";
+    
+    ensure_eq(fire, fire);
+    ensure_lt(fire, wind);
+    ensure_lt(fire, water);
+    ensure_gt(fire, earth);
+    ensure_lt(fire, heart);
+    
+    ensure_gt(wind, fire);
+    ensure_eq(wind, wind);
+    ensure_gt(wind, water);
+    ensure_gt(wind, earth);
+    ensure_gt(wind, heart);
+    
+    ensure_gt(water, fire);
+    ensure_lt(water, wind);
+    ensure_eq(water, water);
+    ensure_gt(water, earth);
+    ensure_gt(water, heart);
+    
+    ensure_lt(earth, fire);
+    ensure_lt(earth, wind);
+    ensure_lt(earth, water);
+    ensure_eq(earth, earth);
+    ensure_lt(earth, heart);
+    
+    ensure_gt(heart, fire);
+    ensure_lt(heart, wind);
+    ensure_lt(heart, water);
+    ensure_gt(heart, earth);
+    ensure_eq(heart, heart);
+}
