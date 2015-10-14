@@ -33,8 +33,6 @@ public:
     
     bool empty() const;
     
-    int compare(const array_impl& other) const;
-    
 public:
     array_type _values;
 };

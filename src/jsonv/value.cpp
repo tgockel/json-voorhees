@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -407,13 +407,6 @@ bool value::as_boolean() const
     return _data.boolean;
 }
 
-static int decimal_compare(const double& x, const double& y)
-{
-    return (std::abs(x - y) < (std::numeric_limits<double>::denorm_min() * 10.0)) ?  0
-         : (x < y)                                                                ? -1
-         :                                                                           1;
-}
-
 bool value::operator==(const value& other) const
 {
     if (this == &other && kind_valid(kind()))
@@ -434,65 +427,11 @@ bool value::operator !=(const value& other) const
         return compare(other) != 0;
 }
 
-static int kindval(kind k)
-{
-    switch (k)
-    {
-    case jsonv::kind::null:
-        return 0;
-    case jsonv::kind::boolean:
-        return 1;
-    case jsonv::kind::integer:
-    case jsonv::kind::decimal:
-        return 2;
-    case jsonv::kind::string:
-        return 3;
-    case jsonv::kind::array:
-        return 4;
-    case jsonv::kind::object:
-        return 5;
-    default:
-        return -1;
-    }
-}
-
-static int compare_kinds(kind a, kind b)
-{
-    int va = kindval(a);
-    int vb = kindval(b);
-    return va == vb ? 0 : va < vb ? -1 : 1;
-}
-
 int value::compare(const value& other) const
 {
-    if (this == &other)
-        return 0;
+    using jsonv::compare;
     
-    if (int kindcmp = compare_kinds(kind(), other.kind()))
-        return kindcmp;
-    
-    switch (kind())
-    {
-    case jsonv::kind::null:
-        return 0;
-    case jsonv::kind::boolean:
-        return as_boolean() == other.as_boolean() ? 0 : as_boolean() ? 1 : -1;
-    case jsonv::kind::integer:
-        // other might be a decimal type, but if they are both integers, compare directly
-        if (other.kind() == jsonv::kind::integer)
-            return as_integer() == other.as_integer() ? 0 : as_integer() < other.as_integer() ? -1 : 1;
-        // fall through
-    case jsonv::kind::decimal:
-        return decimal_compare(as_decimal(), other.as_decimal());
-    case jsonv::kind::string:
-        return as_string().compare(other.as_string());
-    case jsonv::kind::array:
-        return _data.array->compare(*other._data.array);
-    case jsonv::kind::object:
-        return _data.object->compare(*other._data.object);
-    default:
-        return -1;
-    }
+    return compare(*this, other);
 }
 
 bool value::operator< (const value& other) const

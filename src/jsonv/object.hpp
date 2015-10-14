@@ -34,8 +34,6 @@ public:
     bool empty() const;
     
     value::size_type size() const;
-    
-    int compare(const object_impl& other) const;
         
 public:
     map_type _values;

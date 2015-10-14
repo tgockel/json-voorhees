@@ -187,18 +187,4 @@ value::array_iterator value::erase(const_array_iterator first, const_array_itera
     return array_iterator(this, static_cast<size_type>(fdist));
 }
 
-namespace detail
-{
-
-int array_impl::compare(const array_impl& other) const
-{
-    auto self_iter = _values.begin();
-    auto othr_iter = other._values.begin();
-    for (; self_iter != _values.end() && othr_iter != other._values.end(); ++self_iter, ++othr_iter)
-        if (int cmp = self_iter->compare(*othr_iter))
-            return cmp;
-    return self_iter == _values.end() ? othr_iter == other._values.end() ? 0 : -1 : 1;
-}
-
-}
 }

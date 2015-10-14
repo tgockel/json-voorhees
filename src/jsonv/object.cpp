@@ -172,19 +172,5 @@ value::size_type object_impl::size() const
     return _values.size();
 }
 
-int object_impl::compare(const object_impl& other) const
-{
-    auto self_iter = _values.begin();
-    auto othr_iter = other._values.begin();
-    for (; self_iter != _values.end() && othr_iter != other._values.end(); ++self_iter, ++othr_iter)
-    {
-        if (int cmp = self_iter->first.compare(othr_iter->first))
-            return cmp;
-        if (int cmp = self_iter->second.compare(othr_iter->second))
-            return cmp;
-    }
-    return self_iter == _values.end() ? othr_iter == other._values.end() ? 0 : -1 : 1;
-}
-
 }
 }
