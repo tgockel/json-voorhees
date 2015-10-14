@@ -392,9 +392,9 @@ namespace jsonv
  *  
  *  \code
  *    .member("x", &my_type::x)
- *        .check([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
- *        .check([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
- *        .check([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
+ *        .check_input([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
+ *        .check_input([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
+ *        .check_input([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
  *  \endcode
  *  
  *  \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
