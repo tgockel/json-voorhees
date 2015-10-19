@@ -86,7 +86,8 @@ var group__Serialization =
       [ "serialization_context", "classjsonv_1_1serialization__context.html#a2cc730476dc157437e76e3eca2659c90", null ],
       [ "serialization_context", "classjsonv_1_1serialization__context.html#a884e5ab82b0954db49ff05df6b5d1727", null ],
       [ "~serialization_context", "classjsonv_1_1serialization__context.html#a284af47fb1f20e7dd13f72978a1392ec", null ],
-      [ "to_json", "classjsonv_1_1serialization__context.html#a4185f1964c08027f88500435583c7bb7", null ]
+      [ "to_json", "classjsonv_1_1serialization__context.html#a4185f1964c08027f88500435583c7bb7", null ],
+      [ "to_json", "classjsonv_1_1serialization__context.html#a06c84d0d9034456ddc897841a0f9b0ee", null ]
     ] ],
     [ "extractor_construction", "classjsonv_1_1extractor__construction.html", [
       [ "extract", "classjsonv_1_1extractor__construction.html#afc01fbc4bd7fefca6cb932e5c60ac387", null ],
@@ -133,6 +134,18 @@ var group__Serialization =
       [ "enum_adapter", "classjsonv_1_1enum__adapter.html#a59f05d6b86d00c4b895bb1976cda4f95", null ],
       [ "create", "classjsonv_1_1enum__adapter.html#ae202f0475f1582f12348ec741f73046d", null ],
       [ "to_json", "classjsonv_1_1enum__adapter.html#a0cf1c6cabe510405d455acd23b2f8159", null ]
+    ] ],
+    [ "polymorphic_adapter", "classjsonv_1_1polymorphic__adapter.html", [
+      [ "match_predicate", "classjsonv_1_1polymorphic__adapter.html#a248eb3526408a95e5b3dfcdc5b8214fa", null ],
+      [ "polymorphic_adapter", "classjsonv_1_1polymorphic__adapter.html#a7ff1f816f888b9edc96681c002c01238", null ],
+      [ "add_subtype", "classjsonv_1_1polymorphic__adapter.html#af95d3475637e76e6800688961afbbff0", null ],
+      [ "add_subtype_keyed", "classjsonv_1_1polymorphic__adapter.html#a1a65e6de614656318efcebb097d3c6f3", null ],
+      [ "check_null_input", "classjsonv_1_1polymorphic__adapter.html#adc6f9d81086ee992c7ed9cf9d0cd2d41", null ],
+      [ "check_null_input", "classjsonv_1_1polymorphic__adapter.html#acb89e273cd5bd49b8489107d9c1eaa0f", null ],
+      [ "check_null_output", "classjsonv_1_1polymorphic__adapter.html#ab73e40a1eff46aca887c2189e3abeb96", null ],
+      [ "check_null_output", "classjsonv_1_1polymorphic__adapter.html#a641f4392831a74d0ecd3ce59e8d56c5a", null ],
+      [ "create", "classjsonv_1_1polymorphic__adapter.html#ae3e2a33af81429b8e24f00285c4170ba", null ],
+      [ "to_json", "classjsonv_1_1polymorphic__adapter.html#a7e4dadd86dd8b2e52b2082c137b55783", null ]
     ] ],
     [ "demangle_function", "group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38", null ],
     [ "enum_adapter_icase", "group__Serialization.html#ga6cc69243779f3517d743c08fb8ead60f", null ],

@@ -1,5 +1,7 @@
 var searchData=
 [
+  ['add_5fsubtype',['add_subtype',['../classjsonv_1_1polymorphic__adapter.html#af95d3475637e76e6800688961afbbff0',1,'jsonv::polymorphic_adapter']]],
+  ['add_5fsubtype_5fkeyed',['add_subtype_keyed',['../classjsonv_1_1polymorphic__adapter.html#a1a65e6de614656318efcebb097d3c6f3',1,'jsonv::polymorphic_adapter']]],
   ['after',['after',['../classjsonv_1_1member__adapter__builder.html#a59c0e8b181d465bceaec3fa0c2bff268',1,'jsonv::member_adapter_builder']]],
   ['alternate_5fname',['alternate_name',['../classjsonv_1_1member__adapter__builder.html#a4a0886ee35cecc2a217460cc30a16c0e',1,'jsonv::member_adapter_builder']]],
   ['array',['array',['../group__Creation.html#gaee0b1767f4ec42adc02c5b0bb0781b91',1,'jsonv::array()'],['../group__Creation.html#ga4f0838289f72088c6a079e00140efda2',1,'jsonv::array(std::initializer_list&lt; value &gt; source)'],['../group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed',1,'jsonv::array(TForwardIterator first, TForwardIterator last)']]],

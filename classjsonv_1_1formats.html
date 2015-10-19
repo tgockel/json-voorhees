@@ -762,7 +762,7 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Encode the provided value <em>from</em> into a JSON <code>value</code>. </p>
-<p>The <em>context</em> is passed to the <code>serializer</code> which performs the conversion. In general, this should not be used directly as it is painful to do so &ndash; prefer <code>serialization_context::to_json</code> or the free function <code>jsonv::to_json</code>.</p>
+<p>The <em>context</em> is passed to the <code>serializer</code> which performs the conversion. In general, this should not be used directly as it is painful to do so &ndash; prefer <code><a class="el" href="classjsonv_1_1serialization__context.html#a4185f1964c08027f88500435583c7bb7" title="Convenience function for converting a C++ object into a JSON value. ">serialization_context::to_json</a></code> or the free function <code>jsonv::to_json</code>.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="classjsonv_1_1no__serializer.html" title="Thrown when formats::to_json does not have a serializer for the provided type. ">no_serializer</a></td><td>if a <code>serializer</code> for <em>type</em> could not be found. </td></tr>

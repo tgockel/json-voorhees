@@ -41,6 +41,9 @@ var hierarchy =
         [ "jsonv::adapter_for< TEnum >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::enum_adapter< TEnum, FEnumComp, FValueComp >", "classjsonv_1_1enum__adapter.html", null ]
         ] ],
+        [ "jsonv::adapter_for< TPointer >", "classjsonv_1_1adapter__for.html", [
+          [ "jsonv::polymorphic_adapter< TPointer >", "classjsonv_1_1polymorphic__adapter.html", null ]
+        ] ],
         [ "jsonv::adapter_for< T >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::function_adapter< T, FExtract, FToJson >", "classjsonv_1_1function__adapter.html", null ]
         ] ]
@@ -57,7 +60,8 @@ var hierarchy =
     [ "jsonv::formats_builder", "classjsonv_1_1formats__builder.html", null ],
     [ "jsonv::detail::formats_builder_dsl", "classjsonv_1_1detail_1_1formats__builder__dsl.html", [
       [ "jsonv::adapter_builder< T >", "classjsonv_1_1adapter__builder.html", null ],
-      [ "jsonv::member_adapter_builder< T, TMember >", "classjsonv_1_1member__adapter__builder.html", null ]
+      [ "jsonv::member_adapter_builder< T, TMember >", "classjsonv_1_1member__adapter__builder.html", null ],
+      [ "jsonv::polymorphic_adapter_builder< TPointer >", "classjsonv_1_1polymorphic__adapter__builder.html", null ]
     ] ],
     [ "FResult", null, [
       [ "jsonv::basic_value_binary_predicate< FCompare, FResult >", "structjsonv_1_1basic__value__binary__predicate.html", null ]

@@ -120,8 +120,9 @@ Inheritance diagram for jsonv::detail::formats_builder_dsl:</div>
  <div class="center">
   <img src="classjsonv_1_1detail_1_1formats__builder__dsl.png" usemap="#jsonv::detail::formats_builder_dsl_map" alt=""/>
   <map id="jsonv::detail::formats_builder_dsl_map" name="jsonv::detail::formats_builder_dsl_map">
-<area href="classjsonv_1_1adapter__builder.html" alt="jsonv::adapter_builder&lt; T &gt;" shape="rect" coords="0,56,281,80"/>
-<area href="classjsonv_1_1member__adapter__builder.html" alt="jsonv::member_adapter_builder&lt; T, TMember &gt;" shape="rect" coords="291,56,572,80"/>
+<area href="classjsonv_1_1adapter__builder.html" alt="jsonv::adapter_builder&lt; T &gt;" shape="rect" coords="0,56,284,80"/>
+<area href="classjsonv_1_1member__adapter__builder.html" alt="jsonv::member_adapter_builder&lt; T, TMember &gt;" shape="rect" coords="294,56,578,80"/>
+<area href="classjsonv_1_1polymorphic__adapter__builder.html" alt="jsonv::polymorphic_adapter_builder&lt; TPointer &gt;" shape="rect" coords="588,56,872,80"/>
 </map>
  </div></div>
 <table class="memberdecls">
@@ -146,6 +147,16 @@ template&lt;typename TEnum &gt; </td></tr>
 template&lt;typename TEnum &gt; </td></tr>
 <tr class="memitem:a92257fd2f1fd0799e4fc1726e87809df"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1formats__builder.html">formats_builder</a> &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>enum_type_icase</b> (std::string enum_name, std::initializer_list&lt; std::pair&lt; TEnum, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&gt; mapping)</td></tr>
 <tr class="separator:a92257fd2f1fd0799e4fc1726e87809df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecc472274f04615e974f956c11728958"><td class="memTemplParams" colspan="2"><a class="anchor" id="aecc472274f04615e974f956c11728958"></a>
+template&lt;typename TPointer &gt; </td></tr>
+<tr class="memitem:aecc472274f04615e974f956c11728958"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1polymorphic__adapter__builder.html">polymorphic_adapter_builder</a><br class="typebreak" />
+&lt; TPointer &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>polymorphic_type</b> (std::string discrimination_key=&quot;&quot;)</td></tr>
+<tr class="separator:aecc472274f04615e974f956c11728958"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d598b1190a38743459a68e59c32b656"><td class="memTemplParams" colspan="2"><a class="anchor" id="a1d598b1190a38743459a68e59c32b656"></a>
+template&lt;typename TPointer , typename F &gt; </td></tr>
+<tr class="memitem:a1d598b1190a38743459a68e59c32b656"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1polymorphic__adapter__builder.html">polymorphic_adapter_builder</a><br class="typebreak" />
+&lt; TPointer &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>polymorphic_type</b> (std::string discrimination_key, F &amp;&amp;)</td></tr>
+<tr class="separator:a1d598b1190a38743459a68e59c32b656"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34e76a3ee985ea526b801c39456bedf4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a34e76a3ee985ea526b801c39456bedf4"></a>
 <a class="el" href="classjsonv_1_1formats__builder.html">formats_builder</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>register_adapter</b> (const <a class="el" href="classjsonv_1_1adapter.html">adapter</a> *p)</td></tr>
 <tr class="separator:a34e76a3ee985ea526b801c39456bedf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -177,7 +188,7 @@ Protected Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00450">450</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00451">451</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a></li>
 </ul>

@@ -46,6 +46,8 @@ var annotated =
       [ "parse_options", "classjsonv_1_1parse__options.html", "classjsonv_1_1parse__options" ],
       [ "path", "classjsonv_1_1path.html", "classjsonv_1_1path" ],
       [ "path_element", "classjsonv_1_1path__element.html", "classjsonv_1_1path__element" ],
+      [ "polymorphic_adapter", "classjsonv_1_1polymorphic__adapter.html", "classjsonv_1_1polymorphic__adapter" ],
+      [ "polymorphic_adapter_builder", "classjsonv_1_1polymorphic__adapter__builder.html", "classjsonv_1_1polymorphic__adapter__builder" ],
       [ "recursive_merge_rules", "classjsonv_1_1recursive__merge__rules.html", "classjsonv_1_1recursive__merge__rules" ],
       [ "serialization_context", "classjsonv_1_1serialization__context.html", "classjsonv_1_1serialization__context" ],
       [ "serializer", "classjsonv_1_1serializer.html", "classjsonv_1_1serializer" ],
