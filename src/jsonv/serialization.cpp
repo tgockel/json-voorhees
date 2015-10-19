@@ -590,4 +590,9 @@ serialization_context::serialization_context() :
 
 serialization_context::~serialization_context() noexcept = default;
 
+value serialization_context::to_json(const std::type_info& type, const void* from) const
+{
+    return formats().to_json(type, from, *this);
+}
+
 }

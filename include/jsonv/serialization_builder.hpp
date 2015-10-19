@@ -443,6 +443,7 @@ class formats_builder;
 
 template <typename T> class adapter_builder;
 template <typename T, typename TMember> class member_adapter_builder;
+template <typename TPointer> class polymorphic_adapter_builder;
 
 namespace detail
 {
@@ -465,6 +466,12 @@ public:
     
     template <typename TEnum>
     formats_builder& enum_type_icase(std::string enum_name, std::initializer_list<std::pair<TEnum, value>> mapping);
+    
+    template <typename TPointer>
+    polymorphic_adapter_builder<TPointer> polymorphic_type(std::string discrimination_key = "");
+    
+    template <typename TPointer, typename F>
+    polymorphic_adapter_builder<TPointer> polymorphic_type(std::string discrimination_key, F&&);
     
     formats_builder& register_adapter(const adapter* p);
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
@@ -871,6 +878,86 @@ private:
     adapter_impl* _adapter;
 };
 
+template <typename TPointer>
+class polymorphic_adapter_builder :
+        public detail::formats_builder_dsl
+{
+public:
+    template <typename F>
+    explicit polymorphic_adapter_builder(formats_builder* owner,
+                                         std::string      discrimination_key,
+                                         F&&              f
+                                        ) :
+            formats_builder_dsl(owner),
+            _adapter(nullptr),
+            _discrimination_key(std::move(discrimination_key))
+    {
+        auto adapter = std::make_shared<polymorphic_adapter<TPointer>>();
+        register_adapter(adapter);
+        _adapter = adapter.get();
+        
+        std::forward<F>(f)(*this);
+    }
+    
+    explicit polymorphic_adapter_builder(formats_builder* owner, std::string discrimination_key = "") :
+            polymorphic_adapter_builder(owner,
+                                        std::move(discrimination_key),
+                                        [] (const polymorphic_adapter_builder<TPointer>&) { }
+                                       )
+    { }
+    
+    polymorphic_adapter_builder& check_null_input(bool on = true)
+    {
+        _adapter->check_null_input(on);
+        return *this;
+    }
+    
+    polymorphic_adapter_builder& check_null_output(bool on = true)
+    {
+        _adapter->check_null_output(on);
+        return *this;
+    }
+    
+    template <typename TSub>
+    polymorphic_adapter_builder& subtype(value discrimination_value)
+    {
+        if (_discrimination_key.empty())
+            throw std::logic_error("Cannot use single-argument subtype if no discrimination_key has been set");
+        
+        return subtype<TSub>(_discrimination_key, std::move(discrimination_value));
+    }
+        
+    template <typename TSub>
+    polymorphic_adapter_builder& subtype(std::string discrimination_key, value discrimination_value)
+    {
+        _adapter->template add_subtype_keyed<TSub>(std::move(discrimination_key), std::move(discrimination_value));
+        reference_type(std::type_index(typeid(TSub)), std::type_index(typeid(TPointer)));
+        return *this;
+    }
+        
+    template <typename TSub>
+    polymorphic_adapter_builder& subtype(std::function<bool (const extraction_context&, const value&)> discriminator)
+    {
+        _adapter->template add_subtype<TSub>(std::move(discriminator));
+        reference_type(std::type_index(typeid(TSub)), std::type_index(typeid(TPointer)));
+        return *this;
+    }
+        
+    template <typename TSub>
+    polymorphic_adapter_builder& subtype(std::function<bool (const value&)> discriminator)
+    {
+        return subtype<TSub>([discriminator] (const extraction_context&, const value& val)
+                             {
+                                 return discriminator(val);
+                             }
+                            );
+    }
+    
+private:
+    polymorphic_adapter<TPointer>* _adapter;
+    std::string                    _discrimination_key;
+};
+
 class JSONV_PUBLIC formats_builder
 {
 public:
@@ -902,6 +989,20 @@ public:
                                     )
     {
         return register_adapter(std::make_shared<enum_adapter_icase<TEnum>>(std::move(enum_name), mapping));
+    }
+    
+    template <typename TPointer>
+    polymorphic_adapter_builder<TPointer>
+    polymorphic_type(std::string discrimination_key = "")
+    {
+        return polymorphic_adapter_builder<TPointer>(this, std::move(discrimination_key));
+    }
+    
+    template <typename TPointer, typename F>
+    polymorphic_adapter_builder<TPointer>
+    polymorphic_type(std::string discrimination_key, F&& f)
+    {
+        return polymorphic_adapter_builder<TPointer>(this, std::move(discrimination_key), std::forward<F>(f));
     }
     
     formats_builder& register_adapter(const adapter* p)
@@ -993,6 +1094,20 @@ formats_builder& formats_builder_dsl::enum_type_icase(std::string               
                                                      )
 {
     return owner->enum_type_icase<TEnum>(std::move(enum_name), mapping);
+}
+
+template <typename TPointer>
+polymorphic_adapter_builder<TPointer>
+formats_builder_dsl::polymorphic_type(std::string discrimination_key)
+{
+    return owner->polymorphic_type<TPointer>(std::move(discrimination_key));
+}
+
+template <typename TPointer, typename F>
+polymorphic_adapter_builder<TPointer>
+formats_builder_dsl::polymorphic_type(std::string discrimination_key, F&& f)
+{
+    return owner->polymorphic_type<TPointer>(std::move(discrimination_key), std::forward<F>(f));
 }
 
 template <typename TContainer>

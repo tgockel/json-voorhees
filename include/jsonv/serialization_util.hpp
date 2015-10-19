@@ -461,6 +461,136 @@ private:
 template <typename TEnum, typename FEnumComp = std::less<TEnum>>
 using enum_adapter_icase = enum_adapter<TEnum, FEnumComp, value_less_icase>;
 
+/** An adapter which can create polymorphic types. This allows you to parse JSON directly into a type heirarchy without
+ *  some middle layer.
+ *  
+ *  @code
+ *  [
+ *    {
+ *      "type": "worker",
+ *      "name": "Adam"
+ *    },
+ *    {
+ *      "type": "manager",
+ *      "name": "Bob",
+ *      "head": "Development"
+ *    }
+ *  ]
+ *  @endcode
+ *  
+ *  \tparam TPointer Some pointer-like type (likely \c unique_ptr or \c shared_ptr) you wish to extract values into. It
+ *                   must support \c operator*, an explicit conversion to \c bool, construction with a pointer to a
+ *                   subtype of what it contains and default construction.
+**/
+template <typename TPointer>
+class polymorphic_adapter :
+        public adapter_for<TPointer>
+{
+public:
+    using match_predicate = std::function<bool (const extraction_context&, const value&)>;
+    
+public:
+    polymorphic_adapter() = default;
+    
+    /** Add a subtype which can be transformed into \c TPointer which will be called if the discriminator \a pred is
+     *  matched.
+     *  
+     *  \see add_subtype_keyed
+    **/
+    template <typename T>
+    void add_subtype(match_predicate pred)
+    {
+        _subtype_ctors.emplace_back(std::move(pred),
+                                    [] (const extraction_context& context, const value& value)
+                                    {
+                                        return TPointer(new T(context.extract<T>(value)));
+                                    }
+                                   );
+    }
+    
+    /** Add a subtype which can be transformed into \c TPointer which will be called if given a JSON \c value with
+     *  \c kind::object which has a member with \a key and the provided \a expected_value.
+     *  
+     *  \see add_subtype
+    **/
+    template <typename T>
+    void add_subtype_keyed(std::string key, value expected_value)
+    {
+        match_predicate op = [key, expected_value] (const extraction_context&, const value& value)
+                             {
+                                 if (!value.is_object())
+                                     return false;
+                                 auto iter = value.find(key);
+                                 return iter != value.end_object()
+                                     && iter->second == expected_value;
+                             };
+        return add_subtype<T>(op);
+    }
+    
+    /** When extracting a C++ value, should \c kind::null in JSON automatically become a default-constructed \c TPointer
+     *  (which is usually the \c null representation)?
+    **/
+    void check_null_input(bool on)
+    {
+        _check_null_input = on;
+    }
+    
+    bool check_null_input() const
+    {
+        return _check_null_input;
+    }
+    
+    /** When converting with \c to_json, should a \c null input translate into a \c kind::null? **/
+    void check_null_output(bool on)
+    {
+        _check_null_output = on;
+    }
+    
+    bool check_null_output() const
+    {
+        return _check_null_output;
+    }
+    
+protected:
+    virtual TPointer create(const extraction_context& context, const value& from) const override
+    {
+        using std::begin;
+        using std::end;
+        
+        if (_check_null_input && from.is_null())
+            return TPointer();
+        
+        auto iter = std::find_if(begin(_subtype_ctors), end(_subtype_ctors),
+                                 [&] (const std::pair<match_predicate, create_function>& pair)
+                                 {
+                                     return pair.first(context, from);
+                                 }
+                                );
+        if (iter != end(_subtype_ctors))
+            return iter->second(context, from);
+        else
+            throw extraction_error(context,
+                                   std::string("No discriminators matched JSON value: ") + to_string(from)
+                                  );
+    }
+    
+    virtual value to_json(const serialization_context& context, const TPointer& from) const override
+    {
+        if (_check_null_output && !from)
+            return null;
+        else
+            return context.to_json(typeid(*from), static_cast<const void*>(&*from));
+    }
+    
+private:
+    using create_function = std::function<TPointer (const extraction_context&, const value&)>;
+    
+private:
+    std::vector<std::pair<match_predicate, create_function>> _subtype_ctors;
+    bool                                                     _check_null_input  = false;
+    bool                                                     _check_null_output = false;
+};
+
 /** \} **/
 
 }

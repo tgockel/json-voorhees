@@ -480,4 +480,66 @@ TEST(serialization_builder_enum_strings_icase_multimapping)
     ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(5,     formats));
 }
 
+namespace
+{
+
+struct base
+{
+    virtual std::string get() const = 0;
+};
+
+struct a_derived :
+        base
+{
+    virtual std::string get() const override { return "a"; }
+    
+    static void json_adapt(adapter_builder<a_derived>& builder)
+    {
+        builder.member("type", &a_derived::x);
+    }
+    
+    std::string x = "a";
+};
+
+struct b_derived :
+        base
+{
+    virtual std::string get() const override { return "b"; }
+    
+    static void json_adapt(adapter_builder<b_derived>& builder)
+    {
+        builder.member("type", &b_derived::x);
+    }
+    
+    std::string x = "b";
+};
+
+}
+
+TEST(serialization_builder_polymorphic_direct)
+{
+    formats fmts =
+        formats::compose
+        ({
+            formats_builder()
+                .polymorphic_type<std::unique_ptr<base>>("type")
+                    .subtype<a_derived>("a")
+                    .subtype<b_derived>("b")
+                .type<a_derived>(a_derived::json_adapt)
+                .type<b_derived>(b_derived::json_adapt)
+                .register_container<std::vector<std::unique_ptr<base>>>()
+                .check_references(formats::defaults()),
+            formats::defaults()
+        });
+    
+    value input = array({ object({{ "type", "a" }}), object({{ "type", "b" }}) });
+    auto output = extract<std::vector<std::unique_ptr<base>>>(input, fmts);
+    
+    ensure(output.at(0)->get() == "a");
+    ensure(output.at(1)->get() == "b");
+    
+    value encoded = to_json(output, fmts);
+    ensure_eq(input, encoded);
+}
+
 }

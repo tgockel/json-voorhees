@@ -628,11 +628,21 @@ public:
     
     virtual ~serialization_context() noexcept;
     
+    /** Convenience function for converting a C++ object into a JSON value.
+     * 
+     *  \see formats::to_json
+    **/
     template <typename T>
     value to_json(const T& from) const
     {
-        return formats().to_json(typeid(T), static_cast<const void*>(&from), *this);
+        return to_json(typeid(T), static_cast<const void*>(&from));
     }
+    
+    /** Dynamically convert a type into a JSON value.
+     *  
+     *  \see formats::to_json
+    **/
+    value to_json(const std::type_info& type, const void* from) const;
 };
 
 /** Encode a JSON \c value from \a from using the provided \a fmts. **/
