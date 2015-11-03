@@ -116,27 +116,49 @@ $(document).ready(function(){initNavTree('forward_8hpp_source.html','');});
 <div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;{</div>
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;</div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="keyword">class </span>adapter;</div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">class </span>encoder;</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">class </span>extractor;</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="keyword">class </span>extraction_context;</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keyword">class </span>formats;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="keyword">enum class</span> kind : unsigned char;</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;class kind_error;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;class parse_error;</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;class parse_options;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;class path;</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;class path_element;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;enum class path_element_kind : unsigned char;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;class serializer;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;class serialization_context;</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;class tokenizer;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;enum class token_kind : unsigned int;</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;class value;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;struct version;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;}</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_FORWARD_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00018"></a><span class="lineno"><a class="line" href="classjsonv_1_1adapter__builder.html">   18</a></span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">class </span><a class="code" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>;</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1encoder.html">encoder</a>;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1extractor.html">extractor</a>;</div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1extraction__context.html">extraction_context</a>;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1formats.html">formats</a>;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="keyword">enum class</span> kind : unsigned char;</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;class <a class="code" href="classjsonv_1_1kind__error.html">kind_error</a>;</div>
+<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="classjsonv_1_1member__adapter__builder.html">   26</a></span>&#160;template &lt;typename T, typename TMember&gt; class <a class="code" href="classjsonv_1_1member__adapter__builder.html">member_adapter_builder</a>;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;class <a class="code" href="classjsonv_1_1parse__error.html">parse_error</a>;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;class <a class="code" href="classjsonv_1_1parse__options.html">parse_options</a>;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;class <a class="code" href="classjsonv_1_1path.html">path</a>;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;class <a class="code" href="classjsonv_1_1path__element.html">path_element</a>;</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;enum class path_element_kind : unsigned char;</div>
+<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="classjsonv_1_1polymorphic__adapter__builder.html">   32</a></span>&#160;template &lt;typename TPointer&gt; class <a class="code" href="classjsonv_1_1polymorphic__adapter__builder.html">polymorphic_adapter_builder</a>;</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;class <a class="code" href="classjsonv_1_1serializer.html">serializer</a>;</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;class <a class="code" href="classjsonv_1_1serialization__context.html">serialization_context</a>;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;class <a class="code" href="classjsonv_1_1tokenizer.html">tokenizer</a>;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;enum class token_kind : unsigned int;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;class <a class="code" href="classjsonv_1_1value.html">value</a>;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;struct <a class="code" href="structjsonv_1_1version.html">version</a>;</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;}</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_FORWARD_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="ttc" id="classjsonv_1_1parse__options_html"><div class="ttname"><a href="classjsonv_1_1parse__options.html">jsonv::parse_options</a></div><div class="ttdoc">Configuration for various parsing options. </div><div class="ttdef"><b>Definition:</b> <a href="parse_8hpp_source.html#l00114">parse.hpp:114</a></div></div>
+<div class="ttc" id="classjsonv_1_1polymorphic__adapter__builder_html"><div class="ttname"><a href="classjsonv_1_1polymorphic__adapter__builder.html">jsonv::polymorphic_adapter_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="forward_8hpp_source.html#l00032">forward.hpp:32</a></div></div>
+<div class="ttc" id="classjsonv_1_1serialization__context_html"><div class="ttname"><a href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00616">serialization.hpp:616</a></div></div>
+<div class="ttc" id="classjsonv_1_1kind__error_html"><div class="ttname"><a href="classjsonv_1_1kind__error.html">jsonv::kind_error</a></div><div class="ttdoc">Thrown from various value methods when attempting to perform an operation which is not valid for the ...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00086">value.hpp:86</a></div></div>
+<div class="ttc" id="classjsonv_1_1parse__error_html"><div class="ttname"><a href="classjsonv_1_1parse__error.html">jsonv::parse_error</a></div><div class="ttdoc">An error encountered when parsing. </div><div class="ttdef"><b>Definition:</b> <a href="parse_8hpp_source.html#l00031">parse.hpp:31</a></div></div>
+<div class="ttc" id="classjsonv_1_1member__adapter__builder_html"><div class="ttname"><a href="classjsonv_1_1member__adapter__builder.html">jsonv::member_adapter_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="forward_8hpp_source.html#l00026">forward.hpp:26</a></div></div>
+<div class="ttc" id="classjsonv_1_1formats__builder_html"><div class="ttname"><a href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00986">serialization_builder.hpp:986</a></div></div>
+<div class="ttc" id="classjsonv_1_1extractor_html"><div class="ttname"><a href="classjsonv_1_1extractor.html">jsonv::extractor</a></div><div class="ttdoc">An extractor holds the method for converting a value into an arbitrary C++ type. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00178">serialization.hpp:178</a></div></div>
+<div class="ttc" id="classjsonv_1_1serializer_html"><div class="ttname"><a href="classjsonv_1_1serializer.html">jsonv::serializer</a></div><div class="ttdoc">A serializer holds the method for converting an arbitrary C++ type into a value. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00205">serialization.hpp:205</a></div></div>
+<div class="ttc" id="classjsonv_1_1formats_html"><div class="ttname"><a href="classjsonv_1_1formats.html">jsonv::formats</a></div><div class="ttdoc">Simply put, this class is a collection of extractor and serializer instances. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00291">serialization.hpp:291</a></div></div>
+<div class="ttc" id="classjsonv_1_1tokenizer_html"><div class="ttname"><a href="classjsonv_1_1tokenizer.html">jsonv::tokenizer</a></div><div class="ttdoc">Splits input into tokens, allowing traversal of JSON without verification. </div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8hpp_source.html#l00098">tokenizer.hpp:98</a></div></div>
+<div class="ttc" id="classjsonv_1_1adapter__builder_html"><div class="ttname"><a href="classjsonv_1_1adapter__builder.html">jsonv::adapter_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="forward_8hpp_source.html#l00018">forward.hpp:18</a></div></div>
+<div class="ttc" id="classjsonv_1_1path_html"><div class="ttname"><a href="classjsonv_1_1path.html">jsonv::path</a></div><div class="ttdoc">Represents an exact path in some JSON structure. </div><div class="ttdef"><b>Definition:</b> <a href="path_8hpp_source.html#l00082">path.hpp:82</a></div></div>
+<div class="ttc" id="classjsonv_1_1extraction__context_html"><div class="ttname"><a href="classjsonv_1_1extraction__context.html">jsonv::extraction_context</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00500">serialization.hpp:500</a></div></div>
+<div class="ttc" id="structjsonv_1_1version_html"><div class="ttname"><a href="structjsonv_1_1version.html">jsonv::version</a></div><div class="ttdoc">Represents a version used to extract and encode JSON objects from C++ classes. </div><div class="ttdef"><b>Definition:</b> <a href="serialization_8hpp_source.html#l00045">serialization.hpp:45</a></div></div>
+<div class="ttc" id="classjsonv_1_1encoder_html"><div class="ttname"><a href="classjsonv_1_1encoder.html">jsonv::encoder</a></div><div class="ttdoc">An encoder is responsible for writing values to some form of output. </div><div class="ttdef"><b>Definition:</b> <a href="encode_8hpp_source.html#l00026">encode.hpp:26</a></div></div>
+<div class="ttc" id="classjsonv_1_1path__element_html"><div class="ttname"><a href="classjsonv_1_1path__element.html">jsonv::path_element</a></div><div class="ttdef"><b>Definition:</b> <a href="path_8hpp_source.html#l00037">path.hpp:37</a></div></div>
+<div class="ttc" id="classjsonv_1_1value_html"><div class="ttname"><a href="classjsonv_1_1value.html">jsonv::value</a></div><div class="ttdoc">Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00125">value.hpp:125</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

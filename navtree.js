@@ -20,7 +20,8 @@ var NAVTREE =
             [ "register_adapter", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_adapter", null ],
             [ "register_container", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_container", null ],
             [ "register_containers", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_containers", null ],
-            [ "enum_type", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_enum_type", null ]
+            [ "enum_type", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_enum_type", null ],
+            [ "extend", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_extend", null ]
           ] ],
           [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing", [
             [ "type<T>", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing_type", null ]
@@ -79,10 +80,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classjsonv_1_1encoder.html#adc4c685d9633c53ab01ecd57650372b7",
-"classjsonv_1_1tokenizer.html#a6cb4f97577999ebc4dd898acdf6f3454",
-"group__Creation.html#ga757770053a2714136231e26ec7c74673",
-"structjsonv_1_1value_1_1basic__object__iterator.html#af0e08906188dd2ac15227c741adb1163"
+"classjsonv_1_1encoder.html#ad161a2185b4afd5b140fffa1b1750bae",
+"classjsonv_1_1tokenizer.html#a14376a352de44485a5c87138a7f1e206",
+"group__Creation.html#ga0626c41c76cb46a7859de92c1f3bdd68",
+"structjsonv_1_1value_1_1basic__object__iterator.html#ab52a3cbcac62bcb279318e38dc96cf94"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

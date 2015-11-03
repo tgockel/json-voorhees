@@ -4,6 +4,7 @@ var classjsonv_1_1detail_1_1formats__builder__dsl =
     [ "check_references", "classjsonv_1_1detail_1_1formats__builder__dsl.html#ab070f7798b3c49436de90736decc9819", null ],
     [ "enum_type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a85c59d90cbf5a2a11bf673ab0a206205", null ],
     [ "enum_type_icase", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a92257fd2f1fd0799e4fc1726e87809df", null ],
+    [ "extend", "classjsonv_1_1detail_1_1formats__builder__dsl.html#afedbd43f931d90de20a62a9b1ed7b865", null ],
     [ "operator formats", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a3ba068f0be3773560cab480c4709c8e6", null ],
     [ "polymorphic_type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#aecc472274f04615e974f956c11728958", null ],
     [ "polymorphic_type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a1d598b1190a38743459a68e59c32b656", null ],

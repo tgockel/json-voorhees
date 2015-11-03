@@ -263,7 +263,21 @@ enum_type</h4>
 <div class="line">                      }</div>
 <div class="line">                     )</div>
 </div><!-- fragment --><dl class="section see"><dt>See also</dt><dd><a class="el" href="classjsonv_1_1enum__adapter.html" title="An adapter for enumeration types. ">enum_adapter</a></dd></dl>
-<h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_extend"></a>
+extend</h4>
+<ul>
+<li><code>extend(std::function&lt;void (<a class="el" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp;)&gt; func)</code></li>
+</ul>
+<p>Extend the <code><a class="el" href="classjsonv_1_1formats__builder.html">formats_builder</a></code> with the provided <em>func</em> by passing the current builder to it. This provides a more convenient way to call helper functions.</p>
+<div class="fragment"><div class="line"><a class="code" href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a> builder;</div>
+<div class="line">foo(builder);</div>
+<div class="line">bar(builder);</div>
+<div class="line">baz(builder);</div>
+</div><!-- fragment --><p>This can be done equivalently with: </p><div class="fragment"><div class="line"><a class="code" href="classjsonv_1_1formats__builder.html">jsonv::formats_builder</a>()</div>
+<div class="line">  .extend(foo)</div>
+<div class="line">  .extend(bar)</div>
+<div class="line">  .extend(baz)</div>
+</div><!-- fragment --><h3><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing"></a>
 Narrowing</h3>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_formats_narrowing_type"></a>
 type&lt;T&gt;</h4>
