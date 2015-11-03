@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/serialization_builder.hpp>
+#include <jsonv/demangle.hpp>
 
 #include <deque>
 #include <sstream>
@@ -64,7 +65,7 @@ formats_builder& formats_builder::check_references(formats other, const std::str
         for (const auto& failed_info : failed_types)
         {
             std::type_index type = std::get<0>(failed_info);
-            os << std::endl << " - " << type.name();
+            os << std::endl << " - " << demangle(type.name());
             const auto& referencing_types = _referenced_types.at(type);
             if (!referencing_types.empty())
             {
@@ -76,7 +77,7 @@ formats_builder& formats_builder::check_references(formats other, const std::str
                         first = false;
                     else
                         os << ", ";
-                    os << referencing_type.name();
+                    os << demangle(referencing_type.name());
                 }
                 os << ")";
             }

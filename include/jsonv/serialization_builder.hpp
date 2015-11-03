@@ -271,6 +271,28 @@ namespace jsonv
  *  
  *  \see enum_adapter
  *  
+ *  \paragraph serialization_builder_dsl_ref_formats_level_extend extend
+ *  
+ *   - <tt>extend(std::function&lt;void (formats_builder&amp;)&gt; func)</tt>
+ *  
+ *  Extend the \c formats_builder with the provided \a func by passing the current builder to it. This provides a more
+ *  convenient way to call helper functions.
+ *  
+ *  \code
+ *  jsonv::formats_builder builder;
+ *  foo(builder);
+ *  bar(builder);
+ *  baz(builder);
+ *  \endcode
+ *  
+ *  This can be done equivalently with:
+ *  \code
+ *  jsonv::formats_builder()
+ *    .extend(foo)
+ *    .extend(bar)
+ *    .extend(baz)
+ *  \endcode
+ *  
  *  
  *  \subsubsection serialization_builder_dsl_ref_formats_narrowing Narrowing
  *  
@@ -472,6 +494,9 @@ public:
     
     template <typename TPointer, typename F>
     polymorphic_adapter_builder<TPointer> polymorphic_type(std::string discrimination_key, F&&);
+    
+    template <typename F>
+    formats_builder& extend(F&&);
     
     formats_builder& register_adapter(const adapter* p);
     formats_builder& register_adapter(std::shared_ptr<const adapter> p);
@@ -1005,6 +1030,13 @@ public:
         return polymorphic_adapter_builder<TPointer>(this, std::move(discrimination_key), std::forward<F>(f));
     }
     
+    template <typename F>
+    formats_builder& extend(F&& func)
+    {
+        std::forward<F>(func)(*this);
+        return *this;
+    }
+    
     formats_builder& register_adapter(const adapter* p)
     {
         _formats.register_adapter(p);
@@ -1108,6 +1140,12 @@ polymorphic_adapter_builder<TPointer>
 formats_builder_dsl::polymorphic_type(std::string discrimination_key, F&& f)
 {
     return owner->polymorphic_type<TPointer>(std::move(discrimination_key), std::forward<F>(f));
+}
+
+template <typename F>
+formats_builder& formats_builder_dsl::extend(F&& f)
+{
+    return owner->extend(std::forward<F>(f));
 }
 
 template <typename TContainer>
