@@ -15,17 +15,21 @@ namespace jsonv
 {
 
 class adapter;
+template <typename T> class adapter_builder;
 class encoder;
 class extractor;
 class extraction_context;
 class formats;
+class formats_builder;
 enum class kind : unsigned char;
 class kind_error;
+template <typename T, typename TMember> class member_adapter_builder;
 class parse_error;
 class parse_options;
 class path;
 class path_element;
 enum class path_element_kind : unsigned char;
+template <typename TPointer> class polymorphic_adapter_builder;
 class serializer;
 class serialization_context;
 class tokenizer;
