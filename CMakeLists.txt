@@ -199,9 +199,9 @@ endif(BENCHMARK)
 ################################################################################
 
 install(TARGETS jsonv
-        EXPORT exported
-        LIBRARY
-        DESTINATION lib
+        EXPORT  exported
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
        )
 install(DIRECTORY   "include/jsonv"
         DESTINATION "include"
