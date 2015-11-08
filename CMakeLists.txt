@@ -198,17 +198,13 @@ endif(BENCHMARK)
 # Installation                                                                 #
 ################################################################################
 
-if (WIN32)
-  message("Windows doesn't have a reasonable way to install.")
-else()
-  install(TARGETS jsonv
-          EXPORT exported
-          LIBRARY
-          DESTINATION lib
-         )
-  install(DIRECTORY   "include/jsonv"
-          DESTINATION "include"
-         )
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "lib/pkgconfig")
-  install(EXPORT exported DESTINATION "lib/jsonv")
-endif()
+install(TARGETS jsonv
+        EXPORT exported
+        LIBRARY
+        DESTINATION lib
+       )
+install(DIRECTORY   "include/jsonv"
+        DESTINATION "include"
+       )
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "lib/pkgconfig")
+install(EXPORT exported DESTINATION "lib/jsonv")
