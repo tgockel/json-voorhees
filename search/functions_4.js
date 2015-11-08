@@ -5,6 +5,7 @@ var searchData=
   ['encode_5fif',['encode_if',['../classjsonv_1_1member__adapter__builder.html#acf62c5f94d6243782579ac65bf6edb4f',1,'jsonv::member_adapter_builder']]],
   ['end_5farray',['end_array',['../group__Array.html#gae8e46475135847419326f43bb8652030',1,'jsonv::value']]],
   ['end_5fobject',['end_object',['../group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd',1,'jsonv::value']]],
+  ['ensure_5fascii',['ensure_ascii',['../classjsonv_1_1ostream__encoder.html#abf48c6f46cde668b77621fc94efbd0e4',1,'jsonv::ostream_encoder']]],
   ['enum_5fadapter',['enum_adapter',['../classjsonv_1_1enum__adapter.html#adfa33ef1727c5fefc0785950b21cac23',1,'jsonv::enum_adapter']]],
   ['erase',['erase',['../group__Array.html#ga7b480563d0e93fc21018e088ac38646d',1,'jsonv::value::erase(const_array_iterator position)'],['../group__Array.html#ga1a32487f57f0c8c6de20394e17d4f768',1,'jsonv::value::erase(const_array_iterator first, const_array_iterator last)'],['../group__Object.html#gae5ee259b187051fa86ec1980c05408f5',1,'jsonv::value::erase(const std::string &amp;key)'],['../group__Object.html#ga3524ccad9a4188014c507454ca38fc8f',1,'jsonv::value::erase(const_object_iterator position)'],['../group__Object.html#gadff0cf180eac1aaa3e95972a4a1671ab',1,'jsonv::value::erase(const_object_iterator first, const_object_iterator last)']]],
   ['error_5fcode',['error_code',['../classjsonv_1_1validation__error.html#a438dfccc44015a8301cfd885f45bd801',1,'jsonv::validation_error']]],

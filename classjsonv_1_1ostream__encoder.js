@@ -2,6 +2,7 @@ var classjsonv_1_1ostream__encoder =
 [
     [ "ostream_encoder", "classjsonv_1_1ostream__encoder.html#a7686582a09a492dd7ef00c3e8054ebfa", null ],
     [ "~ostream_encoder", "classjsonv_1_1ostream__encoder.html#a306f3421e731eb8e8bcd2d250d5eeb31", null ],
+    [ "ensure_ascii", "classjsonv_1_1ostream__encoder.html#abf48c6f46cde668b77621fc94efbd0e4", null ],
     [ "output", "classjsonv_1_1ostream__encoder.html#a8433b7aa253ebe9f55ab2b8febc31ce1", null ],
     [ "write_array_begin", "classjsonv_1_1ostream__encoder.html#aef38996daa862aa9c828118673c0de52", null ],
     [ "write_array_delimiter", "classjsonv_1_1ostream__encoder.html#a368086c057bf13478c9ad8d158a5bc75", null ],

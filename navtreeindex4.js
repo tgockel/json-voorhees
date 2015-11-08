@@ -1,5 +1,6 @@
 var NAVTREEINDEX4 =
 {
+"structjsonv_1_1value_1_1basic__object__iterator.html#aa1e0448fd7b7a5ab90991fed40ac0f20":[2,5,0,4],
 "structjsonv_1_1value_1_1basic__object__iterator.html#ab52a3cbcac62bcb279318e38dc96cf94":[2,5,0,9],
 "structjsonv_1_1value_1_1basic__object__iterator.html#adb6ad80ddc4ceddbe7c38d6a5c87bd09":[2,5,0,11],
 "structjsonv_1_1value_1_1basic__object__iterator.html#ae5cda98fa74051d037c0c444c67efb15":[2,5,0,13],

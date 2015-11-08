@@ -135,6 +135,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7686582a09a492dd7ef00c3e8054ebfa"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__encoder.html#a7686582a09a492dd7ef00c3e8054ebfa">ostream_encoder</a> (std::ostream &amp;output)</td></tr>
 <tr class="memdesc:a7686582a09a492dd7ef00c3e8054ebfa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an instance which places text into <em>output</em>.  <a href="#a7686582a09a492dd7ef00c3e8054ebfa">More...</a><br /></td></tr>
 <tr class="separator:a7686582a09a492dd7ef00c3e8054ebfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf48c6f46cde668b77621fc94efbd0e4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1ostream__encoder.html#abf48c6f46cde668b77621fc94efbd0e4">ensure_ascii</a> (bool <a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr class="memdesc:abf48c6f46cde668b77621fc94efbd0e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">If set to true (the default), then all non-ASCII characters in strings will be replaced with their numeric encodings.  <a href="#abf48c6f46cde668b77621fc94efbd0e4">More...</a><br /></td></tr>
+<tr class="separator:abf48c6f46cde668b77621fc94efbd0e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classjsonv_1_1encoder"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classjsonv_1_1encoder')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classjsonv_1_1encoder.html">jsonv::encoder</a></td></tr>
 <tr class="memitem:a8c314dfcaa9df22f72ed16cf771a4849 inherit pub_methods_classjsonv_1_1encoder"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1encoder.html#a8c314dfcaa9df22f72ed16cf771a4849">encode</a> (const <a class="el" href="classjsonv_1_1value.html">jsonv::value</a> &amp;source)</td></tr>
 <tr class="memdesc:a8c314dfcaa9df22f72ed16cf771a4849 inherit pub_methods_classjsonv_1_1encoder"><td class="mdescLeft">&#160;</td><td class="mdescRight">Encode some source value into this encoder.  <a href="#a8c314dfcaa9df22f72ed16cf771a4849">More...</a><br /></td></tr>
@@ -186,7 +189,7 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>output<
 <div class="textblock"><p>An encoder that outputs to an <code>std::ostream</code>. </p>
 <p>This implementation is used for <code>operator&lt;&lt;</code> on a <code>value</code>. </p>
 
-<p>Definition at line <a class="el" href="encode_8hpp_source.html#l00142">142</a> of file <a class="el" href="encode_8hpp_source.html">encode.hpp</a>.</p>
+<p>Definition at line <a class="el" href="encode_8hpp_source.html#l00141">141</a> of file <a class="el" href="encode_8hpp_source.html">encode.hpp</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a class="anchor" id="a7686582a09a492dd7ef00c3e8054ebfa"></a>
 <div class="memitem">
@@ -215,6 +218,26 @@ std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>output<
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a class="anchor" id="abf48c6f46cde668b77621fc94efbd0e4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void jsonv::ostream_encoder::ensure_ascii </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>If set to true (the default), then all non-ASCII characters in strings will be replaced with their numeric encodings. </p>
+<p>Since JSON allows for encoded text to be contained in a document, this is inefficient if you have many non-ASCII characters. If you know that your decoding side can properly handle UTF-8 encoding, then you should turn this on.</p>
+<dl class="section note"><dt>Note</dt><dd>This functionality cannot be used to passthrough malformed UTF-8 encoded strings. If a given string is invalid UTF-8, it will still get replaced with a numeric encoding. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="aef38996daa862aa9c828118673c0de52"></a>
 <div class="memitem">
 <div class="memproto">
