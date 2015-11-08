@@ -197,7 +197,7 @@ static void utf16_create_surrogates(char32_t codepoint, uint16_t* high, uint16_t
     *low  = uint16_t(val & 0x03ff) | 0xdc00;
 }
 
-std::ostream& string_encode(std::ostream& stream, string_view source)
+std::ostream& string_encode(std::ostream& stream, string_view source, bool ensure_ascii)
 {
     typedef string_view::size_type size_type;
     
@@ -232,8 +232,14 @@ std::ostream& string_encode(std::ostream& stream, string_view source)
                     length = 1;
                     code = char32_t(current) & 0xff;
                 }
-                    
-                if (code < 0x10000)
+                
+                // if the input string is valid UTF-8, let it pass through
+                if (valid_utf8 && !ensure_ascii)
+                {
+                    stream.write(&current, length);
+                }
+                // basic multilingual plane points are encoded in hex
+                else if (code < 0x10000)
                 {
                     stream << "\\u";
                     to_hex(stream, uint16_t(code));

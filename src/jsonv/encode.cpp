@@ -84,7 +84,8 @@ void encoder::encode(const value& source)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ostream_encoder::ostream_encoder(std::ostream& output) :
-        _output(output)
+        _output(output),
+        _ensure_ascii(true)
 { }
 
 ostream_encoder::~ostream_encoder() noexcept = default;
@@ -151,7 +152,7 @@ void ostream_encoder::write_object_key(string_view key)
 
 void ostream_encoder::write_string(string_view value)
 {
-    stream_escaped_string(_output, value);
+    stream_escaped_string(_output, value, _ensure_ascii);
 }
 
 std::ostream& ostream_encoder::output()

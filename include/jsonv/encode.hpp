@@ -21,8 +21,7 @@
 namespace jsonv
 {
 
-/** An encoder is responsible for writing values to some form of output.
-**/
+/** An encoder is responsible for writing values to some form of output. **/
 class JSONV_PUBLIC encoder
 {
 public:
@@ -148,6 +147,17 @@ public:
     
     virtual ~ostream_encoder() noexcept;
     
+    /** If set to true (the default), then all non-ASCII characters in strings will be replaced with their numeric
+     *  encodings. Since JSON allows for encoded text to be contained in a document, this is inefficient if you have
+     *  many non-ASCII characters. If you know that your decoding side can properly handle UTF-8 encoding, then you
+     *  should turn this on.
+     *  
+     *  \note
+     *  This functionality cannot be used to passthrough malformed UTF-8 encoded strings. If a given string is invalid
+     *  UTF-8, it will still get replaced with a numeric encoding.
+    **/
+    void ensure_ascii(bool value);
+    
 protected:
     virtual void write_null() override;
     
@@ -179,6 +189,7 @@ protected:
     
 private:
     std::ostream& _output;
+    bool          _ensure_ascii;
 };
 
 /** Like \c ostream_encoder, but pretty prints output to an \c std::ostream.
