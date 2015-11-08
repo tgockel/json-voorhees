@@ -123,6 +123,12 @@ if (JSONV_BUILD_TESTS)
             "jsonv"
             ${Boost_LIBRARIES}
         )
+    
+    add_custom_target(check
+                      COMMAND $<TARGET_FILE:jsonv-tests>
+                      DEPENDS jsonv-tests
+                      USES_TERMINAL
+                     )
 endif()
 
 if (COVERAGE)
