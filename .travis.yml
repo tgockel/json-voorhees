@@ -33,7 +33,7 @@ script:
           -DUSE_BOOST_STRING_VIEW=${USE_BOOST_STRING_VIEW}
           -DCOVERAGE=${COVERAGE}
   - make VERBOSE=1
-  - ./jsonv-tests
+  - make check VERBOSE=1
 after_success:
   - if [[ ${COVERAGE} == 1 ]]; then ./config/upload-coverage; fi
   - GIT_CURRENT_HASH=$(git rev-parse HEAD)
