@@ -1,16 +1,19 @@
 version: 1.1.{build}
 environment:
-  BOOST_ROOT: C:\Libraries\boost
-  BOOST_LIBDIR: C:\Libraries\boost\stage\lib
+  BOOST_ROOT: C:\Libraries\boost_1_59_0
+  BOOST_LIBDIR: C:\Libraries\boost_1_59_0\stage\lib
 platform:
   - Win32
   - x64
 configuration:
   - Debug
   - Release
-init:
-  - cmd: cmake --version
+install:
+  - cinst mingw boost
+  - cmd: set PATH=%PATH%;C:\MinGW\bin
+  - cmd: cmake --help
   - cmd: msbuild /version
+  - cmd: g++ --version
 clone_folder: C:\projects\json-voorhees
 before_build:
   - cmd: cd C:\projects\json-voorhees
