@@ -9,11 +9,8 @@ configuration:
   - Debug
   - Release
 install:
-  - cinst mingw boost
-  - cmd: set PATH=%PATH%;C:\MinGW\bin
   - cmd: cmake --help
   - cmd: msbuild /version
-  - cmd: g++ --version
 clone_folder: C:\projects\json-voorhees
 before_build:
   - cmd: cd C:\projects\json-voorhees
