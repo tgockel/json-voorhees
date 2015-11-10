@@ -15,7 +15,9 @@
 #include <jsonv/config.hpp>
 #include <jsonv/value.hpp>
 
+#include <cmath>
 #include <functional>
+#include <limits>
 
 namespace jsonv
 {
