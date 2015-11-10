@@ -164,6 +164,7 @@
     <ClInclude Include="..\..\..\src\jsonv\object.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_compare.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\algorithm_map.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\algorithm_traverse.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\array.cpp" />
@@ -173,6 +174,7 @@
     <ClCompile Include="..\..\..\src\jsonv\detail.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\detail\token_patterns.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\encode.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv\functional.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\object.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\parse.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\path.cpp" />

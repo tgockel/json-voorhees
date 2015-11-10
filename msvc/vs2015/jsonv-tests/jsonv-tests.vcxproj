@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_compare_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_map_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\array_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\char_convert_tests.cpp" />
@@ -27,6 +28,7 @@
     <ClCompile Include="..\..\..\src\jsonv-tests\detail\token_patterns_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\encode_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\filesystem_util.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv-tests\functional_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\json_checker.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\kind_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\main.cpp" />
