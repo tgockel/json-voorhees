@@ -12,10 +12,21 @@
 
 #include "detail/fixed_map.hpp"
 
+/** \def JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
+ *  Should JSON Voorhees use Boost.Locale to perform character conversions instead of the C++ Standard Library's
+ *  \c codecvt? This must be set in GCC versions before 5, since \c codecvt is not supported.
+**/
+#ifndef JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
+#   if defined __GNUC__ && __GNUC__ < 5
+#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
+#   else
+#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 0
+#   endif
+#endif
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
-#include <codecvt>
 #include <cstdint>
 #include <iomanip>
 #include <locale>
@@ -23,6 +34,12 @@
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+
+#if JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
+#include <boost/locale.hpp>
+#else
+#include <codecvt>
+#endif
 
 namespace jsonv
 {
@@ -568,6 +585,25 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
     };
 }
 
+#if JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
+
+std::wstring convert_to_wide(string_view source)
+{
+    return boost::locale::conv::to_utf<wchar_t>(source.data(), source.data() + source.size(), std::locale());
+}
+
+std::string convert_to_narrow(const std::wstring& source)
+{
+    return boost::locale::conv::from_utf(source, std::locale());
+}
+
+std::string convert_to_narrow(const wchar_t* source)
+{
+    return boost::locale::conv::from_utf(source, std::locale());
+}
+
+#else
+
 std::wstring convert_to_wide(string_view source)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -585,6 +621,8 @@ std::string convert_to_narrow(const wchar_t* source)
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     return converter.to_bytes(source);
 }
+
+#endif
 
 }
 }
