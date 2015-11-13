@@ -285,3 +285,8 @@ TEST_PARSE(comment_in_array)
     value val = parse(R"(["a", /* yo */"b"])");
     ensure_eq(array({ "a", "b" }), val);
 }
+
+TEST_PARSE(invalid_utf8_input)
+{
+    ensure_throws(jsonv::parse_error, jsonv::parse("\"\xe4\""));
+}

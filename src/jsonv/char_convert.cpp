@@ -535,6 +535,19 @@ std::string string_decode(string_view source)
         }
     }
     
+    if (encoding != parse_options::encoding::cesu8 && remaining_utf8_sequence > 0)
+    {
+        std::ostringstream os;
+        os << "unterminated UTF-8 sequence at end of string: \"";
+        os << std::hex;
+        for (size_type idx = utf8_sequence_start; idx < source.size(); ++idx)
+        {
+            os << "\\x" << std::setfill('0') << std::setw(2) << unsigned(int(source[idx]));
+        }
+        os << '\"';
+        throw decode_error(utf8_sequence_start, os.str());
+    }
+    
     output.append(last_pushed_src, source.end());
     return output;
 }
