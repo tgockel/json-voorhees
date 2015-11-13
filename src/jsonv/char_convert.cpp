@@ -589,17 +589,17 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
 
 std::wstring convert_to_wide(string_view source)
 {
-    return boost::locale::conv::to_utf<wchar_t>(source.data(), source.data() + source.size(), std::locale());
+    return boost::locale::conv::to_utf<wchar_t>(source.data(), source.data() + source.size(), "utf-8");
 }
 
 std::string convert_to_narrow(const std::wstring& source)
 {
-    return boost::locale::conv::from_utf(source, std::locale());
+    return boost::locale::conv::from_utf(source, "utf-8");
 }
 
 std::string convert_to_narrow(const wchar_t* source)
 {
-    return boost::locale::conv::from_utf(source, std::locale());
+    return boost::locale::conv::from_utf(source, "utf-8");
 }
 
 #else
