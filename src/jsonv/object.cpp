@@ -1,7 +1,7 @@
 /** \file
  *  Implementation of \c jsonv::value member functions related to objects.
  *  
- *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -10,6 +10,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/object.hpp>
+#include <jsonv/char_convert.hpp>
 
 #include <algorithm>
 #include <cstring>
@@ -30,6 +31,13 @@ value object()
 }
 
 value object(std::initializer_list<std::pair<std::string, value>> source)
+{
+    value x = object();
+    x.insert(std::move(source));
+    return x;
+}
+
+value object(std::initializer_list<std::pair<std::wstring, value>> source)
 {
     value x = object();
     x.insert(std::move(source));
@@ -91,6 +99,12 @@ value& value::operator[](std::string&& key)
     return _data.object->_values[std::move(key)];
 }
 
+value& value::operator[](const std::wstring& key)
+{
+    check_type(jsonv::kind::object, kind());
+    return _data.object->_values[detail::convert_to_narrow(key)];
+}
+
 value& value::at(const std::string& key)
 {
     check_type(jsonv::kind::object, kind());
@@ -103,10 +117,28 @@ const value& value::at(const std::string& key) const
     return _data.object->_values.at(key);
 }
 
+value& value::at(const std::wstring& key)
+{
+    check_type(jsonv::kind::object, kind());
+    return _data.object->_values.at(detail::convert_to_narrow(key));
+}
+
+const value& value::at(const std::wstring& key) const
+{
+    check_type(jsonv::kind::object, kind());
+    return _data.object->_values.at(detail::convert_to_narrow(key));
+}
+
 value::size_type value::count(const std::string& key) const
 {
     check_type(jsonv::kind::object, kind());
     return _data.object->_values.count(key);
+}
+
+value::size_type value::count(const std::wstring& key) const
+{
+    check_type(jsonv::kind::object, kind());
+    return _data.object->_values.count(detail::convert_to_narrow(key));
 }
 
 value::object_iterator value::find(const std::string& key)
@@ -115,10 +147,22 @@ value::object_iterator value::find(const std::string& key)
     return object_iterator(_data.object->_values.find(key));
 }
 
+value::object_iterator value::find(const std::wstring& key)
+{
+    check_type(jsonv::kind::object, kind());
+    return object_iterator(_data.object->_values.find(detail::convert_to_narrow(key)));
+}
+
 value::const_object_iterator value::find(const std::string& key) const
 {
     check_type(jsonv::kind::object, kind());
     return const_object_iterator(_data.object->_values.find(key));
+}
+
+value::const_object_iterator value::find(const std::wstring& key) const
+{
+    check_type(jsonv::kind::object, kind());
+    return const_object_iterator(_data.object->_values.find(detail::convert_to_narrow(key)));
 }
 
 value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::string, value> pair)
@@ -127,10 +171,23 @@ value::object_iterator value::insert(value::const_object_iterator hint, std::pai
     return object_iterator(_data.object->_values.insert(hint._impl, std::move(pair)));
 }
 
+value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::wstring, value> pair)
+{
+    check_type(jsonv::kind::object, kind());
+    return insert(hint, { detail::convert_to_narrow(pair.first), std::move(pair.second) });
+}
+
 std::pair<value::object_iterator, bool> value::insert(std::pair<std::string, value> pair)
 {
     check_type(jsonv::kind::object, kind());
     auto ret = _data.object->_values.insert(pair);
+    return { object_iterator(ret.first), ret.second };
+}
+
+std::pair<value::object_iterator, bool> value::insert(std::pair<std::wstring, value> pair)
+{
+    check_type(jsonv::kind::object, kind());
+    auto ret = _data.object->_values.insert({ detail::convert_to_narrow(pair.first), std::move(pair.second) });
     return { object_iterator(ret.first), ret.second };
 }
 
@@ -141,10 +198,23 @@ void value::insert(std::initializer_list<std::pair<std::string, value>> items)
          _data.object->_values.insert(std::move(pair));
 }
 
+void value::insert(std::initializer_list<std::pair<std::wstring, value>> items)
+{
+    check_type(jsonv::kind::object, kind());
+    for (auto& pair : items)
+         insert(std::move(pair));
+}
+
 value::size_type value::erase(const std::string& key)
 {
     check_type(jsonv::kind::object, kind());
     return _data.object->_values.erase(key);
+}
+
+value::size_type value::erase(const std::wstring& key)
+{
+    check_type(jsonv::kind::object, kind());
+    return _data.object->_values.erase(detail::convert_to_narrow(key));
 }
 
 value::object_iterator value::erase(const_object_iterator position)
