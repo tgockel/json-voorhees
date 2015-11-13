@@ -15,8 +15,10 @@
 #include <algorithm>
 #include <cassert>
 #include <cctype>
+#include <codecvt>
 #include <cstdint>
 #include <iomanip>
+#include <locale>
 #include <map>
 #include <ostream>
 #include <sstream>
@@ -564,6 +566,24 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
     default:
         return string_decode<parse_options::encoding::utf8, false>;
     };
+}
+
+std::wstring convert_to_wide(string_view source)
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(source.data(), source.data() + source.size());
+}
+
+std::string convert_to_narrow(const std::wstring& source)
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.to_bytes(source);
+}
+
+std::string convert_to_narrow(const wchar_t* source)
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.to_bytes(source);
 }
 
 }

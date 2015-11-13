@@ -15,6 +15,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/string_view.hpp>
 
+#include <string>
 #include <stdexcept>
 
 namespace jsonv
@@ -50,6 +51,13 @@ typedef std::string (*string_decode_fn)(string_view source);
 
 /** Get a string decoding function for the given output \a encoding. **/
 string_decode_fn get_string_decoder(parse_options::encoding encoding);
+
+/** Convert the UTF-8 encoded \a source into a UTF-16 encoded \c std::wstring. **/
+std::wstring convert_to_wide(string_view source);
+
+/** Convert the UTF-16 encoded \a source into a UTF-8 encoded \c std::string. **/
+std::string convert_to_narrow(const std::wstring& source);
+std::string convert_to_narrow(const wchar_t*      source);
 
 }
 }

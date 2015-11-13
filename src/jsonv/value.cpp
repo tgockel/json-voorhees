@@ -81,6 +81,14 @@ value::value(const char* val) :
         value(std::string(val))
 { }
 
+value::value(const std::wstring& val) :
+        value(detail::convert_to_narrow(val))
+{ }
+
+value::value(const wchar_t* val) :
+        value(detail::convert_to_narrow(val))
+{ }
+
 value::value(int64_t val) :
         _kind(jsonv::kind::integer)
 {
@@ -385,6 +393,11 @@ const std::string& value::as_string() const
 {
     check_type(jsonv::kind::string, _kind);
     return _data.string->_string;
+}
+
+std::wstring value::as_wstring() const
+{
+    return detail::convert_to_wide(as_string());
 }
 
 int64_t value::as_integer() const

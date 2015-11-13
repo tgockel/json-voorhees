@@ -437,6 +437,18 @@ public:
     **/
     value(const char* value);
     
+    /** Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
+     *  UTF-8 encoded string.
+    **/
+    value(const std::wstring& value);
+    
+    /** Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
+     *  UTF-8 encoded string.
+     *  
+     *  \param value The value to create with. This must be null-terminated.
+    **/
+    value(const wchar_t* value);
+    
     /** Create a \c kind::integer with the given \a value. **/
     value(int64_t value);
     
@@ -484,6 +496,13 @@ public:
     
     /** Tests if this \c kind is \c kind::string. **/
     bool is_string() const;
+    
+    /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
+     *  the \c char base \c std::string.
+     *  
+     *  \throws kind_error if this value does not represent a string.
+    **/
+    std::wstring as_wstring() const;
     
     /** Get this value as an integer.
      *  

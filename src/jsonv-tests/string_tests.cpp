@@ -85,3 +85,14 @@ TEST(string_comparisons)
     ensure_gt(heart, earth);
     ensure_eq(heart, heart);
 }
+
+TEST(wide_strings)
+{
+    using namespace jsonv;
+    
+    value narrow =  "some basic text";
+    value wide   = L"some basic text";
+    
+    ensure_eq(narrow, wide);
+    ensure(narrow.as_wstring() == wide.as_wstring());
+}
