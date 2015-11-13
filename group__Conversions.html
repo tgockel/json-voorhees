@@ -116,6 +116,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gae8aa14497f3a49269f108f7d1fd00643"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gae8aa14497f3a49269f108f7d1fd00643">jsonv::value::is_string</a> () const </td></tr>
 <tr class="memdesc:gae8aa14497f3a49269f108f7d1fd00643"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests if this <code>kind</code> is <code>kind::string</code>.  <a href="#gae8aa14497f3a49269f108f7d1fd00643">More...</a><br /></td></tr>
 <tr class="separator:gae8aa14497f3a49269f108f7d1fd00643"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4d853b4cd5aaf0a5ead779930a90d814"><td class="memItemLeft" align="right" valign="top">std::wstring&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#ga4d853b4cd5aaf0a5ead779930a90d814">jsonv::value::as_wstring</a> () const </td></tr>
+<tr class="memdesc:ga4d853b4cd5aaf0a5ead779930a90d814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a wide string.  <a href="#ga4d853b4cd5aaf0a5ead779930a90d814">More...</a><br /></td></tr>
+<tr class="separator:ga4d853b4cd5aaf0a5ead779930a90d814"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaababe6acf36d6517205714b17b821ff8"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8">jsonv::value::as_integer</a> () const </td></tr>
 <tr class="memdesc:gaababe6acf36d6517205714b17b821ff8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as an integer.  <a href="#gaababe6acf36d6517205714b17b821ff8">More...</a><br /></td></tr>
 <tr class="separator:gaababe6acf36d6517205714b17b821ff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -231,6 +234,30 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Get this value as a string. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if this value does not represent a string. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga4d853b4cd5aaf0a5ead779930a90d814"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::wstring jsonv::value::as_wstring </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get this value as a wide string. </p>
+<p>Keep in mind that this is slower than <code>as_string</code>, as the internal storage is the <code>char</code> base <code>std::string</code>.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if this value does not represent a string. </td></tr>
