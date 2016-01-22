@@ -32,6 +32,7 @@ script:
           -DUSE_BOOST_REGEX=${USE_BOOST_REGEX}
           -DUSE_BOOST_STRING_VIEW=${USE_BOOST_STRING_VIEW}
           -DCOVERAGE=${COVERAGE}
+          -DJSONV_BUILD_TESTS=ON
   - make VERBOSE=1
   - ./jsonv-tests
 after_success:
