@@ -23,7 +23,7 @@ set(JSONV_VERSION "1.1.0"
 
 option(JSONV_BUILD_TESTS
        "Should the unit test library get built?"
-       ON
+       OFF
       )
 
 set(REQUIRED_BOOST_LIBRARIES)
