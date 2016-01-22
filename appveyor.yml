@@ -1,4 +1,5 @@
 version: 1.1.{build}
+os: Visual Studio 2015
 environment:
   BOOST_ROOT: C:\Libraries\boost_1_59_0
   BOOST_LIBDIR: C:\Libraries\boost_1_59_0\stage\lib
@@ -17,7 +18,7 @@ before_build:
   - cmd: md build
   - cmd: cd build
   - cmd: if "%platform%"=="Win32" cmake -G "Visual Studio 14"       -DCMAKE_BUILD_TYPE=%configuration% -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
-  - cmd: if "%platform%"=="Win32" cmake -G "Visual Studio 14 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
+  - cmd: if "%platform%"=="x64"   cmake -G "Visual Studio 14 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
 build:
   project: C:\projects\json-voorhees\build\json-voorhees.sln
 test_script:
