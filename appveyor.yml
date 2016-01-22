@@ -22,4 +22,4 @@ before_build:
 build:
   project: C:\projects\json-voorhees\build\json-voorhees.sln
 test_script:
-  - cmd: C:\projects\json-voorhees\build\jsonv-tests
+  #- cmd: C:\projects\json-voorhees\build\jsonv-tests
