@@ -26,8 +26,10 @@ option(JSONV_BUILD_TESTS
        ON
       )
 
+set(REQUIRED_BOOST_LIBRARIES)
+
 if (JSONV_BUILD_TESTS)
-    set(REQUIRED_BOOST_LIBRARIES "filesystem" "system")
+    list(APPEND REQUIRED_BOOST_LIBRARIES "filesystem" "system")
 endif()
 
 option(USE_BOOST_REGEX
@@ -36,7 +38,7 @@ option(USE_BOOST_REGEX
       )
 if (USE_BOOST_REGEX)
     add_definitions("-DJSONV_REGEX_USE_BOOST=1")
-    set(REQUIRED_BOOST_LIBRARIES "regex" ${REQUIRED_BOOST_LIBRARIES})
+    list(APPEND REQUIRED_BOOST_LIBRARIES "regex")
 endif(USE_BOOST_REGEX)
 
 option(USE_BOOST_STRING_VIEW
@@ -71,7 +73,7 @@ option(USE_BOOST_LOCALE
       )
 if (USE_BOOST_LOCALE)
     add_definitions("-DJSONV_CHAR_CONVERT_USE_BOOST_LOCALE=1")
-    set(REQUIRED_BOOST_LIBRARIES "locale" ${REQUIRED_BOOST_LIBRARIES})
+    list(APPEND REQUIRED_BOOST_LIBRARIES "locale")
 endif(USE_BOOST_LOCALE)
 
 option(COVERAGE
@@ -134,6 +136,9 @@ set_target_properties(jsonv
                           SOVERSION ${JSONV_VERSION}
                           VERSION   ${JSONV_VERSION}
                      )
+if (Boost_LIBRARIES)
+    target_link_libraries(jsonv ${Boost_LIBRARIES})
+endif()
 
 if (JSONV_BUILD_TESTS)
     file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
