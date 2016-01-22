@@ -13,6 +13,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(json-voorhees)
 
+set(PACKAGE_NAME "jsonv"
+    CACHE STRING "The packaging name of this library."
+   )
+
 ################################################################################
 # Configuration                                                                #
 ################################################################################
@@ -226,13 +230,29 @@ endif(BENCHMARK)
 # Installation                                                                 #
 ################################################################################
 
+# directories
+if (OS_WINDOWS)
+    set(RUNTIME_INSTALL_DIR Bin)
+    set(LIBRARY_INSTALL_DIR Lib)
+    set(INCLUDE_INSTALL_DIR Include)
+    set(CONFIG_INSTALL_DIR  CMake)
+else()
+    set(RUNTIME_INSTALL_DIR bin)
+    set(LIBRARY_INSTALL_DIR lib
+        CACHE PATH "Directory of installed libraries, e.g., \"lib64\""
+       )
+    mark_as_advanced(LIBRARY_INSTALL_DIR)
+    set(INCLUDE_INSTALL_DIR include)
+    set(CONFIG_INSTALL_DIR  "${LIBRARY_INSTALL_DIR}/cmake/${PACKAGE_NAME}")
+endif ()
+
 install(TARGETS jsonv
         EXPORT  exported
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
        )
 install(DIRECTORY   "include/jsonv"
-        DESTINATION "include"
+        DESTINATION "${INCLUDE_INSTALL_DIR}"
        )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "lib/pkgconfig")
-install(EXPORT exported DESTINATION "lib/jsonv")
+install(EXPORT exported DESTINATION "${CONFIG_INSTALL_DIR}" FILE "${PACKAGE_NAME}-export.cmake")
