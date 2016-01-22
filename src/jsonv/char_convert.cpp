@@ -19,6 +19,8 @@
 #ifndef JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
 #   if defined __GNUC__ && __GNUC__ < 5
 #       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
+#   elif defined _MSC_VER && _MSC_VER > 1900
+#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
 #   else
 #       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 0
 #   endif
