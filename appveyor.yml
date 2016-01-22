@@ -14,7 +14,7 @@ install:
   #- cmd: msbuild /version
 clone_folder: C:\projects\json-voorhees
 before_build:
-  - cmd: cd C:\projects\json-voorhees\vs2015
+  - cmd: cd C:\projects\json-voorhees\msvc\vs2015
   - cmd: nuget restore
   #- cmd: cd C:\projects\json-voorhees
   #- cmd: md build
@@ -22,7 +22,7 @@ before_build:
   #- cmd: if "%platform%"=="Win32" cmake -G "Visual Studio 14"       -DCMAKE_BUILD_TYPE=%configuration% -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
   #- cmd: if "%platform%"=="x64"   cmake -G "Visual Studio 14 Win64" -DCMAKE_BUILD_TYPE=%configuration% -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%" -DBoost_USE_STATIC_LIBS="ON" ..
 build:
-  project: C:\projects\json-voorhees\vs2015\JsonVoorhees.sln
+  project: C:\projects\json-voorhees\msvc\vs2015\JsonVoorhees.sln
   #project: C:\projects\json-voorhees\build\json-voorhees.sln
 test_script:
   #- cmd: C:\projects\json-voorhees\build\jsonv-tests
