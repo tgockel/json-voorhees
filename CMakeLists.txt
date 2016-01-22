@@ -17,6 +17,8 @@ project(json-voorhees)
 # Configuration                                                                #
 ################################################################################
 
+cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
+
 set(JSONV_VERSION "1.1.0"
     CACHE STRING "The version of the library."
    )
