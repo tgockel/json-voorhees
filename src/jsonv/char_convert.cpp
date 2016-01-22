@@ -17,9 +17,11 @@
  *  \c codecvt? This must be set in GCC versions before 5, since \c codecvt is not supported.
 **/
 #ifndef JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
-#   if defined __GNUC__ && __GNUC__ < 5
+#   if defined __clang__ && (__clang_major__ < 4 || (__clang_major__ == 3 && __clang_minor__ < 5))
 #       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
-#   elif defined _MSC_VER && _MSC_VER > 1900
+#   elif defined __GNUC__ && __GNUC__ < 5
+#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
+#   elif defined _MSC_VER && _MSC_VER < 1900
 #       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
 #   else
 #       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 0
