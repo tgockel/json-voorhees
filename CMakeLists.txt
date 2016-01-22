@@ -74,7 +74,9 @@ option(USE_BOOST_LOCALE
 if (USE_BOOST_LOCALE)
     add_definitions("-DJSONV_CHAR_CONVERT_USE_BOOST_LOCALE=1")
     list(APPEND REQUIRED_BOOST_LIBRARIES "locale")
-endif(USE_BOOST_LOCALE)
+else()
+    add_definitions("-DJSONV_CHAR_CONVERT_USE_BOOST_LOCALE=0")
+endif()
 
 option(COVERAGE
        "Enable building with code coverage."
