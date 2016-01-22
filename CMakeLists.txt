@@ -114,14 +114,12 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
                     "${PROJECT_SOURCE_DIR}/src"
                    )
 
-if (REQUIRED_BOOST_LIBRARIES)
-    set(Boost_USE_MULTITHREADED ON)
-    find_package(Boost
-                 COMPONENTS ${REQUIRED_BOOST_LIBRARIES}
-                 REQUIRED
-                )
-    include_directories(${Boost_INCLUDE_DIRS})
-endif(REQUIRED_BOOST_LIBRARIES)
+set(Boost_USE_MULTITHREADED ON)
+find_package(Boost
+             COMPONENTS "${REQUIRED_BOOST_LIBRARIES}"
+             REQUIRED
+            )
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
 
