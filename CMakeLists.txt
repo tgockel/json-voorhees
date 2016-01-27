@@ -25,7 +25,7 @@ if (CMAKE_VERSION VERSION_GREATER "3.0")
   cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
 endif()
 
-set(JSONV_VERSION "1.1.1"
+set(JSONV_VERSION "1.1.2"
     CACHE STRING "The version of the library."
    )
 
