@@ -233,18 +233,29 @@ endif(BENCHMARK)
 # directories
 if (OS_WINDOWS)
     set(RUNTIME_INSTALL_DIR Bin)
-    set(LIBRARY_INSTALL_DIR Lib)
     set(INCLUDE_INSTALL_DIR Include)
+    set(LIBRARY_INSTALL_DIR Lib)
     set(CONFIG_INSTALL_DIR  CMake)
 else()
     set(RUNTIME_INSTALL_DIR bin)
-    set(LIBRARY_INSTALL_DIR lib
-        CACHE PATH "Directory of installed libraries, e.g., \"lib64\""
+    set(INCLUDE_INSTALL_DIR include)
+    set(LIBRARY_INSTALL_DIR_DEFAULT lib)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(LIBRARY_INSTALL_DIR_DEFAULT lib64)
+    endif ()
+    set(LIBRARY_INSTALL_DIR ${LIBRARY_INSTALL_DIR_DEFAULT}
+        CACHE STRING "Directory of installed libraries, e.g., \"lib64\""
        )
     mark_as_advanced(LIBRARY_INSTALL_DIR)
-    set(INCLUDE_INSTALL_DIR include)
     set(CONFIG_INSTALL_DIR  "${LIBRARY_INSTALL_DIR}/cmake/${PACKAGE_NAME}")
 endif ()
+
+foreach(area RUNTIME LIBRARY INCLUDE CONFIG)
+    if (NOT IS_ABSOLUTE "${${area}_INSTALL_DIR}")
+        set(${area}_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${${area}_INSTALL_DIR}")
+    endif()
+    message(STATUS "${area}_INSTALL_DIR == ${${area}_INSTALL_DIR}")
+endforeach()
 
 install(TARGETS jsonv
         EXPORT  exported
@@ -254,5 +265,33 @@ install(TARGETS jsonv
 install(DIRECTORY   "include/jsonv"
         DESTINATION "${INCLUDE_INSTALL_DIR}"
        )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "lib/pkgconfig")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "${LIBRARY_INSTALL_DIR}/pkgconfig")
 install(EXPORT exported DESTINATION "${CONFIG_INSTALL_DIR}" FILE "${PACKAGE_NAME}-export.cmake")
+
+################################################################################
+# Packaging                                                                    #
+################################################################################
+
+set(PACKAGE_SYSTEM ""
+    CACHE STRING "The packaging system to generate a package build file for (leave blank to not build a package)"
+   )
+if (PACKAGE_SYSTEM)
+    message(STATUS "Creating packaging for ${PACKAGE_SYSTEM}...")
+    set(CPACK_PACKAGE_VERSION "${JSONV_VERSION}")
+    set(CPACK_GENERATOR "${PACKAGE_SYSTEM}")
+    set(CPACK_PACKAGE_NAME "${PACKAGE_NAME}")
+    set(CPACK_PACKAGE_RELEASE 1)
+    set(CPACK_PACKAGE_CONTACT "Travis Gockel")
+    set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
+    if (PACKAGE_SYSTEM STREQUAL "RPM")
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/installer/rpm/jsonv.spec.in"
+                    "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec"
+                    @ONLY IMMEDIATE
+                    )
+        set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec")
+    else ()
+        message(WARNING "Unknown PACKAGE_SYSTEM=${PACKAGE_SYSTEM} -- anything could happen with your package")
+    endif ()
+    include(CPack)
+endif ()
