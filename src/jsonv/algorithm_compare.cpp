@@ -11,6 +11,8 @@
 #include <jsonv/algorithm.hpp>
 #include <jsonv/value.hpp>
 
+#include <cctype>
+
 namespace jsonv
 {
 
