@@ -98,6 +98,12 @@
     <ClCompile Include="..\..\..\src\jsonv-tests\detail\token_patterns_tests.cpp">
       <Filter>src\detail</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_compare_tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv-tests\functional_tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\jsonv-tests\filesystem_util.hpp">
@@ -303,5 +309,6 @@
     <None Include="..\..\..\src\jsonv-tests\data\merges\type_mixing.json">
       <Filter>src\data\merges</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
