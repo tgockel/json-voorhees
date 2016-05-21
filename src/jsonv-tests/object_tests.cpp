@@ -146,6 +146,25 @@ TEST(object_nested_access)
     ensure_eq(v["a"]["b"]["c"]["d"]["x"], 4);
 }
 
+TEST(object_wide_nested_access)
+{
+    jsonv::value v = jsonv::object({ { "x", 0 } });
+    jsonv::value* p = &v;
+    int depth = 1;
+    for (std::string name : { "a", "b", "c", "d" })
+    {
+        (*p)[name] = jsonv::object({ { "x", depth } });
+        p = &(*p)[name];
+        ++depth;
+    }
+    
+    ensure_eq(v.at(L"x"),                      0);
+    ensure_eq(v[L"a"][L"x"],                   1);
+    ensure_eq(v[L"a"][L"b"][L"x"],             2);
+    ensure_eq(v[L"a"][L"b"][L"c"][L"x"],       3);
+    ensure_eq(v[L"a"][L"b"][L"c"][L"d"][L"x"], 4);
+}
+
 TEST(owning_object_view)
 {
     auto view = jsonv::object({ { "a", 1 }, { "b", 2 } }).as_object();
@@ -155,6 +174,14 @@ TEST(owning_object_view)
     ensure_eq("b", iter->first);
     ++iter;
     ensure(iter == view.end());
+}
+
+// An object constructed with wide strings should be the same as one constructed with narrow ones
+TEST(object_wide_keys)
+{
+    auto wobj = jsonv::object({ { L"a", 1 }, { L"b", 2 } });
+    auto nobj = jsonv::object({ {  "a", 1 }, {  "b", 2 } });
+    ensure_eq(nobj, wobj);
 }
 
 TEST(parse_empty_object)
