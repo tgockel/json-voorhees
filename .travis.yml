@@ -20,11 +20,12 @@ before_install:
   - "sudo add-apt-repository --yes ppa:libreoffice/ppa"
   - if [[ ${COMPILER} == *"clang"* ]]; then sudo sh -c 'echo "deb http://llvm.org/apt/precise/ llvm-toolchain-precise main" >> /etc/apt/sources.list'; fi
   - sudo apt-get update
+  - if [[ ${COMPILER} == *"clang"* ]]; then sudo apt-cache search clang; fi
 install:
   - sudo apt-get install --yes --force-yes libboost1.55-all-dev cmake
   - if [[ ${COMPILER} != *"clang"* ]]; then sudo apt-get install --yes --force-yes ${COMPILER}; fi
   - if [[ ${COMPILER} == *"clang"* ]]; then sudo apt-get install --yes --force-yes clang-3.8;   fi
-  - if [[ ${COVERAGE} -eq 1 ]];        then  sudo pip install cpp-coveralls pyyaml;             fi
+  - if [[ ${COVERAGE} -eq 1 ]];        then sudo pip install cpp-coveralls pyyaml;              fi
 script:
   - ${COMPILER} --version
   - cmake -DCMAKE_CXX_COMPILER=${COMPILER}
