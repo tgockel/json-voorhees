@@ -25,9 +25,17 @@ if (CMAKE_VERSION VERSION_GREATER "3.0")
   cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
 endif()
 
-set(JSONV_VERSION "1.1.2"
+# Extract version information from the config file. It can still be overridden by the user setting JSONV_VERSION, but
+# that is probably a bad idea.
+file(READ include/jsonv/config.hpp JSONV_CONFIG_H_STR)
+string(REGEX REPLACE ".*#define +JSONV_VERSION_MAJOR +([0-9]+).*" "\\1" JSONV_VERSION_MAJOR "${JSONV_CONFIG_H_STR}")
+string(REGEX REPLACE ".*#define +JSONV_VERSION_MINOR +([0-9]+).*" "\\1" JSONV_VERSION_MINOR "${JSONV_CONFIG_H_STR}")
+string(REGEX REPLACE ".*#define +JSONV_VERSION_PATCH +([0-9]+).*" "\\1" JSONV_VERSION_PATCH "${JSONV_CONFIG_H_STR}")
+
+set(JSONV_VERSION "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}.${JSONV_VERSION_PATCH}"
     CACHE STRING "The version of the library."
    )
+message(STATUS "JSONV version: ${JSONV_VERSION}")
 
 option(JSONV_BUILD_TESTS
        "Should the unit test library get built?"

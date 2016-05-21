@@ -18,6 +18,10 @@
 #   include JSONV_USER_CONFIG
 #endif
 
+#define JSONV_VERSION_MAJOR 1
+#define JSONV_VERSION_MINOR 1
+#define JSONV_VERSION_PATCH 2
+
 /** \def JSONV_SO
  *  \brief Are you using shared objects (DLLs in Windows)?
 **/
