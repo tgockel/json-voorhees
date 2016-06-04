@@ -210,16 +210,16 @@
 **/
 #ifndef JSONV_OPTIONAL_TYPE
 #   if defined(JSONV_OPTIONAL_USE_STD) && JSONV_OPTIONAL_USE_STD
-#       define JSONV_OPTIONAL_TYPE(T)    std::optional<T>
+#       define JSONV_OPTIONAL_TYPE(T) std::optional<T>
 #       define JSONV_OPTIONAL_INCLUDE <optional>
 #   elif defined(JSONV_OPTIONAL_USE_STD_EXPERIMENTAL) && JSONV_OPTIONAL_USE_STD_EXPERIMENTAL
-#       define JSONV_OPTIONAL_TYPE(T)    std::experimental::optional<T>
+#       define JSONV_OPTIONAL_TYPE(T) std::experimental::optional<T>
 #       define JSONV_OPTIONAL_INCLUDE <experimental/optional>
 #   elif defined(JSONV_OPTIONAL_USE_BOOST) && JSONV_OPTIONAL_USE_BOOST
-#       define JSONV_OPTIONAL_TYPE(T)    boost::optional<T>
+#       define JSONV_OPTIONAL_TYPE(T) boost::optional<T>
 #       define JSONV_OPTIONAL_INCLUDE <boost/optional.hpp>
 #   else
-#       define JSONV_OPTIONAL_TYPE(T)    jsonv::detail::optional<T>
+#       define JSONV_OPTIONAL_TYPE(T) jsonv::detail::optional<T>
 #       define JSONV_OPTIONAL_INCLUDE <jsonv/detail/optional.hpp>
 #   endif
 #endif
