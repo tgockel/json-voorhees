@@ -1,5 +1,5 @@
-/** \file jsonv/serialization_boost.hpp
-*  Specialization types for serialization of boost classes and containers.
+/** \file jsonv/serialization_optional.hpp
+*  Template specialization to support optional<T> serialization.
 *  These are usually not needed unless you are writing your own
 *  \c extractor or \c serializer.
 *
@@ -12,26 +12,35 @@
 *  \author Vladimir Venediktov (vvenedict@gmail.com)
 **/
 
-#ifndef __JSONV_SERIALIZATION_BOOST_HPP_INCLUDED__
-#define __JSONV_SERIALIZATION_BOOST_HPP_INCLUDED__
+#ifndef __JSONV_SERIALIZATION_OPTIONAL_HPP_INCLUDED__
+#define __JSONV_SERIALIZATION_OPTIONAL_HPP_INCLUDED__
 
 #include <jsonv/serialization_util.hpp>
-#include <boost/optional.hpp>
+#include <jsonv/config.hpp>
 
+#ifdef JSONV_OPTIONAL_INCLUDE
+#   include JSONV_OPTIONAL_INCLUDE
+#endif
+
+
+#ifdef JSONV_OPTIONAL_TYPE
 namespace jsonv
 {
 
-//specialization for boost::optional
+template<typename T>
+using optional = JSONV_OPTIONAL_TYPE(T);
+
+//specialization for optional<T>
 template <typename T>
-class container_adapter<boost::optional<T>> :
-    public adapter_for<boost::optional<T>>
+class container_adapter<optional<T>> :
+    public adapter_for<optional<T>>
 {
-    using element_type = boost::optional<T>;
+    using element_type = optional<T>;
 
 protected:
-    virtual boost::optional<T> create(const extraction_context& context, const value& from) const override
+    virtual optional<T> create(const extraction_context& context, const value& from) const override
     {
-        boost::optional<T> out;
+        optional<T> out;
         if (from.is_null()) {
             return out;
         }
@@ -39,7 +48,7 @@ protected:
         return out;
     }
 
-    virtual value to_json(const serialization_context& context, const boost::optional<T>& from) const override
+    virtual value to_json(const serialization_context& context, const optional<T>& from) const override
     {
         value out;
         if (from) {
@@ -50,5 +59,5 @@ protected:
 };
 
 }
-
+#endif // JSONV_OPTIONAL_TYPE 
 #endif

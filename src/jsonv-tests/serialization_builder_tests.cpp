@@ -8,11 +8,14 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
+
+#define JSONV_OPTIONAL_USE_BOOST 1
+
 #include "test.hpp"
 
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization_builder.hpp>
-#include <jsonv/serialization_boost.hpp>
+#include <jsonv/serialization_optional.hpp>
 
 #include <set>
 #include <sstream>
