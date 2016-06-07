@@ -16,14 +16,41 @@
 #define __JSONV_SERIALIZATION_OPTIONAL_HPP_INCLUDED__
 
 #include <jsonv/serialization_util.hpp>
-#include <jsonv/config.hpp>
 
-#ifdef JSONV_OPTIONAL_INCLUDE
-#   include JSONV_OPTIONAL_INCLUDE
+/** \def JSONV_OPTIONAL_TYPE
+ *  The type to use for \c jsonv::optional<T>. By default, this is \c jsonv::detail::optional<T>.
+ *  
+ *  \def JSONV_OPTIONAL_INCLUDE
+ *  The file to include to get the implementation for \c jsonv::optional<T>. If you define \c JSONV_OPTIONAL_TYPE, you must
+ *  also define this.
+ *  
+ *  \def JSONV_OPTIONAL_USE_STD
+ *  Set this to 1 to use \c std::optional<T> as the backing type for \c jsonv::optional<T>.
+ *  
+ *  \def JSONV_OPTIONAL_USE_STD_EXPERIMENTAL
+ *  Set this to 1 to use \c std::experimental::optional<T> as the backing type for \c jsonv::optional<T>.
+ *
+ *  \def JSONV_STRING_VIEW_USE_BOOST
+ *  Set this to 1 to use \c boost::optinal<T> as the backing type for \c jsonv::optional<T>.
+**/
+#ifndef JSONV_OPTIONAL_TYPE
+#   if defined(JSONV_OPTIONAL_USE_STD) && JSONV_OPTIONAL_USE_STD
+#       define JSONV_OPTIONAL_TYPE(T) std::optional<T>
+#       define JSONV_OPTIONAL_INCLUDE <optional>
+#   elif defined(JSONV_OPTIONAL_USE_STD_EXPERIMENTAL) && JSONV_OPTIONAL_USE_STD_EXPERIMENTAL
+#       define JSONV_OPTIONAL_TYPE(T) std::experimental::optional<T>
+#       define JSONV_OPTIONAL_INCLUDE <experimental/optional>
+#   elif defined(JSONV_OPTIONAL_USE_BOOST) && JSONV_OPTIONAL_USE_BOOST
+#       define JSONV_OPTIONAL_TYPE(T) boost::optional<T>
+#       define JSONV_OPTIONAL_INCLUDE <boost/optional.hpp>
+#   else
+#       define JSONV_OPTIONAL_TYPE(T) jsonv::detail::optional<T>
+#       define JSONV_OPTIONAL_INCLUDE <jsonv/detail/optional.hpp>
+#   endif
 #endif
 
+#include JSONV_OPTIONAL_INCLUDE
 
-#ifdef JSONV_OPTIONAL_TYPE
 namespace jsonv
 {
 
@@ -59,5 +86,6 @@ protected:
 };
 
 }
-#endif // JSONV_OPTIONAL_TYPE 
+
 #endif
+
