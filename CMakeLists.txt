@@ -48,6 +48,10 @@ if (JSONV_BUILD_TESTS)
     list(APPEND REQUIRED_BOOST_LIBRARIES "filesystem" "system")
 endif()
 
+#######################
+# Regex Configuration #
+#######################
+
 option(USE_BOOST_REGEX
        "Controls the variable JSONV_REGEX_USE_BOOST (see C++ documentation)."
        OFF
@@ -56,6 +60,10 @@ if (USE_BOOST_REGEX)
     add_definitions("-DJSONV_REGEX_USE_BOOST=1")
     list(APPEND REQUIRED_BOOST_LIBRARIES "regex")
 endif(USE_BOOST_REGEX)
+
+#############################
+# String View Configuration #
+#############################
 
 option(USE_BOOST_STRING_VIEW
        "Controls the variable JSONV_STRING_VIEW_USE_BOOST (see C++ documentation)."
@@ -72,6 +80,38 @@ option(USE_STD_STRING_VIEW
 if (USE_STD_STRING_VIEW)
     add_definitions("-DJSONV_STRING_VIEW_USE_STD=1")
 endif(USE_STD_STRING_VIEW)
+
+##########################
+# Optional Configuration #
+##########################
+
+option(USE_STD_OPTIONAL
+       "Controls the variable JSONV_OPTIONAL_USE_STD (see C++ documentation)."
+       OFF
+      )
+if (USE_STD_OPTIONAL)
+    add_definitions("-DJSONV_OPTIONAL_USE_STD=1")
+endif()
+
+option(USE_STD_EXPERIMENTAL_OPTIONAL
+       "Controls the variable JSONV_OPTIONAL_USE_STD_EXPERIMENTAL (see C++ documentation)."
+       OFF
+      )
+if (USE_STD_EXPERIMENTAL_OPTIONAL)
+    add_definitions("-DJSONV_OPTIONAL_USE_STD_EXPERIMENTAL=1")
+endif()
+
+option(USE_BOOST_OPTIONAL
+       "Controls the variable JSONV_OPTIONAL_USE_BOOST (see C++ documentation)."
+       OFF
+      )
+if (USE_BOOST_OPTIONAL)
+    add_definitions("-DJSONV_OPTIONAL_USE_BOOST=1")
+endif()
+
+########################
+# Locale Configuration #
+########################
 
 if (CMAKE_COMPILER_IS_GNUCC)
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0")
