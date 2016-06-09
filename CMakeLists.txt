@@ -44,7 +44,7 @@ if (CMAKE_COMPILER_IS_GNUCC)
   endif()
 endif()
 
-set(CXX_STANDARD "c++14"
+set(CXX_STANDARD ${CXX_STANDARD_DEFAULT}
     CACHE STRING "The version of the language to use (only applies to GCC and Clang)."
    )
 
