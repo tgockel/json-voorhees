@@ -37,6 +37,10 @@ set(JSONV_VERSION "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}.${JSONV_VERSION
    )
 message(STATUS "JSONV version: ${JSONV_VERSION}")
 
+set(CXX_STANDARD "c++14"
+    CACHE STRING "The version of the language to use (only applies to GCC and Clang)."
+   )
+
 option(JSONV_BUILD_TESTS
        "Should the unit test library get built?"
        OFF
@@ -161,7 +165,7 @@ option(BENCHMARK
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11 -pedantic -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD} -pedantic -Wall -Wextra")
     set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -ggdb")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ggdb")
 endif(WIN32)
