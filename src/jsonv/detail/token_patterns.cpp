@@ -15,9 +15,6 @@
 #include <cassert>
 #include <iterator>
 
-
-#include JSONV_REGEX_INCLUDE
-
 namespace jsonv
 {
 namespace detail

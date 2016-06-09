@@ -38,6 +38,8 @@
 #   error "JSONV_REGEX_INCLUDE is unset, but JSONV_REGEX_NAMESPACE is. You must set both."
 #endif
 
+#include JSONV_REGEX_INCLUDE
+
 namespace jsonv
 {
 namespace detail
