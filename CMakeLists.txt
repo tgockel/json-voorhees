@@ -37,6 +37,13 @@ set(JSONV_VERSION "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}.${JSONV_VERSION
    )
 message(STATUS "JSONV version: ${JSONV_VERSION}")
 
+set(CXX_STANDARD_DEFAULT "c++14")
+if (CMAKE_COMPILER_IS_GNUCC)
+  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+    set(CXX_STANDARD_DEFAULT "c++1y")
+  endif()
+endif()
+
 set(CXX_STANDARD "c++14"
     CACHE STRING "The version of the language to use (only applies to GCC and Clang)."
    )
