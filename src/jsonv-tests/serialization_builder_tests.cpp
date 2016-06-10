@@ -9,7 +9,6 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 
-#define JSONV_OPTIONAL_USE_BOOST 1
 
 #include "test.hpp"
 
@@ -39,7 +38,7 @@ struct person
            int               a,
            std::set<long>    favorite_numbers = std::set<long>{},
            std::vector<long> winning_numbers  = std::vector<long>{},
-           boost::optional<std::string>  m = boost::none
+           optional<std::string>  m = nullopt
           ) :
             firstname(std::move(f)),
             middle_name(m),
@@ -50,7 +49,7 @@ struct person
     { }
 
     std::string       firstname;
-    boost::optional<std::string>  middle_name;
+    optional<std::string>  middle_name;
     std::string       lastname;
     int               age;
     std::set<long>    favorite_numbers;
@@ -85,7 +84,7 @@ TEST(serialization_builder_members)
                         .member("middle_name", &person::middle_name)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
-                        .register_container<boost::optional<std::string>>()
+                        .register_container<optional<std::string>>()
                     .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
