@@ -32,13 +32,8 @@
 #       undef  JSONV_OPTIONAL_USE_STD
 #       define JSONV_OPTIONAL_USE_STD 1
 #   else
-#       if defined(_MSC_VER)
-#           undef  JSONV_OPTIONAL_USE_BOOST
-#           define JSONV_OPTIONAL_USE_BOOST 1
-#       else
-#           undef  JSONV_OPTIONAL_USE_STD_EXPERIMENTAL
-#           define JSONV_OPTIONAL_USE_STD_EXPERIMENTAL 1
-#       endif
+#       undef  JSONV_OPTIONAL_USE_STD_EXPERIMENTAL
+#       define JSONV_OPTIONAL_USE_STD_EXPERIMENTAL 1
 #   endif
 #endif
 
