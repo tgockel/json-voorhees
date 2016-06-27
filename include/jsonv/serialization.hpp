@@ -532,7 +532,7 @@ public:
     {
         try
         {
-            typename std::aligned_storage<sizeof(T), alignof(T)>::type place[sizeof(T)];
+            typename std::aligned_storage<sizeof(T), alignof(T)>::type place[1];
             T* ptr = reinterpret_cast<T*>(place);
             formats().extract(typeid(T), from, static_cast<void*>(ptr), *this);
             auto destroy = detail::on_scope_exit([ptr] { ptr->~T(); });
