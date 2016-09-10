@@ -1,7 +1,7 @@
 /** \file jsonv/serialization_builder.hpp
  *  DSL for building \c formats.
  *  
- *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2015-2016 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -104,7 +104,7 @@ namespace jsonv
  *              .member("employees",  &company::employees)
  *              .member("candidates", &company::candidates)
  *          .register_containers<company, std::vector, std::list>()
- *          .check_references()
+ *          .check_references(jsonv::formats::defaults())
  *      ;
  *  \endcode
  * 
@@ -171,7 +171,7 @@ namespace jsonv
  *  This is evaluated \e immediately, so it is best to call this function as the very last step in the DSL.
  *  
  *  \code
- *    .check_references()
+ *    .check_references(jsonv::formats::defaults())
  *  \endcode
  *  
  *  \paragraph serialization_builder_dsl_ref_formats_level_reference_type reference_type
@@ -326,6 +326,27 @@ namespace jsonv
  *  
  *  Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
  *  be called multiple times -- all functions will be called in the order they are provided.
+ *  
+ *  \paragraph serialization_builder_dsl_ref_type_level_default_on_null type_default_on_null
+ *  
+ *   - <tt>type_default_on_null()</tt>
+ *   - <tt>type_default_on_null(bool on)</tt>
+ *  
+ *  If the JSON value \c null is in the input, should this type take on some default?
+ *  This should be used with \ref serialization_builder_dsl_ref_type_level_type_default_value type_default_value.
+ *  
+ *  \paragraph serialization_builder_dsl_ref_type_level_type_default_value
+ *  
+ *   - <tt>type_default_value(T value)</tt>
+ *   - <tt>type_default_value(std::function&lt;T (const extraction_context& context)&gt;)</tt>
+ *  
+ *  What value should be used to create the default for this type?
+ *  
+ *  \code
+ *    .type<my_type>()
+ *        .type_default_on_null()
+ *        .type_default_value(my_type("default"))
+ *  \endcode
  *  
  *  \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys on_extract_extra_keys
  *  
@@ -527,6 +548,12 @@ public:
     explicit adapter_builder_dsl(adapter_builder<T>* owner) :
             owner(owner)
     { }
+    
+    adapter_builder<T>& type_default_on_null(bool on = true);
+    
+    adapter_builder<T>& type_default_value(std::function<T (const extraction_context& ctx)> create);
+
+    adapter_builder<T>& type_default_value(const T& value);
     
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector);
@@ -817,6 +844,23 @@ public:
             adapter_builder(owner, [] (const adapter_builder<T>&) { })
     { }
     
+    adapter_builder<T>& type_default_on_null(bool on = true)
+    {
+        _adapter->_default_on_null = on;
+        return *this;
+    }
+    
+    adapter_builder<T>& type_default_value(std::function<T (const extraction_context& ctx)> create)
+    {
+        _adapter->_create_default = std::move(create);
+        return *this;
+    }
+    
+    adapter_builder<T>& type_default_value(const T& value)
+    {
+        return type_default_value([value] (const extraction_context&) { return T(value); });
+    }
+    
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector)
     {
@@ -875,11 +919,17 @@ private:
             public adapter_for<T>
     {
     public:
+        adapter_impl() :
+                _default_on_null(false)
+        { }
     
         virtual T create(const extraction_context& context, const value& from) const override
         {
             if (_pre_extract)
                 _pre_extract(context, from);
+            
+            if (_default_on_null && from.is_null())
+                return _create_default(context);
             
             T out;
             for (const auto& member : _members)
@@ -897,6 +947,8 @@ private:
         
         std::deque<std::unique_ptr<detail::member_adapter<T>>>             _members;
         std::function<void (const extraction_context&, const value& from)> _pre_extract;
+        std::function<T (const extraction_context&)>                       _create_default;
+        bool                                                               _default_on_null;
     };
     
 private:
@@ -1161,6 +1213,24 @@ formats_builder& formats_builder_dsl::register_containers()
     return owner->register_containers<T, TTContainers...>();
 }
 #endif
+
+template <typename T>
+adapter_builder<T>& adapter_builder_dsl<T>::type_default_on_null(bool on)
+{
+    return owner->type_default_on_null(on);
+}
+
+template <typename T>
+adapter_builder<T>& adapter_builder_dsl<T>::type_default_value(std::function<T (const extraction_context& ctx)> create)
+{
+    return owner->type_default_value(std::move(create));
+}
+
+template <typename T>
+adapter_builder<T>& adapter_builder_dsl<T>::type_default_value(const T& value)
+{
+    return owner->type_default_value(value);
+}
 
 template <typename T>
 template <typename TMember>

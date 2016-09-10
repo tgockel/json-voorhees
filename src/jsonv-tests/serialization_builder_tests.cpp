@@ -279,6 +279,15 @@ struct foo
   int         a;
   int         b;
   std::string c;
+  
+  static foo create_default()
+  {
+      foo out;
+      out.a = 0;
+      out.b = 1;
+      out.c = "default";
+      return out;
+  }
 };
 
 struct bar
@@ -354,6 +363,26 @@ TEST(serialization_builder_extra_unchecked_key_throws)
     {
         ensure_eq(path({"x"}), err.path());
     }
+}
+
+TEST(serialization_builder_type_based_default_value)
+{
+    jsonv::formats local_formats =
+        jsonv::formats_builder()
+            .type<foo>()
+                .member("a", &foo::a)
+                .member("b", &foo::b)
+                .member("c", &foo::c)
+                .type_default_on_null()
+                .type_default_value(foo::create_default())
+        ;
+    jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+    
+    auto f = jsonv::extract<foo>(value(), format);
+    auto e = foo::create_default();
+    ensure_eq(e.a, f.a);
+    ensure_eq(e.b, f.b);
+    ensure_eq(e.c, f.c);
 }
 
 }
