@@ -7,9 +7,9 @@ var config_8hpp =
     [ "JSONV_LOCAL", "config_8hpp.html#a2faaa50c0935f9bcfa2e115a0f92b2a0", null ],
     [ "JSONV_NO_RETURN", "config_8hpp.html#a5ffbd77493ad44ecbe4d913e43a0c2f0", null ],
     [ "JSONV_PUBLIC", "config_8hpp.html#acd0703012bd724b356c177b7bc3d761d", null ],
-    [ "JSONV_REGEX_INCLUDE", "config_8hpp.html#ac48b286869b1e0f078351e0d80e32857", null ],
-    [ "JSONV_REGEX_NAMESPACE", "config_8hpp.html#a7a6a425d18bf93fe8bf08a67d5bff24a", null ],
     [ "JSONV_SO", "config_8hpp.html#a58dc2b5727768f0a5b79e0a0b8ff1d25", null ],
-    [ "JSONV_STRING_VIEW_INCLUDE", "config_8hpp.html#a0d16a11a502fc429ebc6fd39ff68c246", null ],
-    [ "JSONV_STRING_VIEW_TYPE", "config_8hpp.html#a89e7a7c0bb58be513e9e0a649fcdb297", null ]
+    [ "JSONV_UNUSED", "config_8hpp.html#a7020e97cfeefd77fd7ad1d70f315dd49", null ],
+    [ "JSONV_VERSION_MAJOR", "config_8hpp.html#a822f2ca9bad80a444b4fd28841a40ad7", null ],
+    [ "JSONV_VERSION_MINOR", "config_8hpp.html#af8cf388cbd2b5c601a833093ce43794d", null ],
+    [ "JSONV_VERSION_PATCH", "config_8hpp.html#ada887615bab8b7bbaba41cb5474eebb1", null ]
 ];

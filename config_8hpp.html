@@ -111,13 +111,22 @@ $(document).ready(function(){initNavTree('config_8hpp.html','');});
 </div><!--header-->
 <div class="contents">
 
-<p>Copyright (c) 2014 by Travis Gockel.  
+<p>Copyright (c) 2014-2016 by Travis Gockel.  
 <a href="#details">More...</a></p>
 
 <p><a href="config_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:a822f2ca9bad80a444b4fd28841a40ad7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a822f2ca9bad80a444b4fd28841a40ad7"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>JSONV_VERSION_MAJOR</b>&#160;&#160;&#160;1</td></tr>
+<tr class="separator:a822f2ca9bad80a444b4fd28841a40ad7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8cf388cbd2b5c601a833093ce43794d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af8cf388cbd2b5c601a833093ce43794d"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>JSONV_VERSION_MINOR</b>&#160;&#160;&#160;2</td></tr>
+<tr class="separator:af8cf388cbd2b5c601a833093ce43794d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada887615bab8b7bbaba41cb5474eebb1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ada887615bab8b7bbaba41cb5474eebb1"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>JSONV_VERSION_PATCH</b>&#160;&#160;&#160;0</td></tr>
+<tr class="separator:ada887615bab8b7bbaba41cb5474eebb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58dc2b5727768f0a5b79e0a0b8ff1d25"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a58dc2b5727768f0a5b79e0a0b8ff1d25"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a58dc2b5727768f0a5b79e0a0b8ff1d25">JSONV_SO</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memdesc:a58dc2b5727768f0a5b79e0a0b8ff1d25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Are you using shared objects (DLLs in Windows)? <br /></td></tr>
@@ -131,6 +140,10 @@ Macros</h2></td></tr>
 <tr class="memitem:a2faaa50c0935f9bcfa2e115a0f92b2a0"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a2faaa50c0935f9bcfa2e115a0f92b2a0">JSONV_LOCAL</a>&#160;&#160;&#160;JSONV_HIDDEN</td></tr>
 <tr class="memdesc:a2faaa50c0935f9bcfa2e115a0f92b2a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">This function or class is internal-use only.  <a href="#a2faaa50c0935f9bcfa2e115a0f92b2a0">More...</a><br /></td></tr>
 <tr class="separator:a2faaa50c0935f9bcfa2e115a0f92b2a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7020e97cfeefd77fd7ad1d70f315dd49"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7020e97cfeefd77fd7ad1d70f315dd49"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a7020e97cfeefd77fd7ad1d70f315dd49">JSONV_UNUSED</a></td></tr>
+<tr class="memdesc:a7020e97cfeefd77fd7ad1d70f315dd49"><td class="mdescLeft">&#160;</td><td class="mdescRight">Note that you know the variable is unused, but make the compiler stop complaining about it. <br /></td></tr>
+<tr class="separator:a7020e97cfeefd77fd7ad1d70f315dd49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ffbd77493ad44ecbe4d913e43a0c2f0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5ffbd77493ad44ecbe4d913e43a0c2f0"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a5ffbd77493ad44ecbe4d913e43a0c2f0">JSONV_NO_RETURN</a></td></tr>
 <tr class="memdesc:a5ffbd77493ad44ecbe4d913e43a0c2f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark that a given function will never return control to the caller, either by exiting or throwing an exception. <br /></td></tr>
@@ -142,25 +155,13 @@ Macros</h2></td></tr>
 <tr class="memitem:aa12a2d545e94053d3d0cfc63ecbbf828"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#aa12a2d545e94053d3d0cfc63ecbbf828">JSONV_INTEGER_ALTERNATES_LIST</a>(item)</td></tr>
 <tr class="memdesc:aa12a2d545e94053d3d0cfc63ecbbf828"><td class="mdescLeft">&#160;</td><td class="mdescRight">An item list of types to also consider as an integer.  <a href="#aa12a2d545e94053d3d0cfc63ecbbf828">More...</a><br /></td></tr>
 <tr class="separator:aa12a2d545e94053d3d0cfc63ecbbf828"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a89e7a7c0bb58be513e9e0a649fcdb297"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a89e7a7c0bb58be513e9e0a649fcdb297">JSONV_STRING_VIEW_TYPE</a>&#160;&#160;&#160;<a class="el" href="classjsonv_1_1detail_1_1string__view.html">jsonv::detail::string_view</a></td></tr>
-<tr class="memdesc:a89e7a7c0bb58be513e9e0a649fcdb297"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type to use for <code>jsonv::string_view</code>.  <a href="#a89e7a7c0bb58be513e9e0a649fcdb297">More...</a><br /></td></tr>
-<tr class="separator:a89e7a7c0bb58be513e9e0a649fcdb297"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d16a11a502fc429ebc6fd39ff68c246"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a0d16a11a502fc429ebc6fd39ff68c246">JSONV_STRING_VIEW_INCLUDE</a>&#160;&#160;&#160;&lt;jsonv/detail/string_view.hpp&gt;</td></tr>
-<tr class="memdesc:a0d16a11a502fc429ebc6fd39ff68c246"><td class="mdescLeft">&#160;</td><td class="mdescRight">The file to include to get the implementation for <code>string_view</code>.  <a href="#a0d16a11a502fc429ebc6fd39ff68c246">More...</a><br /></td></tr>
-<tr class="separator:a0d16a11a502fc429ebc6fd39ff68c246"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac48b286869b1e0f078351e0d80e32857"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#ac48b286869b1e0f078351e0d80e32857">JSONV_REGEX_INCLUDE</a>&#160;&#160;&#160;&lt;regex&gt;</td></tr>
-<tr class="memdesc:ac48b286869b1e0f078351e0d80e32857"><td class="mdescLeft">&#160;</td><td class="mdescRight">Controls the regular expression engine to use.  <a href="#ac48b286869b1e0f078351e0d80e32857">More...</a><br /></td></tr>
-<tr class="separator:ac48b286869b1e0f078351e0d80e32857"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a6a425d18bf93fe8bf08a67d5bff24a"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a7a6a425d18bf93fe8bf08a67d5bff24a">JSONV_REGEX_NAMESPACE</a>&#160;&#160;&#160;std</td></tr>
-<tr class="memdesc:a7a6a425d18bf93fe8bf08a67d5bff24a"><td class="mdescLeft">&#160;</td><td class="mdescRight">The regular expression namespace to use.  <a href="#a7a6a425d18bf93fe8bf08a67d5bff24a">More...</a><br /></td></tr>
-<tr class="separator:a7a6a425d18bf93fe8bf08a67d5bff24a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8de2272ac6e7c4feb09012afe5fbb6d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8de2272ac6e7c4feb09012afe5fbb6d0"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a8de2272ac6e7c4feb09012afe5fbb6d0">JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memdesc:a8de2272ac6e7c4feb09012afe5fbb6d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Does the compiler properly support template templates? Most compilers do, MSVC does not. <br /></td></tr>
 <tr class="separator:a8de2272ac6e7c4feb09012afe5fbb6d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Copyright (c) 2014 by Travis Gockel. </p>
+<div class="textblock"><p>Copyright (c) 2014-2016 by Travis Gockel. </p>
 <p>All rights reserved.</p>
 <p>This program is free software: you can redistribute it and/or modify it under the terms of the Apache License as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later version.</p>
 <dl class="section author"><dt>Author</dt><dd>Travis Gockel (<a href="#" onclick="location.href='mai'+'lto:'+'tra'+'vi'+'s@g'+'oc'+'kel'+'hu'+'t.c'+'om'; return false;">travi<span style="display: none;">.nosp@m.</span>s@go<span style="display: none;">.nosp@m.</span>ckelh<span style="display: none;">.nosp@m.</span>ut.c<span style="display: none;">.nosp@m.</span>om</a>) </dd></dl>
@@ -180,7 +181,7 @@ Macros</h2></td></tr>
 <p>Is JSON Voorhees currently compiling? You probably do not want to set this by hand. </p>
 <p>It is set by the build system when the library is compiled. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00036">36</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00040">40</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -205,7 +206,7 @@ Macros</h2></td></tr>
 <p>An item list of types to also consider as an integer. </p>
 <p>This mostly exists to help resolve the C-induced type ambiguity for the literal <code>0</code>. It most prefers to be an <code>int</code>, but might also become a <code>long</code> or a pointer type. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00121">121</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00136">136</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -222,7 +223,7 @@ Macros</h2></td></tr>
 <p>This function or class is internal-use only. </p>
 <dl class="section see"><dt>See also</dt><dd>JSONV_HIDDEN </dd></dl>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00089">89</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00093">93</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -239,75 +240,7 @@ Macros</h2></td></tr>
 <p>This function or class is part of the public API for JsonVoorhees. </p>
 <p>If you are including JsonVoorhees for another library, this will have import semantics (<code>JSONV_IMPORT</code>); if you are building JsonVoorhees, this will have export semantics (<code>JSONV_EXPORT</code>). </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00088">88</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="ac48b286869b1e0f078351e0d80e32857"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define JSONV_REGEX_INCLUDE&#160;&#160;&#160;&lt;regex&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Controls the regular expression engine to use. </p>
-<p>By default, this will use the C++ Standard Library implementation. GCC versions below 4.8 will happy compile regular expressions, but will fail at runtime. If using GCC under 4.9, it is recommended that you set <code>JSONV_REGEX_USE_BOOST</code> to <code>1</code>. </p>
-
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00171">171</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a7a6a425d18bf93fe8bf08a67d5bff24a"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define JSONV_REGEX_NAMESPACE&#160;&#160;&#160;std</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The regular expression namespace to use. </p>
-<p>By default, this is <code>std</code>. </p>
-
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00172">172</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a0d16a11a502fc429ebc6fd39ff68c246"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define JSONV_STRING_VIEW_INCLUDE&#160;&#160;&#160;&lt;jsonv/detail/string_view.hpp&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The file to include to get the implementation for <code>string_view</code>. </p>
-<p>If you define <code>JSONV_STRING_VIEW_TYPE</code>, you must also define this. </p>
-
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00150">150</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
-
-</div>
-</div>
-<a class="anchor" id="a89e7a7c0bb58be513e9e0a649fcdb297"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define JSONV_STRING_VIEW_TYPE&#160;&#160;&#160;<a class="el" href="classjsonv_1_1detail_1_1string__view.html">jsonv::detail::string_view</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>The type to use for <code>jsonv::string_view</code>. </p>
-<p>By default, this is <code><a class="el" href="classjsonv_1_1detail_1_1string__view.html" title="A non-owning reference to an std::string, as proposed to the C++ Standard Committee by Jeffrey Yasski...">jsonv::detail::string_view</a></code>. </p>
-
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00149">149</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00092">92</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>

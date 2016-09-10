@@ -9,6 +9,7 @@ var searchData=
   ['serialization_20builder_20dsl',['Serialization Builder DSL',['../serialization_builder_dsl.html',1,'']]],
   ['serialization_5fcontext',['serialization_context',['../classjsonv_1_1serialization__context.html',1,'jsonv']]],
   ['serialization_5fcontext',['serialization_context',['../classjsonv_1_1serialization__context.html#a2cc730476dc157437e76e3eca2659c90',1,'jsonv::serialization_context::serialization_context()'],['../classjsonv_1_1serialization__context.html#a884e5ab82b0954db49ff05df6b5d1727',1,'jsonv::serialization_context::serialization_context(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(), const void *userdata=nullptr)']]],
+  ['serialization_5foptional_2ehpp',['serialization_optional.hpp',['../serialization__optional_8hpp.html',1,'']]],
   ['serialization_5futil_2ehpp',['serialization_util.hpp',['../serialization__util_8hpp.html',1,'']]],
   ['serializer',['serializer',['../classjsonv_1_1serializer.html',1,'jsonv']]],
   ['serializer_5ffor',['serializer_for',['../classjsonv_1_1serializer__for.html',1,'jsonv']]],
@@ -21,7 +22,7 @@ var searchData=
   ['strict',['strict',['../classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714a2133fd717402a7966ee88d06f9e0b792',1,'jsonv::parse_options::strict()'],['../classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa2133fd717402a7966ee88d06f9e0b792',1,'jsonv::parse_options::strict()']]],
   ['string_5fencoding',['string_encoding',['../classjsonv_1_1parse__options.html#ac8763752b079dadae3f78780a81aed3a',1,'jsonv::parse_options']]],
   ['string_5fview',['string_view',['../classjsonv_1_1detail_1_1string__view.html',1,'jsonv::detail']]],
-  ['string_5fview_2ehpp',['string_view.hpp',['../string__view_8hpp.html',1,'']]],
   ['string_5fview_2ehpp',['string_view.hpp',['../detail_2string__view_8hpp.html',1,'']]],
+  ['string_5fview_2ehpp',['string_view.hpp',['../string__view_8hpp.html',1,'']]],
   ['swap',['swap',['../group__Shared.html#gacea6f1f938880b1b1761324e59abad83',1,'jsonv::value']]]
 ];

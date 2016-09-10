@@ -6,10 +6,15 @@ var searchData=
   ['jsonv_5finteger_5falternates_5flist',['JSONV_INTEGER_ALTERNATES_LIST',['../config_8hpp.html#aa12a2d545e94053d3d0cfc63ecbbf828',1,'config.hpp']]],
   ['jsonv_5flocal',['JSONV_LOCAL',['../config_8hpp.html#a2faaa50c0935f9bcfa2e115a0f92b2a0',1,'config.hpp']]],
   ['jsonv_5fno_5freturn',['JSONV_NO_RETURN',['../config_8hpp.html#a5ffbd77493ad44ecbe4d913e43a0c2f0',1,'config.hpp']]],
+  ['jsonv_5fnullopt_5fvalue',['JSONV_NULLOPT_VALUE',['../optional_8hpp.html#ac7c5f430000395da6aa3fc7e7c568358',1,'optional.hpp']]],
+  ['jsonv_5foptional_5finclude',['JSONV_OPTIONAL_INCLUDE',['../optional_8hpp.html#a267d8a9738812252edfa0ae300ddaaf0',1,'optional.hpp']]],
+  ['jsonv_5foptional_5ftype',['JSONV_OPTIONAL_TYPE',['../optional_8hpp.html#ae99aa4dea58bd0d958914ccdefce3b4d',1,'optional.hpp']]],
+  ['jsonv_5foptional_5fuse_5fboost',['JSONV_OPTIONAL_USE_BOOST',['../optional_8hpp.html#a45fd53e92b7efed09e2c0f632918bf2d',1,'optional.hpp']]],
+  ['jsonv_5foptional_5fuse_5fstd',['JSONV_OPTIONAL_USE_STD',['../optional_8hpp.html#a84e6ffd04f09b89bae4e264b0ef37c2e',1,'optional.hpp']]],
+  ['jsonv_5foptional_5fuse_5fstd_5fexperimental',['JSONV_OPTIONAL_USE_STD_EXPERIMENTAL',['../optional_8hpp.html#afe787cd76f033349904efbd1879178cf',1,'JSONV_OPTIONAL_USE_STD_EXPERIMENTAL():&#160;optional.hpp'],['../optional_8hpp.html#afe787cd76f033349904efbd1879178cf',1,'JSONV_OPTIONAL_USE_STD_EXPERIMENTAL():&#160;optional.hpp']]],
   ['jsonv_5fpublic',['JSONV_PUBLIC',['../config_8hpp.html#acd0703012bd724b356c177b7bc3d761d',1,'config.hpp']]],
-  ['jsonv_5fregex_5finclude',['JSONV_REGEX_INCLUDE',['../config_8hpp.html#ac48b286869b1e0f078351e0d80e32857',1,'config.hpp']]],
-  ['jsonv_5fregex_5fnamespace',['JSONV_REGEX_NAMESPACE',['../config_8hpp.html#a7a6a425d18bf93fe8bf08a67d5bff24a',1,'config.hpp']]],
   ['jsonv_5fso',['JSONV_SO',['../config_8hpp.html#a58dc2b5727768f0a5b79e0a0b8ff1d25',1,'config.hpp']]],
-  ['jsonv_5fstring_5fview_5finclude',['JSONV_STRING_VIEW_INCLUDE',['../config_8hpp.html#a0d16a11a502fc429ebc6fd39ff68c246',1,'config.hpp']]],
-  ['jsonv_5fstring_5fview_5ftype',['JSONV_STRING_VIEW_TYPE',['../config_8hpp.html#a89e7a7c0bb58be513e9e0a649fcdb297',1,'config.hpp']]]
+  ['jsonv_5fstring_5fview_5finclude',['JSONV_STRING_VIEW_INCLUDE',['../string__view_8hpp.html#a0d16a11a502fc429ebc6fd39ff68c246',1,'string_view.hpp']]],
+  ['jsonv_5fstring_5fview_5ftype',['JSONV_STRING_VIEW_TYPE',['../string__view_8hpp.html#a89e7a7c0bb58be513e9e0a649fcdb297',1,'string_view.hpp']]],
+  ['jsonv_5funused',['JSONV_UNUSED',['../config_8hpp.html#a7020e97cfeefd77fd7ad1d70f315dd49',1,'config.hpp']]]
 ];

@@ -35,6 +35,9 @@ var hierarchy =
     ] ],
     [ "jsonv::extractor", "classjsonv_1_1extractor.html", [
       [ "jsonv::adapter", "classjsonv_1_1adapter.html", [
+        [ "jsonv::adapter_for< optional< T > >", "classjsonv_1_1adapter__for.html", [
+          [ "jsonv::container_adapter< optional< T > >", "classjsonv_1_1container__adapter_3_01optional_3_01T_01_4_01_4.html", null ]
+        ] ],
         [ "jsonv::adapter_for< TContainer >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::container_adapter< TContainer >", "classjsonv_1_1container__adapter.html", null ]
         ] ],

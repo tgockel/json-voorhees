@@ -166,7 +166,7 @@ $(document).ready(function(){initNavTree('serialization_builder_dsl.html','');})
 <div class="line">            .member(<span class="stringliteral">&quot;employees&quot;</span>,  &amp;company::employees)</div>
 <div class="line">            .member(<span class="stringliteral">&quot;candidates&quot;</span>, &amp;company::candidates)</div>
 <div class="line">        .register_containers&lt;company, std::vector, std::list&gt;()</div>
-<div class="line">        .check_references()</div>
+<div class="line">        .check_references(<a class="code" href="classjsonv_1_1formats.html#ad194791e293229fb6a79438a6444f51b">jsonv::formats::defaults</a>())</div>
 <div class="line">    ;</div>
 </div><!-- fragment --><h1><a class="anchor" id="Reference"></a>
 Reference</h1>
@@ -197,7 +197,7 @@ check_references</h4>
 <div class="line"> - tree</div>
 </div><!-- fragment --><p>If <em>name</em> is provided, the value will be output to the error message on failure. This can be useful if you have multiple <code>check_references</code> statements and wish to more easily determine the failing <code>formats</code> combination from the error message alone.</p>
 <dl class="section note"><dt>Note</dt><dd>This is evaluated <em>immediately</em>, so it is best to call this function as the very last step in the DSL.</dd></dl>
-<div class="fragment"><div class="line">.check_references()</div>
+<div class="fragment"><div class="line">.check_references(<a class="code" href="classjsonv_1_1formats.html#ad194791e293229fb6a79438a6444f51b">jsonv::formats::defaults</a>())</div>
 </div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_reference_type"></a>
 reference_type</h4>
 <ul>
@@ -302,7 +302,24 @@ pre_extract</h4>
 <li><code>pre_extract(std::function&lt;void (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context, const value&amp; from)&gt; perform)</code></li>
 </ul>
 <p>Call the given <em>perform</em> function during the <code>extract</code> operation, but before performing any extraction. This can be called multiple times &ndash; all functions will be called in the order they are provided.</p>
-<h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_on_extract_extra_keys"></a>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_default_on_null"></a>
+type_default_on_null</h4>
+<ul>
+<li><code>type_default_on_null()</code></li>
+<li><code>type_default_on_null(bool on)</code></li>
+</ul>
+<p>If the JSON value <code>null</code> is in the input, should this type take on some default? This should be used with <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_type_default_value">serialization_builder_dsl_ref_type_level_type_default_value</a> type_default_value.</p>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_type_default_value"></a>
+serialization_builder_dsl_ref_type_level_type_default_value</h4>
+<ul>
+<li><code>type_default_value(T value)</code></li>
+<li><code>type_default_value(std::function&lt;T (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context)&gt;)</code></li>
+</ul>
+<p>What value should be used to create the default for this type?</p>
+<div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
+<div class="line">    .type_default_on_null()</div>
+<div class="line">    .type_default_value(my_type(<span class="stringliteral">&quot;default&quot;</span>))</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_on_extract_extra_keys"></a>
 on_extract_extra_keys</h4>
 <ul>
 <li><code>on_extract_extra_keys(std::function&lt;void (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context, const value&amp; from, std::set&lt;std::string&gt; extra_keys)&gt; action )</code></li>

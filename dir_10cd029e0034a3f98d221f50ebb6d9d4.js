@@ -18,10 +18,14 @@ var dir_10cd029e0034a3f98d221f50ebb6d9d4 =
       [ "polymorphic_adapter_builder", "classjsonv_1_1polymorphic__adapter__builder.html", "classjsonv_1_1polymorphic__adapter__builder" ]
     ] ],
     [ "functional.hpp", "functional_8hpp.html", "functional_8hpp" ],
+    [ "optional.hpp", "optional_8hpp.html", "optional_8hpp" ],
     [ "parse.hpp", "parse_8hpp.html", "parse_8hpp" ],
     [ "path.hpp", "path_8hpp.html", "path_8hpp" ],
     [ "serialization.hpp", "serialization_8hpp.html", "serialization_8hpp" ],
     [ "serialization_builder.hpp", "serialization__builder_8hpp.html", "serialization__builder_8hpp" ],
+    [ "serialization_optional.hpp", "serialization__optional_8hpp.html", [
+      [ "container_adapter< optional< T > >", "classjsonv_1_1container__adapter_3_01optional_3_01T_01_4_01_4.html", "classjsonv_1_1container__adapter_3_01optional_3_01T_01_4_01_4" ]
+    ] ],
     [ "serialization_util.hpp", "serialization__util_8hpp.html", "serialization__util_8hpp" ],
     [ "string_view.hpp", "string__view_8hpp.html", "string__view_8hpp" ],
     [ "tokenizer.hpp", "tokenizer_8hpp.html", "tokenizer_8hpp" ],

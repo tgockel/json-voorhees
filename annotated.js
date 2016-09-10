@@ -20,6 +20,7 @@ var annotated =
       [ "basic_value_binary_predicate", "structjsonv_1_1basic__value__binary__predicate.html", "structjsonv_1_1basic__value__binary__predicate" ],
       [ "compare_traits", "structjsonv_1_1compare__traits.html", null ],
       [ "container_adapter", "classjsonv_1_1container__adapter.html", "classjsonv_1_1container__adapter" ],
+      [ "container_adapter< optional< T > >", "classjsonv_1_1container__adapter_3_01optional_3_01T_01_4_01_4.html", "classjsonv_1_1container__adapter_3_01optional_3_01T_01_4_01_4" ],
       [ "context_base", "classjsonv_1_1context__base.html", "classjsonv_1_1context__base" ],
       [ "diff_result", "group__Utility.html#structjsonv_1_1diff__result", "group__Utility_structjsonv_1_1diff__result" ],
       [ "dynamic_merge_rules", "classjsonv_1_1dynamic__merge__rules.html", "classjsonv_1_1dynamic__merge__rules" ],
