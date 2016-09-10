@@ -253,11 +253,7 @@ TEST(serialization_builder_encode_checks)
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });
 
-#ifdef __APPLE__
-    person p("Bob", "Builder", 20, std::set<long>{}, { 1 });
-#else
-    person p("Bob", "Builder", 20, {}, { 1 });
-#endif
+    person p("Bob", "Builder", 20, std::set<long>(), { 1 });
     value expected = object({ { "firstname", p.firstname },
                               { "lastname",  p.lastname  },
                               { "winning_numbers", array({ 1 }) },
