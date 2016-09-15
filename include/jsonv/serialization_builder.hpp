@@ -585,9 +585,21 @@ class member_adapter_impl :
         public member_adapter<T>
 {
 public:
-    explicit member_adapter_impl(std::string name, TMember T::*selector) :
+    using mutator_type  = std::function<void (T&, TMember&&)>;
+    using accessor_type = std::function<const TMember& (const T&)>;
+
+public:
+    explicit member_adapter_impl(std::string name, mutator_type mutator, accessor_type access) :
             _names({ std::move(name) }),
-            _selector(selector)
+            _set_value(std::move(mutator)),
+            _get_value(std::move(access))
+    { }
+
+    explicit member_adapter_impl(std::string name, TMember T::*selector) :
+            member_adapter_impl(std::move(name),
+                                [selector] (T& value, TMember&& x) { value.*selector = std::move(x); },
+                                [selector] (const T& value) -> const TMember& { return value.*selector; }
+                               )
     { }
     
     virtual void mutate(const extraction_context& context, const value& from, T& out) const override
@@ -610,15 +622,15 @@ public:
         }
         
         if (use_default)
-            (out.*_selector) = _default_value(context, from);
+            _set_value(out, _default_value(context, from));
         else
-            (out.*_selector) = context.extract_sub<TMember>(from, iter->first);
+            _set_value(out, context.extract_sub<TMember>(from, iter->first));
     }
     
     virtual void to_json(const serialization_context& context, const T& from, value& out) const override
     {
         if (should_encode(context, from))
-            out.insert({ _names.at(0), context.to_json(from.*_selector) });
+            out.insert({ _names.at(0), context.to_json(_get_value(from)) });
     }
     
     virtual bool has_extract_key(string_view key) const override
@@ -678,7 +690,7 @@ private:
     bool should_encode(const serialization_context& context, const T& from) const
     {
         if (_should_encode)
-            return _should_encode(context, from.*_selector);
+            return _should_encode(context, _get_value(from));
         else
             return true;
     }
@@ -689,7 +701,8 @@ private:
     
 private:
     std::vector<std::string>                                           _names;
-    TMember T::*                                                       _selector;
+    mutator_type                                                       _set_value;
+    accessor_type                                                      _get_value;
     std::function<bool (const serialization_context&, const TMember&)> _should_encode;
     std::function<TMember (const extraction_context&, const value&)>   _default_value;
     bool                                                               _default_on_null = false;
