@@ -344,11 +344,16 @@ Narrowing</h3>
 member</h4>
 <ul>
 <li><code>member(std::string name, TMember T::*selector)</code></li>
+<li><code>member(std::string name, const TMember&amp; (*access)(const T&amp;), void (*mutate)(T&amp;, TMember&amp;&amp;))</code></li>
+<li><code>member(std::string name, const TMember&amp; (T::*access)() const, TMember&amp; (T::*mutable_access)())</code></li>
+<li><code>member(std::string name, const TMember&amp; (T::*access)() const, void (T::*mutate)(TMember))</code></li>
+<li><code>member(std::string name, const TMember&amp; (T::*access)() const, void (T::*mutate)(TMember&amp;&amp;))</code></li>
 </ul>
 <p>Adds a member to the type we are currently building. By default, the member will be serialized with the key of the given <em>name</em> and the extractor will search for the given <em>name</em>. If you wish to change properties of this field, use the <a class="el" href="serialization_builder_dsl.html#serialization_builder_dsl_ref_member">Member Context</a>.</p>
 <div class="fragment"><div class="line">.type&lt;my_type&gt;()</div>
 <div class="line">    .member(<span class="stringliteral">&quot;x&quot;</span>, &amp;my_type::x)</div>
 <div class="line">    .member(<span class="stringliteral">&quot;y&quot;</span>, &amp;my_type::y)</div>
+<div class="line">    .member(<span class="stringliteral">&quot;thing&quot;</span>, &amp;my_type::get_thing, &amp;my_type::set_thing)</div>
 </div><!-- fragment --><h2><a class="anchor" id="serialization_builder_dsl_ref_member"></a>
 Member Context</h2>
 <p>Commands in this section modify the behavior of a particular member. Here, <code>T</code> refers to the containing type (the one we are adding a member to) and <code>TMember</code> refers to the type of the member we are modifying.</p>
