@@ -107,8 +107,8 @@ $(document).ready(function(){initNavTree('classjsonv_1_1detail_1_1member__adapte
 
 <div class="header">
   <div class="summary">
+<a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#friends">Friends</a> &#124;
 <a href="classjsonv_1_1detail_1_1member__adapter__impl-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">jsonv::detail::member_adapter_impl&lt; T, TMember &gt; Class Template Reference</div>  </div>
@@ -124,42 +124,33 @@ Inheritance diagram for jsonv::detail::member_adapter_impl&lt; T, TMember &gt;:<
 </map>
  </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a279c4955033eb9647275f48e7b40d7e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a279c4955033eb9647275f48e7b40d7e0"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>mutator_type</b> = std::function&lt; void(T &amp;, TMember &amp;&amp;)&gt;</td></tr>
+<tr class="separator:a279c4955033eb9647275f48e7b40d7e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2872fe832613588e633a15721020651d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2872fe832613588e633a15721020651d"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>accessor_type</b> = std::function&lt; const TMember &amp;(const T &amp;)&gt;</td></tr>
+<tr class="separator:a2872fe832613588e633a15721020651d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:acc630b5a0fa0ee266c5832819675b43d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acc630b5a0fa0ee266c5832819675b43d"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>member_adapter_impl</b> (std::string name, mutator_type mutator, accessor_type access)</td></tr>
+<tr class="separator:acc630b5a0fa0ee266c5832819675b43d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfde7d1d208aa2c27f4a1bb7b453c855"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acfde7d1d208aa2c27f4a1bb7b453c855"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>member_adapter_impl</b> (std::string name, TMember T::*selector)</td></tr>
 <tr class="separator:acfde7d1d208aa2c27f4a1bb7b453c855"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf0a0e616ff384c832e091c426190708"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaf0a0e616ff384c832e091c426190708"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>mutate</b> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, T &amp;out) const override</td></tr>
-<tr class="separator:aaf0a0e616ff384c832e091c426190708"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8c863e64a6752164400c0e0a934fa1a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af8c863e64a6752164400c0e0a934fa1a"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>to_json</b> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const T &amp;from, <a class="el" href="classjsonv_1_1value.html">value</a> &amp;out) const override</td></tr>
-<tr class="separator:af8c863e64a6752164400c0e0a934fa1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a82d88fb0852ffb2e72db63fa850b840e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a82d88fb0852ffb2e72db63fa850b840e"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_extract_key</b> (<a class="el" href="classjsonv_1_1detail_1_1string__view.html">string_view</a> key) const override</td></tr>
-<tr class="separator:a82d88fb0852ffb2e72db63fa850b840e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a64a6e68fc63257791b111c504da00982"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a64a6e68fc63257791b111c504da00982"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>add_encode_check</b> (std::function&lt; bool(const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;, const TMember &amp;)&gt; check)</td></tr>
-<tr class="separator:a64a6e68fc63257791b111c504da00982"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae4914318cc48f7e096925272366fe719"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae4914318cc48f7e096925272366fe719"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>add_extraction_mutator</b> (std::function&lt; TMember(TMember &amp;&amp;)&gt; mutate)</td></tr>
-<tr class="separator:ae4914318cc48f7e096925272366fe719"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a344b1b47f96a930dc09d7405f75df64a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a344b1b47f96a930dc09d7405f75df64a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>add_extraction_check</b> (std::function&lt; void(const TMember &amp;)&gt; check)</td></tr>
-<tr class="separator:a344b1b47f96a930dc09d7405f75df64a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a76e61542fd92aac9d8d3e12a60fd93b0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a76e61542fd92aac9d8d3e12a60fd93b0"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>default_value</b> (std::function&lt; TMember(const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;)&gt; &amp;&amp;create)</td></tr>
-<tr class="separator:a76e61542fd92aac9d8d3e12a60fd93b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1af88da97f8d23cadc90e912e1c0827f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1af88da97f8d23cadc90e912e1c0827f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>default_on_null</b> (bool on)</td></tr>
-<tr class="separator:a1af88da97f8d23cadc90e912e1c0827f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
-Friends</h2></td></tr>
-<tr class="memitem:acdbf370e19df2f546b66a7a29400b1bc"><td class="memTemplParams" colspan="2"><a class="anchor" id="acdbf370e19df2f546b66a7a29400b1bc"></a>
-template&lt;typename U , typename UMember &gt; </td></tr>
-<tr class="memitem:acdbf370e19df2f546b66a7a29400b1bc"><td class="memTemplItemLeft" align="right" valign="top">class&#160;</td><td class="memTemplItemRight" valign="bottom"><b>member_adapter_builder</b></td></tr>
-<tr class="separator:acdbf370e19df2f546b66a7a29400b1bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classjsonv_1_1detail_1_1member__adapter"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classjsonv_1_1detail_1_1member__adapter')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classjsonv_1_1detail_1_1member__adapter.html">jsonv::detail::member_adapter&lt; T &gt;</a></td></tr>
+<tr class="memitem:a3546ebf351f8dbcd21143bf0bb9af1da inherit pub_methods_classjsonv_1_1detail_1_1member__adapter"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3546ebf351f8dbcd21143bf0bb9af1da"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>mutate</b> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, T &amp;out) const =0</td></tr>
+<tr class="separator:a3546ebf351f8dbcd21143bf0bb9af1da inherit pub_methods_classjsonv_1_1detail_1_1member__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ed818fcc8d0821d27db914d5cc957d7 inherit pub_methods_classjsonv_1_1detail_1_1member__adapter"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7ed818fcc8d0821d27db914d5cc957d7"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>to_json</b> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const T &amp;from, <a class="el" href="classjsonv_1_1value.html">value</a> &amp;out) const =0</td></tr>
+<tr class="separator:a7ed818fcc8d0821d27db914d5cc957d7 inherit pub_methods_classjsonv_1_1detail_1_1member__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa374107a5513ed622560667ad4e5413 inherit pub_methods_classjsonv_1_1detail_1_1member__adapter"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afa374107a5513ed622560667ad4e5413"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_extract_key</b> (<a class="el" href="classjsonv_1_1detail_1_1string__view.html">string_view</a> key) const =0</td></tr>
+<tr class="separator:afa374107a5513ed622560667ad4e5413 inherit pub_methods_classjsonv_1_1detail_1_1member__adapter"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><h3>template&lt;typename T, typename TMember&gt;<br />
