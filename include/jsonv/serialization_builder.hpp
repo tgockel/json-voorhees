@@ -383,6 +383,10 @@ namespace jsonv
  *  \paragraph serialization_builder_dsl_ref_type_narrowing_member member
  *  
  *   - <tt>member(std::string name, TMember T::*selector)</tt>
+ *   - <tt>member(std::string name, const TMember& (*access)(const T&), void (*mutate)(T&, TMember&&))</tt>
+ *   - <tt>member(std::string name, const TMember& (T::*access)() const, TMember& (T::*mutable_access)())</tt>
+ *   - <tt>member(std::string name, const TMember& (T::*access)() const, void (T::*mutate)(TMember))</tt>
+ *   - <tt>member(std::string name, const TMember& (T::*access)() const, void (T::*mutate)(TMember&&))</tt>
  *  
  *  Adds a member to the type we are currently building. By default, the member will be serialized with the key of the
  *  given \a name and the extractor will search for the given \a name. If you wish to change properties of this field,
@@ -392,6 +396,7 @@ namespace jsonv
  *    .type<my_type>()
  *        .member("x", &my_type::x)
  *        .member("y", &my_type::y)
+ *        .member("thing", &my_type::get_thing, &my_type::set_thing)
  *  \endcode
  *  
  *  
@@ -557,6 +562,30 @@ public:
     
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector);
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string                              name,
+                                              std::function<const TMember& (const T&)> access,
+                                              std::function<void (T&, TMember&&)>      mutate
+                                             );
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string    name,
+                                              const TMember& (T::*access)() const,
+                                              TMember&       (T::*mutable_access)()
+                                             );
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string name,
+                                              const TMember& (T::*access)() const,
+                                              void (T::*mutate)(TMember)
+                                             );
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string name,
+                                              const TMember& (T::*access)() const,
+                                              void (T::*mutate)(TMember&&)
+                                             );
     
     adapter_builder<T>& pre_extract(std::function<void (const extraction_context&, const value& from)> perform);
     
@@ -884,6 +913,57 @@ public:
         member_adapter_builder<T, TMember> builder(formats_builder_dsl::owner, this, ptr.get());
         _adapter->_members.emplace_back(std::move(ptr));
         return builder;
+    }
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string                              name,
+                                              std::function<const TMember& (const T&)> access,
+                                              std::function<void (T&, TMember&&)>      mutate
+                                             )
+    {
+        std::unique_ptr<detail::member_adapter_impl<T, TMember>> ptr
+            (
+                new detail::member_adapter_impl<T, TMember>(std::move(name), std::move(mutate), std::move(access))
+            );
+        member_adapter_builder<T, TMember> builder(formats_builder_dsl::owner, this, ptr.get());
+        _adapter->_members.emplace_back(std::move(ptr));
+        return builder;
+    }
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string    name,
+                                              const TMember& (T::*access)() const,
+                                              TMember&       (T::*mutable_access)()
+                                             )
+    {
+        return member<TMember>(std::move(name),
+                               access,
+                               [mutable_access] (T& x, TMember&& val) { (x.*mutable_access)() = std::move(val); }
+                              );
+    }
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string name,
+                                              const TMember& (T::*access)() const,
+                                              void (T::*mutate)(TMember)
+                                             )
+    {
+        return member<TMember>(std::move(name),
+                               std::function<const TMember& (const T&)>(access),
+                               [mutate] (T& x, TMember val) { (x.*mutate)(std::move(val)); }
+                              );
+    }
+
+    template <typename TMember>
+    member_adapter_builder<T, TMember> member(std::string name,
+                                              const TMember& (T::*access)() const,
+                                              void (T::*mutate)(TMember&&)
+                                             )
+    {
+        return member<TMember>(std::move(name),
+                               std::function<const TMember& (const T&)>(access),
+                               std::function<void (T&, TMember&&)>(mutate)
+                              );
     }
     
     adapter_builder<T>& pre_extract(std::function<void (const extraction_context&, const value& from)> perform)
@@ -1250,6 +1330,50 @@ template <typename TMember>
 member_adapter_builder<T, TMember> adapter_builder_dsl<T>::member(std::string name, TMember T::*selector)
 {
     return owner->member(std::move(name), selector);
+}
+
+template <typename T>
+template <typename TMember>
+member_adapter_builder<T, TMember>
+adapter_builder_dsl<T>::member(std::string                              name,
+                               std::function<const TMember& (const T&)> access,
+                               std::function<void (T&, TMember&&)>      mutate
+                              )
+{
+    return owner->member(std::move(name), std::move(access), std::move(mutate));
+}
+
+template <typename T>
+template <typename TMember>
+member_adapter_builder<T, TMember>
+adapter_builder_dsl<T>::member(std::string    name,
+                               const TMember& (T::*access)() const,
+                               TMember&       (T::*mutable_access)()
+                              )
+{
+    return owner->member(std::move(name), access, mutable_access);
+}
+
+template <typename T>
+template <typename TMember>
+member_adapter_builder<T, TMember>
+adapter_builder_dsl<T>::member(std::string name,
+                               const TMember& (T::*access)() const,
+                               void (T::*mutate)(TMember)
+                              )
+{
+    return owner->member(std::move(name), access, mutate);
+}
+
+template <typename T>
+template <typename TMember>
+member_adapter_builder<T, TMember>
+adapter_builder_dsl<T>::member(std::string name,
+                               const TMember& (T::*access)() const,
+                               void (T::*mutate)(TMember&&)
+                              )
+{
+    return owner->member(std::move(name), access, mutate);
 }
 
 template <typename T>

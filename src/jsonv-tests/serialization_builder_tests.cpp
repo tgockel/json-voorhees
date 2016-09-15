@@ -385,6 +385,49 @@ TEST(serialization_builder_type_based_default_value)
     ensure_eq(e.c, f.c);
 }
 
+class wrapped_things
+{
+public:
+    wrapped_things() = default;
+
+    wrapped_things(int x, int y) :
+            _x(x),
+            _y(y)
+    { }
+
+    const int& x() const { return _x; }
+    int&       x()       { return _x; }
+
+    const int& y() const  { return _y; }
+    void       y(int&& val) { _y = val; }
+
+    friend bool operator==(const wrapped_things& a, const wrapped_things& b)
+    {
+        return a.x() == b.x()
+            && a.y() == b.y();
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const wrapped_things& val)
+    {
+        return os << '(' << val.x() << ", " << val.y() << ')';
+    }
+
+private:
+    int _x;
+    int _y;
+};
+
+TEST(serialization_builder_access_mutate)
+{
+    jsonv::formats local_formats =
+        jsonv::formats_builder()
+            .type<wrapped_things>()
+                .member("x", &wrapped_things::x, &wrapped_things::x)
+                .member("y", &wrapped_things::y, &wrapped_things::y)
+        ;
+    jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+}
+
 }
 
 namespace x
