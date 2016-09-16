@@ -832,206 +832,207 @@ $(document).ready(function(){initNavTree('serialization__builder_8hpp_source.htm
 <div class="line"><a name="l01220"></a><span class="lineno"> 1220</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> TContainer&gt;</div>
 <div class="line"><a name="l01221"></a><span class="lineno"> 1221</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; register_container()</div>
 <div class="line"><a name="l01222"></a><span class="lineno"> 1222</span>&#160;    {</div>
-<div class="line"><a name="l01223"></a><span class="lineno"> 1223</span>&#160;        std::unique_ptr&lt;container_adapter&lt;TContainer&gt;&gt; p(<span class="keyword">new</span> <a class="code" href="classjsonv_1_1container__adapter.html">container_adapter&lt;TContainer&gt;</a>);</div>
-<div class="line"><a name="l01224"></a><span class="lineno"> 1224</span>&#160;        _formats.register_adapter(std::move(p));</div>
-<div class="line"><a name="l01225"></a><span class="lineno"> 1225</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a name="l01226"></a><span class="lineno"> 1226</span>&#160;    }</div>
-<div class="line"><a name="l01227"></a><span class="lineno"> 1227</span>&#160;    </div>
-<div class="line"><a name="l01228"></a><span class="lineno"> 1228</span>&#160;<span class="preprocessor">    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES</span></div>
-<div class="line"><a name="l01229"></a><span class="lineno"> 1229</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01230"></a><span class="lineno"> 1230</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; register_containers()</div>
-<div class="line"><a name="l01231"></a><span class="lineno"> 1231</span>&#160;    {</div>
-<div class="line"><a name="l01232"></a><span class="lineno"> 1232</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
-<div class="line"><a name="l01233"></a><span class="lineno"> 1233</span>&#160;    }</div>
-<div class="line"><a name="l01234"></a><span class="lineno"> 1234</span>&#160;    </div>
-<div class="line"><a name="l01235"></a><span class="lineno"> 1235</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">template</span> &lt;<span class="keyword">class</span>...&gt; <span class="keyword">class </span>TTContainer, <span class="keyword">template</span> &lt;<span class="keyword">class</span>...&gt; <span class="keyword">class</span>... TTRest&gt;</div>
-<div class="line"><a name="l01236"></a><span class="lineno"> 1236</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; register_containers()</div>
-<div class="line"><a name="l01237"></a><span class="lineno"> 1237</span>&#160;    {</div>
-<div class="line"><a name="l01238"></a><span class="lineno"> 1238</span>&#160;        register_container&lt;TTContainer&lt;T&gt;&gt;();</div>
-<div class="line"><a name="l01239"></a><span class="lineno"> 1239</span>&#160;        <span class="keywordflow">return</span> register_containers&lt;T, TTRest...&gt;();</div>
-<div class="line"><a name="l01240"></a><span class="lineno"> 1240</span>&#160;    }</div>
-<div class="line"><a name="l01241"></a><span class="lineno"> 1241</span>&#160;<span class="preprocessor">    #endif</span></div>
-<div class="line"><a name="l01242"></a><span class="lineno"> 1242</span>&#160;    </div>
-<div class="line"><a name="l01243"></a><span class="lineno"> 1243</span>&#160;    <span class="keyword">operator</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>()<span class="keyword"> const</span></div>
-<div class="line"><a name="l01244"></a><span class="lineno"> 1244</span>&#160;<span class="keyword">    </span>{</div>
-<div class="line"><a name="l01245"></a><span class="lineno"> 1245</span>&#160;        <span class="keywordflow">return</span> _formats;</div>
-<div class="line"><a name="l01246"></a><span class="lineno"> 1246</span>&#160;    }</div>
-<div class="line"><a name="l01247"></a><span class="lineno"> 1247</span>&#160;    </div>
-<div class="line"><a name="l01248"></a><span class="lineno"> 1248</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; reference_type(std::type_index type);</div>
-<div class="line"><a name="l01249"></a><span class="lineno"> 1249</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; reference_type(std::type_index type, std::type_index from);</div>
-<div class="line"><a name="l01250"></a><span class="lineno"> 1250</span>&#160;    </div>
-<div class="line"><a name="l01261"></a><span class="lineno"> 1261</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; check_references(<a class="code" href="classjsonv_1_1formats.html">formats</a> other, <span class="keyword">const</span> std::string&amp; name = <span class="stringliteral">&quot;&quot;</span>);</div>
-<div class="line"><a name="l01262"></a><span class="lineno"> 1262</span>&#160;    </div>
-<div class="line"><a name="l01263"></a><span class="lineno"> 1263</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160;    <a class="code" href="classjsonv_1_1formats.html">formats</a>                                              _formats;</div>
-<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;    std::map&lt;std::type_index, std::set&lt;std::type_index&gt;&gt; _referenced_types;</div>
-<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;};</div>
-<div class="line"><a name="l01267"></a><span class="lineno"> 1267</span>&#160;</div>
-<div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;<span class="keyword">namespace </span>detail</div>
-<div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;{</div>
-<div class="line"><a name="l01270"></a><span class="lineno"> 1270</span>&#160;</div>
-<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01272"></a><span class="lineno"> 1272</span>&#160;<a class="code" href="classjsonv_1_1adapter__builder.html">adapter_builder&lt;T&gt;</a> formats_builder_dsl::type()</div>
-<div class="line"><a name="l01273"></a><span class="lineno"> 1273</span>&#160;{</div>
-<div class="line"><a name="l01274"></a><span class="lineno"> 1274</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type&lt;T&gt;();</div>
-<div class="line"><a name="l01275"></a><span class="lineno"> 1275</span>&#160;}</div>
-<div class="line"><a name="l01276"></a><span class="lineno"> 1276</span>&#160;</div>
-<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> F&gt;</div>
-<div class="line"><a name="l01278"></a><span class="lineno"> 1278</span>&#160;adapter_builder&lt;T&gt; formats_builder_dsl::type(F&amp;&amp; f)</div>
-<div class="line"><a name="l01279"></a><span class="lineno"> 1279</span>&#160;{</div>
-<div class="line"><a name="l01280"></a><span class="lineno"> 1280</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type&lt;T&gt;(std::forward&lt;F&gt;(f));</div>
-<div class="line"><a name="l01281"></a><span class="lineno"> 1281</span>&#160;}</div>
-<div class="line"><a name="l01282"></a><span class="lineno"> 1282</span>&#160;</div>
-<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TEnum&gt;</div>
-<div class="line"><a name="l01284"></a><span class="lineno"> 1284</span>&#160;formats_builder&amp; formats_builder_dsl::enum_type(std::string                                    enum_name,</div>
-<div class="line"><a name="l01285"></a><span class="lineno"> 1285</span>&#160;                                                std::initializer_list&lt;std::pair&lt;TEnum, value&gt;&gt; mapping</div>
-<div class="line"><a name="l01286"></a><span class="lineno"> 1286</span>&#160;                                               )</div>
-<div class="line"><a name="l01287"></a><span class="lineno"> 1287</span>&#160;{</div>
-<div class="line"><a name="l01288"></a><span class="lineno"> 1288</span>&#160;    <span class="keywordflow">return</span> owner-&gt;enum_type&lt;TEnum&gt;(std::move(enum_name), mapping);</div>
-<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;}</div>
-<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160;</div>
-<div class="line"><a name="l01291"></a><span class="lineno"> 1291</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TEnum&gt;</div>
-<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;formats_builder&amp; formats_builder_dsl::enum_type_icase(std::string                                    enum_name,</div>
-<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;                                                      std::initializer_list&lt;std::pair&lt;TEnum, value&gt;&gt; mapping</div>
-<div class="line"><a name="l01294"></a><span class="lineno"> 1294</span>&#160;                                                     )</div>
-<div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;{</div>
-<div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;    <span class="keywordflow">return</span> owner-&gt;enum_type_icase&lt;TEnum&gt;(std::move(enum_name), mapping);</div>
-<div class="line"><a name="l01297"></a><span class="lineno"> 1297</span>&#160;}</div>
-<div class="line"><a name="l01298"></a><span class="lineno"> 1298</span>&#160;</div>
-<div class="line"><a name="l01299"></a><span class="lineno"> 1299</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TPo<span class="keywordtype">int</span>er&gt;</div>
-<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;polymorphic_adapter_builder&lt;TPointer&gt;</div>
-<div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;formats_builder_dsl::polymorphic_type(std::string discrimination_key)</div>
-<div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160;{</div>
-<div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160;    <span class="keywordflow">return</span> owner-&gt;polymorphic_type&lt;TPointer&gt;(std::move(discrimination_key));</div>
-<div class="line"><a name="l01304"></a><span class="lineno"> 1304</span>&#160;}</div>
-<div class="line"><a name="l01305"></a><span class="lineno"> 1305</span>&#160;</div>
-<div class="line"><a name="l01306"></a><span class="lineno"> 1306</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TPo<span class="keywordtype">int</span>er, <span class="keyword">typename</span> F&gt;</div>
-<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160;polymorphic_adapter_builder&lt;TPointer&gt;</div>
-<div class="line"><a name="l01308"></a><span class="lineno"> 1308</span>&#160;formats_builder_dsl::polymorphic_type(std::string discrimination_key, F&amp;&amp; f)</div>
-<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;{</div>
-<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160;    <span class="keywordflow">return</span> owner-&gt;polymorphic_type&lt;TPointer&gt;(std::move(discrimination_key), std::forward&lt;F&gt;(f));</div>
-<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;}</div>
-<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;</div>
-<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> F&gt;</div>
-<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160;formats_builder&amp; formats_builder_dsl::extend(F&amp;&amp; f)</div>
-<div class="line"><a name="l01315"></a><span class="lineno"> 1315</span>&#160;{</div>
-<div class="line"><a name="l01316"></a><span class="lineno"> 1316</span>&#160;    <span class="keywordflow">return</span> owner-&gt;extend(std::forward&lt;F&gt;(f));</div>
-<div class="line"><a name="l01317"></a><span class="lineno"> 1317</span>&#160;}</div>
-<div class="line"><a name="l01318"></a><span class="lineno"> 1318</span>&#160;</div>
-<div class="line"><a name="l01319"></a><span class="lineno"> 1319</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TOptional&gt;</div>
-<div class="line"><a name="l01320"></a><span class="lineno"> 1320</span>&#160;formats_builder&amp; formats_builder_dsl::register_optional()</div>
-<div class="line"><a name="l01321"></a><span class="lineno"> 1321</span>&#160;{</div>
-<div class="line"><a name="l01322"></a><span class="lineno"> 1322</span>&#160;    <span class="keywordflow">return</span> owner-&gt;register_optional&lt;TOptional&gt;();</div>
-<div class="line"><a name="l01323"></a><span class="lineno"> 1323</span>&#160;}</div>
-<div class="line"><a name="l01324"></a><span class="lineno"> 1324</span>&#160;</div>
-<div class="line"><a name="l01325"></a><span class="lineno"> 1325</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TContainer&gt;</div>
-<div class="line"><a name="l01326"></a><span class="lineno"> 1326</span>&#160;formats_builder&amp; formats_builder_dsl::register_container()</div>
-<div class="line"><a name="l01327"></a><span class="lineno"> 1327</span>&#160;{</div>
-<div class="line"><a name="l01328"></a><span class="lineno"> 1328</span>&#160;    <span class="keywordflow">return</span> owner-&gt;register_container&lt;TContainer&gt;();</div>
-<div class="line"><a name="l01329"></a><span class="lineno"> 1329</span>&#160;}</div>
-<div class="line"><a name="l01330"></a><span class="lineno"> 1330</span>&#160;</div>
-<div class="line"><a name="l01331"></a><span class="lineno"> 1331</span>&#160;<span class="preprocessor">#if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES</span></div>
-<div class="line"><a name="l01332"></a><span class="lineno"> 1332</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">template</span> &lt;<span class="keyword">class</span>...&gt; <span class="keyword">class</span>... TTContainers&gt;</div>
-<div class="line"><a name="l01333"></a><span class="lineno"> 1333</span>&#160;formats_builder&amp; formats_builder_dsl::register_containers()</div>
-<div class="line"><a name="l01334"></a><span class="lineno"> 1334</span>&#160;{</div>
-<div class="line"><a name="l01335"></a><span class="lineno"> 1335</span>&#160;    <span class="keywordflow">return</span> owner-&gt;register_containers&lt;T, TTContainers...&gt;();</div>
-<div class="line"><a name="l01336"></a><span class="lineno"> 1336</span>&#160;}</div>
-<div class="line"><a name="l01337"></a><span class="lineno"> 1337</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l01338"></a><span class="lineno"> 1338</span>&#160;</div>
-<div class="line"><a name="l01339"></a><span class="lineno"> 1339</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;::type_default_on_null(<span class="keywordtype">bool</span> on)</div>
-<div class="line"><a name="l01341"></a><span class="lineno"> 1341</span>&#160;{</div>
-<div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type_default_on_null(on);</div>
-<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;}</div>
-<div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;</div>
-<div class="line"><a name="l01345"></a><span class="lineno"> 1345</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01346"></a><span class="lineno"> 1346</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;::type_default_value(std::function&lt;T (<span class="keyword">const</span> extraction_context&amp; ctx)&gt; create)</div>
-<div class="line"><a name="l01347"></a><span class="lineno"> 1347</span>&#160;{</div>
-<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type_default_value(std::move(create));</div>
-<div class="line"><a name="l01349"></a><span class="lineno"> 1349</span>&#160;}</div>
-<div class="line"><a name="l01350"></a><span class="lineno"> 1350</span>&#160;</div>
-<div class="line"><a name="l01351"></a><span class="lineno"> 1351</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01352"></a><span class="lineno"> 1352</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;::type_default_value(<span class="keyword">const</span> T&amp; value)</div>
-<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;{</div>
-<div class="line"><a name="l01354"></a><span class="lineno"> 1354</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type_default_value(value);</div>
-<div class="line"><a name="l01355"></a><span class="lineno"> 1355</span>&#160;}</div>
-<div class="line"><a name="l01356"></a><span class="lineno"> 1356</span>&#160;</div>
-<div class="line"><a name="l01357"></a><span class="lineno"> 1357</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01358"></a><span class="lineno"> 1358</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l01359"></a><span class="lineno"> 1359</span>&#160;member_adapter_builder&lt;T, TMember&gt; adapter_builder_dsl&lt;T&gt;::member(std::string name, TMember T::*selector)</div>
-<div class="line"><a name="l01360"></a><span class="lineno"> 1360</span>&#160;{</div>
-<div class="line"><a name="l01361"></a><span class="lineno"> 1361</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), selector);</div>
-<div class="line"><a name="l01362"></a><span class="lineno"> 1362</span>&#160;}</div>
-<div class="line"><a name="l01363"></a><span class="lineno"> 1363</span>&#160;</div>
-<div class="line"><a name="l01364"></a><span class="lineno"> 1364</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01365"></a><span class="lineno"> 1365</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l01366"></a><span class="lineno"> 1366</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
-<div class="line"><a name="l01367"></a><span class="lineno"> 1367</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string                              name,</div>
-<div class="line"><a name="l01368"></a><span class="lineno"> 1368</span>&#160;                               std::function&lt;<span class="keyword">const</span> TMember&amp; (<span class="keyword">const</span> T&amp;)&gt; access,</div>
-<div class="line"><a name="l01369"></a><span class="lineno"> 1369</span>&#160;                               std::function&lt;<span class="keywordtype">void</span> (T&amp;, TMember&amp;&amp;)&gt;      mutate</div>
-<div class="line"><a name="l01370"></a><span class="lineno"> 1370</span>&#160;                              )</div>
-<div class="line"><a name="l01371"></a><span class="lineno"> 1371</span>&#160;{</div>
-<div class="line"><a name="l01372"></a><span class="lineno"> 1372</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), std::move(access), std::move(mutate));</div>
-<div class="line"><a name="l01373"></a><span class="lineno"> 1373</span>&#160;}</div>
-<div class="line"><a name="l01374"></a><span class="lineno"> 1374</span>&#160;</div>
-<div class="line"><a name="l01375"></a><span class="lineno"> 1375</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01376"></a><span class="lineno"> 1376</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l01377"></a><span class="lineno"> 1377</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
-<div class="line"><a name="l01378"></a><span class="lineno"> 1378</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string    name,</div>
-<div class="line"><a name="l01379"></a><span class="lineno"> 1379</span>&#160;                               <span class="keyword">const</span> TMember&amp; (T::*access)() <span class="keyword">const</span>,</div>
-<div class="line"><a name="l01380"></a><span class="lineno"> 1380</span>&#160;                               TMember&amp;       (T::*mutable_access)()</div>
-<div class="line"><a name="l01381"></a><span class="lineno"> 1381</span>&#160;                              )</div>
-<div class="line"><a name="l01382"></a><span class="lineno"> 1382</span>&#160;{</div>
-<div class="line"><a name="l01383"></a><span class="lineno"> 1383</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), access, mutable_access);</div>
-<div class="line"><a name="l01384"></a><span class="lineno"> 1384</span>&#160;}</div>
-<div class="line"><a name="l01385"></a><span class="lineno"> 1385</span>&#160;</div>
-<div class="line"><a name="l01386"></a><span class="lineno"> 1386</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01387"></a><span class="lineno"> 1387</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l01388"></a><span class="lineno"> 1388</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
-<div class="line"><a name="l01389"></a><span class="lineno"> 1389</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string name,</div>
-<div class="line"><a name="l01390"></a><span class="lineno"> 1390</span>&#160;                               <span class="keyword">const</span> TMember&amp; (T::*access)() <span class="keyword">const</span>,</div>
-<div class="line"><a name="l01391"></a><span class="lineno"> 1391</span>&#160;                               <span class="keywordtype">void</span> (T::*mutate)(TMember)</div>
-<div class="line"><a name="l01392"></a><span class="lineno"> 1392</span>&#160;                              )</div>
-<div class="line"><a name="l01393"></a><span class="lineno"> 1393</span>&#160;{</div>
-<div class="line"><a name="l01394"></a><span class="lineno"> 1394</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), access, mutate);</div>
-<div class="line"><a name="l01395"></a><span class="lineno"> 1395</span>&#160;}</div>
-<div class="line"><a name="l01396"></a><span class="lineno"> 1396</span>&#160;</div>
-<div class="line"><a name="l01397"></a><span class="lineno"> 1397</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01398"></a><span class="lineno"> 1398</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
-<div class="line"><a name="l01399"></a><span class="lineno"> 1399</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
-<div class="line"><a name="l01400"></a><span class="lineno"> 1400</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string name,</div>
-<div class="line"><a name="l01401"></a><span class="lineno"> 1401</span>&#160;                               <span class="keyword">const</span> TMember&amp; (T::*access)() <span class="keyword">const</span>,</div>
-<div class="line"><a name="l01402"></a><span class="lineno"> 1402</span>&#160;                               <span class="keywordtype">void</span> (T::*mutate)(TMember&amp;&amp;)</div>
-<div class="line"><a name="l01403"></a><span class="lineno"> 1403</span>&#160;                              )</div>
-<div class="line"><a name="l01404"></a><span class="lineno"> 1404</span>&#160;{</div>
-<div class="line"><a name="l01405"></a><span class="lineno"> 1405</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), access, mutate);</div>
-<div class="line"><a name="l01406"></a><span class="lineno"> 1406</span>&#160;}</div>
-<div class="line"><a name="l01407"></a><span class="lineno"> 1407</span>&#160;</div>
-<div class="line"><a name="l01408"></a><span class="lineno"> 1408</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01409"></a><span class="lineno"> 1409</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;</div>
-<div class="line"><a name="l01410"></a><span class="lineno"> 1410</span>&#160;::pre_extract(std::function&lt;<span class="keywordtype">void</span> (<span class="keyword">const</span> extraction_context&amp;, <span class="keyword">const</span> value&amp; from)&gt; perform)</div>
-<div class="line"><a name="l01411"></a><span class="lineno"> 1411</span>&#160;{</div>
-<div class="line"><a name="l01412"></a><span class="lineno"> 1412</span>&#160;    <span class="keywordflow">return</span> owner-&gt;pre_extract(std::move(perform));</div>
-<div class="line"><a name="l01413"></a><span class="lineno"> 1413</span>&#160;}</div>
-<div class="line"><a name="l01414"></a><span class="lineno"> 1414</span>&#160;</div>
-<div class="line"><a name="l01415"></a><span class="lineno"> 1415</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
-<div class="line"><a name="l01416"></a><span class="lineno"> 1416</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;</div>
-<div class="line"><a name="l01417"></a><span class="lineno"> 1417</span>&#160;::on_extract_extra_keys(std::function&lt;<span class="keywordtype">void</span> (<span class="keyword">const</span> extraction_context&amp;, <span class="keyword">const</span> value&amp; from, std::set&lt;std::string&gt; extra_keys)&gt; handler)</div>
-<div class="line"><a name="l01418"></a><span class="lineno"> 1418</span>&#160;{</div>
-<div class="line"><a name="l01419"></a><span class="lineno"> 1419</span>&#160;    <span class="keywordflow">return</span> owner-&gt;on_extract_extra_keys(std::move(handler));</div>
-<div class="line"><a name="l01420"></a><span class="lineno"> 1420</span>&#160;}</div>
-<div class="line"><a name="l01421"></a><span class="lineno"> 1421</span>&#160;</div>
-<div class="line"><a name="l01422"></a><span class="lineno"> 1422</span>&#160;}</div>
-<div class="line"><a name="l01423"></a><span class="lineno"> 1423</span>&#160;</div>
-<div class="line"><a name="l01428"></a><span class="lineno"> 1428</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="config_8hpp.html#a5ffbd77493ad44ecbe4d913e43a0c2f0">JSONV_NO_RETURN</a></div>
-<div class="line"><a name="l01429"></a><span class="lineno"> 1429</span>&#160;<span class="keywordtype">void</span> throw_extra_keys_extraction_error(<span class="keyword">const</span> extraction_context&amp;    context,</div>
-<div class="line"><a name="l01430"></a><span class="lineno"> 1430</span>&#160;                                       <span class="keyword">const</span> value&amp;                 from,</div>
-<div class="line"><a name="l01431"></a><span class="lineno"> 1431</span>&#160;                                       <span class="keyword">const</span> std::set&lt;std::string&gt;&amp; extra_keys</div>
-<div class="line"><a name="l01432"></a><span class="lineno"> 1432</span>&#160;                                      );</div>
-<div class="line"><a name="l01433"></a><span class="lineno"> 1433</span>&#160;</div>
-<div class="line"><a name="l01434"></a><span class="lineno"> 1434</span>&#160;}</div>
-<div class="line"><a name="l01435"></a><span class="lineno"> 1435</span>&#160;</div>
-<div class="line"><a name="l01436"></a><span class="lineno"> 1436</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l01223"></a><span class="lineno"> 1223</span>&#160;        reference_type(std::type_index(<span class="keyword">typeid</span>(<span class="keyword">typename</span> TContainer::value_type)), std::type_index(<span class="keyword">typeid</span>(TContainer)));</div>
+<div class="line"><a name="l01224"></a><span class="lineno"> 1224</span>&#160;        std::unique_ptr&lt;container_adapter&lt;TContainer&gt;&gt; p(<span class="keyword">new</span> <a class="code" href="classjsonv_1_1container__adapter.html">container_adapter&lt;TContainer&gt;</a>);</div>
+<div class="line"><a name="l01225"></a><span class="lineno"> 1225</span>&#160;        _formats.register_adapter(std::move(p));</div>
+<div class="line"><a name="l01226"></a><span class="lineno"> 1226</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a name="l01227"></a><span class="lineno"> 1227</span>&#160;    }</div>
+<div class="line"><a name="l01228"></a><span class="lineno"> 1228</span>&#160;    </div>
+<div class="line"><a name="l01229"></a><span class="lineno"> 1229</span>&#160;<span class="preprocessor">    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES</span></div>
+<div class="line"><a name="l01230"></a><span class="lineno"> 1230</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01231"></a><span class="lineno"> 1231</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; register_containers()</div>
+<div class="line"><a name="l01232"></a><span class="lineno"> 1232</span>&#160;    {</div>
+<div class="line"><a name="l01233"></a><span class="lineno"> 1233</span>&#160;        <span class="keywordflow">return</span> *<span class="keyword">this</span>;</div>
+<div class="line"><a name="l01234"></a><span class="lineno"> 1234</span>&#160;    }</div>
+<div class="line"><a name="l01235"></a><span class="lineno"> 1235</span>&#160;    </div>
+<div class="line"><a name="l01236"></a><span class="lineno"> 1236</span>&#160;    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">template</span> &lt;<span class="keyword">class</span>...&gt; <span class="keyword">class </span>TTContainer, <span class="keyword">template</span> &lt;<span class="keyword">class</span>...&gt; <span class="keyword">class</span>... TTRest&gt;</div>
+<div class="line"><a name="l01237"></a><span class="lineno"> 1237</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; register_containers()</div>
+<div class="line"><a name="l01238"></a><span class="lineno"> 1238</span>&#160;    {</div>
+<div class="line"><a name="l01239"></a><span class="lineno"> 1239</span>&#160;        register_container&lt;TTContainer&lt;T&gt;&gt;();</div>
+<div class="line"><a name="l01240"></a><span class="lineno"> 1240</span>&#160;        <span class="keywordflow">return</span> register_containers&lt;T, TTRest...&gt;();</div>
+<div class="line"><a name="l01241"></a><span class="lineno"> 1241</span>&#160;    }</div>
+<div class="line"><a name="l01242"></a><span class="lineno"> 1242</span>&#160;<span class="preprocessor">    #endif</span></div>
+<div class="line"><a name="l01243"></a><span class="lineno"> 1243</span>&#160;    </div>
+<div class="line"><a name="l01244"></a><span class="lineno"> 1244</span>&#160;    <span class="keyword">operator</span> <a class="code" href="classjsonv_1_1formats.html">formats</a>()<span class="keyword"> const</span></div>
+<div class="line"><a name="l01245"></a><span class="lineno"> 1245</span>&#160;<span class="keyword">    </span>{</div>
+<div class="line"><a name="l01246"></a><span class="lineno"> 1246</span>&#160;        <span class="keywordflow">return</span> _formats;</div>
+<div class="line"><a name="l01247"></a><span class="lineno"> 1247</span>&#160;    }</div>
+<div class="line"><a name="l01248"></a><span class="lineno"> 1248</span>&#160;    </div>
+<div class="line"><a name="l01249"></a><span class="lineno"> 1249</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; reference_type(std::type_index type);</div>
+<div class="line"><a name="l01250"></a><span class="lineno"> 1250</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; reference_type(std::type_index type, std::type_index from);</div>
+<div class="line"><a name="l01251"></a><span class="lineno"> 1251</span>&#160;    </div>
+<div class="line"><a name="l01262"></a><span class="lineno"> 1262</span>&#160;    <a class="code" href="classjsonv_1_1formats__builder.html">formats_builder</a>&amp; check_references(<a class="code" href="classjsonv_1_1formats.html">formats</a> other, <span class="keyword">const</span> std::string&amp; name = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a name="l01263"></a><span class="lineno"> 1263</span>&#160;    </div>
+<div class="line"><a name="l01264"></a><span class="lineno"> 1264</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l01265"></a><span class="lineno"> 1265</span>&#160;    <a class="code" href="classjsonv_1_1formats.html">formats</a>                                              _formats;</div>
+<div class="line"><a name="l01266"></a><span class="lineno"> 1266</span>&#160;    std::map&lt;std::type_index, std::set&lt;std::type_index&gt;&gt; _referenced_types;</div>
+<div class="line"><a name="l01267"></a><span class="lineno"> 1267</span>&#160;};</div>
+<div class="line"><a name="l01268"></a><span class="lineno"> 1268</span>&#160;</div>
+<div class="line"><a name="l01269"></a><span class="lineno"> 1269</span>&#160;<span class="keyword">namespace </span>detail</div>
+<div class="line"><a name="l01270"></a><span class="lineno"> 1270</span>&#160;{</div>
+<div class="line"><a name="l01271"></a><span class="lineno"> 1271</span>&#160;</div>
+<div class="line"><a name="l01272"></a><span class="lineno"> 1272</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01273"></a><span class="lineno"> 1273</span>&#160;<a class="code" href="classjsonv_1_1adapter__builder.html">adapter_builder&lt;T&gt;</a> formats_builder_dsl::type()</div>
+<div class="line"><a name="l01274"></a><span class="lineno"> 1274</span>&#160;{</div>
+<div class="line"><a name="l01275"></a><span class="lineno"> 1275</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type&lt;T&gt;();</div>
+<div class="line"><a name="l01276"></a><span class="lineno"> 1276</span>&#160;}</div>
+<div class="line"><a name="l01277"></a><span class="lineno"> 1277</span>&#160;</div>
+<div class="line"><a name="l01278"></a><span class="lineno"> 1278</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> F&gt;</div>
+<div class="line"><a name="l01279"></a><span class="lineno"> 1279</span>&#160;adapter_builder&lt;T&gt; formats_builder_dsl::type(F&amp;&amp; f)</div>
+<div class="line"><a name="l01280"></a><span class="lineno"> 1280</span>&#160;{</div>
+<div class="line"><a name="l01281"></a><span class="lineno"> 1281</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type&lt;T&gt;(std::forward&lt;F&gt;(f));</div>
+<div class="line"><a name="l01282"></a><span class="lineno"> 1282</span>&#160;}</div>
+<div class="line"><a name="l01283"></a><span class="lineno"> 1283</span>&#160;</div>
+<div class="line"><a name="l01284"></a><span class="lineno"> 1284</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TEnum&gt;</div>
+<div class="line"><a name="l01285"></a><span class="lineno"> 1285</span>&#160;formats_builder&amp; formats_builder_dsl::enum_type(std::string                                    enum_name,</div>
+<div class="line"><a name="l01286"></a><span class="lineno"> 1286</span>&#160;                                                std::initializer_list&lt;std::pair&lt;TEnum, value&gt;&gt; mapping</div>
+<div class="line"><a name="l01287"></a><span class="lineno"> 1287</span>&#160;                                               )</div>
+<div class="line"><a name="l01288"></a><span class="lineno"> 1288</span>&#160;{</div>
+<div class="line"><a name="l01289"></a><span class="lineno"> 1289</span>&#160;    <span class="keywordflow">return</span> owner-&gt;enum_type&lt;TEnum&gt;(std::move(enum_name), mapping);</div>
+<div class="line"><a name="l01290"></a><span class="lineno"> 1290</span>&#160;}</div>
+<div class="line"><a name="l01291"></a><span class="lineno"> 1291</span>&#160;</div>
+<div class="line"><a name="l01292"></a><span class="lineno"> 1292</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TEnum&gt;</div>
+<div class="line"><a name="l01293"></a><span class="lineno"> 1293</span>&#160;formats_builder&amp; formats_builder_dsl::enum_type_icase(std::string                                    enum_name,</div>
+<div class="line"><a name="l01294"></a><span class="lineno"> 1294</span>&#160;                                                      std::initializer_list&lt;std::pair&lt;TEnum, value&gt;&gt; mapping</div>
+<div class="line"><a name="l01295"></a><span class="lineno"> 1295</span>&#160;                                                     )</div>
+<div class="line"><a name="l01296"></a><span class="lineno"> 1296</span>&#160;{</div>
+<div class="line"><a name="l01297"></a><span class="lineno"> 1297</span>&#160;    <span class="keywordflow">return</span> owner-&gt;enum_type_icase&lt;TEnum&gt;(std::move(enum_name), mapping);</div>
+<div class="line"><a name="l01298"></a><span class="lineno"> 1298</span>&#160;}</div>
+<div class="line"><a name="l01299"></a><span class="lineno"> 1299</span>&#160;</div>
+<div class="line"><a name="l01300"></a><span class="lineno"> 1300</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TPo<span class="keywordtype">int</span>er&gt;</div>
+<div class="line"><a name="l01301"></a><span class="lineno"> 1301</span>&#160;polymorphic_adapter_builder&lt;TPointer&gt;</div>
+<div class="line"><a name="l01302"></a><span class="lineno"> 1302</span>&#160;formats_builder_dsl::polymorphic_type(std::string discrimination_key)</div>
+<div class="line"><a name="l01303"></a><span class="lineno"> 1303</span>&#160;{</div>
+<div class="line"><a name="l01304"></a><span class="lineno"> 1304</span>&#160;    <span class="keywordflow">return</span> owner-&gt;polymorphic_type&lt;TPointer&gt;(std::move(discrimination_key));</div>
+<div class="line"><a name="l01305"></a><span class="lineno"> 1305</span>&#160;}</div>
+<div class="line"><a name="l01306"></a><span class="lineno"> 1306</span>&#160;</div>
+<div class="line"><a name="l01307"></a><span class="lineno"> 1307</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TPo<span class="keywordtype">int</span>er, <span class="keyword">typename</span> F&gt;</div>
+<div class="line"><a name="l01308"></a><span class="lineno"> 1308</span>&#160;polymorphic_adapter_builder&lt;TPointer&gt;</div>
+<div class="line"><a name="l01309"></a><span class="lineno"> 1309</span>&#160;formats_builder_dsl::polymorphic_type(std::string discrimination_key, F&amp;&amp; f)</div>
+<div class="line"><a name="l01310"></a><span class="lineno"> 1310</span>&#160;{</div>
+<div class="line"><a name="l01311"></a><span class="lineno"> 1311</span>&#160;    <span class="keywordflow">return</span> owner-&gt;polymorphic_type&lt;TPointer&gt;(std::move(discrimination_key), std::forward&lt;F&gt;(f));</div>
+<div class="line"><a name="l01312"></a><span class="lineno"> 1312</span>&#160;}</div>
+<div class="line"><a name="l01313"></a><span class="lineno"> 1313</span>&#160;</div>
+<div class="line"><a name="l01314"></a><span class="lineno"> 1314</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> F&gt;</div>
+<div class="line"><a name="l01315"></a><span class="lineno"> 1315</span>&#160;formats_builder&amp; formats_builder_dsl::extend(F&amp;&amp; f)</div>
+<div class="line"><a name="l01316"></a><span class="lineno"> 1316</span>&#160;{</div>
+<div class="line"><a name="l01317"></a><span class="lineno"> 1317</span>&#160;    <span class="keywordflow">return</span> owner-&gt;extend(std::forward&lt;F&gt;(f));</div>
+<div class="line"><a name="l01318"></a><span class="lineno"> 1318</span>&#160;}</div>
+<div class="line"><a name="l01319"></a><span class="lineno"> 1319</span>&#160;</div>
+<div class="line"><a name="l01320"></a><span class="lineno"> 1320</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TOptional&gt;</div>
+<div class="line"><a name="l01321"></a><span class="lineno"> 1321</span>&#160;formats_builder&amp; formats_builder_dsl::register_optional()</div>
+<div class="line"><a name="l01322"></a><span class="lineno"> 1322</span>&#160;{</div>
+<div class="line"><a name="l01323"></a><span class="lineno"> 1323</span>&#160;    <span class="keywordflow">return</span> owner-&gt;register_optional&lt;TOptional&gt;();</div>
+<div class="line"><a name="l01324"></a><span class="lineno"> 1324</span>&#160;}</div>
+<div class="line"><a name="l01325"></a><span class="lineno"> 1325</span>&#160;</div>
+<div class="line"><a name="l01326"></a><span class="lineno"> 1326</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TContainer&gt;</div>
+<div class="line"><a name="l01327"></a><span class="lineno"> 1327</span>&#160;formats_builder&amp; formats_builder_dsl::register_container()</div>
+<div class="line"><a name="l01328"></a><span class="lineno"> 1328</span>&#160;{</div>
+<div class="line"><a name="l01329"></a><span class="lineno"> 1329</span>&#160;    <span class="keywordflow">return</span> owner-&gt;register_container&lt;TContainer&gt;();</div>
+<div class="line"><a name="l01330"></a><span class="lineno"> 1330</span>&#160;}</div>
+<div class="line"><a name="l01331"></a><span class="lineno"> 1331</span>&#160;</div>
+<div class="line"><a name="l01332"></a><span class="lineno"> 1332</span>&#160;<span class="preprocessor">#if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES</span></div>
+<div class="line"><a name="l01333"></a><span class="lineno"> 1333</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">template</span> &lt;<span class="keyword">class</span>...&gt; <span class="keyword">class</span>... TTContainers&gt;</div>
+<div class="line"><a name="l01334"></a><span class="lineno"> 1334</span>&#160;formats_builder&amp; formats_builder_dsl::register_containers()</div>
+<div class="line"><a name="l01335"></a><span class="lineno"> 1335</span>&#160;{</div>
+<div class="line"><a name="l01336"></a><span class="lineno"> 1336</span>&#160;    <span class="keywordflow">return</span> owner-&gt;register_containers&lt;T, TTContainers...&gt;();</div>
+<div class="line"><a name="l01337"></a><span class="lineno"> 1337</span>&#160;}</div>
+<div class="line"><a name="l01338"></a><span class="lineno"> 1338</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l01339"></a><span class="lineno"> 1339</span>&#160;</div>
+<div class="line"><a name="l01340"></a><span class="lineno"> 1340</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01341"></a><span class="lineno"> 1341</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;::type_default_on_null(<span class="keywordtype">bool</span> on)</div>
+<div class="line"><a name="l01342"></a><span class="lineno"> 1342</span>&#160;{</div>
+<div class="line"><a name="l01343"></a><span class="lineno"> 1343</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type_default_on_null(on);</div>
+<div class="line"><a name="l01344"></a><span class="lineno"> 1344</span>&#160;}</div>
+<div class="line"><a name="l01345"></a><span class="lineno"> 1345</span>&#160;</div>
+<div class="line"><a name="l01346"></a><span class="lineno"> 1346</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01347"></a><span class="lineno"> 1347</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;::type_default_value(std::function&lt;T (<span class="keyword">const</span> extraction_context&amp; ctx)&gt; create)</div>
+<div class="line"><a name="l01348"></a><span class="lineno"> 1348</span>&#160;{</div>
+<div class="line"><a name="l01349"></a><span class="lineno"> 1349</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type_default_value(std::move(create));</div>
+<div class="line"><a name="l01350"></a><span class="lineno"> 1350</span>&#160;}</div>
+<div class="line"><a name="l01351"></a><span class="lineno"> 1351</span>&#160;</div>
+<div class="line"><a name="l01352"></a><span class="lineno"> 1352</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01353"></a><span class="lineno"> 1353</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;::type_default_value(<span class="keyword">const</span> T&amp; value)</div>
+<div class="line"><a name="l01354"></a><span class="lineno"> 1354</span>&#160;{</div>
+<div class="line"><a name="l01355"></a><span class="lineno"> 1355</span>&#160;    <span class="keywordflow">return</span> owner-&gt;type_default_value(value);</div>
+<div class="line"><a name="l01356"></a><span class="lineno"> 1356</span>&#160;}</div>
+<div class="line"><a name="l01357"></a><span class="lineno"> 1357</span>&#160;</div>
+<div class="line"><a name="l01358"></a><span class="lineno"> 1358</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01359"></a><span class="lineno"> 1359</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l01360"></a><span class="lineno"> 1360</span>&#160;member_adapter_builder&lt;T, TMember&gt; adapter_builder_dsl&lt;T&gt;::member(std::string name, TMember T::*selector)</div>
+<div class="line"><a name="l01361"></a><span class="lineno"> 1361</span>&#160;{</div>
+<div class="line"><a name="l01362"></a><span class="lineno"> 1362</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), selector);</div>
+<div class="line"><a name="l01363"></a><span class="lineno"> 1363</span>&#160;}</div>
+<div class="line"><a name="l01364"></a><span class="lineno"> 1364</span>&#160;</div>
+<div class="line"><a name="l01365"></a><span class="lineno"> 1365</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01366"></a><span class="lineno"> 1366</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l01367"></a><span class="lineno"> 1367</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
+<div class="line"><a name="l01368"></a><span class="lineno"> 1368</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string                              name,</div>
+<div class="line"><a name="l01369"></a><span class="lineno"> 1369</span>&#160;                               std::function&lt;<span class="keyword">const</span> TMember&amp; (<span class="keyword">const</span> T&amp;)&gt; access,</div>
+<div class="line"><a name="l01370"></a><span class="lineno"> 1370</span>&#160;                               std::function&lt;<span class="keywordtype">void</span> (T&amp;, TMember&amp;&amp;)&gt;      mutate</div>
+<div class="line"><a name="l01371"></a><span class="lineno"> 1371</span>&#160;                              )</div>
+<div class="line"><a name="l01372"></a><span class="lineno"> 1372</span>&#160;{</div>
+<div class="line"><a name="l01373"></a><span class="lineno"> 1373</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), std::move(access), std::move(mutate));</div>
+<div class="line"><a name="l01374"></a><span class="lineno"> 1374</span>&#160;}</div>
+<div class="line"><a name="l01375"></a><span class="lineno"> 1375</span>&#160;</div>
+<div class="line"><a name="l01376"></a><span class="lineno"> 1376</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01377"></a><span class="lineno"> 1377</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l01378"></a><span class="lineno"> 1378</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
+<div class="line"><a name="l01379"></a><span class="lineno"> 1379</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string    name,</div>
+<div class="line"><a name="l01380"></a><span class="lineno"> 1380</span>&#160;                               <span class="keyword">const</span> TMember&amp; (T::*access)() <span class="keyword">const</span>,</div>
+<div class="line"><a name="l01381"></a><span class="lineno"> 1381</span>&#160;                               TMember&amp;       (T::*mutable_access)()</div>
+<div class="line"><a name="l01382"></a><span class="lineno"> 1382</span>&#160;                              )</div>
+<div class="line"><a name="l01383"></a><span class="lineno"> 1383</span>&#160;{</div>
+<div class="line"><a name="l01384"></a><span class="lineno"> 1384</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), access, mutable_access);</div>
+<div class="line"><a name="l01385"></a><span class="lineno"> 1385</span>&#160;}</div>
+<div class="line"><a name="l01386"></a><span class="lineno"> 1386</span>&#160;</div>
+<div class="line"><a name="l01387"></a><span class="lineno"> 1387</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01388"></a><span class="lineno"> 1388</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l01389"></a><span class="lineno"> 1389</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
+<div class="line"><a name="l01390"></a><span class="lineno"> 1390</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string name,</div>
+<div class="line"><a name="l01391"></a><span class="lineno"> 1391</span>&#160;                               <span class="keyword">const</span> TMember&amp; (T::*access)() <span class="keyword">const</span>,</div>
+<div class="line"><a name="l01392"></a><span class="lineno"> 1392</span>&#160;                               <span class="keywordtype">void</span> (T::*mutate)(TMember)</div>
+<div class="line"><a name="l01393"></a><span class="lineno"> 1393</span>&#160;                              )</div>
+<div class="line"><a name="l01394"></a><span class="lineno"> 1394</span>&#160;{</div>
+<div class="line"><a name="l01395"></a><span class="lineno"> 1395</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), access, mutate);</div>
+<div class="line"><a name="l01396"></a><span class="lineno"> 1396</span>&#160;}</div>
+<div class="line"><a name="l01397"></a><span class="lineno"> 1397</span>&#160;</div>
+<div class="line"><a name="l01398"></a><span class="lineno"> 1398</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01399"></a><span class="lineno"> 1399</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TMember&gt;</div>
+<div class="line"><a name="l01400"></a><span class="lineno"> 1400</span>&#160;member_adapter_builder&lt;T, TMember&gt;</div>
+<div class="line"><a name="l01401"></a><span class="lineno"> 1401</span>&#160;adapter_builder_dsl&lt;T&gt;::member(std::string name,</div>
+<div class="line"><a name="l01402"></a><span class="lineno"> 1402</span>&#160;                               <span class="keyword">const</span> TMember&amp; (T::*access)() <span class="keyword">const</span>,</div>
+<div class="line"><a name="l01403"></a><span class="lineno"> 1403</span>&#160;                               <span class="keywordtype">void</span> (T::*mutate)(TMember&amp;&amp;)</div>
+<div class="line"><a name="l01404"></a><span class="lineno"> 1404</span>&#160;                              )</div>
+<div class="line"><a name="l01405"></a><span class="lineno"> 1405</span>&#160;{</div>
+<div class="line"><a name="l01406"></a><span class="lineno"> 1406</span>&#160;    <span class="keywordflow">return</span> owner-&gt;member(std::move(name), access, mutate);</div>
+<div class="line"><a name="l01407"></a><span class="lineno"> 1407</span>&#160;}</div>
+<div class="line"><a name="l01408"></a><span class="lineno"> 1408</span>&#160;</div>
+<div class="line"><a name="l01409"></a><span class="lineno"> 1409</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01410"></a><span class="lineno"> 1410</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;</div>
+<div class="line"><a name="l01411"></a><span class="lineno"> 1411</span>&#160;::pre_extract(std::function&lt;<span class="keywordtype">void</span> (<span class="keyword">const</span> extraction_context&amp;, <span class="keyword">const</span> value&amp; from)&gt; perform)</div>
+<div class="line"><a name="l01412"></a><span class="lineno"> 1412</span>&#160;{</div>
+<div class="line"><a name="l01413"></a><span class="lineno"> 1413</span>&#160;    <span class="keywordflow">return</span> owner-&gt;pre_extract(std::move(perform));</div>
+<div class="line"><a name="l01414"></a><span class="lineno"> 1414</span>&#160;}</div>
+<div class="line"><a name="l01415"></a><span class="lineno"> 1415</span>&#160;</div>
+<div class="line"><a name="l01416"></a><span class="lineno"> 1416</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l01417"></a><span class="lineno"> 1417</span>&#160;adapter_builder&lt;T&gt;&amp; adapter_builder_dsl&lt;T&gt;</div>
+<div class="line"><a name="l01418"></a><span class="lineno"> 1418</span>&#160;::on_extract_extra_keys(std::function&lt;<span class="keywordtype">void</span> (<span class="keyword">const</span> extraction_context&amp;, <span class="keyword">const</span> value&amp; from, std::set&lt;std::string&gt; extra_keys)&gt; handler)</div>
+<div class="line"><a name="l01419"></a><span class="lineno"> 1419</span>&#160;{</div>
+<div class="line"><a name="l01420"></a><span class="lineno"> 1420</span>&#160;    <span class="keywordflow">return</span> owner-&gt;on_extract_extra_keys(std::move(handler));</div>
+<div class="line"><a name="l01421"></a><span class="lineno"> 1421</span>&#160;}</div>
+<div class="line"><a name="l01422"></a><span class="lineno"> 1422</span>&#160;</div>
+<div class="line"><a name="l01423"></a><span class="lineno"> 1423</span>&#160;}</div>
+<div class="line"><a name="l01424"></a><span class="lineno"> 1424</span>&#160;</div>
+<div class="line"><a name="l01429"></a><span class="lineno"> 1429</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="config_8hpp.html#a5ffbd77493ad44ecbe4d913e43a0c2f0">JSONV_NO_RETURN</a></div>
+<div class="line"><a name="l01430"></a><span class="lineno"> 1430</span>&#160;<span class="keywordtype">void</span> throw_extra_keys_extraction_error(<span class="keyword">const</span> extraction_context&amp;    context,</div>
+<div class="line"><a name="l01431"></a><span class="lineno"> 1431</span>&#160;                                       <span class="keyword">const</span> value&amp;                 from,</div>
+<div class="line"><a name="l01432"></a><span class="lineno"> 1432</span>&#160;                                       <span class="keyword">const</span> std::set&lt;std::string&gt;&amp; extra_keys</div>
+<div class="line"><a name="l01433"></a><span class="lineno"> 1433</span>&#160;                                      );</div>
+<div class="line"><a name="l01434"></a><span class="lineno"> 1434</span>&#160;</div>
+<div class="line"><a name="l01435"></a><span class="lineno"> 1435</span>&#160;}</div>
+<div class="line"><a name="l01436"></a><span class="lineno"> 1436</span>&#160;</div>
+<div class="line"><a name="l01437"></a><span class="lineno"> 1437</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
 <div class="ttc" id="classjsonv_1_1detail_1_1adapter__builder__dsl_html"><div class="ttname"><a href="classjsonv_1_1detail_1_1adapter__builder__dsl.html">jsonv::detail::adapter_builder_dsl</a></div><div class="ttdef"><b>Definition:</b> <a href="serialization__builder_8hpp_source.html#l00564">serialization_builder.hpp:564</a></div></div>
 <div class="ttc" id="config_8hpp_html_a5ffbd77493ad44ecbe4d913e43a0c2f0"><div class="ttname"><a href="config_8hpp.html#a5ffbd77493ad44ecbe4d913e43a0c2f0">JSONV_NO_RETURN</a></div><div class="ttdeci">#define JSONV_NO_RETURN</div><div class="ttdoc">Mark that a given function will never return control to the caller, either by exiting or throwing an ...</div><div class="ttdef"><b>Definition:</b> <a href="config_8hpp_source.html#l00115">config.hpp:115</a></div></div>
 <div class="ttc" id="classjsonv_1_1polymorphic__adapter__builder_html"><div class="ttname"><a href="classjsonv_1_1polymorphic__adapter__builder.html">jsonv::polymorphic_adapter_builder</a></div><div class="ttdef"><b>Definition:</b> <a href="forward_8hpp_source.html#l00032">forward.hpp:32</a></div></div>
