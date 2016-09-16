@@ -48,12 +48,12 @@ struct person
             winning_numbers(std::move(winning_numbers))
     { }
 
-    std::string       firstname;
-    optional<std::string>  middle_name;
-    std::string       lastname;
-    int               age;
-    std::set<long>    favorite_numbers;
-    std::vector<long> winning_numbers;
+    std::string           firstname;
+    optional<std::string> middle_name;
+    std::string           lastname;
+    int                   age;
+    std::set<long>        favorite_numbers;
+    std::vector<long>     winning_numbers;
 
     bool operator==(const person& other) const
     {
@@ -84,7 +84,7 @@ TEST(serialization_builder_members)
                         .member("middle_name", &person::middle_name)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
-                        .register_container<optional<std::string>>()
+                        .register_optional<optional<std::string>>()
                     .check_references(formats::defaults())
                 ;
     formats fmt = formats::compose({ base, formats::defaults() });

@@ -203,7 +203,18 @@ namespace jsonv
  *  \code
  *    .register_adapter(my_type::get_adapter())
  *  \endcode
- * 
+ *
+ *  \paragraph serialization_builder_dsl_ref_formats_level_register_optional register_optional
+ *
+ *   - <tt>register_optional&lt;TOptional&gt;()</tt>
+ *
+ *  Similar to \c register_adapter, but automatically create an <tt>optional_adapter&lt;TOptional&gt;</tt> to store.
+ *
+ *  \code
+ *    .register_optional<std::optional<int>>()
+ *    .register_optional<boost::optional<double>>()
+ *  \endcode
+ *
  *  \paragraph serialization_builder_dsl_ref_formats_level_register_container register_container
  *  
  *   - <tt>register_container&lt;TContainer&gt;()</tt>
@@ -530,15 +541,18 @@ public:
     formats_builder& reference_type(std::type_index typ);
     formats_builder& reference_type(std::type_index type, std::type_index from);
     
-    formats_builder& check_references(formats other, const std::string& name = "");
-    
+    template <typename TOptional>
+    formats_builder& register_optional();
+
     template <typename TContainer>
     formats_builder& register_container();
-    
+
     #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
     template <typename T, template <class...> class... TTContainers>
     formats_builder& register_containers();
     #endif
+
+    formats_builder& check_references(formats other, const std::string& name = "");
     
     operator formats() const;
     
@@ -1193,6 +1207,15 @@ public:
         _formats.register_adapter(std::move(p));
         return *this;
     }
+
+    template <typename TOptional>
+    formats_builder& register_optional()
+    {
+        reference_type(std::type_index(typeid(typename TOptional::value_type)), std::type_index(typeid(TOptional)));
+        std::unique_ptr<optional_adapter<TOptional>> p(new optional_adapter<TOptional>);
+        _formats.register_adapter(std::move(p));
+        return *this;
+    }
     
     template <typename TContainer>
     formats_builder& register_container()
@@ -1291,6 +1314,12 @@ template <typename F>
 formats_builder& formats_builder_dsl::extend(F&& f)
 {
     return owner->extend(std::forward<F>(f));
+}
+
+template <typename TOptional>
+formats_builder& formats_builder_dsl::register_optional()
+{
+    return owner->register_optional<TOptional>();
 }
 
 template <typename TContainer>
