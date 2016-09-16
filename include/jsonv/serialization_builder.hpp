@@ -242,6 +242,17 @@ namespace jsonv
  *  
  *  \note
  *  Not supported in MSVC 14 (CTP 5).
+ *
+ *  \paragraph serialization_builder_dsl_ref_formats_level_register_wrapper register_wrapper
+ *
+ *   - <tt>register_wrapper&lt;TWrapper&gt;()</tt>
+ *
+ *  Similar to \c register_adapter, but automatically create an <tt>wrapper_adapter&lt;TWrapper&gt;</tt> to store.
+ *
+ *  \code
+ *    .register_optional<std::optional<int>>()
+ *    .register_optional<boost::optional<double>>()
+ *  \endcode
  *  
  *  \paragraph serialization_builder_dsl_ref_formats_level_enum_type enum_type
  *  
@@ -551,6 +562,9 @@ public:
     template <typename T, template <class...> class... TTContainers>
     formats_builder& register_containers();
     #endif
+
+    template <typename TWrapper>
+    formats_builder& register_wrapper();
 
     formats_builder& check_references(formats other, const std::string& name = "");
     
@@ -1216,12 +1230,21 @@ public:
         _formats.register_adapter(std::move(p));
         return *this;
     }
-    
+
     template <typename TContainer>
     formats_builder& register_container()
     {
         reference_type(std::type_index(typeid(typename TContainer::value_type)), std::type_index(typeid(TContainer)));
         std::unique_ptr<container_adapter<TContainer>> p(new container_adapter<TContainer>);
+        _formats.register_adapter(std::move(p));
+        return *this;
+    }
+
+    template <typename TWrapper>
+    formats_builder& register_wrapper()
+    {
+        reference_type(std::type_index(typeid(typename TWrapper::value_type)), std::type_index(typeid(TWrapper)));
+        std::unique_ptr<wrapper_adapter<TWrapper>> p(new wrapper_adapter<TWrapper>);
         _formats.register_adapter(std::move(p));
         return *this;
     }
@@ -1336,6 +1359,12 @@ formats_builder& formats_builder_dsl::register_containers()
     return owner->register_containers<T, TTContainers...>();
 }
 #endif
+
+template <typename TWrapper>
+formats_builder& formats_builder_dsl::register_wrapper()
+{
+    return owner->register_container<TWrapper>();
+}
 
 template <typename T>
 adapter_builder<T>& adapter_builder_dsl<T>::type_default_on_null(bool on)
