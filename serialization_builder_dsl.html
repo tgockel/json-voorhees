@@ -216,6 +216,14 @@ register_adapter</h4>
 </ul>
 <p>Register an arbitrary <code>adapter</code> with the <code>formats</code> we are currently building. This is useful for integrating with type adapters that do not (or can not) use the DSL.</p>
 <div class="fragment"><div class="line">.register_adapter(my_type::get_adapter())</div>
+</div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_optional"></a>
+register_optional</h4>
+<ul>
+<li><code>register_optional&lt;TOptional&gt;()</code></li>
+</ul>
+<p>Similar to <code>register_adapter</code>, but automatically create an <code><a class="el" href="classjsonv_1_1optional__adapter.html" title="An adapter for optional-like types. ">optional_adapter</a>&lt;TOptional&gt;</code> to store.</p>
+<div class="fragment"><div class="line">.register_optional&lt;std::optional&lt;int&gt;&gt;()</div>
+<div class="line">.register_optional&lt;boost::optional&lt;double&gt;&gt;()</div>
 </div><!-- fragment --><h4><a class="anchor" id="serialization_builder_dsl_ref_formats_level_register_container"></a>
 register_container</h4>
 <ul>

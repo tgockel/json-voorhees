@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>JSON Voorhees: jsonv::detail::member_adapter&lt; T &gt; Class Template Reference</title>
+<title>JSON Voorhees: Member List</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -88,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-$(document).ready(function(){initNavTree('classjsonv_1_1detail_1_1member__adapter.html','');});
+$(document).ready(function(){initNavTree('classjsonv_1_1optional__adapter.html','');});
 </script>
 <div id="doc-content">
 <!-- window showing the filter options -->
@@ -106,50 +106,26 @@ $(document).ready(function(){initNavTree('classjsonv_1_1detail_1_1member__adapte
 </div>
 
 <div class="header">
-  <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="classjsonv_1_1detail_1_1member__adapter-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">jsonv::detail::member_adapter&lt; T &gt; Class Template Reference<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+<div class="title">jsonv::optional_adapter&lt; TOptional &gt; Member List</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="dynheader">
-Inheritance diagram for jsonv::detail::member_adapter&lt; T &gt;:</div>
-<div class="dyncontent">
- <div class="center">
-  <img src="classjsonv_1_1detail_1_1member__adapter.png" usemap="#jsonv::detail::member_adapter&lt; T &gt;_map" alt=""/>
-  <map id="jsonv::detail::member_adapter&lt; T &gt;_map" name="jsonv::detail::member_adapter&lt; T &gt;_map">
-<area href="classjsonv_1_1detail_1_1member__adapter__impl.html" alt="jsonv::detail::member_adapter_impl&lt; T, TMember &gt;" shape="rect" coords="0,56,300,80"/>
-</map>
- </div></div>
-<table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a3546ebf351f8dbcd21143bf0bb9af1da"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3546ebf351f8dbcd21143bf0bb9af1da"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>mutate</b> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, T &amp;out) const =0</td></tr>
-<tr class="separator:a3546ebf351f8dbcd21143bf0bb9af1da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ed818fcc8d0821d27db914d5cc957d7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7ed818fcc8d0821d27db914d5cc957d7"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>to_json</b> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const T &amp;from, <a class="el" href="classjsonv_1_1value.html">value</a> &amp;out) const =0</td></tr>
-<tr class="separator:a7ed818fcc8d0821d27db914d5cc957d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa374107a5513ed622560667ad4e5413"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afa374107a5513ed622560667ad4e5413"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>has_extract_key</b> (<a class="el" href="classjsonv_1_1detail_1_1string__view.html">string_view</a> key) const =0</td></tr>
-<tr class="separator:afa374107a5513ed622560667ad4e5413"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename T&gt;<br />
-class jsonv::detail::member_adapter&lt; T &gt;</h3>
 
-
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00613">613</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
-<li>jsonv/<a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a></li>
-</ul>
-</div><!-- contents -->
+<p>This is the complete list of members for <a class="el" href="classjsonv_1_1optional__adapter.html">jsonv::optional_adapter&lt; TOptional &gt;</a>, including all inherited members.</p>
+<table class="directory">
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>create</b>(const extraction_context &amp;context, const value &amp;from) const override (defined in <a class="el" href="classjsonv_1_1optional__adapter.html">jsonv::optional_adapter&lt; TOptional &gt;</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1optional__adapter.html">jsonv::optional_adapter&lt; TOptional &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classjsonv_1_1adapter__for.html#a3205a83144e12aefdeb4211f1b9dce92">extract</a>(const extraction_context &amp;context, const value &amp;from, void *into) const override</td><td class="entry"><a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for&lt; TOptional &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classjsonv_1_1adapter__for.html#a2b2f3795b0ec91f79504d9dd0b3d19bc">get_type</a>() const override</td><td class="entry"><a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for&lt; TOptional &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>to_json</b>(const serialization_context &amp;context, const TOptional &amp;from) const override (defined in <a class="el" href="classjsonv_1_1optional__adapter.html">jsonv::optional_adapter&lt; TOptional &gt;</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1optional__adapter.html">jsonv::optional_adapter&lt; TOptional &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classjsonv_1_1adapter__for.html#a7a26f2b656dd5cce61940ad8f269a077">adapter_for&lt; TOptional &gt;::to_json</a>(const serialization_context &amp;context, const void *from) const override</td><td class="entry"><a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for&lt; TOptional &gt;</a></td><td class="entry"><span class="mlabel">inline</span><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>~adapter</b>() noexcept (defined in <a class="el" href="classjsonv_1_1adapter.html">jsonv::adapter</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1adapter.html">jsonv::adapter</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0" class="even"><td class="entry"><b>~extractor</b>() noexcept (defined in <a class="el" href="classjsonv_1_1extractor.html">jsonv::extractor</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1extractor.html">jsonv::extractor</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+  <tr bgcolor="#f0f0f0"><td class="entry"><b>~serializer</b>() noexcept (defined in <a class="el" href="classjsonv_1_1serializer.html">jsonv::serializer</a>)</td><td class="entry"><a class="el" href="classjsonv_1_1serializer.html">jsonv::serializer</a></td><td class="entry"><span class="mlabel">virtual</span></td></tr>
+</table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>jsonv</b></li><li class="navelem"><b>detail</b></li><li class="navelem"><a class="el" href="classjsonv_1_1detail_1_1member__adapter.html">member_adapter</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.7 </li>

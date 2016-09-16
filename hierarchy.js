@@ -44,6 +44,9 @@ var hierarchy =
         [ "jsonv::adapter_for< TEnum >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::enum_adapter< TEnum, FEnumComp, FValueComp >", "classjsonv_1_1enum__adapter.html", null ]
         ] ],
+        [ "jsonv::adapter_for< TOptional >", "classjsonv_1_1adapter__for.html", [
+          [ "jsonv::optional_adapter< TOptional >", "classjsonv_1_1optional__adapter.html", null ]
+        ] ],
         [ "jsonv::adapter_for< TPointer >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::polymorphic_adapter< TPointer >", "classjsonv_1_1polymorphic__adapter.html", null ]
         ] ],

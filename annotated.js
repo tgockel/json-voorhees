@@ -41,6 +41,7 @@ var annotated =
       [ "merge_rules", "classjsonv_1_1merge__rules.html", "classjsonv_1_1merge__rules" ],
       [ "no_extractor", "classjsonv_1_1no__extractor.html", "classjsonv_1_1no__extractor" ],
       [ "no_serializer", "classjsonv_1_1no__serializer.html", "classjsonv_1_1no__serializer" ],
+      [ "optional_adapter", "classjsonv_1_1optional__adapter.html", "classjsonv_1_1optional__adapter" ],
       [ "ostream_encoder", "classjsonv_1_1ostream__encoder.html", "classjsonv_1_1ostream__encoder" ],
       [ "ostream_pretty_encoder", "classjsonv_1_1ostream__pretty__encoder.html", "classjsonv_1_1ostream__pretty__encoder" ],
       [ "parse_error", "classjsonv_1_1parse__error.html", "classjsonv_1_1parse__error" ],

@@ -17,9 +17,10 @@ var searchData=
   ['operator_3e_3d',['operator&gt;=',['../structjsonv_1_1version.html#a26c29f33ef366a2bb047c317162e77a1',1,'jsonv::version']]],
   ['operator_5b_5d',['operator[]',['../group__Array.html#ga08a88ea17e35fd2c7844ce4c7768bf12',1,'jsonv::value::operator[](size_type idx)'],['../group__Object.html#gab9121a691d21e33d03773489114cb623',1,'jsonv::value::operator[](const std::string &amp;key)']]],
   ['optional_2ehpp',['optional.hpp',['../optional_8hpp.html',1,'']]],
-  ['ostream_5fencoder',['ostream_encoder',['../classjsonv_1_1ostream__encoder.html#a7686582a09a492dd7ef00c3e8054ebfa',1,'jsonv::ostream_encoder']]],
+  ['optional_5fadapter',['optional_adapter',['../classjsonv_1_1optional__adapter.html',1,'jsonv']]],
   ['ostream_5fencoder',['ostream_encoder',['../classjsonv_1_1ostream__encoder.html',1,'jsonv']]],
-  ['ostream_5fpretty_5fencoder',['ostream_pretty_encoder',['../classjsonv_1_1ostream__pretty__encoder.html#aec1e93bb2739f4b5b1d9a115c7000df1',1,'jsonv::ostream_pretty_encoder']]],
+  ['ostream_5fencoder',['ostream_encoder',['../classjsonv_1_1ostream__encoder.html#a7686582a09a492dd7ef00c3e8054ebfa',1,'jsonv::ostream_encoder']]],
   ['ostream_5fpretty_5fencoder',['ostream_pretty_encoder',['../classjsonv_1_1ostream__pretty__encoder.html',1,'jsonv']]],
+  ['ostream_5fpretty_5fencoder',['ostream_pretty_encoder',['../classjsonv_1_1ostream__pretty__encoder.html#aec1e93bb2739f4b5b1d9a115c7000df1',1,'jsonv::ostream_pretty_encoder']]],
   ['uint64_5ft',['uint64_t',['../structjsonv_1_1version.html#a80e5787c534f7d4622a5f29735488321',1,'jsonv::version']]]
 ];

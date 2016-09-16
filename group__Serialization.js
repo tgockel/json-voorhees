@@ -127,6 +127,10 @@ var group__Serialization =
       [ "create", "classjsonv_1_1function__adapter.html#ae8041119c52497af42bf6e8d5e413f87", null ],
       [ "to_json", "classjsonv_1_1function__adapter.html#aa7ba1e30a06bdd2b0cc2d80058ecb0f8", null ]
     ] ],
+    [ "optional_adapter", "classjsonv_1_1optional__adapter.html", [
+      [ "create", "classjsonv_1_1optional__adapter.html#af409fb885504ddfb0f8e30a7719badf7", null ],
+      [ "to_json", "classjsonv_1_1optional__adapter.html#acadb98b8c5df9f6ca0b39cf61a1315a2", null ]
+    ] ],
     [ "container_adapter", "classjsonv_1_1container__adapter.html", [
       [ "create", "classjsonv_1_1container__adapter.html#ad88e79f33a559f43e90d511e06d28069", null ],
       [ "to_json", "classjsonv_1_1container__adapter.html#a9ce6d0eeeb0724990bc2e6aac8179c02", null ]

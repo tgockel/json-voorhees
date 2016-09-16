@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>JSON Voorhees: jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt; Class Template Reference</title>
+<title>JSON Voorhees: jsonv::optional_adapter&lt; TOptional &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -88,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   </div>
 </div>
 <script type="text/javascript">
-$(document).ready(function(){initNavTree('classjsonv_1_1enum__adapter.html','');});
+$(document).ready(function(){initNavTree('classjsonv_1_1optional__adapter.html','');});
 </script>
 <div id="doc-content">
 <!-- window showing the filter options -->
@@ -107,41 +107,42 @@ $(document).ready(function(){initNavTree('classjsonv_1_1enum__adapter.html','');
 
 <div class="header">
   <div class="summary">
-<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
-<a href="classjsonv_1_1enum__adapter-members.html">List of all members</a>  </div>
+<a href="classjsonv_1_1optional__adapter-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt; Class Template Reference<div class="ingroups"><a class="el" href="group__Serialization.html">Serialization</a></div></div>  </div>
+<div class="title">jsonv::optional_adapter&lt; TOptional &gt; Class Template Reference<div class="ingroups"><a class="el" href="group__Serialization.html">Serialization</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>An adapter for enumeration types.  
- <a href="classjsonv_1_1enum__adapter.html#details">More...</a></p>
+<p>An adapter for optional-like types.  
+ <a href="classjsonv_1_1optional__adapter.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="serialization__util_8hpp_source.html">jsonv/serialization_util.hpp</a>&gt;</code></p>
 <div class="dynheader">
-Inheritance diagram for jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt;:</div>
+Inheritance diagram for jsonv::optional_adapter&lt; TOptional &gt;:</div>
 <div class="dyncontent">
  <div class="center">
-  <img src="classjsonv_1_1enum__adapter.png" usemap="#jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt;_map" alt=""/>
-  <map id="jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt;_map" name="jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt;_map">
-<area href="classjsonv_1_1adapter__for.html" alt="jsonv::adapter_for&lt; TEnum &gt;" shape="rect" coords="181,112,533,136"/>
-<area href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. " alt="jsonv::adapter" shape="rect" coords="181,56,533,80"/>
-<area href="classjsonv_1_1extractor.html" title="An extractor holds the method for converting a value into an arbitrary C++ type. " alt="jsonv::extractor" shape="rect" coords="0,0,352,24"/>
-<area href="classjsonv_1_1serializer.html" title="A serializer holds the method for converting an arbitrary C++ type into a value. " alt="jsonv::serializer" shape="rect" coords="362,0,714,24"/>
+  <img src="classjsonv_1_1optional__adapter.png" usemap="#jsonv::optional_adapter&lt; TOptional &gt;_map" alt=""/>
+  <map id="jsonv::optional_adapter&lt; TOptional &gt;_map" name="jsonv::optional_adapter&lt; TOptional &gt;_map">
+<area href="classjsonv_1_1adapter__for.html" alt="jsonv::adapter_for&lt; TOptional &gt;" shape="rect" coords="115,112,335,136"/>
+<area href="classjsonv_1_1adapter.html" title="An adapter is both an extractor and a serializer. " alt="jsonv::adapter" shape="rect" coords="115,56,335,80"/>
+<area href="classjsonv_1_1extractor.html" title="An extractor holds the method for converting a value into an arbitrary C++ type. " alt="jsonv::extractor" shape="rect" coords="0,0,220,24"/>
+<area href="classjsonv_1_1serializer.html" title="A serializer holds the method for converting an arbitrary C++ type into a value. " alt="jsonv::serializer" shape="rect" coords="230,0,450,24"/>
 </map>
  </div></div>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:adfa33ef1727c5fefc0785950b21cac23"><td class="memTemplParams" colspan="2">template&lt;typename TForwardIterator &gt; </td></tr>
-<tr class="memitem:adfa33ef1727c5fefc0785950b21cac23"><td class="memTemplItemLeft" align="right" valign="top">&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classjsonv_1_1enum__adapter.html#adfa33ef1727c5fefc0785950b21cac23">enum_adapter</a> (std::string enum_name, TForwardIterator first, TForwardIterator last)</td></tr>
-<tr class="memdesc:adfa33ef1727c5fefc0785950b21cac23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create an adapter with mapping values from the range <code>[first, last)</code>.  <a href="#adfa33ef1727c5fefc0785950b21cac23">More...</a><br /></td></tr>
-<tr class="separator:adfa33ef1727c5fefc0785950b21cac23"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59f05d6b86d00c4b895bb1976cda4f95"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a59f05d6b86d00c4b895bb1976cda4f95"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>enum_adapter</b> (std::string enum_name, std::initializer_list&lt; std::pair&lt; TEnum, <a class="el" href="classjsonv_1_1value.html">value</a> &gt;&gt; mapping)</td></tr>
-<tr class="separator:a59f05d6b86d00c4b895bb1976cda4f95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pub_methods_classjsonv_1_1adapter__for"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classjsonv_1_1adapter__for')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for&lt; TEnum &gt;</a></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Protected Member Functions</h2></td></tr>
+<tr class="memitem:af409fb885504ddfb0f8e30a7719badf7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af409fb885504ddfb0f8e30a7719badf7"></a>
+virtual TOptional&#160;</td><td class="memItemRight" valign="bottom"><b>create</b> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from) const override</td></tr>
+<tr class="separator:af409fb885504ddfb0f8e30a7719badf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acadb98b8c5df9f6ca0b39cf61a1315a2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acadb98b8c5df9f6ca0b39cf61a1315a2"></a>
+virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><b>to_json</b> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const TOptional &amp;from) const override</td></tr>
+<tr class="separator:acadb98b8c5df9f6ca0b39cf61a1315a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
+Additional Inherited Members</h2></td></tr>
+<tr class="inherit_header pub_methods_classjsonv_1_1adapter__for"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classjsonv_1_1adapter__for')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classjsonv_1_1adapter__for.html">jsonv::adapter_for&lt; TOptional &gt;</a></td></tr>
 <tr class="memitem:a2b2f3795b0ec91f79504d9dd0b3d19bc inherit pub_methods_classjsonv_1_1adapter__for"><td class="memItemLeft" align="right" valign="top">virtual const std::type_info &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>get_type</b> () const override</td></tr>
 <tr class="memdesc:a2b2f3795b0ec91f79504d9dd0b3d19bc inherit pub_methods_classjsonv_1_1adapter__for"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the run-time type this <code>extractor</code> knows how to extract.  <a href="#a2b2f3795b0ec91f79504d9dd0b3d19bc">More...</a><br /></td></tr>
 <tr class="separator:a2b2f3795b0ec91f79504d9dd0b3d19bc inherit pub_methods_classjsonv_1_1adapter__for"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -151,89 +152,22 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7a26f2b656dd5cce61940ad8f269a077 inherit pub_methods_classjsonv_1_1adapter__for"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><b>to_json</b> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;context, const void *from) const override</td></tr>
 <tr class="memdesc:a7a26f2b656dd5cce61940ad8f269a077 inherit pub_methods_classjsonv_1_1adapter__for"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>value</code> <em>from</em> the value in the given region of memory.  <a href="#a7a26f2b656dd5cce61940ad8f269a077">More...</a><br /></td></tr>
 <tr class="separator:a7a26f2b656dd5cce61940ad8f269a077 inherit pub_methods_classjsonv_1_1adapter__for"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
-Protected Member Functions</h2></td></tr>
-<tr class="memitem:ae202f0475f1582f12348ec741f73046d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae202f0475f1582f12348ec741f73046d"></a>
-virtual TEnum&#160;</td><td class="memItemRight" valign="bottom"><b>create</b> (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;context, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from) const override</td></tr>
-<tr class="separator:ae202f0475f1582f12348ec741f73046d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0cf1c6cabe510405d455acd23b2f8159"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0cf1c6cabe510405d455acd23b2f8159"></a>
-virtual <a class="el" href="classjsonv_1_1value.html">value</a>&#160;</td><td class="memItemRight" valign="bottom"><b>to_json</b> (const <a class="el" href="classjsonv_1_1serialization__context.html">serialization_context</a> &amp;, const TEnum &amp;from) const override</td></tr>
-<tr class="separator:a0cf1c6cabe510405d455acd23b2f8159"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><h3>template&lt;typename TEnum, typename FEnumComp = std::less&lt;TEnum&gt;, typename FValueComp = std::less&lt;value&gt;&gt;<br />
-class jsonv::enum_adapter&lt; TEnum, FEnumComp, FValueComp &gt;</h3>
+<div class="textblock"><h3>template&lt;typename TOptional&gt;<br />
+class jsonv::optional_adapter&lt; TOptional &gt;</h3>
 
-<p>An adapter for enumeration types. </p>
-<p>The most common use of this is to map <code>enum</code> values in C++ to string values in a JSON representation (and vice versa).</p>
+<p>An adapter for optional-like types. </p>
+<p>This is for convenience of creating an <code>adapter</code> for things like <code>std::optional</code> or <code>boost::optional</code>.</p>
 <dl class="tparams"><dt>Template Parameters</dt><dd>
   <table class="tparams">
-    <tr><td class="paramname">TEnum</td><td>The type to map. This is not restricted to C++ enumerations (types defined with the <code>enum</code> keyword), but any type you wish to restrict to a subset of values. </td></tr>
-    <tr><td class="paramname">FEnumComp</td><td><code>bool (*)(TEnum, TEnum)</code> &ndash; a strict ordering for <code>TEnum</code> values. </td></tr>
-    <tr><td class="paramname">FValueComp</td><td><code>bool (*)(value, value)</code> &ndash; a strict ordering for <code>value</code> objects. By default, this is a case-sensitive comparison, but this can be replaced with anything you desire (for example, use <code>value_less_icase</code> to ignore case in extracting from JSON).</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section see"><dt>See also</dt><dd>enum_adapter_icase </dd></dl>
-
-<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00413">413</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="adfa33ef1727c5fefc0785950b21cac23"></a>
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename TEnum , typename FEnumComp  = std::less&lt;TEnum&gt;, typename FValueComp  = std::less&lt;value&gt;&gt; </div>
-<div class="memtemplate">
-template&lt;typename TForwardIterator &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="classjsonv_1_1enum__adapter.html">jsonv::enum_adapter</a>&lt; TEnum, FEnumComp, FValueComp &gt;::<a class="el" href="classjsonv_1_1enum__adapter.html">enum_adapter</a> </td>
-          <td>(</td>
-          <td class="paramtype">std::string&#160;</td>
-          <td class="paramname"><em>enum_name</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">TForwardIterator&#160;</td>
-          <td class="paramname"><em>first</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">TForwardIterator&#160;</td>
-          <td class="paramname"><em>last</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Create an adapter with mapping values from the range <code>[first, last)</code>. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">TForwardIterator</td><td>An iterator yielding the type <code>std::pair&lt;jsonv::value, TEnum&gt;&gt;</code> </td></tr>
+    <tr><td class="paramname">TOptional</td><td>The optional container type. It must have a member type named <code>value_type</code> which holds the actual type. It must default-construct to the "none" type and have a single-argument constructor which takes a <code>TOptional::value_type</code>. It must support a boolean conversion operator for checking if the value is none and a unary <code>operator*</code> for getting the underlying value. Both <code>std::optional</code> and <code>boost::optional</code> possess all of these properties. </td></tr>
   </table>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00422">422</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
-
-</div>
-</div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<p>Definition at line <a class="el" href="serialization__util_8hpp_source.html#l00341">341</a> of file <a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a>.</p>
+</div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="serialization__util_8hpp_source.html">serialization_util.hpp</a></li>
 </ul>
 </div><!-- contents -->
@@ -241,7 +175,7 @@ template&lt;typename TForwardIterator &gt; </div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><b>jsonv</b></li><li class="navelem"><a class="el" href="classjsonv_1_1enum__adapter.html">enum_adapter</a></li>
+    <li class="navelem"><b>jsonv</b></li><li class="navelem"><a class="el" href="classjsonv_1_1optional__adapter.html">optional_adapter</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.7 </li>
