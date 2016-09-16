@@ -60,7 +60,8 @@ var annotated =
       [ "value", "classjsonv_1_1value.html", "classjsonv_1_1value" ],
       [ "value_compare", "structjsonv_1_1value__compare.html", "structjsonv_1_1value__compare" ],
       [ "value_compare_icase", "structjsonv_1_1value__compare__icase.html", "structjsonv_1_1value__compare__icase" ],
-      [ "version", "structjsonv_1_1version.html", "structjsonv_1_1version" ]
+      [ "version", "structjsonv_1_1version.html", "structjsonv_1_1version" ],
+      [ "wrapper_adapter", "classjsonv_1_1wrapper__adapter.html", "classjsonv_1_1wrapper__adapter" ]
     ] ],
     [ "std", null, [
       [ "hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", "structstd_1_1hash_3_01jsonv_1_1value_01_4" ]

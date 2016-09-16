@@ -50,6 +50,9 @@ var hierarchy =
         [ "jsonv::adapter_for< TPointer >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::polymorphic_adapter< TPointer >", "classjsonv_1_1polymorphic__adapter.html", null ]
         ] ],
+        [ "jsonv::adapter_for< TWrapper >", "classjsonv_1_1adapter__for.html", [
+          [ "jsonv::wrapper_adapter< TWrapper >", "classjsonv_1_1wrapper__adapter.html", null ]
+        ] ],
         [ "jsonv::adapter_for< T >", "classjsonv_1_1adapter__for.html", [
           [ "jsonv::function_adapter< T, FExtract, FToJson >", "classjsonv_1_1function__adapter.html", null ]
         ] ]

@@ -9,6 +9,7 @@ var searchData=
   ['adapter_5ffor_3c_20tenum_20_3e',['adapter_for&lt; TEnum &gt;',['../classjsonv_1_1adapter__for.html',1,'jsonv']]],
   ['adapter_5ffor_3c_20toptional_20_3e',['adapter_for&lt; TOptional &gt;',['../classjsonv_1_1adapter__for.html',1,'jsonv']]],
   ['adapter_5ffor_3c_20tpointer_20_3e',['adapter_for&lt; TPointer &gt;',['../classjsonv_1_1adapter__for.html',1,'jsonv']]],
+  ['adapter_5ffor_3c_20twrapper_20_3e',['adapter_for&lt; TWrapper &gt;',['../classjsonv_1_1adapter__for.html',1,'jsonv']]],
   ['add_5fsubtype',['add_subtype',['../classjsonv_1_1polymorphic__adapter.html#af95d3475637e76e6800688961afbbff0',1,'jsonv::polymorphic_adapter']]],
   ['add_5fsubtype_5fkeyed',['add_subtype_keyed',['../classjsonv_1_1polymorphic__adapter.html#a1a65e6de614656318efcebb097d3c6f3',1,'jsonv::polymorphic_adapter']]],
   ['after',['after',['../classjsonv_1_1member__adapter__builder.html#a59c0e8b181d465bceaec3fa0c2bff268',1,'jsonv::member_adapter_builder']]],

@@ -135,6 +135,10 @@ var group__Serialization =
       [ "create", "classjsonv_1_1container__adapter.html#ad88e79f33a559f43e90d511e06d28069", null ],
       [ "to_json", "classjsonv_1_1container__adapter.html#a9ce6d0eeeb0724990bc2e6aac8179c02", null ]
     ] ],
+    [ "wrapper_adapter", "classjsonv_1_1wrapper__adapter.html", [
+      [ "create", "classjsonv_1_1wrapper__adapter.html#a4ca89e8874871ed787406a0af15a98e6", null ],
+      [ "to_json", "classjsonv_1_1wrapper__adapter.html#a5bccfdb5088e0f10444534d697afd608", null ]
+    ] ],
     [ "enum_adapter", "classjsonv_1_1enum__adapter.html", [
       [ "enum_adapter", "classjsonv_1_1enum__adapter.html#adfa33ef1727c5fefc0785950b21cac23", null ],
       [ "enum_adapter", "classjsonv_1_1enum__adapter.html#a59f05d6b86d00c4b895bb1976cda4f95", null ],

@@ -14,6 +14,7 @@ var classjsonv_1_1detail_1_1formats__builder__dsl =
     [ "register_adapter", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a552945a1bdedfae58bf61a62fc790ab5", null ],
     [ "register_container", "classjsonv_1_1detail_1_1formats__builder__dsl.html#ae5a09634af1c12a004f45ccca67ebf0f", null ],
     [ "register_optional", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a995ee9481f3c7501c433ec6f5dd2b4ea", null ],
+    [ "register_wrapper", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a70f07b99932c9b480b9c63dd21f87388", null ],
     [ "type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a642d77eeceea2a91975582bba090f1ab", null ],
     [ "type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a2b476d1f05ac1c8d4ed7647972ade264", null ],
     [ "owner", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a5673039254642e668ca7029cbe2ea0bb", null ]

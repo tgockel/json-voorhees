@@ -84,12 +84,13 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1detail_1_1basic__view.html#afb5430013851f448b69bf4b6450f7fcb":[3,0,0,0,3,0],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html":[3,0,0,0,4],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a1d598b1190a38743459a68e59c32b656":[3,0,0,0,4,7],
-"classjsonv_1_1detail_1_1formats__builder__dsl.html#a2b476d1f05ac1c8d4ed7647972ade264":[3,0,0,0,4,15],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a2b476d1f05ac1c8d4ed7647972ade264":[3,0,0,0,4,16],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a34e76a3ee985ea526b801c39456bedf4":[3,0,0,0,4,10],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a3ba068f0be3773560cab480c4709c8e6":[3,0,0,0,4,5],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a552945a1bdedfae58bf61a62fc790ab5":[3,0,0,0,4,11],
-"classjsonv_1_1detail_1_1formats__builder__dsl.html#a5673039254642e668ca7029cbe2ea0bb":[3,0,0,0,4,16],
-"classjsonv_1_1detail_1_1formats__builder__dsl.html#a642d77eeceea2a91975582bba090f1ab":[3,0,0,0,4,14],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a5673039254642e668ca7029cbe2ea0bb":[3,0,0,0,4,17],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a642d77eeceea2a91975582bba090f1ab":[3,0,0,0,4,15],
+"classjsonv_1_1detail_1_1formats__builder__dsl.html#a70f07b99932c9b480b9c63dd21f87388":[3,0,0,0,4,14],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a85c59d90cbf5a2a11bf673ab0a206205":[3,0,0,0,4,2],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a92257fd2f1fd0799e4fc1726e87809df":[3,0,0,0,4,3],
 "classjsonv_1_1detail_1_1formats__builder__dsl.html#a995ee9481f3c7501c433ec6f5dd2b4ea":[3,0,0,0,4,13],
@@ -248,6 +249,5 @@ var NAVTREEINDEX0 =
 "classjsonv_1_1encoder.html":[3,0,0,11],
 "classjsonv_1_1encoder.html#a0bf6951a13172eab70dceef664c27937":[3,0,0,11,13],
 "classjsonv_1_1encoder.html#a1be23444dc5618d49eb3dc731b09189f":[3,0,0,11,9],
-"classjsonv_1_1encoder.html#a3fd4323f1d9a1437af2ca167d1beae49":[3,0,0,11,6],
-"classjsonv_1_1encoder.html#a5b374633ecbb5110134692c822e8f67b":[3,0,0,11,2]
+"classjsonv_1_1encoder.html#a3fd4323f1d9a1437af2ca167d1beae49":[3,0,0,11,6]
 };
