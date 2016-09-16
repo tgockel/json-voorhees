@@ -1220,6 +1220,7 @@ public:
     template <typename TContainer>
     formats_builder& register_container()
     {
+        reference_type(std::type_index(typeid(typename TContainer::value_type)), std::type_index(typeid(TContainer)));
         std::unique_ptr<container_adapter<TContainer>> p(new container_adapter<TContainer>);
         _formats.register_adapter(std::move(p));
         return *this;
