@@ -461,7 +461,7 @@ public:
      *                 is also okay to have the same JSON representation for multiple C++ values. In this case, the
      *                 \e first JSON representation provided for that value will be used in \c extract.
      *  
-     *  \example
+     *  \example "Serialization: Enum Adapter"
      *  \code
      *  enum_adapter<ring>("ring",
      *                     {
