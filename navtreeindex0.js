@@ -3,7 +3,7 @@ var NAVTREEINDEX0 =
 ".html":[3,0,0],
 ".html":[3,0,0,0],
 ".html":[3,0,1],
-"_2home_2travis_2build_2tgockel_2json-voorhees_2include_2jsonv_2serialization_util_8hpp-example.html":[5,0],
+"Serialization_1_01Enum_01Adapter-example.html":[5,3],
 "algorithm_8hpp.html":[4,0,0,1],
 "algorithm_8hpp.html#ga18053a6a38a0ddd3739a9b253e6f8301":[4,0,0,1,0],
 "algorithm_8hpp.html#ga20a92faf8b28a6ec0ea0360cdf475f43":[4,0,0,1,4],
