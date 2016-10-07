@@ -20,6 +20,12 @@
 <script type="text/javascript">
   $(document).ready(function() { searchBox.OnSelectItem(0); });
 </script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script src="http://www.mathjax.org/mathjax/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -108,7 +114,17 @@ $(document).ready(function(){initNavTree('path_8hpp_source.html','');});
 <div class="title">path.hpp</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="path_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<a href="path_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/** \file jsonv/path.hpp</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> *  Support for [JSONPath](http://goessner.net/articles/JsonPath/).</span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *  </span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> *  Copyright (c) 2014 by Travis Gockel. All rights reserved.</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="comment"> *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="comment"> *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> *  version.</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="comment"> *  \author Travis Gockel (travis@gockelhut.com)</span></div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="comment">**/</span></div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#ifndef __JSONV_PATH_HPP_INCLUDED__</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#define __JSONV_PATH_HPP_INCLUDED__</span></div>
 <div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;</div>
@@ -177,15 +193,23 @@ $(document).ready(function(){initNavTree('path_8hpp_source.html','');});
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::ostream&amp; operator&lt;&lt;(std::ostream&amp;, <span class="keyword">const</span> <a class="code" href="classjsonv_1_1path__element.html">path_element</a>&amp;);</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;</div>
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::string to_string(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1path__element.html">path_element</a>&amp;);</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="comment">/** Represents an exact path in some JSON structure. **/</span></div>
 <div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="classjsonv_1_1path.html">   82</a></span>&#160;<span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1path.html">path</a> :</div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        <span class="keyword">public</span> <a class="code" href="classjsonv_1_1detail_1_1generic__container.html">detail::generic_container</a>&lt;std::vector&lt;path_element&gt;&gt;</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;{</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;<span class="keyword">public</span>:<span class="comment"></span></div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;<span class="comment">    /** Creates a new, empty path. **/</span></div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>();</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    </div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;<span class="comment">    /** Creates a path with the provided \a elements. **/</span></div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>(storage_type elements);</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    </div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="comment">    /** Create a \c path from a string definition. The syntax of this is ECMAScript&#39;s syntax for selecting elements, so</span></div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="comment">     *  &lt;tt&gt;path::create(&quot;.foo.bar[1]&quot;)&lt;/tt&gt; is equivalent to &lt;tt&gt;path({ &quot;foo&quot;, &quot;bar&quot;, 1 })&lt;/tt&gt;.</span></div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;<span class="comment">     *  </span></div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="comment">     *  \throws std::invalid_argument if the \a specification is not valid.</span></div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="comment">    **/</span></div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    <span class="keyword">static</span> <a class="code" href="classjsonv_1_1path.html">path</a> create(string_view specification);</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    </div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1path.html">path</a>&amp;);</div>
@@ -193,10 +217,12 @@ $(document).ready(function(){initNavTree('path_8hpp_source.html','');});
 <div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>(<a class="code" href="classjsonv_1_1path.html">path</a>&amp;&amp;) noexcept;</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>&amp; operator=(<a class="code" href="classjsonv_1_1path.html">path</a>&amp;&amp;) noexcept;</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    ~<a class="code" href="classjsonv_1_1path.html">path</a>() noexcept;</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    </div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="comment">    /** Return a new path with the given \a subpath appended to the back. **/</span></div>
 <div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>  operator+(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1path.html">path</a>&amp; subpath) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>&amp; operator+=(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1path.html">path</a>&amp; subpath);</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    </div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;<span class="comment">    /** Return a new path with the given \a elem appended to the back. **/</span></div>
 <div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>  operator+(<a class="code" href="classjsonv_1_1path__element.html">path_element</a> elem) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    <a class="code" href="classjsonv_1_1path.html">path</a>&amp; operator+=(<a class="code" href="classjsonv_1_1path__element.html">path_element</a> elem);</div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;};</div>

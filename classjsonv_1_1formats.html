@@ -20,6 +20,12 @@
 <script type="text/javascript">
   $(document).ready(function() { searchBox.OnSelectItem(0); });
 </script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script src="http://www.mathjax.org/mathjax/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -297,7 +303,7 @@ Static Public Member Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>It is impossible to form an endless loop of <code>formats</code> objects, since the base of all <code>formats</code> are eventually empty. If there is an existing set of nodes <img class="formulaInl" alt="$ k $" src="form_0.png"/> and each new <code>format</code> created with <code>compose</code> is in <img class="formulaInl" alt="$ k+1 $" src="form_1.png"/>, there is no way to create a link from <img class="formulaInl" alt="$ k $" src="form_0.png"/> into <img class="formulaInl" alt="$ k+1 $" src="form_1.png"/> and so there is no way to create a circuit. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>It is impossible to form an endless loop of <code>formats</code> objects, since the base of all <code>formats</code> are eventually empty. If there is an existing set of nodes \( k \) and each new <code>format</code> created with <code>compose</code> is in \( k+1 \), there is no way to create a link from \( k \) into \( k+1 \) and so there is no way to create a circuit. </dd></dl>
 
 </div>
 </div>

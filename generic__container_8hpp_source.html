@@ -20,6 +20,12 @@
 <script type="text/javascript">
   $(document).ready(function() { searchBox.OnSelectItem(0); });
 </script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script src="http://www.mathjax.org/mathjax/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -108,7 +114,16 @@ $(document).ready(function(){initNavTree('generic__container_8hpp_source.html','
 <div class="title">generic_container.hpp</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="generic__container_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<a href="generic__container_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/** \file jsonv/detail/generic_container.hpp</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment"> *  </span></div>
+<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment"> *  Copyright (c) 2014 by Travis Gockel. All rights reserved.</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment"> *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License</span></div>
+<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="comment"> *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later</span></div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="comment"> *  version.</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="comment"> *</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="comment"> *  \author Travis Gockel (travis@gockelhut.com)</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="comment">**/</span></div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#ifndef __JSONV_DETAIL_GENERIC_CONTAINER_HPP_INCLUDED__</span></div>
 <div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#define __JSONV_DETAIL_GENERIC_CONTAINER_HPP_INCLUDED__</span></div>
 <div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;</div>
@@ -122,7 +137,10 @@ $(document).ready(function(){initNavTree('generic__container_8hpp_source.html','
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;{</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="keyword">namespace </span>detail</div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;{</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;</div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="comment">/** A generic container that exposes the traversal and modification operations externally. Basically, this is just a way</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="comment"> *  to allow deriving from \c std::vector without actually doing so.</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="comment">**/</span></div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TStorage&gt;</div>
 <div class="line"><a name="l00029"></a><span class="lineno"><a class="line" href="classjsonv_1_1detail_1_1generic__container.html">   29</a></span>&#160;<span class="keyword">class </span><a class="code" href="classjsonv_1_1detail_1_1generic__container.html">generic_container</a></div>
 <div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;{</div>
@@ -158,7 +176,8 @@ $(document).ready(function(){initNavTree('generic__container_8hpp_source.html','
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <a class="code" href="classjsonv_1_1detail_1_1generic__container.html">generic_container</a>&amp; operator=(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1detail_1_1generic__container.html">generic_container</a>&amp;) = <span class="keywordflow">default</span>;</div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <a class="code" href="classjsonv_1_1detail_1_1generic__container.html">generic_container</a>(<a class="code" href="classjsonv_1_1detail_1_1generic__container.html">generic_container</a>&amp;&amp;) noexcept = <span class="keywordflow">default</span>;</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <a class="code" href="classjsonv_1_1detail_1_1generic__container.html">generic_container</a>&amp; operator=(<a class="code" href="classjsonv_1_1detail_1_1generic__container.html">generic_container</a>&amp;&amp;) = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    </div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="comment">    /** Get the number of elements. **/</span></div>
 <div class="line"><a name="l00065"></a><span class="lineno"><a class="line" href="classjsonv_1_1detail_1_1generic__container.html#ad72c2e2a67c6dfa6b81dc0f67dca9b70">   65</a></span>&#160;    size_type <a class="code" href="classjsonv_1_1detail_1_1generic__container.html#ad72c2e2a67c6dfa6b81dc0f67dca9b70">size</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> _data.size(); }</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    </div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="keywordtype">bool</span> empty()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> _data.empty(); }</div>
