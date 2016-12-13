@@ -1,5 +1,6 @@
 var NAVTREEINDEX4 =
 {
+"structjsonv_1_1basic__value__binary__predicate.html":[2,0,3],
 "structjsonv_1_1basic__value__binary__predicate.html#a25e7faf523297ad6da2664b1b9732f72":[2,0,3,1],
 "structjsonv_1_1basic__value__binary__predicate.html#a5c2cf2c00725c1ace6102ec451d6094b":[2,0,3,0],
 "structjsonv_1_1basic__value__binary__predicate.html#a8cf6f6219e13da8ee8f880062872b6e2":[2,0,3,2],

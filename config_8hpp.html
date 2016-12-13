@@ -133,6 +133,9 @@ Macros</h2></td></tr>
 <tr class="memitem:ada887615bab8b7bbaba41cb5474eebb1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ada887615bab8b7bbaba41cb5474eebb1"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>JSONV_VERSION_PATCH</b>&#160;&#160;&#160;0</td></tr>
 <tr class="separator:ada887615bab8b7bbaba41cb5474eebb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e48d3042507b7ce77a3e3d580cc9f02"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a0e48d3042507b7ce77a3e3d580cc9f02">JSONV_DEBUG</a>&#160;&#160;&#160;0</td></tr>
+<tr class="memdesc:a0e48d3042507b7ce77a3e3d580cc9f02"><td class="mdescLeft">&#160;</td><td class="mdescRight">Was JSON Voorhees compiled in debug mode? This value must be the same between when the SO was built and when you are compiling.  <a href="#a0e48d3042507b7ce77a3e3d580cc9f02">More...</a><br /></td></tr>
+<tr class="separator:a0e48d3042507b7ce77a3e3d580cc9f02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58dc2b5727768f0a5b79e0a0b8ff1d25"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a58dc2b5727768f0a5b79e0a0b8ff1d25"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="config_8hpp.html#a58dc2b5727768f0a5b79e0a0b8ff1d25">JSONV_SO</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memdesc:a58dc2b5727768f0a5b79e0a0b8ff1d25"><td class="mdescLeft">&#160;</td><td class="mdescRight">Are you using shared objects (DLLs in Windows)? <br /></td></tr>
@@ -187,7 +190,25 @@ Macros</h2></td></tr>
 <p>Is JSON Voorhees currently compiling? You probably do not want to set this by hand. </p>
 <p>It is set by the build system when the library is compiled. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00040">40</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00052">52</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="a0e48d3042507b7ce77a3e3d580cc9f02"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define JSONV_DEBUG&#160;&#160;&#160;0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Was JSON Voorhees compiled in debug mode? This value must be the same between when the SO was built and when you are compiling. </p>
+<p>In general, this is not useful outside of library maintainers.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Keep in mind this value is <em>always</em> defined. Use <code>#if JSONV_DEBUG</code>, <em>not</em> <code>#ifdef JSONV_DEBUG</code>. </dd></dl>
+
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00034">34</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -212,7 +233,7 @@ Macros</h2></td></tr>
 <p>An item list of types to also consider as an integer. </p>
 <p>This mostly exists to help resolve the C-induced type ambiguity for the literal <code>0</code>. It most prefers to be an <code>int</code>, but might also become a <code>long</code> or a pointer type. </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00136">136</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00148">148</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -229,7 +250,7 @@ Macros</h2></td></tr>
 <p>This function or class is internal-use only. </p>
 <dl class="section see"><dt>See also</dt><dd>JSONV_HIDDEN </dd></dl>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00093">93</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00105">105</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
@@ -246,7 +267,7 @@ Macros</h2></td></tr>
 <p>This function or class is part of the public API for JsonVoorhees. </p>
 <p>If you are including JsonVoorhees for another library, this will have import semantics (<code>JSONV_IMPORT</code>); if you are building JsonVoorhees, this will have export semantics (<code>JSONV_EXPORT</code>). </p>
 
-<p>Definition at line <a class="el" href="config_8hpp_source.html#l00092">92</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
+<p>Definition at line <a class="el" href="config_8hpp_source.html#l00104">104</a> of file <a class="el" href="config_8hpp_source.html">config.hpp</a>.</p>
 
 </div>
 </div>
