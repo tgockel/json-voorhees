@@ -111,7 +111,13 @@ $(document).ready(function(){initNavTree('parse_07std_1_1istream_6_00_01const_01
 <p>Reads a JSON value from the input stream.</p><dl class="section note"><dt>Note</dt><dd>This function is <em>not</em> intended for verifying if the input is valid JSON, as it will intentionally correctly parse invalid JSON (so long as it resembles valid JSON). See <code>parse_options::create_strict</code> for a strict-mode parse.</dd></dl>
 <p>Parse JSON from some file. </p><div class="fragment"><div class="line">std::ifstream file(<span class="stringliteral">&quot;file.json&quot;</span>);</div>
 <div class="line"><a name="_a0"></a><a class="code" href="classjsonv_1_1value.html">jsonv::value</a> out = parse(file);</div>
-</div><!-- fragment --><div class="fragment"></div><!-- fragment --><p>(std::istream&amp;, const parse_options&amp;) </p>
+</div><!-- fragment --><dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">parse_error</td><td>if an error is found in the JSON. If the <em>input</em> terminates unexpectedly, a <code>parse_error</code> will still be thrown with a message like "Unexpected end: unmatched {...". If you suspect the input of going bad, you can check the state flags or set the exception mask of the stream (exceptions thrown by <em>input</em> while processing will be propagated out)</td></tr>
+  </table>
+  </dd>
+</dl>
+<div class="fragment"></div><!-- fragment --><p>(std::istream&amp;, const parse_options&amp;) </p>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
