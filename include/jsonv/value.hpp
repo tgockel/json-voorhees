@@ -430,6 +430,9 @@ public:
     
     /** Create a \c kind::string with the given \a value. **/
     value(const std::string& value);
+
+    /** Create a \c kind::string with the given \a value. **/
+    value(const string_view& value);
     
     /** Create a \c kind::string with the given \a value.
      *  

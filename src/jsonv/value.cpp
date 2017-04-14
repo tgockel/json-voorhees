@@ -77,6 +77,10 @@ value::value(const std::string& val) :
     _data.string->_string = val;
 }
 
+value::value(const string_view& val) :
+        value(std::string(val))
+{ }
+
 value::value(const char* val) :
         value(std::string(val))
 { }
