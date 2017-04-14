@@ -4,6 +4,7 @@ var group__Conversions =
     [ "as_decimal", "group__Conversions.html#gaa2768ae7e25318573327571b007c8df5", null ],
     [ "as_integer", "group__Conversions.html#gaababe6acf36d6517205714b17b821ff8", null ],
     [ "as_string", "group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9", null ],
+    [ "as_string_view", "group__Conversions.html#ga8b1cc3e9785a5fe7946fa3a2ef79d851", null ],
     [ "as_wstring", "group__Conversions.html#ga4d853b4cd5aaf0a5ead779930a90d814", null ],
     [ "is_array", "group__Conversions.html#ga5b37263ea77830bc2307c047244a12e4", null ],
     [ "is_boolean", "group__Conversions.html#gadced04fb2a28933aa2347050fc866b28", null ],

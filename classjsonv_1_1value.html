@@ -212,6 +212,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:acb44bcc2693282e3d4fd0d801d397f0c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#acb44bcc2693282e3d4fd0d801d397f0c">value</a> (const std::string &amp;<a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
 <tr class="memdesc:acb44bcc2693282e3d4fd0d801d397f0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::string</code> with the given <em>value</em>.  <a href="#acb44bcc2693282e3d4fd0d801d397f0c">More...</a><br /></td></tr>
 <tr class="separator:acb44bcc2693282e3d4fd0d801d397f0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06a22c68eec0860678afd2e4a9eb379b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a06a22c68eec0860678afd2e4a9eb379b">value</a> (const string_view &amp;<a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
+<tr class="memdesc:a06a22c68eec0860678afd2e4a9eb379b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::string</code> with the given <em>value</em>.  <a href="#a06a22c68eec0860678afd2e4a9eb379b">More...</a><br /></td></tr>
+<tr class="separator:a06a22c68eec0860678afd2e4a9eb379b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:add1aa9ddf147119f88084f59985206b7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#add1aa9ddf147119f88084f59985206b7">value</a> (const char *<a class="el" href="classjsonv_1_1value.html">value</a>)</td></tr>
 <tr class="memdesc:add1aa9ddf147119f88084f59985206b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a <code>kind::string</code> with the given <em>value</em>.  <a href="#add1aa9ddf147119f88084f59985206b7">More...</a><br /></td></tr>
 <tr class="separator:add1aa9ddf147119f88084f59985206b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -251,6 +254,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:gae8aa14497f3a49269f108f7d1fd00643"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#gae8aa14497f3a49269f108f7d1fd00643">is_string</a> () const </td></tr>
 <tr class="memdesc:gae8aa14497f3a49269f108f7d1fd00643"><td class="mdescLeft">&#160;</td><td class="mdescRight">Tests if this <code>kind</code> is <code>kind::string</code>.  <a href="group__Conversions.html#gae8aa14497f3a49269f108f7d1fd00643">More...</a><br /></td></tr>
 <tr class="separator:gae8aa14497f3a49269f108f7d1fd00643"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8b1cc3e9785a5fe7946fa3a2ef79d851"><td class="memItemLeft" align="right" valign="top">string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#ga8b1cc3e9785a5fe7946fa3a2ef79d851">as_string_view</a> () const &amp;</td></tr>
+<tr class="memdesc:ga8b1cc3e9785a5fe7946fa3a2ef79d851"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a <code>string_view</code>.  <a href="group__Conversions.html#ga8b1cc3e9785a5fe7946fa3a2ef79d851">More...</a><br /></td></tr>
+<tr class="separator:ga8b1cc3e9785a5fe7946fa3a2ef79d851"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4d853b4cd5aaf0a5ead779930a90d814"><td class="memItemLeft" align="right" valign="top">std::wstring&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Conversions.html#ga4d853b4cd5aaf0a5ead779930a90d814">as_wstring</a> () const </td></tr>
 <tr class="memdesc:ga4d853b4cd5aaf0a5ead779930a90d814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get this value as a wide string.  <a href="group__Conversions.html#ga4d853b4cd5aaf0a5ead779930a90d814">More...</a><br /></td></tr>
 <tr class="separator:ga4d853b4cd5aaf0a5ead779930a90d814"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -644,6 +650,24 @@ Friends</h2></td></tr>
           <td class="memname">jsonv::value::value </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>value</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Create a <code>kind::string</code> with the given <em>value</em>. </p>
+
+</div>
+</div>
+<a class="anchor" id="a06a22c68eec0860678afd2e4a9eb379b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">jsonv::value::value </td>
+          <td>(</td>
+          <td class="paramtype">const string_view &amp;&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
