@@ -496,10 +496,16 @@ public:
     
     /** Tests if this \c kind is \c kind::string. **/
     bool is_string() const;
-    
+
+    /** Get this value as a \c string_view. It is your responsibility to ensure the \c value instance remains valid.
+     *
+     *  \throws kind_error if this value does not represent a string.
+    **/
+    string_view as_string_view() const &;
+
     /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
      *  the \c char base \c std::string.
-     *  
+     *
      *  \throws kind_error if this value does not represent a string.
     **/
     std::wstring as_wstring() const;

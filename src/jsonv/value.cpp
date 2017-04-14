@@ -395,6 +395,12 @@ const std::string& value::as_string() const
     return _data.string->_string;
 }
 
+string_view value::as_string_view() const &
+{
+    check_type(jsonv::kind::string, _kind);
+    return string_view(_data.string->_string);
+}
+
 std::wstring value::as_wstring() const
 {
     return detail::convert_to_wide(as_string());
