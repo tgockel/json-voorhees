@@ -1,0 +1,35 @@
+#!/bin/bash -e
+
+PROJECT_ROOT=$(dirname ~)/$(whoami)/jsonv
+BUILD_DIR=${PROJECT_ROOT}/build-ci
+echo "${DISTRO} ${PROJECT_ROOT}"
+c++ --version
+
+# Configuration options are loaded from env.sh and then defaulted here (for running on TravisCI)
+if [[ -e "${PROJECT_ROOT}/env.sh" ]]; then
+    echo "Found custom env.sh -- sourcing it"
+    source "${PROJECT_ROOT}/env.sh"
+fi
+[[ "${CMAKE_BUILD_TYPE}" ]] || CMAKE_BUILD_TYPE=Debug
+
+if [[ -e ${BUILD_DIR} ]]; then
+    echo "Build directory (${BUILD_DIR}) unclean -- deleting it"
+    rm -rf ${BUILD_DIR}
+fi
+mkdir ${BUILD_DIR}
+cd ${BUILD_DIR}
+
+if $(hash lcov 2>/dev/null); then
+  # Disabling Coveralls coverage for now.
+  COVERAGE=0
+else
+  COVERAGE=0
+fi
+
+cmake .. -DCOVERAGE=${COVERAGE} -DJSONV_BUILD_TESTS=1 -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+make VERBOSE=1
+./jsonv-tests
+
+if [[ ${COVERAGE} -eq 1 ]]; then
+  ${PROJECT_ROOT}/config/upload-coverage ${BUILD_DIR}
+fi

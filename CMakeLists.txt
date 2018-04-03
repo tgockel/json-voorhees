@@ -25,6 +25,12 @@ if (CMAKE_VERSION VERSION_GREATER "3.0")
   cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
 endif()
 
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug")
+  message(STATUS "No build type selected, default to ${CMAKE_BUILD_TYPE}")
+endif()
+message(STATUS "Configuration: ${CMAKE_BUILD_TYPE}")
+
 # Extract version information from the config file. It can still be overridden by the user setting JSONV_VERSION, but
 # that is probably a bad idea.
 file(READ include/jsonv/config.hpp JSONV_CONFIG_H_STR)
