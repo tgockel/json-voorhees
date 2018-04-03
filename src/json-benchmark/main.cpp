@@ -215,16 +215,18 @@ int main(int argc, char** argv)
         if (!filter.empty() && filter != suite->name())
             continue;
         
-        std::cout << suite->name() << "..." << std::endl;
+        std::cout << std::endl;
         stopwatch watch;
         for (int idx = 1; idx <= loop_count; ++idx)
         {
-            std::cout << "  " << idx << '/' << loop_count << std::endl;
+            std::cout << '\r' << suite->name() << "..." << idx << '/' << loop_count;
+            std::cout.flush();
             auto ticker = watch.start();
             suite->parse_test(encoded);
         }
+        std::cout << std::endl;
         
-        auto average = std::chrono::duration_cast<std::chrono::microseconds>(watch.total_time) / watch.tick_count;
-        std::cout << suite->name() << '\t' << average.count() << "us" << std::endl;
+        auto average = std::chrono::duration_cast<std::chrono::duration<double>>(watch.total_time) / watch.tick_count;
+        std::cout << suite->name() << '\t' << average.count();// << std::endl;
     }
 }
