@@ -1,6 +1,6 @@
 /** \file jsonv/value.hpp
  *  
- *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -55,6 +55,11 @@ union value_storage
 };
 
 }
+
+/** \defgroup Value
+ *  JSON \ref value instances.
+ *  \{
+**/
 
 /** Describes the \e kind of data a \c value holds. See \c value for more information.
  *  
@@ -128,10 +133,7 @@ public:
     typedef std::size_t    size_type;
     typedef std::ptrdiff_t difference_type;
     
-    /** \addtogroup Array
-     *  \{
-     *  The base type for iterating over array values.
-    **/
+    /** The base type for iterating over array values. **/
     template <typename T, typename TArrayView>
     struct basic_array_iterator :
             public std::iterator<std::random_access_iterator_tag, T>
@@ -282,11 +284,7 @@ public:
     typedef detail::basic_view<const_array_iterator>                               const_array_view;
     typedef detail::basic_owning_view<value, array_iterator, const_array_iterator> owning_array_view;
     
-    /** \} **/
-    
-    /** \addtogroup Object
-     *  \{
-     *  The base iterator type for iterating over object types. It is a bidirectional iterator similar to a
+    /** The base iterator type for iterating over object types. It is a bidirectional iterator similar to a
      *  \c std::map<std::string, jsonv::value>.
     **/
     template <typename T, typename TIterator>
@@ -414,8 +412,6 @@ public:
     typedef detail::basic_view<const_object_iterator>                                const_object_view;
     typedef detail::basic_owning_view<value, object_iterator, const_object_iterator> owning_object_view;
     
-    /** \} **/
-    
 public:
     /** Default-construct this to null. **/
     constexpr value() :
@@ -486,11 +482,6 @@ public:
     **/
     value& operator=(value&& source) noexcept;
     
-    /** \addtogroup Conversions
-     *  These functions are used for accessing specific kinds of values.
-     *  \{
-    **/
-    
     /** Get this value as a string.
      *  
      *  \throws kind_error if this value does not represent a string.
@@ -549,13 +540,6 @@ public:
     
     /** Tests if this \c kind is \c kind::null. **/
     bool is_null() const;
-    
-    /** \} **/
-    
-    /** \addtogroup Shared
-     *  These functions are applicable to all kinds of values and have the same fundemental meaning for all kinds.
-     *  \{
-    **/
     
     /** Resets this value to null. **/
     void clear();
@@ -660,14 +644,7 @@ public:
     
     /** Get a string representation of the given \c value. **/
     friend std::string to_string(const value&);
-    
-    /** \} **/
-    
-    /** \addtogroup Array
-     *  These functions are only applicable if the kind of this value is an array.
-     *  \{
-    **/
-    
+
     /** Get an iterator to the beginning of this array.
      *  
      *  \throws kind_error if the kind is not an array.
@@ -802,14 +779,6 @@ public:
     **/
     array_iterator erase(const_array_iterator first, const_array_iterator last);
     
-    /** \}
-    **/
-    
-    /** \addtogroup Object
-     *  These functions are only applicable if the kind of this value is an object.
-     *  \{
-    **/
-    
     /** Get an iterator to the first key-value pair in this object.
      *  
      *  \throws kind_error if the kind is not an object.
@@ -913,15 +882,7 @@ public:
      *  \throws kind_error if the kind is not an object.
     **/
     object_iterator erase(const_object_iterator first, const_object_iterator last);
-    
-    /** \}
-    **/
-    
-    /** \addtogroup Shared
-     *  These functions are only applicable if the kind of this value is an array.
-     *  \{
-    **/
-    
+
     /** Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent
      *  to asking if the size is 0.
      *  
@@ -943,8 +904,6 @@ public:
      *  \throws kind_error if the kind is not an object, array or string.
     **/
     size_type size() const;
-    
-    /** \} **/
     
     /** \addtogroup Algorithm
      *  \{
@@ -1005,11 +964,6 @@ JSONV_PUBLIC value operator"" _json(const char* str, std::size_t len);
 
 /** Swap the values \a a and \a b. **/
 JSONV_PUBLIC void swap(value& a, value& b) noexcept;
-
-/** \addtogroup Creation
- *  Free functions meant for easily creating \c value instances.
- *  \{
-**/
 
 /** Create an empty array value. **/
 JSONV_PUBLIC value array();
