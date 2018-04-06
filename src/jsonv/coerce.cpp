@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2014-2015 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2014-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -14,6 +14,8 @@
 #include <jsonv/util.hpp>
 
 #include <limits>
+
+#include "detail/fallthrough.hpp"
 
 namespace jsonv
 {
@@ -196,7 +198,7 @@ value coerce_merge(value a, value b)
     case kind::integer:
         if (can_coerce(b, kind::integer))
             return a.as_integer() + coerce_integer(b);
-        // fall through to see if we can coerce a decimal
+        JSONV_FALLTHROUGH();
     case kind::decimal:
         if (can_coerce(b, kind::decimal))
             return a.as_decimal() + coerce_decimal(b);
