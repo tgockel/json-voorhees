@@ -6,9 +6,9 @@ var searchData=
   ['member_5fadapter',['member_adapter',['../classjsonv_1_1detail_1_1member__adapter.html',1,'jsonv::detail']]],
   ['member_5fadapter_5fbuilder',['member_adapter_builder',['../classjsonv_1_1member__adapter__builder.html',1,'jsonv']]],
   ['member_5fadapter_5fimpl',['member_adapter_impl',['../classjsonv_1_1detail_1_1member__adapter__impl.html',1,'jsonv::detail']]],
-  ['merge',['merge',['../group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f',1,'jsonv']]],
-  ['merge_5fexplicit',['merge_explicit',['../group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1',1,'jsonv']]],
-  ['merge_5frecursive',['merge_recursive',['../group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42',1,'jsonv']]],
+  ['merge',['merge',['../group__Algorithm.html#gaf7084b1883a32bab8378bd8aab6ae71f',1,'jsonv']]],
+  ['merge_5fexplicit',['merge_explicit',['../group__Algorithm.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1',1,'jsonv']]],
+  ['merge_5frecursive',['merge_recursive',['../group__Algorithm.html#gafbfed07c06da7ed1b28e64907aefea42',1,'jsonv']]],
   ['merge_5frules',['merge_rules',['../classjsonv_1_1merge__rules.html',1,'jsonv']]],
   ['message',['message',['../structjsonv_1_1parse__error_1_1problem.html#ac557310d768e355372bc569854cf38d1',1,'jsonv::parse_error::problem']]],
   ['min_5fbuffer_5fsize',['min_buffer_size',['../classjsonv_1_1tokenizer.html#aeb60c50524ebcb6dad94eb9ad639a984',1,'jsonv::tokenizer']]]

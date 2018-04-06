@@ -158,7 +158,7 @@ The jsonv::value</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = jsonv::null;</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">jsonv::null</a>;</div>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
 <div class="line">    x = 5.9;</div>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
@@ -166,10 +166,10 @@ The jsonv::value</h1>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
 <div class="line">    x = <span class="stringliteral">&quot;something else&quot;</span>;</div>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
-<div class="line">    x = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;arrays&quot;</span>, <span class="stringliteral">&quot;of&quot;</span>, <span class="stringliteral">&quot;the&quot;</span>, 7, <span class="stringliteral">&quot;different&quot;</span>, <span class="stringliteral">&quot;types&quot;</span>});</div>
+<div class="line">    x = <a class="code" href="group__Value.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;arrays&quot;</span>, <span class="stringliteral">&quot;of&quot;</span>, <span class="stringliteral">&quot;the&quot;</span>, 7, <span class="stringliteral">&quot;different&quot;</span>, <span class="stringliteral">&quot;types&quot;</span>});</div>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
-<div class="line">    x = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({</div>
-<div class="line">                        { <span class="stringliteral">&quot;objects&quot;</span>, <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({</div>
+<div class="line">    x = <a class="code" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({</div>
+<div class="line">                        { <span class="stringliteral">&quot;objects&quot;</span>, <a class="code" href="group__Value.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({</div>
 <div class="line">                                                   <span class="stringliteral">&quot;Are fun, too.&quot;</span>,</div>
 <div class="line">                                                   <span class="stringliteral">&quot;Do what you want.&quot;</span></div>
 <div class="line">                                                 })</div>
@@ -179,7 +179,7 @@ The jsonv::value</h1>
 <div class="line">    std::cout &lt;&lt; x &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Output:</p>
-<div class="fragment"><div class="line">null</div>
+<div class="fragment"><div class="line"><a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">null</a></div>
 <div class="line">5.9</div>
 <div class="line">-100</div>
 <div class="line"><span class="stringliteral">&quot;something else&quot;</span></div>
@@ -202,10 +202,10 @@ The jsonv::value</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = jsonv::null;</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">jsonv::null</a>;</div>
 <div class="line">    <span class="keywordflow">try</span></div>
 <div class="line">    {</div>
-<div class="line">        x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a>();</div>
+<div class="line">        x.<a class="code" href="classjsonv_1_1value.html#ae6e2ac07064fefff63342e28ed65a9d9">as_string</a>();</div>
 <div class="line">    }</div>
 <div class="line">    <span class="keywordflow">catch</span> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1kind__error.html">jsonv::kind_error</a>&amp; err)</div>
 <div class="line">    {</div>
@@ -213,11 +213,11 @@ The jsonv::value</h1>
 <div class="line">    }</div>
 <div class="line">    </div>
 <div class="line">    x = <span class="stringliteral">&quot;now make it a string&quot;</span>;</div>
-<div class="line">    std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a>().size() &lt;&lt; std::endl;</div>
-<div class="line">    std::cout &lt;&lt; x.<a class="code" href="group__Conversions.html#gae6e2ac07064fefff63342e28ed65a9d9">as_string</a>() &lt;&lt; <span class="stringliteral">&quot;\tis not the same as\t&quot;</span> &lt;&lt; x &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; x.<a class="code" href="classjsonv_1_1value.html#ae6e2ac07064fefff63342e28ed65a9d9">as_string</a>().size() &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; x.<a class="code" href="classjsonv_1_1value.html#ae6e2ac07064fefff63342e28ed65a9d9">as_string</a>() &lt;&lt; <span class="stringliteral">&quot;\tis not the same as\t&quot;</span> &lt;&lt; x &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Output:</p>
-<div class="fragment"><div class="line">Unexpected type: expected <span class="keywordtype">string</span> but found null.</div>
+<div class="fragment"><div class="line">Unexpected type: expected <span class="keywordtype">string</span> but found <a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">null</a>.</div>
 <div class="line">20</div>
 <div class="line">now make it a <span class="keywordtype">string</span>    is not the same as  <span class="stringliteral">&quot;now make it a string&quot;</span></div>
 </div><!-- fragment --><p>You can also deal with container types in a similar manner that you would deal with the equivalent STL container type, with some minor caveats. Because the <code>value_type</code> of a JSON object and JSON array are different, they have different iterator types in JSON Voorhees. They are aptly-named <code>object_iterator</code> and <code>array_iterator</code>. The access methods for these iterators are <code>begin_object</code> / <code>end_object</code> and <code>begin_array</code> / <code>end_array</code>, respectively. The object interface behaves exactly like you would expect a <code>std::map&lt;std::string,jsonv::value&gt;</code> to, while the array interface behaves just like a <code>std::deque&lt;jsonv::value&gt;</code> would.</p>
@@ -226,36 +226,36 @@ The jsonv::value</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;one&quot;</span>, 1 }});</div>
-<div class="line">    <span class="keyword">auto</span> iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;one&quot;</span>);</div>
-<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = <a class="code" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;one&quot;</span>, 1 }});</div>
+<div class="line">    <span class="keyword">auto</span> iter = x.<a class="code" href="classjsonv_1_1value.html#a765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;one&quot;</span>);</div>
+<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="classjsonv_1_1value.html#a4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
 <div class="line">        std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;</div>
 <div class="line">    <span class="keywordflow">else</span></div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;</div>
 <div class="line">    </div>
-<div class="line">    iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);</div>
-<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
+<div class="line">    iter = x.<a class="code" href="classjsonv_1_1value.html#a765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);</div>
+<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="classjsonv_1_1value.html#a4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
 <div class="line">        std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;</div>
 <div class="line">    <span class="keywordflow">else</span></div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;</div>
 <div class="line">    </div>
 <div class="line">    x[<span class="stringliteral">&quot;two&quot;</span>] = 2;</div>
-<div class="line">    iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);</div>
-<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
+<div class="line">    iter = x.<a class="code" href="classjsonv_1_1value.html#a765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);</div>
+<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="classjsonv_1_1value.html#a4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
 <div class="line">        std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;</div>
 <div class="line">    <span class="keywordflow">else</span></div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;</div>
 <div class="line">    </div>
-<div class="line">    x[<span class="stringliteral">&quot;two&quot;</span>] = jsonv::array({ <span class="stringliteral">&quot;one&quot;</span>, <span class="stringliteral">&quot;+&quot;</span>, x.<a class="code" href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;one&quot;</span>) });</div>
-<div class="line">    iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);</div>
-<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
+<div class="line">    x[<span class="stringliteral">&quot;two&quot;</span>] = jsonv::array({ <span class="stringliteral">&quot;one&quot;</span>, <span class="stringliteral">&quot;+&quot;</span>, x.<a class="code" href="classjsonv_1_1value.html#ad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;one&quot;</span>) });</div>
+<div class="line">    iter = x.<a class="code" href="classjsonv_1_1value.html#a765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;two&quot;</span>);</div>
+<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="classjsonv_1_1value.html#a4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
 <div class="line">        std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;</div>
 <div class="line">    <span class="keywordflow">else</span></div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;</div>
 <div class="line">    </div>
-<div class="line">    x.<a class="code" href="group__Array.html#ga7b480563d0e93fc21018e088ac38646d">erase</a>(<span class="stringliteral">&quot;one&quot;</span>);</div>
-<div class="line">    iter = x.<a class="code" href="group__Object.html#ga765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;one&quot;</span>);</div>
-<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="group__Object.html#ga4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
+<div class="line">    x.<a class="code" href="classjsonv_1_1value.html#a7b480563d0e93fc21018e088ac38646d">erase</a>(<span class="stringliteral">&quot;one&quot;</span>);</div>
+<div class="line">    iter = x.<a class="code" href="classjsonv_1_1value.html#a765ff56aa009ddea1a7360f0f9acb93a">find</a>(<span class="stringliteral">&quot;one&quot;</span>);</div>
+<div class="line">    <span class="keywordflow">if</span> (iter != x.<a class="code" href="classjsonv_1_1value.html#a4575cef7e4195a25eeba35a7f15b2fbd">end_object</a>())</div>
 <div class="line">        std::cout &lt;&lt; iter-&gt;first &lt;&lt; <span class="stringliteral">&quot;: &quot;</span> &lt;&lt; iter-&gt;second &lt;&lt; std::endl;</div>
 <div class="line">    <span class="keywordflow">else</span></div>
 <div class="line">        std::cout &lt;&lt; <span class="stringliteral">&quot;Nothing...&quot;</span> &lt;&lt; std::end;</div>
@@ -273,21 +273,21 @@ The jsonv::value</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> arr = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;taco&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span>, 3, -2, jsonv::null, <span class="stringliteral">&quot;beef&quot;</span>, 4.8, 5 });</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> arr = <a class="code" href="group__Value.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ <span class="stringliteral">&quot;taco&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span>, 3, -2, <a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">jsonv::null</a>, <span class="stringliteral">&quot;beef&quot;</span>, 4.8, 5 });</div>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Initial: &quot;</span>;</div>
-<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; val : arr.<a class="code" href="group__Array.html#ga3c76f4a236a6d3ad0bc6fbeb4fd2a834">as_array</a>())</div>
+<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; val : arr.<a class="code" href="classjsonv_1_1value.html#a3c76f4a236a6d3ad0bc6fbeb4fd2a834">as_array</a>())</div>
 <div class="line">        std::cout &lt;&lt; val &lt;&lt; <span class="charliteral">&#39;\t&#39;</span>;</div>
 <div class="line">    std::cout &lt;&lt; std::endl;</div>
 <div class="line">    </div>
-<div class="line">    std::sort(arr.<a class="code" href="group__Array.html#gae8a94ae8199b6de18e9e27347b6a2dd7">begin_array</a>(), arr.<a class="code" href="group__Array.html#gae8e46475135847419326f43bb8652030">end_array</a>());</div>
+<div class="line">    std::sort(arr.<a class="code" href="classjsonv_1_1value.html#ae8a94ae8199b6de18e9e27347b6a2dd7">begin_array</a>(), arr.<a class="code" href="classjsonv_1_1value.html#ae8e46475135847419326f43bb8652030">end_array</a>());</div>
 <div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;Sorted: &quot;</span>;</div>
-<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; val : arr.<a class="code" href="group__Array.html#ga3c76f4a236a6d3ad0bc6fbeb4fd2a834">as_array</a>())</div>
+<div class="line">    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; val : arr.<a class="code" href="classjsonv_1_1value.html#a3c76f4a236a6d3ad0bc6fbeb4fd2a834">as_array</a>())</div>
 <div class="line">        std::cout &lt;&lt; val &lt;&lt; <span class="charliteral">&#39;\t&#39;</span>;</div>
 <div class="line">    std::cout &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Output:</p>
-<div class="fragment"><div class="line">Initial: <span class="stringliteral">&quot;taco&quot;</span> <span class="stringliteral">&quot;cat&quot;</span>   3   -2  null    <span class="stringliteral">&quot;beef&quot;</span>  4.8   5</div>
-<div class="line">Sorted:  null   -2  3   4.8 5   <span class="stringliteral">&quot;beef&quot;</span>  <span class="stringliteral">&quot;cat&quot;</span>   <span class="stringliteral">&quot;taco&quot;</span></div>
+<div class="fragment"><div class="line">Initial: <span class="stringliteral">&quot;taco&quot;</span> <span class="stringliteral">&quot;cat&quot;</span>   3   -2  <a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">null</a>    <span class="stringliteral">&quot;beef&quot;</span>  4.8   5</div>
+<div class="line">Sorted:  <a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">null</a>   -2  3   4.8 5   <span class="stringliteral">&quot;beef&quot;</span>  <span class="stringliteral">&quot;cat&quot;</span>   <span class="stringliteral">&quot;taco&quot;</span></div>
 </div><!-- fragment --><h1><a class="anchor" id="demo_parsing"></a>
 Encoding and decoding</h1>
 <p>Usually, the reason people are using JSON is as a data exchange format, either for communicating with other services or storing things in a file or a database. To do this, you need to <em>encode</em> your <code>json::value</code> into an <code>std::string</code> and <em>parse</em> it back. JSON Voorhees makes this very easy for you.</p>
@@ -301,9 +301,9 @@ Encoding and decoding</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> obj = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>();</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> obj = <a class="code" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>();</div>
 <div class="line">    obj[<span class="stringliteral">&quot;taco&quot;</span>]  = <span class="stringliteral">&quot;cat&quot;</span>;</div>
-<div class="line">    obj[<span class="stringliteral">&quot;array&quot;</span>] = <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ 1, 2, 3, 4, 5 });</div>
+<div class="line">    obj[<span class="stringliteral">&quot;array&quot;</span>] = <a class="code" href="group__Value.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ 1, 2, 3, 4, 5 });</div>
 <div class="line">    obj[<span class="stringliteral">&quot;infinity&quot;</span>] = std::numeric_limits&lt;double&gt;::infinity();</div>
 <div class="line">    </div>
 <div class="line">    {</div>
@@ -323,8 +323,8 @@ Encoding and decoding</h1>
 <div class="line">    <span class="keywordflow">return</span> obj == loaded ? 0 : 1;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Output:</p>
-<div class="fragment"><div class="line">Saving <span class="stringliteral">&quot;file.json&quot;</span>... {<span class="stringliteral">&quot;array&quot;</span>:[1,2,3,4,5],<span class="stringliteral">&quot;infinity&quot;</span>:null,<span class="stringliteral">&quot;taco&quot;</span>:<span class="stringliteral">&quot;cat&quot;</span>}</div>
-<div class="line">Loading <span class="stringliteral">&quot;file.json&quot;</span>...{<span class="stringliteral">&quot;array&quot;</span>:[1,2,3,4,5],<span class="stringliteral">&quot;infinity&quot;</span>:null,<span class="stringliteral">&quot;taco&quot;</span>:<span class="stringliteral">&quot;cat&quot;</span>}</div>
+<div class="fragment"><div class="line">Saving <span class="stringliteral">&quot;file.json&quot;</span>... {<span class="stringliteral">&quot;array&quot;</span>:[1,2,3,4,5],<span class="stringliteral">&quot;infinity&quot;</span>:<a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">null</a>,<span class="stringliteral">&quot;taco&quot;</span>:<span class="stringliteral">&quot;cat&quot;</span>}</div>
+<div class="line">Loading <span class="stringliteral">&quot;file.json&quot;</span>...{<span class="stringliteral">&quot;array&quot;</span>:[1,2,3,4,5],<span class="stringliteral">&quot;infinity&quot;</span>:<a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">null</a>,<span class="stringliteral">&quot;taco&quot;</span>:<span class="stringliteral">&quot;cat&quot;</span>}</div>
 </div><!-- fragment --><p>If you are paying close attention, you might have noticed that the value for the <code>"infinity"</code> looks a little bit more <code>null</code> than <code>infinity</code>. This is because, much like mathematicians before Anaximander, JSON has no concept of infinity, so it is actually <em>illegal</em> to serialize a token like <code>infinity</code> anywhere. By default, when an encoder encounters an unrepresentable value in the JSON it is trying to encode, it outputs <code>null</code> instead. If you wish to change this behavior, implement your own <code><a class="el" href="classjsonv_1_1encoder.html" title="An encoder is responsible for writing values to some form of output. ">jsonv::encoder</a></code> (or derive from <code><a class="el" href="classjsonv_1_1ostream__encoder.html" title="An encoder that outputs to an std::ostream. ">jsonv::ostream_encoder</a></code>). If you ran the example program, you might have noticed that the return code was 1, meaning the value you put into the file and what you got from it were not equal. This is because all the type and value information is still kept around in the in-memory <code>obj</code>. It is only upon encoding that information is lost.</p>
 <p>Getting tired of all this compact rendering of your JSON strings? Want a little more whitespace in your life? Then <code><a class="el" href="classjsonv_1_1ostream__pretty__encoder.html">jsonv::ostream_pretty_encoder</a></code> is the class for you! Unlike our standard <em>compact</em> encoder, this guy will put newlines and indentation in your JSON so you can present it in a way more readable format.</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="encode_8hpp.html">jsonv/encode.hpp</a>&gt;</span></div>
@@ -355,9 +355,9 @@ Extracting with extract</h2>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
 <div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> val = jsonv::parse(R<span class="stringliteral">&quot;({ &quot;a&quot;: 1, &quot;b&quot;: 2, &quot;c&quot;: &quot;Hello!&quot; })&quot;);</span></div>
-<div class="line"><span class="stringliteral">    std::cout &lt;&lt; </span><span class="stringliteral">&quot;a=&quot;</span> &lt;&lt; jsonv::extract&lt;int&gt;(val.<a class="code" href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;a&quot;</span>)) &lt;&lt; std::endl;</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;b=&quot;</span> &lt;&lt; jsonv::extract&lt;int&gt;(val.<a class="code" href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;b&quot;</span>)) &lt;&lt; std::endl;</div>
-<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;c=&quot;</span> &lt;&lt; jsonv::extract&lt;std::string&gt;(val.<a class="code" href="group__Array.html#gad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;c&quot;</span>)) &lt;&lt; std::endl;</div>
+<div class="line"><span class="stringliteral">    std::cout &lt;&lt; </span><span class="stringliteral">&quot;a=&quot;</span> &lt;&lt; jsonv::extract&lt;int&gt;(val.<a class="code" href="classjsonv_1_1value.html#ad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;a&quot;</span>)) &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;b=&quot;</span> &lt;&lt; jsonv::extract&lt;int&gt;(val.<a class="code" href="classjsonv_1_1value.html#ad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;b&quot;</span>)) &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <span class="stringliteral">&quot;c=&quot;</span> &lt;&lt; jsonv::extract&lt;std::string&gt;(val.<a class="code" href="classjsonv_1_1value.html#ad1978289ca5b93314f1faf54787d3e22">at</a>(<span class="stringliteral">&quot;c&quot;</span>)) &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Output:</p>
 <div class="fragment"><div class="line">a=1</div>
@@ -453,7 +453,7 @@ Serialization with to_json</h2>
 <div class="line">                               (</div>
 <div class="line">                                [] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1serialization__context.html">jsonv::serialization_context</a>&amp; context, <span class="keyword">const</span> my_type&amp; <span class="keyword">self</span>)</div>
 <div class="line">                                {</div>
-<div class="line">                                    <span class="keywordflow">return</span> <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;a&quot;</span>, context.to_json(<span class="keyword">self</span>.a) },</div>
+<div class="line">                                    <span class="keywordflow">return</span> <a class="code" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;a&quot;</span>, context.to_json(<span class="keyword">self</span>.a) },</div>
 <div class="line">                                                           { <span class="stringliteral">&quot;b&quot;</span>, context.to_json(<span class="keyword">self</span>.b) },</div>
 <div class="line">                                                           { <span class="stringliteral">&quot;c&quot;</span>, context.to_json(<span class="keyword">self</span>.c) }</div>
 <div class="line">                                                         }</div>
@@ -536,7 +536,7 @@ Algorithms</h1>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
 <div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> x = 5;</div>
-<div class="line">    std::cout &lt;&lt; <a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">jsonv::map</a>([] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">jsonv::value</a>&amp; y) { <span class="keywordflow">return</span> y.<a class="code" href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8">as_integer</a>() * 2; }, x) &lt;&lt; std::endl;</div>
+<div class="line">    std::cout &lt;&lt; <a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">jsonv::map</a>([] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">jsonv::value</a>&amp; y) { <span class="keywordflow">return</span> y.<a class="code" href="classjsonv_1_1value.html#aababe6acf36d6517205714b17b821ff8">as_integer</a>() * 2; }, x) &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>If everything went right, you should see a number:</p>
 <div class="fragment"><div class="line">10</div>
@@ -547,8 +547,8 @@ Algorithms</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    std::cout &lt;&lt; <a class="code" href="group__Creation.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ 1, 2, 3, 4, 5 })</div>
-<div class="line">                        .<a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">map</a>([] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">jsonv::value</a>&amp; y) { <span class="keywordflow">return</span> y.<a class="code" href="group__Conversions.html#gaababe6acf36d6517205714b17b821ff8">as_integer</a>() * 2; })</div>
+<div class="line">    std::cout &lt;&lt; <a class="code" href="group__Value.html#ga8c4ac5022703a328eddc667d4ce333ed">jsonv::array</a>({ 1, 2, 3, 4, 5 })</div>
+<div class="line">                        .<a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">map</a>([] (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">jsonv::value</a>&amp; y) { <span class="keywordflow">return</span> y.<a class="code" href="classjsonv_1_1value.html#aababe6acf36d6517205714b17b821ff8">as_integer</a>() * 2; })</div>
 <div class="line">              &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Now we're starting to get somewhere!</p>
@@ -577,7 +577,7 @@ Algorithms</h1>
 <div class="line">.bar[2]=3</div>
 <div class="line">.foo=<span class="stringliteral">&quot;hello&quot;</span></div>
 </div><!-- fragment --><p>Imagine the possibilities!</p>
-<p>All of the <em>really</em> powerful functions can be found in <code><a class="el" href="util_8hpp.html" title="A collection of utility functions for manipulating one or more instances of jsonv::value. ">util.hpp</a></code>. My personal favorite is <code>jsonv::merge</code>. The idea is simple: it merges two (or more) JSON values into one.</p>
+<p>All of the <em>really</em> powerful functions can be found in <code><a class="el" href="util_8hpp.html" title="Deprecated. ">util.hpp</a></code>. My personal favorite is <code>jsonv::merge</code>. The idea is simple: it merges two (or more) JSON values into one.</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="util_8hpp.html">jsonv/util.hpp</a>&gt;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;<a class="code" href="value_8hpp.html">jsonv/value.hpp</a>&gt;</span></div>
 <div class="line"></div>
@@ -585,9 +585,9 @@ Algorithms</h1>
 <div class="line"></div>
 <div class="line"><span class="keywordtype">int</span> main()</div>
 <div class="line">{</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> a = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;a&quot;</span>, <span class="stringliteral">&quot;taco&quot;</span> }, { <span class="stringliteral">&quot;b&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span> } });</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> b = <a class="code" href="group__Creation.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;c&quot;</span>, <span class="stringliteral">&quot;burrito&quot;</span> }, { <span class="stringliteral">&quot;d&quot;</span>, <span class="stringliteral">&quot;dog&quot;</span> } });</div>
-<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> merged = <a class="code" href="group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f">jsonv::merge</a>(std::move(a), std::move(b));</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> a = <a class="code" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;a&quot;</span>, <span class="stringliteral">&quot;taco&quot;</span> }, { <span class="stringliteral">&quot;b&quot;</span>, <span class="stringliteral">&quot;cat&quot;</span> } });</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> b = <a class="code" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1">jsonv::object</a>({ { <span class="stringliteral">&quot;c&quot;</span>, <span class="stringliteral">&quot;burrito&quot;</span> }, { <span class="stringliteral">&quot;d&quot;</span>, <span class="stringliteral">&quot;dog&quot;</span> } });</div>
+<div class="line">    <a class="code" href="classjsonv_1_1value.html">jsonv::value</a> merged = <a class="code" href="group__Algorithm.html#gaf7084b1883a32bab8378bd8aab6ae71f">jsonv::merge</a>(std::move(a), std::move(b));</div>
 <div class="line">    std::cout &lt;&lt; merged &lt;&lt; std::endl;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>Output:</p>

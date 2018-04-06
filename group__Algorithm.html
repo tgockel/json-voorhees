@@ -121,8 +121,26 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1compare__traits.html">jsonv::compare_traits</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Traits describing how to perform various aspects of comparison.  <a href="structjsonv_1_1compare__traits.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structjsonv_1_1diff__result"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#structjsonv_1_1diff__result">jsonv::diff_result</a></td></tr>
+<tr class="memdesc:structjsonv_1_1diff__result"><td class="mdescLeft">&#160;</td><td class="mdescRight">The results of the <code>diff</code> operation.  <a href="group__Algorithm.html#structjsonv_1_1diff__result">More...</a><br/></td></tr>
+<tr class="separator:structjsonv_1_1diff__result"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1merge__rules.html">jsonv::merge_rules</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class is used in <code>merge_explicit</code> for defining what the function should do in the cases of conflicts.  <a href="classjsonv_1_1merge__rules.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An implementation of <code><a class="el" href="classjsonv_1_1merge__rules.html" title="This class is used in merge_explicit for defining what the function should do in the cases of conflic...">merge_rules</a></code> that allows you to bind whatever functions you want to resolve conflicts.  <a href="classjsonv_1_1dynamic__merge__rules.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1throwing__merge__rules.html">jsonv::throwing_merge_rules</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules throw an exception on all conflicts.  <a href="classjsonv_1_1throwing__merge__rules.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1recursive__merge__rules.html">jsonv::recursive_merge_rules</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules will recursively merge everything they can and coerce all values.  <a href="classjsonv_1_1recursive__merge__rules.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1validation__error.html">jsonv::validation_error</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error thrown when an unrepresentable value is encountered in a JSON AST.  <a href="classjsonv_1_1validation__error.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value__compare.html">jsonv::value_compare</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares a <code>value</code> to another using the standard-issue <code><a class="el" href="group__Shared.html#ga05f2fca552d114e678040be40c8cbc06" title="Used to build a strict-ordering of JSON values. ">value::compare</a></code> function.  <a href="structjsonv_1_1value__compare.html#details">More...</a><br/></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares a <code>value</code> to another using the standard-issue <code><a class="el" href="classjsonv_1_1value.html#a05f2fca552d114e678040be40c8cbc06" title="Used to build a strict-ordering of JSON values. ">value::compare</a></code> function.  <a href="structjsonv_1_1value__compare.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value__compare__icase.html">jsonv::value_compare_icase</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compares two values, ignoring the case for any <code>value</code> with <code>kind::string</code>.  <a href="structjsonv_1_1value__compare__icase.html#details">More...</a><br/></td></tr>
@@ -181,6 +199,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga74b55f49e5cab8746e5304c132ae1e87"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga74b55f49e5cab8746e5304c132ae1e87">jsonv::compare_icase</a> (const value &amp;a, const value &amp;b)</td></tr>
 <tr class="memdesc:ga74b55f49e5cab8746e5304c132ae1e87"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare the values <em>a</em> and <em>b</em>, but use case-insensitive matching on <code>kind::string</code> values.  <a href="#ga74b55f49e5cab8746e5304c132ae1e87">More...</a><br/></td></tr>
 <tr class="separator:ga74b55f49e5cab8746e5304c132ae1e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2480514da0048b025804fd95635dbc79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> diff_result&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga2480514da0048b025804fd95635dbc79">jsonv::diff</a> (value left, value right)</td></tr>
+<tr class="memdesc:ga2480514da0048b025804fd95635dbc79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the differences and similarities between the structures of <em>left</em> and <em>right</em>.  <a href="#ga2480514da0048b025804fd95635dbc79">More...</a><br/></td></tr>
+<tr class="separator:ga2480514da0048b025804fd95635dbc79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6f0abfde4a15bb3d727727d17e055d4d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">jsonv::map</a> (const std::function&lt; value(const value &amp;)&gt; &amp;func, const value &amp;input)</td></tr>
 <tr class="memdesc:ga6f0abfde4a15bb3d727727d17e055d4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function over the values in the <em>input</em>.  <a href="#ga6f0abfde4a15bb3d727727d17e055d4d">More...</a><br/></td></tr>
 <tr class="separator:ga6f0abfde4a15bb3d727727d17e055d4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -193,6 +214,33 @@ Functions</h2></td></tr>
 <tr class="memitem:gacc870c7f69dc8731b6a97afa97df43cc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#gacc870c7f69dc8731b6a97afa97df43cc">jsonv::traverse</a> (const value &amp;tree, const std::function&lt; void(const path &amp;, const value &amp;)&gt; &amp;func, bool leafs_only=false)</td></tr>
 <tr class="memdesc:gacc870c7f69dc8731b6a97afa97df43cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Recursively walk the provided <em>tree</em> and call <em>func</em> for each item in the tree.  <a href="#gacc870c7f69dc8731b6a97afa97df43cc">More...</a><br/></td></tr>
 <tr class="separator:gacc870c7f69dc8731b6a97afa97df43cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5f3d51f2832841e7c90ba1eb9b9b93a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1">jsonv::merge_explicit</a> (const merge_rules &amp;rules, path current_path, value a, value b)</td></tr>
+<tr class="memdesc:ga5f3d51f2832841e7c90ba1eb9b9b93a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges two <code>values</code>, <em>a</em> and <em>b</em> into a single <code>value</code>.  <a href="#ga5f3d51f2832841e7c90ba1eb9b9b93a1">More...</a><br/></td></tr>
+<tr class="separator:ga5f3d51f2832841e7c90ba1eb9b9b93a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga953ea8225a035f7dd1dbb88285f980d4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga953ea8225a035f7dd1dbb88285f980d4"></a>
+<a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;, const path &amp;, value a)</td></tr>
+<tr class="separator:ga953ea8225a035f7dd1dbb88285f980d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga77f008513377f09e7d66e046bef67747"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga77f008513377f09e7d66e046bef67747"></a>
+<a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;, const path &amp;)</td></tr>
+<tr class="separator:ga77f008513377f09e7d66e046bef67747"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab37af0937ad26c2817106dc21446f104"><td class="memTemplParams" colspan="2"><a class="anchor" id="gab37af0937ad26c2817106dc21446f104"></a>
+template&lt;typename... TValue&gt; </td></tr>
+<tr class="memitem:gab37af0937ad26c2817106dc21446f104"><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;rules, path current_path, value a, value b, value c, TValue &amp;&amp;...rest)</td></tr>
+<tr class="separator:gab37af0937ad26c2817106dc21446f104"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
+<tr class="memitem:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#gaf7084b1883a32bab8378bd8aab6ae71f">jsonv::merge</a> (TValue &amp;&amp;...values)</td></tr>
+<tr class="memdesc:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="#gaf7084b1883a32bab8378bd8aab6ae71f">More...</a><br/></td></tr>
+<tr class="separator:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafbfed07c06da7ed1b28e64907aefea42"><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
+<tr class="memitem:gafbfed07c06da7ed1b28e64907aefea42"><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#gafbfed07c06da7ed1b28e64907aefea42">jsonv::merge_recursive</a> (TValue &amp;&amp;...values)</td></tr>
+<tr class="memdesc:gafbfed07c06da7ed1b28e64907aefea42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="#gafbfed07c06da7ed1b28e64907aefea42">More...</a><br/></td></tr>
+<tr class="separator:gafbfed07c06da7ed1b28e64907aefea42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga996c1ddc2732999a8bcd5212403ce2a5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga996c1ddc2732999a8bcd5212403ce2a5"></a>
+<a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator&lt;&lt;</b> (std::ostream &amp;os, const validation_error::code &amp;code)</td></tr>
+<tr class="separator:ga996c1ddc2732999a8bcd5212403ce2a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4073c6d09edda785ddc21f1b35c5bdf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga4073c6d09edda785ddc21f1b35c5bdf6">jsonv::validate</a> (const value &amp;val)</td></tr>
+<tr class="memdesc:ga4073c6d09edda785ddc21f1b35c5bdf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that the provided <em>val</em> is perfectly representable as a JSON string.  <a href="#ga4073c6d09edda785ddc21f1b35c5bdf6">More...</a><br/></td></tr>
+<tr class="separator:ga4073c6d09edda785ddc21f1b35c5bdf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9e2e68ce801ca3c29f80f104dd12c99d"><td class="memItemLeft" align="right" valign="top">value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Algorithm.html#ga9e2e68ce801ca3c29f80f104dd12c99d">jsonv::value::map</a> (const std::function&lt; value(const value &amp;)&gt; &amp;func) const &amp;</td></tr>
 <tr class="memdesc:ga9e2e68ce801ca3c29f80f104dd12c99d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Run a function over the values of this instance.  <a href="#ga9e2e68ce801ca3c29f80f104dd12c99d">More...</a><br/></td></tr>
 <tr class="separator:ga9e2e68ce801ca3c29f80f104dd12c99d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -202,6 +250,43 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>A collection of useful free functions a la <code></code> &lt;algorithm&gt;. </p>
+<hr/><h2 class="groupheader">Class Documentation</h2>
+<a name="structjsonv_1_1diff__result" id="structjsonv_1_1diff__result"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct jsonv::diff_result</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"><p>The results of the <code>diff</code> operation. </p>
+
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00194">194</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+</div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="af1285a35bafce2c3e6943e8a6204f28f"></a><a class="el" href="classjsonv_1_1value.html">value</a></td>
+<td class="fieldname">
+left</td>
+<td class="fielddoc">
+Elements that were unique to the left hand side of the diff. </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="aea2653c65f11342d8fcfae4e4a8ac9d3"></a><a class="el" href="classjsonv_1_1value.html">value</a></td>
+<td class="fieldname">
+right</td>
+<td class="fielddoc">
+Elements that were unique to the right hand side of the diff. </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a9b97bd901a23e479ed482ed56184f86a"></a><a class="el" href="classjsonv_1_1value.html">value</a></td>
+<td class="fieldname">
+same</td>
+<td class="fielddoc">
+Elements that were the same between the two halves of the diff. </td></tr>
+</table>
+
+</div>
+</div>
 <h2 class="groupheader">Function Documentation</h2>
 <a class="anchor" id="ga18053a6a38a0ddd3739a9b253e6f8301"></a>
 <div class="memitem">
@@ -243,7 +328,7 @@ template&lt;typename TCompareTraits &gt; </div>
   </dd>
 </dl>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00123">123</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00124">124</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>
@@ -272,7 +357,7 @@ template&lt;typename TCompareTraits &gt; </div>
 </div><div class="memdoc">
 
 <p>Compare the values <em>a</em> and <em>b</em> with strict comparison traits. </p>
-<dl class="section see"><dt>See Also</dt><dd><a class="el" href="group__Shared.html#ga05f2fca552d114e678040be40c8cbc06" title="Used to build a strict-ordering of JSON values. ">value::compare</a> </dd>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="classjsonv_1_1value.html#a05f2fca552d114e678040be40c8cbc06" title="Used to build a strict-ordering of JSON values. ">value::compare</a> </dd>
 <dd>
 compare_icase </dd></dl>
 
@@ -305,6 +390,35 @@ compare_icase </dd></dl>
 <p>Compare the values <em>a</em> and <em>b</em>, but use case-insensitive matching on <code>kind::string</code> values. </p>
 <p>This does <em>not</em> use case-insensitive matching on the keys of objects!</p>
 <dl class="section see"><dt>See Also</dt><dd>compare </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2480514da0048b025804fd95635dbc79"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> diff_result jsonv::diff </td>
+          <td>(</td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>left</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>right</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Find the differences and similarities between the structures of <em>left</em> and <em>right</em>. </p>
+<p>If <em>left</em> and <em>right</em> have a different <code>kind</code> (and the kind difference is not <code>kind::integer</code> and <code>kind::decimal</code>), <em>left</em> and <em>right</em> will be placed directly in the result. If they have the same <code>kind</code> and it is scalar, the values get a direct comparison. If they are the same, the result is moved to <code><a class="el" href="group__Algorithm.html#a9b97bd901a23e479ed482ed56184f86a" title="Elements that were the same between the two halves of the diff. ">diff_result::same</a></code>. If they are different, <em>left</em> and <em>right</em> are moved to <code><a class="el" href="group__Algorithm.html#af1285a35bafce2c3e6943e8a6204f28f" title="Elements that were unique to the left hand side of the diff. ">diff_result::left</a></code> and <code><a class="el" href="group__Algorithm.html#aea2653c65f11342d8fcfae4e4a8ac9d3" title="Elements that were unique to the right hand side of the diff. ">diff_result::right</a></code>, respectively. For <code>kind::array</code> and <code>kind::object</code>, the <code>value</code> elements are compared recursively. </p>
 
 </div>
 </div>
@@ -432,6 +546,114 @@ compare_icase </dd></dl>
 
 </div>
 </div>
+<a class="anchor" id="gaf7084b1883a32bab8378bd8aab6ae71f"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename... TValue&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">value jsonv::merge </td>
+          <td>(</td>
+          <td class="paramtype">TValue &amp;&amp;...&#160;</td>
+          <td class="paramname"><em>values</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Merges all the provided <em>values</em> into a single <code>value</code>. </p>
+<p>If there are any key or type conflicts, an exception will be thrown. </p>
+
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00399">399</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+
+</div>
+</div>
+<a class="anchor" id="ga5f3d51f2832841e7c90ba1eb9b9b93a1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value jsonv::merge_explicit </td>
+          <td>(</td>
+          <td class="paramtype">const merge_rules &amp;&#160;</td>
+          <td class="paramname"><em>rules</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">path&#160;</td>
+          <td class="paramname"><em>current_path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>a</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">value&#160;</td>
+          <td class="paramname"><em>b</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Merges two <code>values</code>, <em>a</em> and <em>b</em> into a single <code>value</code>. </p>
+<p>The merging follows a few simple rules:</p>
+<ul>
+<li>If <em><a class="el" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53" title="Describes the kind of data a value holds. ">a.kind()</a></em> != <em><a class="el" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53" title="Describes the kind of data a value holds. ">b.kind()</a></em> and they are not <code>kind::integer</code> and <code>kind::decimal</code>, call <em>on_type_conflict</em> and return the result.</li>
+<li>Otherwise, branch based on the (shared) type:<ul>
+<li><code>kind::object</code> - Return a new object with all the values from <em>a</em> and <em>b</em> for the keys which are unique per object. For the keys which are shared, the value is the result of <em>on_same_key</em>.</li>
+<li><code>kind::array</code> - Return a new array with the values of <em>b</em> appended to <em>a</em>.</li>
+<li><code>kind::string</code> - Return a new string with <em>b</em> appended to <em>a</em>.</li>
+<li><code>kind::boolean</code> - Return <code>a.as_boolean() || b.as_boolean()</code></li>
+<li><code>kind::integer</code> - If <b>is</b> <code>kind::integer</code>, return <code>a + b</code> as an integer; otherwise, return it as a decimal.</li>
+<li><code>kind::decimal</code> - Return <code>a + b</code> as a decimal.</li>
+</ul>
+</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rules</td><td>are the rules to merge with (see <code><a class="el" href="classjsonv_1_1merge__rules.html" title="This class is used in merge_explicit for defining what the function should do in the cases of conflic...">merge_rules</a></code>). </td></tr>
+    <tr><td class="paramname">current_path</td><td>The current <code>path</code> into the <code>value</code> that we are merging. This can be used to give more useful error information if we are merging recursively. </td></tr>
+    <tr><td class="paramname">a</td><td>is a <code>value</code> to merge. </td></tr>
+    <tr><td class="paramname">b</td><td>is a <code>value</code> to merge. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gafbfed07c06da7ed1b28e64907aefea42"></a>
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename... TValue&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">value jsonv::merge_recursive </td>
+          <td>(</td>
+          <td class="paramtype">TValue &amp;&amp;...&#160;</td>
+          <td class="paramname"><em>values</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Merges all the provided <em>values</em> into a single <code>value</code>. </p>
+<p>If there are any keys which are shared, their values are also merged. </p>
+
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00411">411</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="gaf74e9854143e94b2b014efe15eb63fdf"></a>
 <div class="memitem">
 <div class="memproto">
@@ -517,6 +739,31 @@ compare_icase </dd></dl>
     <tr><td class="paramname">tree</td><td>The JSON value to traverse. </td></tr>
     <tr><td class="paramname">func</td><td>The function to call for each element in the tree. </td></tr>
     <tr><td class="paramname">leafs_only</td><td>If true, call <em>func</em> only when the current path is a "leaf" value (<code>string</code>, <code>integer</code>, <code>decimal</code>, <code>boolean</code>, or <code>null</code> <em>or</em> an empty <code>array</code> or <code>object</code>); if false, call <em>func</em> for all entries in the tree. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga4073c6d09edda785ddc21f1b35c5bdf6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void jsonv::validate </td>
+          <td>(</td>
+          <td class="paramtype">const value &amp;&#160;</td>
+          <td class="paramname"><em>val</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check that the provided <em>val</em> is perfectly representable as a JSON string. </p>
+<p>The JSON specification does not have support for things like non-finite floating-point numbers (<code>NaN</code> and <code>infinity</code>). This means <code>value</code> defined with these values will get serialized as <code>null</code>. This constitutes a loss of information, but not acting this way would lead to the encoder outputting invalid JSON text, which is completely unacceptable. Use this funciton to check that there will be no information loss when encoding.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname"><a class="el" href="classjsonv_1_1validation__error.html" title="Error thrown when an unrepresentable value is encountered in a JSON AST. ">validation_error</a></td><td>if <em>val</em> contains an unrepresentable value. </td></tr>
   </table>
   </dd>
 </dl>

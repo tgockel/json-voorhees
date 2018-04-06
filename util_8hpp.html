@@ -110,82 +110,20 @@ $(document).ready(function(){initNavTree('util_8hpp.html','');});
 </div>
 
 <div class="header">
-  <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
-<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">util.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A collection of utility functions for manipulating one or more instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>.  
+<p>Deprecated.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;<a class="el" href="config_8hpp_source.html">jsonv/config.hpp</a>&gt;</code><br/>
-<code>#include &lt;<a class="el" href="path_8hpp_source.html">jsonv/path.hpp</a>&gt;</code><br/>
-<code>#include &lt;<a class="el" href="value_8hpp_source.html">jsonv/value.hpp</a>&gt;</code><br/>
-<code>#include &lt;functional&gt;</code><br/>
-<code>#include &lt;string&gt;</code><br/>
-<code>#include &lt;utility&gt;</code><br/>
+<div class="textblock"><code>#include &quot;<a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>&quot;</code><br/>
 </div>
 <p><a href="util_8hpp_source.html">Go to the source code of this file.</a></p>
-<table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1merge__rules.html">jsonv::merge_rules</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">This class is used in <code>merge_explicit</code> for defining what the function should do in the cases of conflicts.  <a href="classjsonv_1_1merge__rules.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1dynamic__merge__rules.html">jsonv::dynamic_merge_rules</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An implementation of <code><a class="el" href="classjsonv_1_1merge__rules.html" title="This class is used in merge_explicit for defining what the function should do in the cases of conflic...">merge_rules</a></code> that allows you to bind whatever functions you want to resolve conflicts.  <a href="classjsonv_1_1dynamic__merge__rules.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1throwing__merge__rules.html">jsonv::throwing_merge_rules</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules throw an exception on all conflicts.  <a href="classjsonv_1_1throwing__merge__rules.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1recursive__merge__rules.html">jsonv::recursive_merge_rules</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">These rules will recursively merge everything they can and coerce all values.  <a href="classjsonv_1_1recursive__merge__rules.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:structjsonv_1_1diff__result"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#structjsonv_1_1diff__result">jsonv::diff_result</a></td></tr>
-<tr class="memdesc:structjsonv_1_1diff__result"><td class="mdescLeft">&#160;</td><td class="mdescRight">The results of the <code>diff</code> operation.  <a href="group__Utility.html#structjsonv_1_1diff__result">More...</a><br/></td></tr>
-<tr class="separator:structjsonv_1_1diff__result"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1validation__error.html">jsonv::validation_error</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error thrown when an unrepresentable value is encountered in a JSON AST.  <a href="classjsonv_1_1validation__error.html#details">More...</a><br/></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:ga5f3d51f2832841e7c90ba1eb9b9b93a1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1">jsonv::merge_explicit</a> (const merge_rules &amp;rules, path current_path, value a, value b)</td></tr>
-<tr class="memdesc:ga5f3d51f2832841e7c90ba1eb9b9b93a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges two <code>values</code>, <em>a</em> and <em>b</em> into a single <code>value</code>.  <a href="group__Utility.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1">More...</a><br/></td></tr>
-<tr class="separator:ga5f3d51f2832841e7c90ba1eb9b9b93a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga953ea8225a035f7dd1dbb88285f980d4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga953ea8225a035f7dd1dbb88285f980d4"></a>
-<a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;, const path &amp;, value a)</td></tr>
-<tr class="separator:ga953ea8225a035f7dd1dbb88285f980d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga77f008513377f09e7d66e046bef67747"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga77f008513377f09e7d66e046bef67747"></a>
-<a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;, const path &amp;)</td></tr>
-<tr class="separator:ga77f008513377f09e7d66e046bef67747"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab37af0937ad26c2817106dc21446f104"><td class="memTemplParams" colspan="2"><a class="anchor" id="gab37af0937ad26c2817106dc21446f104"></a>
-template&lt;typename... TValue&gt; </td></tr>
-<tr class="memitem:gab37af0937ad26c2817106dc21446f104"><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><b>jsonv::merge_explicit</b> (const merge_rules &amp;rules, path current_path, value a, value b, value c, TValue &amp;&amp;...rest)</td></tr>
-<tr class="separator:gab37af0937ad26c2817106dc21446f104"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
-<tr class="memitem:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f">jsonv::merge</a> (TValue &amp;&amp;...values)</td></tr>
-<tr class="memdesc:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="group__Utility.html#gaf7084b1883a32bab8378bd8aab6ae71f">More...</a><br/></td></tr>
-<tr class="separator:gaf7084b1883a32bab8378bd8aab6ae71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafbfed07c06da7ed1b28e64907aefea42"><td class="memTemplParams" colspan="2">template&lt;typename... TValue&gt; </td></tr>
-<tr class="memitem:gafbfed07c06da7ed1b28e64907aefea42"><td class="memTemplItemLeft" align="right" valign="top">value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42">jsonv::merge_recursive</a> (TValue &amp;&amp;...values)</td></tr>
-<tr class="memdesc:gafbfed07c06da7ed1b28e64907aefea42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Merges all the provided <em>values</em> into a single <code>value</code>.  <a href="group__Utility.html#gafbfed07c06da7ed1b28e64907aefea42">More...</a><br/></td></tr>
-<tr class="separator:gafbfed07c06da7ed1b28e64907aefea42"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2480514da0048b025804fd95635dbc79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> diff_result&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga2480514da0048b025804fd95635dbc79">jsonv::diff</a> (value left, value right)</td></tr>
-<tr class="memdesc:ga2480514da0048b025804fd95635dbc79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find the differences and similarities between the structures of <em>left</em> and <em>right</em>.  <a href="group__Utility.html#ga2480514da0048b025804fd95635dbc79">More...</a><br/></td></tr>
-<tr class="separator:ga2480514da0048b025804fd95635dbc79"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga996c1ddc2732999a8bcd5212403ce2a5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga996c1ddc2732999a8bcd5212403ce2a5"></a>
-<a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>jsonv::operator&lt;&lt;</b> (std::ostream &amp;os, const validation_error::code &amp;code)</td></tr>
-<tr class="separator:ga996c1ddc2732999a8bcd5212403ce2a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4073c6d09edda785ddc21f1b35c5bdf6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6">jsonv::validate</a> (const value &amp;val)</td></tr>
-<tr class="memdesc:ga4073c6d09edda785ddc21f1b35c5bdf6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that the provided <em>val</em> is perfectly representable as a JSON string.  <a href="group__Utility.html#ga4073c6d09edda785ddc21f1b35c5bdf6">More...</a><br/></td></tr>
-<tr class="separator:ga4073c6d09edda785ddc21f1b35c5bdf6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A collection of utility functions for manipulating one or more instances of <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code>. </p>
-<p>Copyright (c) 2015 by Travis Gockel. All rights reserved.</p>
+<div class="textblock"><p>Deprecated. </p>
+<p>Use <code><a class="el" href="algorithm_8hpp.html" title="A collection of algorithms a la &lt;algorithm&gt;. ">algorithm.hpp</a></code>.</p>
+<p>Copyright (c) 2015-2018 by Travis Gockel. All rights reserved.</p>
 <p>This program is free software: you can redistribute it and/or modify it under the terms of the Apache License as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later version.</p>
 <dl class="section author"><dt>Author</dt><dd>Travis Gockel (<a href="#" onclick="location.href='mai'+'lto:'+'tra'+'vi'+'s@g'+'oc'+'kel'+'hu'+'t.c'+'om'; return false;">travi<span style="display: none;">.nosp@m.</span>s@go<span style="display: none;">.nosp@m.</span>ckelh<span style="display: none;">.nosp@m.</span>ut.c<span style="display: none;">.nosp@m.</span>om</a>) </dd></dl>
 

@@ -127,7 +127,7 @@ $(document).ready(function(){initNavTree('structjsonv_1_1compare__traits.html','
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:ada2685a49525b7927b8467bf3bfb2688"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1compare__traits.html#ada2685a49525b7927b8467bf3bfb2688">compare_kinds</a> (kind a, kind b)</td></tr>
+<tr class="memitem:ada2685a49525b7927b8467bf3bfb2688"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1compare__traits.html#ada2685a49525b7927b8467bf3bfb2688">compare_kinds</a> (<a class="el" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a> a, <a class="el" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a> b)</td></tr>
 <tr class="memdesc:ada2685a49525b7927b8467bf3bfb2688"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare two kinds <em>a</em> and <em>b</em>.  <a href="#ada2685a49525b7927b8467bf3bfb2688">More...</a><br/></td></tr>
 <tr class="separator:ada2685a49525b7927b8467bf3bfb2688"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba3ea1617e26ba22fd41c6bcf2d306a0"><td class="memItemLeft" align="right" valign="top">static int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1compare__traits.html#aba3ea1617e26ba22fd41c6bcf2d306a0">compare_booleans</a> (bool a, bool b)</td></tr>
@@ -151,10 +151,10 @@ Static Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Traits describing how to perform various aspects of comparison. </p>
-<p>This implementation for comparison is strict and is ultimately the one used by <code><a class="el" href="group__Shared.html#ga05f2fca552d114e678040be40c8cbc06" title="Used to build a strict-ordering of JSON values. ">value::compare</a></code>.</p>
+<p>This implementation for comparison is strict and is ultimately the one used by <code><a class="el" href="classjsonv_1_1value.html#a05f2fca552d114e678040be40c8cbc06" title="Used to build a strict-ordering of JSON values. ">value::compare</a></code>.</p>
 <dl class="section see"><dt>See Also</dt><dd>compare </dd></dl>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00037">37</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00038">38</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a class="anchor" id="aba3ea1617e26ba22fd41c6bcf2d306a0"></a>
 <div class="memitem">
@@ -190,7 +190,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Compare two boolean values. </p>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00051">51</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00052">52</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>
@@ -228,7 +228,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Compare two decimal values. </p>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00067">67</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00068">68</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>
@@ -266,7 +266,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Compare two integer values. </p>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00059">59</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00060">60</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>
@@ -280,13 +280,13 @@ Static Public Member Functions</h2></td></tr>
         <tr>
           <td class="memname">static int jsonv::compare_traits::compare_kinds </td>
           <td>(</td>
-          <td class="paramtype">kind&#160;</td>
+          <td class="paramtype"><a class="el" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a>&#160;</td>
           <td class="paramname"><em>a</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">kind&#160;</td>
+          <td class="paramtype"><a class="el" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a>&#160;</td>
           <td class="paramname"><em>b</em>&#160;</td>
         </tr>
         <tr>
@@ -305,7 +305,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Compare two kinds <em>a</em> and <em>b</em>. </p>
 <p>This should return 0 if the types are the same or if they are directly comparable (such as <code>kind::integer</code> and <code>kind::decimal</code>) &ndash; if you return 0 for non-comparable types, you risk getting a <code><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></code> thrown. </p>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00043">43</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00044">44</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>
@@ -343,7 +343,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Compare two strings used for the keys of objects. </p>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00081">81</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00082">82</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>
@@ -382,7 +382,7 @@ Static Public Member Functions</h2></td></tr>
 <p>Compare two objects <em>before</em> comparing the values. </p>
 <p>The <code>compare</code> function will only check the contents of an object if this function returns 0. </p>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00089">89</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00090">90</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>
@@ -420,7 +420,7 @@ Static Public Member Functions</h2></td></tr>
 
 <p>Compare two string values. </p>
 
-<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00075">75</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
+<p>Definition at line <a class="el" href="algorithm_8hpp_source.html#l00076">76</a> of file <a class="el" href="algorithm_8hpp_source.html">algorithm.hpp</a>.</p>
 
 </div>
 </div>

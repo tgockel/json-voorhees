@@ -152,7 +152,7 @@ $(document).ready(function(){initNavTree('tokenizer_8hpp_source.html','');});
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">    /** A boolean: \c true or \c false. **/</span></div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keywordtype">boolean</span>                 = 0x00004,<span class="comment"></span></div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment">    /** The literal \c null. **/</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    null                    = 0x00008,<span class="comment"></span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    <a class="code" href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">null</a>                    = 0x00008,<span class="comment"></span></div>
 <div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="comment">    /** A number -- in either integer or decimal type. **/</span></div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    number                  = 0x00010,<span class="comment"></span></div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="comment">    /** A separator was encountered: \c ,. **/</span></div>
@@ -233,11 +233,11 @@ $(document).ready(function(){initNavTree('tokenizer_8hpp_source.html','');});
 <div class="line"><a name="l00117"></a><span class="lineno"><a class="line" href="structjsonv_1_1tokenizer_1_1token.html">  117</a></span>&#160;    <span class="keyword">struct </span><a class="code" href="structjsonv_1_1tokenizer_1_1token.html">token</a></div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    {</div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;        string_view text;</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        token_kind kind;</div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;        token_kind <a class="code" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a>;</div>
 <div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        </div>
 <div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;        <span class="keyword">operator</span> std::pair&lt;string_view, token_kind&gt;()</div>
 <div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;        {</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;            <span class="keywordflow">return</span> { text, kind };</div>
+<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;            <span class="keywordflow">return</span> { text, <a class="code" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a> };</div>
 <div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;        }</div>
 <div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    };</div>
 <div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    </div>
@@ -282,7 +282,9 @@ $(document).ready(function(){initNavTree('tokenizer_8hpp_source.html','');});
 <div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;</div>
 <div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_TOKENIZER_INCLUDED__*/</span><span class="preprocessor"></span></div>
 <div class="ttc" id="config_8hpp_html"><div class="ttname"><a href="config_8hpp.html">config.hpp</a></div><div class="ttdoc">Copyright (c) 2014-2016 by Travis Gockel. </div></div>
+<div class="ttc" id="group__Value_html_gadfc02eaef2e93e367cb9f2922cdfe490"><div class="ttname"><a href="group__Value.html#gadfc02eaef2e93e367cb9f2922cdfe490">jsonv::null</a></div><div class="ttdeci">JSONV_PUBLIC const value null</div><div class="ttdoc">An instance with kind::null. </div></div>
 <div class="ttc" id="classjsonv_1_1tokenizer_html"><div class="ttname"><a href="classjsonv_1_1tokenizer.html">jsonv::tokenizer</a></div><div class="ttdoc">Splits input into tokens, allowing traversal of JSON without verification. </div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8hpp_source.html#l00098">tokenizer.hpp:98</a></div></div>
+<div class="ttc" id="group__Value_html_ga3721c2ed2f380809f2fc3b03a6f6fa53"><div class="ttname"><a href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">jsonv::kind</a></div><div class="ttdeci">kind</div><div class="ttdoc">Describes the kind of data a value holds. </div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00068">value.hpp:68</a></div></div>
 <div class="ttc" id="string__view_8hpp_html"><div class="ttname"><a href="string__view_8hpp.html">string_view.hpp</a></div><div class="ttdoc">Pulls in an implementation of string_view. </div></div>
 <div class="ttc" id="structjsonv_1_1tokenizer_1_1token_html"><div class="ttname"><a href="structjsonv_1_1tokenizer_1_1token.html">jsonv::tokenizer::token</a></div><div class="ttdoc">A representation of what this tokenizer has. </div><div class="ttdef"><b>Definition:</b> <a href="tokenizer_8hpp_source.html#l00117">tokenizer.hpp:117</a></div></div>
 <div class="ttc" id="config_8hpp_html_acd0703012bd724b356c177b7bc3d761d"><div class="ttname"><a href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a></div><div class="ttdeci">#define JSONV_PUBLIC</div><div class="ttdoc">This function or class is part of the public API for JsonVoorhees. </div><div class="ttdef"><b>Definition:</b> <a href="config_8hpp_source.html#l00104">config.hpp:104</a></div></div>

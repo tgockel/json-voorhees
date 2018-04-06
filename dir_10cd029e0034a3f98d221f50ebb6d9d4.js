@@ -29,6 +29,6 @@ var dir_10cd029e0034a3f98d221f50ebb6d9d4 =
     [ "serialization_util.hpp", "serialization__util_8hpp.html", "serialization__util_8hpp" ],
     [ "string_view.hpp", "string__view_8hpp.html", "string__view_8hpp" ],
     [ "tokenizer.hpp", "tokenizer_8hpp.html", "tokenizer_8hpp" ],
-    [ "util.hpp", "util_8hpp.html", "util_8hpp" ],
+    [ "util.hpp", "util_8hpp.html", null ],
     [ "value.hpp", "value_8hpp.html", "value_8hpp" ]
 ];
