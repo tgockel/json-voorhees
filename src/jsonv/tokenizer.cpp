@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2014-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -109,43 +109,39 @@ void tokenizer::set_min_buffer_size(tokenizer::size_type sz)
     min_buffer_size_ref() = std::max(sz, tokenizer::size_type(1));
 }
 
-static std::size_t position_in_buffer(const std::vector<char>& buffer, const string_view& current)
+tokenizer::tokenizer(string_view input) :
+        _input(input),
+        _position(_input.data())
+{ }
+
+tokenizer::tokenizer(std::shared_ptr<std::string> input) :
+        _input(*input),
+        _position(_input.data()),
+        _track(std::move(input))
+{ }
+
+static std::string load_single_string(std::istream& input)
 {
-    // an invalid current means the buffer is fresh, so we're at the start of it
-    if (!current.data())
-        return 0;
-    
-    std::ptrdiff_t pos = current.data() - buffer.data();
-    assert(pos >= 0);
-    assert(std::size_t(pos) <= buffer.size());
-    return std::size_t(pos);
+    std::string out;
+    char buffer[16 * 1024];
+
+    while (input.read(buffer, sizeof buffer))
+    {
+        out.append(buffer, sizeof buffer);
+    }
+    out.append(buffer, input.gcount());
+
+    return out;
 }
 
 tokenizer::tokenizer(std::istream& input) :
-        _input(input)
-{
-    buffer_reserve(min_buffer_size());
-}
+        tokenizer(std::make_shared<std::string>(load_single_string(input)))
+{ }
 
 tokenizer::~tokenizer() noexcept
-{
-    // getting destroyed -- need to put our buffer back into the istream
-    try
-    {
-        if (_current.text.size() > 0 && _buffer.size() > 0)
-        {
-            for (std::size_t idx = _buffer.size() - 1; idx != position_in_buffer(_buffer, _current.text); --idx)
-                _input.putback(_buffer[idx]);
-        }
-    }
-    catch (...)
-    {
-        // there's not much we can do here...if the istream doesn't allow us to give things back, we can only hope that
-        // the user didn't care.
-    }
-}
+{ }
 
-const std::istream& tokenizer::input() const
+const string_view& tokenizer::input() const
 {
     return _input;
 }
@@ -166,91 +162,37 @@ bool tokenizer::next()
                      _current.kind = new_kind;
                      return true;
                  };
-    auto invalid = [this]
-                   {
-                       _current.text.clear();
-                       return false;
-                   };
     
-    size_type pos;
-    bool nth_pass = false;
-    _current.text.remove_prefix(_current.text.size());
-    while (true)
+    if (!_current.text.empty())
+        _position += _current.text.size();
+
+    while (_position < _input.end())
     {
-        if (_buffer.empty() || (position_in_buffer(_buffer, _current.text)) == _buffer.size())
-        {
-            if (!read_input(nth_pass))
-                return invalid();
-            nth_pass = true;
-        }
-        
-        pos = position_in_buffer(_buffer, _current.text) + _current.text.size();
-        
         token_kind kind;
-        size_type match_len;
-        auto result = detail::attempt_match(_buffer.data() + pos, _buffer.data() + _buffer.size(),
-                                            kind, match_len
-                                           );
-        if (result == detail::match_result::complete_eof || result == detail::match_result::incomplete_eof)
+        size_type  match_len;
+        auto       result = detail::attempt_match(_position, _input.end(), *&kind, *&match_len);
+
+        if (result == detail::match_result::complete_eof)
         {
-            // partial match...we need to grow the buffer to see if it keeps going
-            if (read_input(true))
-                continue;
-            else if (result == detail::match_result::incomplete_eof)
-                // we couldn't read more data due to EOF...but we have an incomplete match
-                kind = kind | token_kind::parse_error_indicator;
+            // Got full match
+        }
+        else if (result == detail::match_result::incomplete_eof)
+        {
+            // we couldn't read more data due to EOF...but we have an incomplete match
+            kind = kind | token_kind::parse_error_indicator;
         }
         else if (result == detail::match_result::unmatched)
         {
             // unmatched entry -- this token is invalid
             kind = kind | token_kind::parse_error_indicator;
         }
-        return valid(string_view(_buffer.data() + pos, match_len), kind);
+        return valid(string_view(_position, match_len), kind);
     }
+
+    return false;
 }
 
-bool tokenizer::read_input(bool grow_buffer)
-{
-    auto old_buffer_pos = position_in_buffer(_buffer, _current.text);
-    if (old_buffer_pos == _buffer.size())
-        old_buffer_pos = 0;
-    
-    char* buffer_write_pos;
-    size_type buffer_write_size;
-    if (grow_buffer)
-    {
-        buffer_write_size = min_buffer_size();
-        auto offset = _buffer.size();
-        _buffer.resize(_buffer.size() + buffer_write_size);
-        buffer_write_pos = _buffer.data() + offset;
-    }
-    else
-    {
-        buffer_write_size = _buffer.capacity();
-        _buffer.resize(buffer_write_size);
-        buffer_write_pos = _buffer.data();
-    }
-    
-    _input.read(buffer_write_pos, buffer_write_size);
-    auto read_count = _input.gcount();
-    if (read_count > 0)
-    {
-        // check that the resize operation will not change the position of data()
-        std::size_t new_size = (buffer_write_pos - _buffer.data()) + read_count;
-        assert(_buffer.capacity() >= new_size);
-        _buffer.resize(new_size);
-        _current.text = string_view(_buffer.data() + old_buffer_pos, _current.text.size());
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-void tokenizer::buffer_reserve(size_type sz)
-{
-    _buffer.reserve(std::max(sz, min_buffer_size()));
-}
+void tokenizer::buffer_reserve(size_type)
+{ }
 
 }

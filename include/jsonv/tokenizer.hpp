@@ -2,7 +2,7 @@
  *  A stream-based tokenizer meant to help with creating custom parsers. If you are happy with the JSON Voorhees AST
  *  (\c value and friends), it is probably easier to use the functions in \c jsonv/parse.hpp.
  *  
- *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2014-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -17,6 +17,7 @@
 #include <jsonv/string_view.hpp>
 
 #include <iosfwd>
+#include <memory>
 #include <vector>
 
 namespace jsonv
@@ -100,17 +101,12 @@ class JSONV_PUBLIC tokenizer
 public:
     using size_type = std::vector<char>::size_type;
     
-    /** Get the minimum size of the internal buffer.
-     *  
-     *  \see set_min_buffer_size
-    **/
+    /// \deprecated
+    /// See \ref buffer_reserve.
     static size_type min_buffer_size();
     
-    /** Set the minimum size of the internal buffer of the tokenizer. If you expect to be parsing large JSON strings and
-     *  have the memory, performance will be improved by increasing this value.
-     *  
-     *  \see buffer_reserve
-    **/
+    /// \deprecated
+    /// See \ref buffer_reserve.
     static void set_min_buffer_size(size_type sz);
     
     /** A representation of what this tokenizer has. **/
@@ -126,13 +122,16 @@ public:
     };
     
 public:
-    /** Construct a tokenizer to read the given \a input. **/
+    /// Construct a tokenizer to read the given non-owned \a input.
+    explicit tokenizer(string_view input);
+
+    /// Construct a tokenizer from the provided \a input.
     explicit tokenizer(std::istream& input);
     
     ~tokenizer() noexcept;
     
-    /** Get the input this instance is reading from. **/
-    const std::istream& input() const;
+    /// Get the input this instance is reading from.
+    const string_view& input() const;
     
     /** Attempt to go to the next token in the input stream. The contents of \c current will be cleared.
      * 
@@ -148,18 +147,18 @@ public:
     **/
     const token& current() const;
     
-    /** Reserve a certain amount of space in the buffer. This will have an effect of performance. No matter what the
-     *  value of \a sz is, this will never allow the buffer to shrink below \c min_buffer_size.
-    **/
+    /// \deprecated
+    /// Calling this function has no effect and will be removed in 2.0.
     void buffer_reserve(size_type sz);
     
 private:
-    bool read_input(bool grow_buffer);
+    explicit tokenizer(std::shared_ptr<std::string> input);
     
 private:
-    std::istream&     _input;
-    std::vector<char> _buffer;
-    token             _current;      //!< The current token -- the text always resides within _buffer
+    string_view           _input;
+    const char*           _position;
+    token                 _current;  //!< The current token
+    std::shared_ptr<void> _track;    //!< Used to track input data when needed (\c std::istream constructor)
 };
 
 }

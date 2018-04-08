@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -776,23 +776,10 @@ value parse(std::istream& input, const parse_options& options)
     return parse(tokens, options);
 }
 
-class zero_copy_streambuf :
-        public std::streambuf
-{
-public:
-    zero_copy_streambuf(string_view input)
-    {
-        // We are just going to read from it, so this const_cast is okay
-        char* p = const_cast<char*>(input.data());
-        setg(p, p, p + input.size());
-    }
-};
-
 value parse(const string_view& input, const parse_options& options)
 {
-    zero_copy_streambuf buff(input);
-    std::istream stream(&buff);
-    return parse(stream, options);
+    tokenizer tokens(input);
+    return parse(tokens, options);
 }
 
 value parse(const char* begin, const char* end, const parse_options& options)
