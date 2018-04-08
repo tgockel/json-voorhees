@@ -49,7 +49,7 @@ TEST(token_attempt_match_number_integer_incomplete)
     token_kind kind;
     std::size_t length;
     match_result result = static_attempt_match("1234567890", kind, length);
-    ensure(result == match_result::complete_eof);
+    ensure(result == match_result::complete);
     ensure_eq(token_kind::number, kind);
     ensure_eq(10, length);
 }
@@ -69,7 +69,7 @@ TEST(token_attempt_match_number_integer_only_minus)
     token_kind kind;
     std::size_t length;
     match_result result = static_attempt_match("-", kind, length);
-    ensure(result == match_result::incomplete_eof);
+    ensure(result == match_result::unmatched);
     ensure_eq(token_kind::number, kind);
     ensure_eq(1, length);
 }

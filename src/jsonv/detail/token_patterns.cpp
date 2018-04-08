@@ -23,17 +23,6 @@ namespace detail
 class re_values
 {
 public:
-    static const regex::regex& number()
-    {
-        return instance().re_number;
-    }
-    
-    /** Like \c number, but will successfully match an EOF-ed value. **/
-    static const regex::regex& number_trunc()
-    {
-        return instance().re_number_trunc;
-    }
-
     static const regex::regex& simplestring()
     {
         return instance().re_simplestring;
@@ -48,15 +37,11 @@ private:
 
     re_values() :
             syntax_options(regex::regex_constants::ECMAScript | regex::regex_constants::optimize),
-            re_number(      R"(^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+(\.[0-9]+)?)?)", syntax_options),
-            re_number_trunc(R"(^-?[0-9]*(\.[0-9]*)?([eE][+-]?[0-9]*(\.[0-9]*)?)?)", syntax_options),
             re_simplestring(R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
     { }
 
 private:
     const regex::regex_constants::syntax_option_type syntax_options;
-    const regex::regex                               re_number;
-    const regex::regex                               re_number_trunc;
     const regex::regex                               re_simplestring;
 };
 
@@ -110,35 +95,276 @@ static match_result match_pattern(const char*            begin,
     }
 }
 
+enum class match_number_state
+{
+    initial,
+    leading_minus,
+    leading_zero,
+    integer,
+    decimal,
+    exponent,
+    exponent_sign,
+    complete,
+};
+
 static match_result match_number(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
-    kind = token_kind::number;
-    regex::cmatch match;
-    if (regex::regex_search(begin, end, match, re_values::number()))
+    kind            = token_kind::number;
+    length          = 0U;
+    auto state      = match_number_state::initial;
+    auto max_length = std::size_t(end - begin);
+
+    auto current = [&] ()
+                   {
+                       if (length < max_length)
+                           return begin[length];
+                       else
+                           return '\0';
+                   };
+
+    // Initial: behavior of parse branches from here
+    switch (current())
     {
-        length = match.length(0);
-        if (begin + length == end)
-            return match_result::complete_eof;
-        else switch (begin[length])
+    case '-':
+        ++length;
+        state = match_number_state::leading_minus;
+        break;
+    case '0':
+        ++length;
+        state = match_number_state::leading_zero;
+        break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+        ++length;
+        state = match_number_state::integer;
+        break;
+    default:
+        return match_result::unmatched;
+    }
+
+    // Leading '-'
+    if (state == match_number_state::leading_minus)
+    {
+        switch (current())
         {
-        case '.':
-        case '-':
-        case '+':
-        case 'e':
-        case 'E':
-            return match_result::incomplete_eof;
+        case '0':
+            ++length;
+            state = match_number_state::leading_zero;
+            break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            ++length;
+            state = match_number_state::integer;
+            break;
         default:
-            return match_result::complete;
+            return match_result::unmatched;
         }
     }
-    else
+
+    // Leading '0' or "-0"
+    if (state == match_number_state::leading_zero)
     {
-        length = 1;
-        return regex::regex_search(begin, end, match, re_values::number_trunc())
-               ? match_result::incomplete_eof
-               : match_result::unmatched;
+        switch (current())
+        {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            // NOTE: This behavior is incorrect according to strict JSON parsing. However, this library matches the
+            // input as a number in case `parse_options::numbers::decimal` is used.
+            ++length;
+            state = match_number_state::integer;
+            break;
+        case '.':
+            ++length;
+            state = match_number_state::decimal;
+            break;
+        case 'e':
+        case 'E':
+            ++length;
+            state = match_number_state::exponent;
+            break;
+        default:
+            state = match_number_state::complete;
+            break;
+        }
     }
-    
+
+    // Have only seen integer values
+    while (state == match_number_state::integer)
+    {
+        switch (current())
+        {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            ++length;
+            break;
+        case '.':
+            ++length;
+            state = match_number_state::decimal;
+            break;
+        case 'e':
+        case 'E':
+            ++length;
+            state = match_number_state::exponent;
+            break;
+        default:
+            state = match_number_state::complete;
+            break;
+        }
+    }
+
+    // Just saw a '.'
+    if (state == match_number_state::decimal)
+    {
+        switch (current())
+        {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            ++length;
+            break;
+        default:
+            return match_result::unmatched;
+        }
+
+        while (state == match_number_state::decimal)
+        {
+            switch (current())
+            {
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9':
+                ++length;
+                break;
+            case 'e':
+            case 'E':
+                ++length;
+                state = match_number_state::exponent;
+                break;
+            default:
+                state = match_number_state::complete;
+                break;
+            }
+        }
+    }
+
+    // Just saw 'e' or 'E'
+    if (state == match_number_state::exponent)
+    {
+        switch (current())
+        {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            ++length;
+            break;
+        case '+':
+        case '-':
+            ++length;
+            state = match_number_state::exponent_sign;
+            break;
+        default:
+            return match_result::unmatched;
+        }
+    }
+
+    // Just saw "e-", "e+", "E-", or "E+"
+    if (state == match_number_state::exponent_sign)
+    {
+        switch (current())
+        {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            ++length;
+            state = match_number_state::exponent;
+            break;
+        default:
+            return match_result::unmatched;
+        }
+    }
+
+    while (state == match_number_state::exponent)
+    {
+        switch (current())
+        {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            ++length;
+            break;
+        default:
+            state = match_number_state::complete;
+            break;
+        }
+    }
+
+    assert(state == match_number_state::complete);
+    return match_result::complete;
 }
 
 static match_result match_string(const char* begin, const char* end, token_kind& kind, std::size_t& length)
