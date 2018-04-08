@@ -65,19 +65,6 @@ if (JSONV_BUILD_TESTS)
     list(APPEND REQUIRED_BOOST_LIBRARIES "filesystem" "system")
 endif()
 
-#######################
-# Regex Configuration #
-#######################
-
-option(USE_BOOST_REGEX
-       "Controls the variable JSONV_REGEX_USE_BOOST (see C++ documentation)."
-       OFF
-      )
-if (USE_BOOST_REGEX)
-    add_definitions("-DJSONV_REGEX_USE_BOOST=1")
-    list(APPEND REQUIRED_BOOST_LIBRARIES "regex")
-endif(USE_BOOST_REGEX)
-
 #############################
 # String View Configuration #
 #############################
