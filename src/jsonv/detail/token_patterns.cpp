@@ -9,7 +9,6 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/detail/token_patterns.hpp>
-#include <jsonv/detail/regex.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -19,31 +18,6 @@ namespace jsonv
 {
 namespace detail
 {
-
-class re_values
-{
-public:
-    static const regex::regex& simplestring()
-    {
-        return instance().re_simplestring;
-    }
-
-private:
-    static const re_values& instance()
-    {
-        static re_values x;
-        return x;
-    }
-
-    re_values() :
-            syntax_options(regex::regex_constants::ECMAScript | regex::regex_constants::optimize),
-            re_simplestring(R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)",                         syntax_options)
-    { }
-
-private:
-    const regex::regex_constants::syntax_option_type syntax_options;
-    const regex::regex                               re_simplestring;
-};
 
 template <std::ptrdiff_t N>
 static match_result match_literal(const char* begin, const char* end, const char (& literal)[N], std::size_t& length)
@@ -74,25 +48,6 @@ static match_result match_null(const char* begin, const char* end, token_kind& k
 {
     kind = token_kind::null;
     return match_literal(begin, end, "null", length);
-}
-
-static match_result match_pattern(const char*            begin,
-                                  const char*            end,
-                                  const regex::regex&    pattern,
-                                  std::size_t&           length
-                                 )
-{
-    regex::cmatch match;
-    if (regex::regex_search(begin, end, match, pattern))
-    {
-        length = match.length(0);
-        return begin + length == end ? match_result::complete_eof : match_result::complete;
-    }
-    else
-    {
-        length = 1;
-        return match_result::unmatched;
-    }
 }
 
 enum class match_number_state
@@ -398,6 +353,39 @@ static match_result match_string(const char* begin, const char* end, token_kind&
     }
 }
 
+static match_result match_simple_string(const char* begin, const char* end, token_kind& kind, std::size_t& length)
+{
+    kind            = token_kind::string;
+    length          = 0U;
+    auto max_length = std::size_t(end - begin);
+
+    auto current = [&] ()
+                   {
+                       if (length < max_length)
+                           return begin[length];
+                       else
+                           return '\0';
+                   };
+
+    // R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)"
+    char c = current();
+    if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$'))
+        ++length;
+    else
+        return match_result::unmatched;
+
+    while (true)
+    {
+        c = current();
+        if (c == '\0')
+            return match_result::complete;
+        else if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$') || ('0' <= c && c <= '9'))
+            ++length;
+        else
+            return match_result::complete;
+    }
+}
+
 static match_result match_whitespace(const char* begin, const char* end, token_kind& kind, std::size_t& length)
 {
     kind = token_kind::whitespace;
@@ -517,7 +505,7 @@ path_match_result path_match(string_view input, string_view& match_contents)
     switch (input.at(0))
     {
     case '.':
-        result = match_pattern(input.data() + 1, input.data() + input.size(), re_values::simplestring(), length);
+        result = match_simple_string(input.data() + 1, input.data() + input.size(), kind, length);
         if (result == match_result::complete || result == match_result::complete_eof)
         {
             match_contents = input.substr(0, length + 1);
