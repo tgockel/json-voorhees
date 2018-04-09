@@ -13,6 +13,7 @@ var searchData=
   ['polymorphic_5fadapter_5fbuilder',['polymorphic_adapter_builder',['../classjsonv_1_1polymorphic__adapter__builder.html',1,'jsonv']]],
   ['pop_5fback',['pop_back',['../classjsonv_1_1value.html#adfa8dbeba86d9ad39610d7972d995eaf',1,'jsonv::value']]],
   ['pop_5ffront',['pop_front',['../classjsonv_1_1value.html#ad7cec4c8d1d57aa153605b321dd1b0e9',1,'jsonv::value']]],
+  ['position',['position',['../classjsonv_1_1value.html#ac84e8ac72d1d78045bc79ea62351b95b',1,'jsonv::value::object_insert_return_type']]],
   ['problem',['problem',['../structjsonv_1_1parse__error_1_1problem.html',1,'jsonv::parse_error']]],
   ['problems',['problems',['../classjsonv_1_1parse__error.html#a30458635786a5b7a5391536c88aec7f6',1,'jsonv::parse_error']]],
   ['push_5fback',['push_back',['../classjsonv_1_1value.html#ac8dadf575c194b8685abe745ccf78967',1,'jsonv::value']]],

@@ -46,6 +46,10 @@ var group__Value =
         [ "operator==", "structjsonv_1_1value_1_1basic__object__iterator.html#a9c6e23268b8e93e27e3359b61aa9adb7", null ],
         [ "value", "structjsonv_1_1value_1_1basic__object__iterator.html#ae5cda98fa74051d037c0c444c67efb15", null ]
       ] ],
+      [ "object_insert_return_type", "classjsonv_1_1value.html#structjsonv_1_1value_1_1object__insert__return__type", [
+        [ "inserted", "classjsonv_1_1value.html#ad683d0674dba1130d026ec93385669bf", null ],
+        [ "position", "classjsonv_1_1value.html#ac84e8ac72d1d78045bc79ea62351b95b", null ]
+      ] ],
       [ "array_iterator", "classjsonv_1_1value.html#aa58d1fe3e62a974eb331287ede1771bf", null ],
       [ "array_view", "classjsonv_1_1value.html#a5f593b7e5b1958a3f602cb809a9dc77f", null ],
       [ "const_array_iterator", "classjsonv_1_1value.html#a0c185bba74f386f6c82b5b5fccdd8197", null ],
@@ -122,6 +126,9 @@ var group__Value =
       [ "erase", "classjsonv_1_1value.html#ac30ef969e4c00c9f8f959e9d30be509c", null ],
       [ "erase", "classjsonv_1_1value.html#a3524ccad9a4188014c507454ca38fc8f", null ],
       [ "erase", "classjsonv_1_1value.html#adff0cf180eac1aaa3e95972a4a1671ab", null ],
+      [ "extract", "classjsonv_1_1value.html#a543d5d55c78d2de437cee6ed48b24ec6", null ],
+      [ "extract", "classjsonv_1_1value.html#a60cb0bae07dcacda5377a1f10254023a", null ],
+      [ "extract", "classjsonv_1_1value.html#ae878569f343ad04b4fce3096b0d0bec1", null ],
       [ "find", "classjsonv_1_1value.html#a765ff56aa009ddea1a7360f0f9acb93a", null ],
       [ "find", "classjsonv_1_1value.html#a2b361087e80453b622acd01635ecbdf3", null ],
       [ "find", "classjsonv_1_1value.html#afbb3346e65eef447f22db3c9509f98f8", null ],
@@ -133,6 +140,8 @@ var group__Value =
       [ "insert", "classjsonv_1_1value.html#aabc202669d43c8031521c54e043f32f7", null ],
       [ "insert", "classjsonv_1_1value.html#aab52175ecf9926215a0bb61657331d1f", null ],
       [ "insert", "classjsonv_1_1value.html#a5b86bbeebd1d761d9a4598ee4baabe42", null ],
+      [ "insert", "classjsonv_1_1value.html#a7492a8e08ce8eb0a07b0284cbcf414c6", null ],
+      [ "insert", "classjsonv_1_1value.html#a75aed835b58c9ba209c10aa03cf0b696", null ],
       [ "insert", "classjsonv_1_1value.html#a7c7c41413bcfcfebde5f2968458fc725", null ],
       [ "insert", "classjsonv_1_1value.html#a16aac07d87f888a7c1d48a9be799c65f", null ],
       [ "is_array", "classjsonv_1_1value.html#a5b37263ea77830bc2307c047244a12e4", null ],
@@ -174,6 +183,19 @@ var group__Value =
       [ "object", "classjsonv_1_1value.html#a8d361da4d3ed314d2a56a24c723190d2", null ],
       [ "operator<<", "classjsonv_1_1value.html#acff1f9d0e10df14e2a1440911e30ef7e", null ],
       [ "to_string", "classjsonv_1_1value.html#adac006e646d57212ae0de2f87917a584", null ]
+    ] ],
+    [ "object_node_handle", "classjsonv_1_1object__node__handle.html", [
+      [ "key_type", "classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f", null ],
+      [ "mapped_type", "classjsonv_1_1object__node__handle.html#a781a953c0ef0ed595bfbafa860771c86", null ],
+      [ "object_node_handle", "classjsonv_1_1object__node__handle.html#a03e959f39afe8c72b7bf15f2de215356", null ],
+      [ "object_node_handle", "classjsonv_1_1object__node__handle.html#ac7d95dc14368ef1a8fffe8de711e318f", null ],
+      [ "~object_node_handle", "classjsonv_1_1object__node__handle.html#a3f8a6974a3fa596be46374ba552fe403", null ],
+      [ "empty", "classjsonv_1_1object__node__handle.html#a830e189a6c1a445d09164750e12f4414", null ],
+      [ "key", "classjsonv_1_1object__node__handle.html#a4893a733d2cab30f45421d02427a1abd", null ],
+      [ "mapped", "classjsonv_1_1object__node__handle.html#a21e4867fe822e9bb8194ead29022ad5e", null ],
+      [ "operator bool", "classjsonv_1_1object__node__handle.html#a4617068ac791997462bfd83405c5fbca", null ],
+      [ "operator=", "classjsonv_1_1object__node__handle.html#a2ebb29e3d7194f34b07a7ebfd4e5a765", null ],
+      [ "value", "classjsonv_1_1object__node__handle.html#ae5cda98fa74051d037c0c444c67efb15", null ]
     ] ],
     [ "kind", "group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53", null ],
     [ "array", "group__Value.html#gaee0b1767f4ec42adc02c5b0bb0781b91", null ],

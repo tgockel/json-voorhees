@@ -81,6 +81,7 @@ var hierarchy =
     ] ],
     [ "std::hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", null ],
     [ "iterator", null, [
+      [ "jsonv::value::basic_object_iterator< const object_value_type, std::map< std::string, value >::const_iterator >", "structjsonv_1_1value_1_1basic__object__iterator.html", null ],
       [ "jsonv::value::basic_array_iterator< T, TArrayView >", "structjsonv_1_1value_1_1basic__array__iterator.html", null ],
       [ "jsonv::value::basic_object_iterator< T, TIterator >", "structjsonv_1_1value_1_1basic__object__iterator.html", null ]
     ] ],
@@ -95,6 +96,8 @@ var hierarchy =
     [ "nested_exception", null, [
       [ "jsonv::extraction_error", "classjsonv_1_1extraction__error.html", null ]
     ] ],
+    [ "jsonv::value::object_insert_return_type", "classjsonv_1_1value.html#structjsonv_1_1value_1_1object__insert__return__type", null ],
+    [ "jsonv::object_node_handle", "classjsonv_1_1object__node__handle.html", null ],
     [ "jsonv::parse_options", "classjsonv_1_1parse__options.html", null ],
     [ "jsonv::path_element", "classjsonv_1_1path__element.html", null ],
     [ "jsonv::parse_error::problem", "structjsonv_1_1parse__error_1_1problem.html", null ],

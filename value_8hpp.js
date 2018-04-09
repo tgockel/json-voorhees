@@ -3,6 +3,10 @@ var value_8hpp =
     [ "value_storage", "unionjsonv_1_1detail_1_1value__storage.html", "unionjsonv_1_1detail_1_1value__storage" ],
     [ "basic_array_iterator", "structjsonv_1_1value_1_1basic__array__iterator.html", "structjsonv_1_1value_1_1basic__array__iterator" ],
     [ "basic_object_iterator", "structjsonv_1_1value_1_1basic__object__iterator.html", "structjsonv_1_1value_1_1basic__object__iterator" ],
+    [ "object_insert_return_type", "classjsonv_1_1value.html#structjsonv_1_1value_1_1object__insert__return__type", [
+      [ "inserted", "classjsonv_1_1value.html#ad683d0674dba1130d026ec93385669bf", null ],
+      [ "position", "classjsonv_1_1value.html#ac84e8ac72d1d78045bc79ea62351b95b", null ]
+    ] ],
     [ "hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", "structstd_1_1hash_3_01jsonv_1_1value_01_4" ],
     [ "JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR", "value_8hpp.html#ad29fc7aebbb60df50b5554c889a6a61e", null ],
     [ "kind", "value_8hpp.html#ga3721c2ed2f380809f2fc3b03a6f6fa53", [

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['left',['left',['../group__Algorithm.html#af1285a35bafce2c3e6943e8a6204f28f',1,'jsonv::diff_result']]]
+  ['inserted',['inserted',['../classjsonv_1_1value.html#ad683d0674dba1130d026ec93385669bf',1,'jsonv::value::object_insert_return_type']]]
 ];

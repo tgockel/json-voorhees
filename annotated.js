@@ -61,7 +61,8 @@ var annotated =
       [ "polymorphic_adapter", "classjsonv_1_1polymorphic__adapter.html", "classjsonv_1_1polymorphic__adapter" ],
       [ "tokenizer", "classjsonv_1_1tokenizer.html", "classjsonv_1_1tokenizer" ],
       [ "kind_error", "classjsonv_1_1kind__error.html", "classjsonv_1_1kind__error" ],
-      [ "value", "classjsonv_1_1value.html", "classjsonv_1_1value" ]
+      [ "value", "classjsonv_1_1value.html", "classjsonv_1_1value" ],
+      [ "object_node_handle", "classjsonv_1_1object__node__handle.html", "classjsonv_1_1object__node__handle" ]
     ] ],
     [ "std", null, [
       [ "hash< jsonv::value >", "structstd_1_1hash_3_01jsonv_1_1value_01_4.html", "structstd_1_1hash_3_01jsonv_1_1value_01_4" ]

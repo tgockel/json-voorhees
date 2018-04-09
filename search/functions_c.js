@@ -1,6 +1,7 @@
 var searchData=
 [
   ['object',['object',['../group__Value.html#ga757770053a2714136231e26ec7c74673',1,'jsonv::object()'],['../group__Value.html#ga0626c41c76cb46a7859de92c1f3bdd68',1,'jsonv::object(std::initializer_list&lt; std::pair&lt; std::string, value &gt;&gt; source)'],['../group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1',1,'jsonv::object(TForwardIterator first, TForwardIterator last)']]],
+  ['operator_20bool',['operator bool',['../classjsonv_1_1object__node__handle.html#a4617068ac791997462bfd83405c5fbca',1,'jsonv::object_node_handle']]],
   ['operator_21_3d',['operator!=',['../structjsonv_1_1version.html#ab7039815c02c4c4e44511f2ab0b5b1f4',1,'jsonv::version::operator!=()'],['../classjsonv_1_1formats.html#ab7e5f101767bb57e73c58a77deffa24c',1,'jsonv::formats::operator!=()'],['../classjsonv_1_1value.html#a5a94bbcbaa79b35a4a24c0ceeb3ca7be',1,'jsonv::value::operator!=()']]],
   ['operator_22_22_5fjson',['operator&quot;&quot;_json',['../group__Value.html#gacbd9685699111e35574f44d3793f600c',1,'jsonv']]],
   ['operator_2b',['operator+',['../classjsonv_1_1path.html#ad81ff4e324bfcc8f9ff39299d781392f',1,'jsonv::path::operator+(const path &amp;subpath) const '],['../classjsonv_1_1path.html#aca9bb43bbceee6941ad35c219b49c787',1,'jsonv::path::operator+(path_element elem) const ']]],

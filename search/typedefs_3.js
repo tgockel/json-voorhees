@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['object_5fiterator',['object_iterator',['../classjsonv_1_1value.html#a318c2006b4bc53859c444604995ebc05',1,'jsonv::value']]],
-  ['object_5fvalue_5ftype',['object_value_type',['../classjsonv_1_1value.html#abf0673825595a5326e65544af770b4dd',1,'jsonv::value']]],
-  ['object_5fview',['object_view',['../classjsonv_1_1value.html#a39d2820f80eac817a14d5e129de46449',1,'jsonv::value']]]
+  ['key_5ftype',['key_type',['../classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f',1,'jsonv::object_node_handle']]]
 ];

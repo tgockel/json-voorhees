@@ -156,6 +156,12 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">jsonv::value::basic_object_iterator&lt; T, TIterator &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The base iterator type for iterating over object types.  <a href="structjsonv_1_1value_1_1basic__object__iterator.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structjsonv_1_1value_1_1object__insert__return__type"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#structjsonv_1_1value_1_1object__insert__return__type">jsonv::value::object_insert_return_type</a></td></tr>
+<tr class="memdesc:structjsonv_1_1value_1_1object__insert__return__type"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type returned from <code>insert</code> operations when this has kind::object.  <a href="classjsonv_1_1value.html#structjsonv_1_1value_1_1object__insert__return__type">More...</a><br/></td></tr>
+<tr class="separator:structjsonv_1_1value_1_1object__insert__return__type"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1object__node__handle.html">jsonv::object_node_handle</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">A <a href="http://en.cppreference.com/w/cpp/container/node_handle">node handle</a> used when a value is kind::object to access elements of the object in potentially destructive manner.  <a href="classjsonv_1_1object__node__handle.html#details">More...</a><br/></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structstd_1_1hash_3_01jsonv_1_1value_01_4.html">std::hash&lt; jsonv::value &gt;</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Explicit specialization of <code>std::hash</code> for <code><a class="el" href="classjsonv_1_1value.html" title="Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...">jsonv::value</a></code> types so you can store a <code>value</code> in an unordered container.  <a href="structstd_1_1hash_3_01jsonv_1_1value_01_4.html#details">More...</a><br/></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -236,7 +242,40 @@ Variables</h2></td></tr>
 <dl class="section author"><dt>Author</dt><dd>Travis Gockel (<a href="#" onclick="location.href='mai'+'lto:'+'tra'+'vi'+'s@g'+'oc'+'kel'+'hu'+'t.c'+'om'; return false;">travi<span style="display: none;">.nosp@m.</span>s@go<span style="display: none;">.nosp@m.</span>ckelh<span style="display: none;">.nosp@m.</span>ut.c<span style="display: none;">.nosp@m.</span>om</a>) </dd></dl>
 
 <p>Definition in file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
-</div></div><!-- contents -->
+</div><hr/><h2 class="groupheader">Class Documentation</h2>
+<a name="structjsonv_1_1value_1_1object__insert__return__type" id="structjsonv_1_1value_1_1object__insert__return__type"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct jsonv::value::object_insert_return_type</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"><p>Type returned from <code>insert</code> operations when this has kind::object. </p>
+<p>It is generally compatible with the <code>insert_return_type</code> of <code>std::map</code>, with the notable lack of <code>node</code>.</p>
+<dl class="section see"><dt>See Also</dt><dd><a class="el" href="classjsonv_1_1value.html#ae19ed935e84e274c0cc93fd397498d3a" title="Insert an item into position on this array. ">insert</a> </dd></dl>
+
+<p>Definition at line <a class="el" href="value_8hpp_source.html#l00420">420</a> of file <a class="el" href="value_8hpp_source.html">value.hpp</a>.</p>
+</div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="ad683d0674dba1130d026ec93385669bf"></a>bool</td>
+<td class="fieldname">
+inserted</td>
+<td class="fielddoc">
+Did the insert operation perform an insert? A value of <code>false</code> indicates there was a key already present with the same name. </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="ac84e8ac72d1d78045bc79ea62351b95b"></a><a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a></td>
+<td class="fieldname">
+position</td>
+<td class="fielddoc">
+The position of the inserted node or node with the duplicate key. </td></tr>
+</table>
+
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

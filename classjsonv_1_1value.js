@@ -2,6 +2,10 @@ var classjsonv_1_1value =
 [
     [ "basic_array_iterator", "structjsonv_1_1value_1_1basic__array__iterator.html", "structjsonv_1_1value_1_1basic__array__iterator" ],
     [ "basic_object_iterator", "structjsonv_1_1value_1_1basic__object__iterator.html", "structjsonv_1_1value_1_1basic__object__iterator" ],
+    [ "object_insert_return_type", "classjsonv_1_1value.html#structjsonv_1_1value_1_1object__insert__return__type", [
+      [ "inserted", "classjsonv_1_1value.html#ad683d0674dba1130d026ec93385669bf", null ],
+      [ "position", "classjsonv_1_1value.html#ac84e8ac72d1d78045bc79ea62351b95b", null ]
+    ] ],
     [ "array_iterator", "classjsonv_1_1value.html#aa58d1fe3e62a974eb331287ede1771bf", null ],
     [ "array_view", "classjsonv_1_1value.html#a5f593b7e5b1958a3f602cb809a9dc77f", null ],
     [ "const_array_iterator", "classjsonv_1_1value.html#a0c185bba74f386f6c82b5b5fccdd8197", null ],
@@ -78,6 +82,9 @@ var classjsonv_1_1value =
     [ "erase", "classjsonv_1_1value.html#ac30ef969e4c00c9f8f959e9d30be509c", null ],
     [ "erase", "classjsonv_1_1value.html#a3524ccad9a4188014c507454ca38fc8f", null ],
     [ "erase", "classjsonv_1_1value.html#adff0cf180eac1aaa3e95972a4a1671ab", null ],
+    [ "extract", "classjsonv_1_1value.html#a543d5d55c78d2de437cee6ed48b24ec6", null ],
+    [ "extract", "classjsonv_1_1value.html#a60cb0bae07dcacda5377a1f10254023a", null ],
+    [ "extract", "classjsonv_1_1value.html#ae878569f343ad04b4fce3096b0d0bec1", null ],
     [ "find", "classjsonv_1_1value.html#a765ff56aa009ddea1a7360f0f9acb93a", null ],
     [ "find", "classjsonv_1_1value.html#a2b361087e80453b622acd01635ecbdf3", null ],
     [ "find", "classjsonv_1_1value.html#afbb3346e65eef447f22db3c9509f98f8", null ],
@@ -89,6 +96,8 @@ var classjsonv_1_1value =
     [ "insert", "classjsonv_1_1value.html#aabc202669d43c8031521c54e043f32f7", null ],
     [ "insert", "classjsonv_1_1value.html#aab52175ecf9926215a0bb61657331d1f", null ],
     [ "insert", "classjsonv_1_1value.html#a5b86bbeebd1d761d9a4598ee4baabe42", null ],
+    [ "insert", "classjsonv_1_1value.html#a7492a8e08ce8eb0a07b0284cbcf414c6", null ],
+    [ "insert", "classjsonv_1_1value.html#a75aed835b58c9ba209c10aa03cf0b696", null ],
     [ "insert", "classjsonv_1_1value.html#a7c7c41413bcfcfebde5f2968458fc725", null ],
     [ "insert", "classjsonv_1_1value.html#a16aac07d87f888a7c1d48a9be799c65f", null ],
     [ "is_array", "classjsonv_1_1value.html#a5b37263ea77830bc2307c047244a12e4", null ],
