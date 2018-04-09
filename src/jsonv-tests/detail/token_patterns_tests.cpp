@@ -39,7 +39,7 @@ TEST(token_attempt_match_literal_true_incomplete)
     token_kind kind;
     std::size_t length;
     match_result result = static_attempt_match("tru", kind, length);
-    ensure(result == match_result::incomplete_eof);
+    ensure(result == match_result::unmatched);
     ensure_eq(token_kind::boolean, kind);
     ensure_eq(3, length);
 }
@@ -133,7 +133,7 @@ TEST(token_attempt_match_comment_eof)
     std::size_t length;
     match_result result = static_attempt_match(tokens, kind, length);
     
-    ensure(result == match_result::incomplete_eof);
+    ensure(result == match_result::unmatched);
     ensure_eq(token_kind::comment, kind);
     ensure_eq(sstrlen(tokens), length);
 }
@@ -146,7 +146,7 @@ TEST(token_attempt_match_comment_too_short_eof)
     std::size_t length;
     match_result result = static_attempt_match(tokens, kind, length);
     
-    ensure(result == match_result::incomplete_eof);
+    ensure(result == match_result::unmatched);
     ensure_eq(token_kind::comment, kind);
     ensure_eq(sstrlen(tokens), length);
 }

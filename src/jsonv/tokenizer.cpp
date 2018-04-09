@@ -172,16 +172,7 @@ bool tokenizer::next()
         size_type  match_len;
         auto       result = detail::attempt_match(_position, _input.end(), *&kind, *&match_len);
 
-        if (result == detail::match_result::complete_eof)
-        {
-            // Got full match
-        }
-        else if (result == detail::match_result::incomplete_eof)
-        {
-            // we couldn't read more data due to EOF...but we have an incomplete match
-            kind = kind | token_kind::parse_error_indicator;
-        }
-        else if (result == detail::match_result::unmatched)
+        if (result == detail::match_result::unmatched)
         {
             // unmatched entry -- this token is invalid
             kind = kind | token_kind::parse_error_indicator;

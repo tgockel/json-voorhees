@@ -24,9 +24,7 @@ static match_result match_literal(const char* begin, const char* end, const char
 {
     for (length = 0; length < (N-1); ++length)
     {
-        if (begin + length == end)
-            return match_result::incomplete_eof;
-        else if (begin[length] != literal[length])
+        if (begin + length == end || begin[length] != literal[length])
             return match_result::unmatched;
     }
     return match_result::complete;
@@ -332,7 +330,7 @@ static match_result match_string(const char* begin, const char* end, token_kind&
     while (true)
     {
         if (begin + length == end)
-            return match_result::incomplete_eof;
+            return match_result::unmatched;
         
         if (begin[length] == '\"')
         {
@@ -342,7 +340,7 @@ static match_result match_string(const char* begin, const char* end, token_kind&
         else if (begin[length] == '\\')
         {
             if (begin + length + 1 == end)
-                return match_result::incomplete_eof;
+                return match_result::unmatched;
             else
                 length += 2;
         }
@@ -390,6 +388,7 @@ static match_result match_whitespace(const char* begin, const char* end, token_k
 {
     kind = token_kind::whitespace;
     for (length = 0; begin != end; ++length, ++begin)
+    {
         switch (*begin)
         {
         case ' ':
@@ -400,7 +399,8 @@ static match_result match_whitespace(const char* begin, const char* end, token_k
         default:
             return match_result::complete;
         }
-    return match_result::complete_eof;
+    }
+    return match_result::complete;
 }
 
 static match_result match_comment(const char* begin, const char* end, token_kind& kind, std::size_t& length)
@@ -411,7 +411,7 @@ static match_result match_comment(const char* begin, const char* end, token_kind
     if (std::distance(begin, end) == 1)
     {
         length = 1;
-        return match_result::incomplete_eof;
+        return match_result::unmatched;
     }
     else if (begin[1] == '*')
     {
@@ -432,7 +432,7 @@ static match_result match_comment(const char* begin, const char* end, token_kind
                 saw_asterisk = false;
             }
         }
-        return match_result::incomplete_eof;
+        return match_result::unmatched;
     }
     else
     {
@@ -453,7 +453,7 @@ match_result attempt_match(const char* begin, const char* end, token_kind& kind,
     
     if (begin == end)
     {
-        return result(match_result::incomplete_eof, token_kind::unknown, 0);
+        return result(match_result::unmatched, token_kind::unknown, 0);
     }
     
     switch (*begin)
@@ -506,7 +506,7 @@ path_match_result path_match(string_view input, string_view& match_contents)
     {
     case '.':
         result = match_simple_string(input.data() + 1, input.data() + input.size(), kind, length);
-        if (result == match_result::complete || result == match_result::complete_eof)
+        if (result == match_result::complete)
         {
             match_contents = input.substr(0, length + 1);
             return path_match_result::simple_object;
@@ -517,7 +517,7 @@ path_match_result path_match(string_view input, string_view& match_contents)
         }
     case '[':
         result = attempt_match(input.data() + 1, input.data() + input.length(), kind, length);
-        if (result == match_result::complete || result == match_result::complete_eof)
+        if (result == match_result::complete)
         {
             if (input.length() == length + 1 || input.at(1 + length) != ']')
                 return path_match_result::invalid;
