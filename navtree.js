@@ -55,6 +55,7 @@ var NAVTREE =
         ] ]
       ] ]
     ] ],
+    [ "Deprecated List", "deprecated.html", null ],
     [ "Modules", "modules.html", "modules" ],
     [ "Classes", null, [
       [ "Class List", "annotated.html", "annotated" ],
@@ -86,8 +87,8 @@ var NAVTREEINDEX =
 ".html",
 "classjsonv_1_1dynamic__merge__rules.html#a086358681f7981f221ed1eac7c133e3d",
 "classjsonv_1_1polymorphic__adapter__builder.html",
-"functions_func_f.html",
-"structjsonv_1_1value_1_1basic__object__iterator.html#a568372541cc902470dd709408ccc3919"
+"functions_func_d.html",
+"structjsonv_1_1value_1_1basic__object__iterator.html#a2a1058909d44ee962f4cd51afe23d007"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

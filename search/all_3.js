@@ -7,6 +7,7 @@ var searchData=
   ['demangle',['demangle',['../group__Serialization.html#ga26c620d20cffb45e1145fe95eeb37d00',1,'jsonv']]],
   ['demangle_2ehpp',['demangle.hpp',['../demangle_8hpp.html',1,'']]],
   ['demangle_5ffunction',['demangle_function',['../group__Serialization.html#ga095e1bea81644c5e5d82e75e1d188e38',1,'jsonv']]],
+  ['deprecated_20list',['Deprecated List',['../deprecated.html',1,'']]],
   ['diff',['diff',['../group__Algorithm.html#ga2480514da0048b025804fd95635dbc79',1,'jsonv']]],
   ['diff_5fresult',['diff_result',['../group__Algorithm.html#structjsonv_1_1diff__result',1,'jsonv']]],
   ['dynamic_5fmerge_5frules',['dynamic_merge_rules',['../classjsonv_1_1dynamic__merge__rules.html',1,'jsonv']]]
