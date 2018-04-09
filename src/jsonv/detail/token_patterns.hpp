@@ -22,16 +22,10 @@ namespace detail
 {
 
 /** The result of a match. **/
-enum class match_result
+enum class match_result : bool
 {
-    // A "complete" match -- a whole token was definitely found
-    complete,
-    // A "complete" match, but it might continue on
-    complete_eof,
-    // An "incomplete" match -- the pattern looks good so far, but we don't know for sure
-    incomplete_eof,
-    // Could not find a valid sequence.
-    unmatched,
+    complete  = true,
+    unmatched = false,
 };
 
 /** Attempt to match the given sequence.
