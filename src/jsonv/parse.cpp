@@ -18,13 +18,12 @@
 
 #include <cassert>
 #include <cctype>
+#include <cstdlib>
 #include <istream>
 #include <set>
 #include <sstream>
 #include <streambuf>
 #include <vector>
-
-#include <boost/lexical_cast.hpp>
 
 #if 0
 #   include <iostream>
@@ -414,42 +413,64 @@ static bool parse_number(parse_context& context, value& out)
 {
     JSONV_DBG_STRUCT("#");
     string_view characters = context.current().text;
-    try
+
+    if (  context.options.number_encoding() == parse_options::numbers::strict
+       && characters.size() > 1U
+       && characters.at(0) == '0'
+       )
     {
-        if (  context.options.number_encoding() == parse_options::numbers::strict
-           && characters.size() > 1
-           && characters.at(0) == '0'
-           )
-        {
-            context.parse_error("Numbers cannot start with a leading '0'");
-        }
-        
-        // optimization: a numeric token is "decimal-like" if it has . in it
-        if (characters.find_first_of('.') != string_view::npos)
-            out = boost::lexical_cast<double>(characters.data(), characters.size());
-        else if (characters[0] == '-')
-            out = boost::lexical_cast<std::int64_t>(characters.data(), characters.size());
-        else
-            // For non-negative integer types, use lexical_cast of a uint64_t then static_cast to an int64_t. This is
-            // done to deal with the values 2^63..2^64-1 -- do not consider it an exception, as we can store the bits
-            // properly, but the onus is on the user to know the particular key was in the overflow range.
-            out = static_cast<int64_t>(boost::lexical_cast<uint64_t>(characters.data(), characters.size()));
+        context.parse_error("Numbers cannot start with a leading '0'");
     }
-    catch (boost::bad_lexical_cast&)
+
+    auto end = const_cast<char*>(characters.data() + characters.length());
+
+    // optimization: a numeric token is "decimal-like" if it has . in it
+    if (characters.find_first_of(".Ee") != string_view::npos)
     {
-        // could not get an integer...try to get a double
-        try
+        auto scan_end = end;
+        auto val = std::strtod(characters.data(), &scan_end);
+        if (end == scan_end)
         {
-            out = boost::lexical_cast<double>(characters.data(), characters.size());
-        }
-        catch (boost::bad_lexical_cast&)
-        {
-            // this should be unreachable -- the only way to get here would be if the regular expression for numeric
-            // types was wrong
-            context.parse_error("Could not extract number from \"", characters, "\"");
-            out = null;
+            out = val;
+            return true;
         }
     }
+    else if (characters[0] == '-')
+    {
+        auto scan_end = end;
+        auto val      = std::strtoul(characters.data(), &scan_end, 10);
+        if (end == scan_end)
+        {
+            out = val;
+            return true;
+        }
+    }
+    else
+    {
+        // For non-negative integer types, use lexical_cast of a uint64_t then static_cast to an int64_t. This is done
+        // to deal with the values 2^63..2^64-1 -- do not consider it an exception, as we can store the bits properly,
+        // but the onus is on the user to know the particular key was in the overflow range.
+        auto scan_end = end;
+        auto val      = std::strtoull(characters.data(), &scan_end, 10);
+        if (end == scan_end)
+        {
+            out = val;
+            return true;
+        }
+    }
+
+    // Numbers that do not contain decimals or exponents, but are too large might still be representable as a double
+    {
+        auto scan_end = end;
+        auto val = std::strtod(characters.data(), &scan_end);
+        if (end == scan_end)
+        {
+            out = val;
+            return true;
+        }
+    }
+
+    context.parse_error("Could not extract number from \"", characters, "\"");
     return true;
 }
 
