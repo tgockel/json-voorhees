@@ -32,6 +32,7 @@ namespace jsonv
 
 class path;
 class value;
+class object_node_handle;
 
 namespace detail
 {
@@ -411,6 +412,20 @@ public:
     typedef detail::basic_view<object_iterator, const_object_iterator>               object_view;
     typedef detail::basic_view<const_object_iterator>                                const_object_view;
     typedef detail::basic_owning_view<value, object_iterator, const_object_iterator> owning_object_view;
+
+    /// Type returned from \c insert operations when this has \ref kind::object. It is generally compatible with the
+    /// \c insert_return_type of \c std::map, with the notable lack of \c node.
+    ///
+    /// \see insert
+    struct object_insert_return_type final
+    {
+        /// The position of the inserted node or node with the duplicate key.
+        const_object_iterator position;
+
+        /// Did the insert operation perform an insert? A value of \c false indicates there was a key already present
+        /// with the same name.
+        bool inserted;
+    };
     
 public:
     /** Default-construct this to null. **/
@@ -835,53 +850,85 @@ public:
     const_object_iterator find(const std::string& key)  const;
     const_object_iterator find(const std::wstring& key) const;
     
-    /** Insert \a pair into this object. If \a hint is provided, this insertion could be optimized.
-     *  
-     *  \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key).
-     *  \throws kind_error if the kind is not an object.
-    **/
+    /// \{
+    /// Insert \a pair into this object. If \a hint is provided, this insertion could be optimized.
+    ///
+    /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key).
+    /// \throws kind_error if the kind is not an object.
     std::pair<object_iterator, bool> insert(std::pair<std::string, value>  pair);
     std::pair<object_iterator, bool> insert(std::pair<std::wstring, value> pair);
     object_iterator insert(const_object_iterator hint, std::pair<std::string, value>  pair);
     object_iterator insert(const_object_iterator hint, std::pair<std::wstring, value> pair);
     
-    /** Insert range defined by [\a first, \a last) into this object.
-     *  
-     *  \throws kind_error if the kind is not an object.
-    **/
+    /// Insert range defined by [\a first, \a last) into this object.
+    ///
+    /// \throws kind_error if the kind is not an object.
     template <typename TForwardIterator>
     void insert(TForwardIterator first, TForwardIterator last)
     {
         for ( ; first != last; ++first)
             insert(*first);
     }
-    
-    /** Insert \a items into this object.
-     *  
-     *  \throws kind_error if the kind is not an object.
-    **/
+
+    /// Insert the contents of \a handle. If \a handle is empty, this does nothing.
+    ///
+    /// \returns If \a handle is empty, \c inserted is \c false and \c position is `end_object()`. If the insertion took
+    ///  place, \c inserted is \c true and \c position points to the inserted element. If the insertion was attempted
+    ///  but failed, \c inserted is \c false and \c position points to an element with a key equivalent to
+    ///  `handle.key()`.
+    /// \throws kind_error if the kind is not an object.
+    object_insert_return_type insert(object_node_handle&& handle);
+
+    /// If \a handle is an empty node handle, does nothing and returns \ref end_object. Otherwise, inserts the element
+    /// owned by \a handle into the container, if the container doesn't already contain an element with a key equivalent
+    /// to `handle.key()` and returns the iterator pointing to the element with key equivalent to `handle.key()`. If the
+    /// insertion succeeds, \a handle is moved from, otherwise it retains ownership of the element. The element is
+    /// inserted as close as possible to the position just prior to \a hint.
+    ///
+    /// \returns An iterator pointing to an element with a key equivalent to `handle.key()` if \a handle was not empty.
+    ///  If \a handle was empty, `end_object()`.
+    /// \throws kind_error if the kind is not an object.
+    object_iterator insert(const_object_iterator hint, object_node_handle&& handle);
+
+    /// Insert \a items into this object.
+    ///
+    /// \throws kind_error if the kind is not an object.
     void insert(std::initializer_list<std::pair<std::string, value>>  items);
     void insert(std::initializer_list<std::pair<std::wstring, value>> items);
+    /// \}
     
-    /** Erase the item with the given \a key.
-     *  
-     *  \returns 1 if \a key was erased; 0 if it did not.
-     *  \throws kind_error if the kind is not an object.
-    **/
+    /// \{
+    /// Erase the item with the given \a key.
+    ///
+    /// \returns 1 if \a key was erased; 0 if it did not.
+    /// \throws kind_error if the kind is not an object.
     size_type erase(const std::string&  key);
     size_type erase(const std::wstring& key);
     
-    /** Erase the item at the given \a position.
-     *  
-     *  \throws kind_error if the kind is not an object.
-    **/
+    /// Erase the item at the given \a position.
+    ///
+    /// \throws kind_error if the kind is not an object.
     object_iterator erase(const_object_iterator position);
     
-    /** Erase the range defined by [\a first, \a last).
-     *  
-     *  \throws kind_error if the kind is not an object.
-    **/
+    /// Erase the range defined by [\a first, \a last).
+    ///
+    /// \throws kind_error if the kind is not an object.
     object_iterator erase(const_object_iterator first, const_object_iterator last);
+    /// \}
+
+    /// \{
+    /// Unlinks the node that contains the element pointed to by position and returns a node handle that owns it.
+    ///
+    /// \throws kind_error if the kind is not an object.
+    object_node_handle extract(const_object_iterator position);
+
+    /// If the container has an element with the given \a key, unlinks the node that contains that element from the
+    /// container and returns a node handle that owns it. Otherwise, returns an empty node handle.
+    ///
+    /// \throws kind_error if the kind is not an object.
+    object_node_handle extract(const std::string&  key);
+    object_node_handle extract(const std::wstring& key);
+    /// \}
 
     /** Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent
      *  to asking if the size is 0.
@@ -995,6 +1042,59 @@ value object(TForwardIterator first, TForwardIterator last)
     obj.insert(first, last);
     return obj;
 }
+
+/// A <a href="http://en.cppreference.com/w/cpp/container/node_handle">node handle</a> used when a value is
+/// \ref kind::object to access elements of the object in potentially destructive manner. This makes it possible to
+/// modify the contents of a node extracted from an object, and then re-insert it without having to copy the element.
+class JSONV_PUBLIC object_node_handle final
+{
+public:
+    /// The key type of the object.
+    using key_type = std::string;
+
+    /// The mapped type of the object.
+    using mapped_type = value;
+
+public:
+    explicit object_node_handle() noexcept :
+            _has_value(false)
+    { }
+
+    object_node_handle(object_node_handle&&) noexcept;
+
+    object_node_handle& operator=(object_node_handle&&) noexcept;
+
+    ~object_node_handle() noexcept;
+
+    /// \returns \c true if the node handle is empty; \c false if otherwise.
+    bool empty() const noexcept { return !_has_value; }
+
+    /// \returns \c false if the node handle is empty; \c true if otherwise.
+    explicit operator bool() const noexcept { return _has_value; }
+
+    /// Returns a non-const reference to the \ref key_type member of the element.
+    ///
+    /// \throws std::invalid_argument if the node handle is \ref empty.
+    key_type& key() const;
+
+    /// Returns a non-const reference to the \ref mapped_type member of the element.
+    ///
+    /// \throws std::invalid_argument if the node handle is \ref empty.
+    mapped_type& mapped() const;
+
+private:
+    enum class purposeful_construction
+    { };
+
+    explicit object_node_handle(purposeful_construction, key_type, mapped_type) noexcept;
+
+    friend class value;
+
+private:
+    bool                _has_value;
+    mutable key_type    _key;
+    mutable mapped_type _value;
+};
 
 /** \} **/
 
