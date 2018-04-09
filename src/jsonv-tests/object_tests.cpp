@@ -118,6 +118,17 @@ TEST(object_erase_whole)
     ensure(iter == obj.begin_object());
 }
 
+TEST(object_extract_move)
+{
+    jsonv::value obj1 = jsonv::object({ { "a", 5 }, { "b", "taco" } });
+    jsonv::value obj2 = jsonv::object();
+
+    obj2.insert(obj1.extract("b"));
+
+    ensure_eq(obj1, jsonv::object({ { "a", 5 } }));
+    ensure_eq(obj2, jsonv::object({ { "b", "taco" } }));
+}
+
 TEST(object_view)
 {
     const jsonv::value obj1 = jsonv::object({ { "foo", 5 }, { "bar", "wat" } });
