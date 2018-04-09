@@ -87,27 +87,10 @@ Compiler Support
 ----------------
 
  - Supported
-     - GCC 4.9+
-     - GCC 4.8 (with [Boost.Regex][Boost.Regex])
-     - Clang 3.5+
-     - Clang 3.3 - 3.4 (with [Boost.Regex][Boost.Regex])
+     - GCC 4.8+
+     - Clang 3.3+
  - Experimental
      - MSVC 14.0 CTP5+ (Visual C++ 2015)
-
-While GCC 4.8 and Clang 3.3 are supported, you must compile them with `USE_BOOST_REGEX=1`.
-Early versions will happily compile regular expressions, but will fail at runtime with a `regex_error`, which is not
- very useful.
-However, you can use [Boost.Regex][Boost.Regex] as the regular expression engine for compilers with incomplete `<regex>`
- implementations.
-The downside of this is your application must link with the Boost libraries (`-lboost_regex -lboost_system`).
-
-    $> cmake -DUSE_BOOST_REGEX=1 ..
-    $> make
-    $> sudo make install
-
-Support for MSVC is deemed as *experimental*, as this library can only be compiled with MSVC 14.0 CTP5 at the moment.
-When Visual Studio 2015 is released as a non-beta product, JSON Voorhees will work with it as a fully-supported
- platform.
 
 Versioning
 ----------
@@ -245,8 +228,6 @@ Not really...
 ![JSON: Serialized Killer](https://raw.githubusercontent.com/tgockel/json-voorhees/master/doc/meme.jpg)
 
 
- [Boost.Regex]: http://www.boost.org/doc/libs/1_56_0/libs/regex/doc/html/index.html
-    "The Boost.Regex library"
  [decode-non-utf8]: https://github.com/tgockel/json-voorhees/issues/10
     "Decode numeric encodings into arbitrarily encoded std::string"
  [encode-utf8]: https://github.com/tgockel/json-voorhees/issues/11

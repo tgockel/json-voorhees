@@ -26,7 +26,7 @@ if (CMAKE_VERSION VERSION_GREATER "3.0")
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Debug")
+  set(CMAKE_BUILD_TYPE "Release")
   message(STATUS "No build type selected, default to ${CMAKE_BUILD_TYPE}")
 endif()
 message(STATUS "Configuration: ${CMAKE_BUILD_TYPE}")
@@ -64,19 +64,6 @@ set(REQUIRED_BOOST_LIBRARIES)
 if (JSONV_BUILD_TESTS)
     list(APPEND REQUIRED_BOOST_LIBRARIES "filesystem" "system")
 endif()
-
-#######################
-# Regex Configuration #
-#######################
-
-option(USE_BOOST_REGEX
-       "Controls the variable JSONV_REGEX_USE_BOOST (see C++ documentation)."
-       OFF
-      )
-if (USE_BOOST_REGEX)
-    add_definitions("-DJSONV_REGEX_USE_BOOST=1")
-    list(APPEND REQUIRED_BOOST_LIBRARIES "regex")
-endif(USE_BOOST_REGEX)
 
 #############################
 # String View Configuration #

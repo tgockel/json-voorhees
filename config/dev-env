@@ -36,4 +36,9 @@ if ! [[ -e ${DOCKER_DIR}/Dockerfile ]]; then
 fi
 
 docker build ${DOCKER_DIR} -t ${IMAGE_NAME}
-exec docker run --rm -v ${PROJECT_SRC}:/root/jsonv -w /root/jsonv -it ${IMAGE_NAME} ${RUN_SHELL}
+exec docker run                         \
+    --rm                                \
+    -v ${PROJECT_SRC}:/root/jsonv       \
+    -w /root/jsonv                      \
+    --security-opt seccomp=unconfined   \
+    -it ${IMAGE_NAME} ${RUN_SHELL}
