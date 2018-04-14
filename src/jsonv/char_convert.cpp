@@ -1,6 +1,6 @@
 /** \file
  *  
- *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2012-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -10,28 +10,11 @@
 **/
 #include "char_convert.hpp"
 
-#include "detail/fixed_map.hpp"
-
-/** \def JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
- *  Should JSON Voorhees use Boost.Locale to perform character conversions instead of the C++ Standard Library's
- *  \c codecvt? This must be set in GCC versions before 5, since \c codecvt is not supported.
-**/
-#ifndef JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
-#   if defined __clang__ && (__clang_major__ < 4 || (__clang_major__ == 3 && __clang_minor__ < 5))
-#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
-#   elif defined __GNUC__ && __GNUC__ < 5
-#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
-#   elif defined _MSC_VER && _MSC_VER < 1900
-#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 1
-#   else
-#       define JSONV_CHAR_CONVERT_USE_BOOST_LOCALE 0
-#   endif
-#endif
-
 #include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <cstdint>
+#include <cwchar>
 #include <iomanip>
 #include <locale>
 #include <map>
@@ -39,11 +22,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#if JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
-#include <boost/locale.hpp>
-#else
-#include <codecvt>
-#endif
+#include "detail/fixed_map.hpp"
 
 namespace jsonv
 {
@@ -589,44 +568,153 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
     };
 }
 
-#if JSONV_CHAR_CONVERT_USE_BOOST_LOCALE
-
 std::wstring convert_to_wide(string_view source)
 {
-    return boost::locale::conv::to_utf<wchar_t>(source.data(), source.data() + source.size(), "utf-8");
+    // Step 1: Determine the codepoints from the source
+    char32_t    unicode_buff[source.size()];
+    std::size_t unicode_idx = 0;
+    std::size_t large_codes = 0;
+
+    for (std::size_t source_idx = 0; source_idx < source.size(); /* inline */)
+    {
+        auto next_source = [&] () -> char32_t { return static_cast<unsigned char>(source.at(source_idx++)); };
+
+        char32_t    codepoint;
+        std::size_t steps;
+
+        auto c = next_source();
+        if (c <= 0x7f)
+        {
+            codepoint = c;
+            steps     = 0;
+        }
+        else if (c <= 0xbf)
+        {
+            throw std::range_error("Invalid UTF-8: Invalid character");
+        }
+        else if (c <= 0xdf)
+        {
+            codepoint = c & 0x1f;
+            steps     = 1;
+        }
+        else if (c <= 0xef)
+        {
+            codepoint = c & 0x0f;
+            steps     = 2;
+        }
+        else if (c <= 0xf7)
+        {
+            codepoint = c & 0x07;
+            steps     = 3;
+        }
+        else
+        {
+            throw std::range_error("Invalid UTF-8: Invalid character");
+        }
+
+        if (source_idx + steps > source.size())
+            throw std::range_error("Invalid UTF-8: encoding sequence extends past end of source");
+
+        for (std::size_t step = 0; step < steps; ++step)
+        {
+            auto in_c = next_source();
+            if (in_c < 0x80 || in_c > 0xbf)
+                throw std::range_error("Invalid UTF-8: invalid character");
+
+            codepoint = (codepoint << 6) | (in_c & 0x3fU);
+        }
+
+        if (codepoint >= 0xd800U && codepoint <= 0xdfffU)
+            throw std::range_error("Invalid UTF-8: surrogate code point is not a Unicode character");
+
+        if (codepoint > 0x10ffffU)
+            throw std::range_error("Invalid UTF-8: code point is too large");
+
+        unicode_buff[unicode_idx++] = codepoint;
+        if (codepoint > 0xffffU)
+            ++large_codes;
+    }
+
+    // Step 2: Fill the string from codepoints
+    std::wstring out;
+    out.reserve(unicode_idx + large_codes);
+
+    for (std::size_t idx = 0; idx < unicode_idx; ++idx)
+    {
+        char32_t code_point = unicode_buff[idx];
+        if (code_point <= 0xffffU)
+        {
+            out += wchar_t(code_point);
+        }
+        else
+        {
+            uint16_t high, low;
+            utf16_create_surrogates(code_point, &high, &low);
+            out += wchar_t(high);
+            out += wchar_t(low);
+        }
+    }
+    return out;
 }
 
-std::string convert_to_narrow(const std::wstring& source)
+static std::string convert_to_narrow(const wchar_t* source_data, std::size_t source_size)
 {
-    return boost::locale::conv::from_utf(source, "utf-8");
+    // Step 1: Extract codepoints from the source
+    char32_t    unicode_buff[source_size];
+    std::size_t unicode_idx = 0;
+    std::size_t out_chars   = 0;
+
+    for (std::size_t source_idx = 0; source_idx < source_size; /* inline */)
+    {
+        auto next_source = [&] () -> char32_t { return static_cast<std::uint16_t>(source_data[source_idx++]); };
+
+        char32_t codepoint;
+        auto     c         = next_source();
+
+        // normal
+        if ((c & 0xfc00U) != 0xd800U)
+        {
+            codepoint = c;
+        }
+        // surrogate start
+        else
+        {
+            if (source_idx + 1 >= source_size)
+                throw std::range_error("Invalid UTF-16: surrogate extends past end of string");
+
+            auto c_lo = next_source();
+            if (!utf16_combine_surrogates(c, c_lo, &codepoint))
+                throw std::range_error("Invalid UTF-16: invalid surrogate pair");
+        }
+
+        unicode_buff[unicode_idx++] = codepoint;
+        out_chars += (codepoint <= 0x007fU) ? 1U
+                   : (codepoint <= 0x07ffU) ? 2U
+                   : (codepoint <= 0xffffU) ? 3U
+                   :                          4U;
+    }
+
+    // Step 2: Fill the string from codepoints
+    std::string out;
+    out.reserve(out_chars);
+
+    for (std::size_t idx = 0U; idx < unicode_idx; ++idx)
+    {
+        utf8_append_code(out, unicode_buff[idx]);
+    }
+
+    return out;
 }
 
 std::string convert_to_narrow(const wchar_t* source)
 {
-    return boost::locale::conv::from_utf(source, "utf-8");
-}
-
-#else
-
-std::wstring convert_to_wide(string_view source)
-{
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.from_bytes(source.data(), source.data() + source.size());
+    return convert_to_narrow(source, wcslen(source));
 }
 
 std::string convert_to_narrow(const std::wstring& source)
 {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.to_bytes(source);
+    return convert_to_narrow(source.c_str(), source.size());
 }
-
-std::string convert_to_narrow(const wchar_t* source)
-{
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    return converter.to_bytes(source);
-}
-
-#endif
 
 }
 }

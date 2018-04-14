@@ -451,9 +451,8 @@ public:
     **/
     value(const char* value);
     
-    /** Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
-     *  UTF-8 encoded string.
-    **/
+    /// Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
+    /// UTF-8 encoded string.
     value(const std::wstring& value);
     
     /** Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
