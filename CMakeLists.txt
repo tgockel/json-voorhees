@@ -113,30 +113,9 @@ if (USE_BOOST_OPTIONAL)
     add_definitions("-DJSONV_OPTIONAL_USE_BOOST=1")
 endif()
 
-########################
-# Locale Configuration #
-########################
-
-if (CMAKE_COMPILER_IS_GNUCC)
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "5.0")
-        set(USE_BOOST_LOCALE_DEFAULT ON)
-    else()
-        set(USE_BOOST_LOCALE_DEFAULT OFF)
-    endif()
-else()
-    set(USE_BOOST_LOCALE_DEFAULT OFF)
-endif()
-
-option(USE_BOOST_LOCALE
-       "Should Boost.Locale be used for character encoding conversions (as opposed to the standard library)?"
-       ${USE_BOOST_LOCALE_DEFAULT}
-      )
-if (USE_BOOST_LOCALE)
-    add_definitions("-DJSONV_CHAR_CONVERT_USE_BOOST_LOCALE=1")
-    list(APPEND REQUIRED_BOOST_LIBRARIES "locale")
-else()
-    add_definitions("-DJSONV_CHAR_CONVERT_USE_BOOST_LOCALE=0")
-endif()
+##########################
+# Coverage Configuration #
+##########################
 
 option(COVERAGE
        "Enable building with code coverage."
