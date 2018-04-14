@@ -1,0 +1,10 @@
+Package: libjsonv@JSONV_SO_VERSION@
+Version: @JSONV_VERSION@
+Priority: optional
+Maintainer: Travis Gockel <travis@gockelhut.com>
+Architecture: @PROJECT_BUILD_ARCHITECTURE@
+Section: libs
+Depends: libc6 (>= 2.18), libstdc++6 (>= 7-20170407)
+Build-Depends: debhelper (>= 9), cmake (>= 3.2)
+Homepage: https://tgockel.github.io/json-voorhees/
+Description: JSON Voorhees -- killer JSON for C++.

@@ -6,7 +6,7 @@ Release:        @CPACK_PACKAGE_RELEASE@
 License:        Apache 2.0
 Group:          Development/Tools
 Prefix:         @CPACK_PACKAGING_INSTALL_PREFIX@
-Requires:       cmake >= 2.8, boost-devel >= 1.52, gcc-c++ >= 4.9
+Requires:       libstdc++6
  
 %define _rpmdir @CMAKE_CURRENT_BINARY_DIR@/_CPack_Packages/Linux/RPM
 %define _rpmfilename @CPACK_PACKAGE_FILE_NAME@.rpm

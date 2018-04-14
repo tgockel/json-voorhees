@@ -1,6 +1,6 @@
 # File: CMakeLists used for generating a Makefile (or whatever your build system is).
 #
-# Copyright 2015 by Travis Gockel
+# Copyright 2015-2018 by Travis Gockel
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
@@ -10,7 +10,7 @@
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.2)
 project(json-voorhees)
 
 set(PACKAGE_NAME "jsonv"
@@ -23,6 +23,7 @@ set(PACKAGE_NAME "jsonv"
 
 if (CMAKE_VERSION VERSION_GREATER "3.0")
   cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
+  cmake_policy(SET CMP0037 OLD) # Allow use of reserved names
 endif()
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -38,10 +39,9 @@ string(REGEX REPLACE ".*#define +JSONV_VERSION_MAJOR +([0-9]+).*" "\\1" JSONV_VE
 string(REGEX REPLACE ".*#define +JSONV_VERSION_MINOR +([0-9]+).*" "\\1" JSONV_VERSION_MINOR "${JSONV_CONFIG_H_STR}")
 string(REGEX REPLACE ".*#define +JSONV_VERSION_PATCH +([0-9]+).*" "\\1" JSONV_VERSION_PATCH "${JSONV_CONFIG_H_STR}")
 
-set(JSONV_VERSION "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}.${JSONV_VERSION_PATCH}"
-    CACHE STRING "The version of the library."
-   )
-message(STATUS "JSONV version: ${JSONV_VERSION}")
+set(JSONV_VERSION    "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}.${JSONV_VERSION_PATCH}")
+set(JSONV_SO_VERSION "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}")
+message(STATUS "JSONV version: ${JSONV_VERSION} (${JSONV_SO_VERSION})")
 
 set(CXX_STANDARD_DEFAULT "c++14")
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -193,8 +193,8 @@ file(GLOB_RECURSE jsonv_cpps RELATIVE_PATH "." "src/jsonv/*.cpp")
 add_library(jsonv ${LIBRARY_TYPE} ${jsonv_cpps})
 set_target_properties(jsonv
                       PROPERTIES
-                          SOVERSION ${JSONV_VERSION}
-                          VERSION   ${JSONV_VERSION}
+                        SOVERSION ${JSONV_SO_VERSION}
+                        VERSION   ${JSONV_SO_VERSION}
                      )
 if (Boost_LIBRARIES)
     target_link_libraries(jsonv ${Boost_LIBRARIES})
@@ -324,26 +324,114 @@ install(EXPORT exported DESTINATION "${CONFIG_INSTALL_DIR}" FILE "${PACKAGE_NAME
 # Packaging                                                                    #
 ################################################################################
 
-set(PACKAGE_SYSTEM ""
+set(JSONV_PACKAGE_SYSTEM ""
     CACHE STRING "The packaging system to generate a package build file for (leave blank to not build a package)"
    )
-if (PACKAGE_SYSTEM)
-    message(STATUS "Creating packaging for ${PACKAGE_SYSTEM}...")
-    set(CPACK_PACKAGE_VERSION "${JSONV_VERSION}")
-    set(CPACK_GENERATOR "${PACKAGE_SYSTEM}")
+if (JSONV_PACKAGE_SYSTEM)
+  message(STATUS "Creating packaging for ${JSONV_PACKAGE_SYSTEM}...")
+  set(PROJECT_PACKAGE_VERSION "${JSONV_VERSION}-1") # TODO: Allow arbitrary tags here
+
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(PROJECT_BUILD_ARCHITECTURE "amd64")
+  elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+    set(PROJECT_BUILD_ARCHITECTURE "i386")
+  else()
+    message(WARNING "  Unknown architecture \"${CMAKE_SYSTEM_PROCESSOR}\" -- assuming packaging is okay with that")
+    set(PROJECT_BUILD_ARCHITECTURE "${CMAKE_SYSTEM_PROCESSOR}")
+  endif()
+
+  set(all_packages)
+  if(JSONV_PACKAGE_SYSTEM STREQUAL "DEB")
+    set(pkg_basename "libjsonv")
+    set(pkg_fullname "libjsonv${JSONV_SO_VERSION}")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
+      message(WARNING "Could not find packager \"${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}\"")
+    else()
+      message(STATUS "  + ${pkg_fullname}.deb")
+
+      set(library_pkg_base  "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
+      set(library_pkg_stage "${CMAKE_CURRENT_BINARY_DIR}/intermediate/deb/${pkg_fullname}")
+      set(library_pkg_dest  "${CMAKE_CURRENT_BINARY_DIR}/installer/${pkg_fullname}")
+      configure_file("${library_pkg_base}/control.in"
+                     "${library_pkg_dest}/DEBIAN/control"
+                     @ONLY IMMEDIATE
+                    )
+      if(EXISTS "${library_pkg_base}/postinst.in")
+        configure_file("${library_pkg_base}/postinst.in"
+                       "${library_pkg_stage}/DEBIAN/postinst"
+                       @ONLY IMMEDIATE
+                      )
+        file(COPY        "${library_pkg_stage}/DEBIAN/postinst"
+             DESTINATION "${library_pkg_dest}/DEBIAN"
+             FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+            )
+      endif()
+
+      add_custom_target("${pkg_fullname}.deb"
+                        COMMAND rm -rf   "installer/${pkg_fullname}/usr/local"
+                        COMMAND mkdir -p "installer/${pkg_fullname}/usr/local/lib"
+                        COMMAND cp "$<TARGET_FILE:jsonv>" "installer/${pkg_fullname}/usr/local/lib"
+                        COMMAND dpkg --build "installer/${pkg_fullname}"
+                        COMMAND mv "installer/${pkg_fullname}.deb" "."
+                        DEPENDS
+                          "${library_pkg_dest}/DEBIAN/control"
+                          jsonv
+                       )
+      list(APPEND all_packages "${pkg_fullname}.deb")
+    endif()
+
+    set(pkg_basename "libjsonv-dev")
+    set(pkg_fullname "libjsonv${JSONV_SO_VERSION}-dev")
+    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
+      message(WARNING "Could not find packager \"${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}\"")
+    else()
+      message(STATUS "  + ${pkg_fullname}.deb")
+
+      set(library_pkg_base  "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
+      set(library_pkg_stage "${CMAKE_CURRENT_BINARY_DIR}/intermediate/deb/${pkg_fullname}")
+      set(library_pkg_dest  "${CMAKE_CURRENT_BINARY_DIR}/installer/${pkg_fullname}")
+
+      configure_file("${library_pkg_base}/control.in"
+                     "${library_pkg_dest}/DEBIAN/control"
+                     @ONLY IMMEDIATE
+                    )
+      file(GLOB_RECURSE jsonv_headers RELATIVE_PATH "." "include/jsonv/*")
+      add_custom_target("${pkg_fullname}.deb"
+                        COMMAND rm -rf   "installer/${pkg_fullname}/usr/local"
+                        COMMAND mkdir -p "installer/${pkg_fullname}/usr/local/include"
+                        COMMAND cp -r "${PROJECT_SOURCE_DIR}/include/jsonv" "installer/${pkg_fullname}/usr/local/include"
+                        COMMAND dpkg --build "installer/${pkg_fullname}"
+                        COMMAND mv "installer/${pkg_fullname}.deb" "."
+                        DEPENDS
+                          "${library_pkg_dest}/DEBIAN/control"
+                          ${jsonv_headers}
+                       )
+      list(APPEND all_packages "${pkg_fullname}.deb")
+    endif()
+
+    if(all_packages)
+      add_custom_target(package
+                        DEPENDS ${all_packages}
+                        COMMENT "Built all packages"
+                       )
+    else()
+      message(SEND_ERROR "Packaging specified as \"${JSONV_PACKAGE_SYSTEM}\", but did not find any actual packages.")
+    endif()
+  elseif(JSONV_PACKAGE_SYSTEM STREQUAL "RPM")
+    set(CPACK_PACKAGE_VERSION "${JSONV_SO_VERSION}")
+    set(CPACK_GENERATOR "${JSONV_PACKAGE_SYSTEM}")
     set(CPACK_PACKAGE_NAME "${PACKAGE_NAME}")
     set(CPACK_PACKAGE_RELEASE 1)
     set(CPACK_PACKAGE_CONTACT "Travis Gockel")
     set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
     set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
-    if (PACKAGE_SYSTEM STREQUAL "RPM")
-        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/installer/rpm/jsonv.spec.in"
-                    "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec"
-                    @ONLY IMMEDIATE
-                    )
-        set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec")
-    else ()
-        message(WARNING "Unknown PACKAGE_SYSTEM=${PACKAGE_SYSTEM} -- anything could happen with your package")
-    endif ()
+    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/installer/rpm/jsonv.spec.in"
+                   "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec"
+                   @ONLY IMMEDIATE
+                  )
+    set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec")
     include(CPack)
-endif ()
+  else()
+    message(SEND_ERROR "Unknown JSONV_PACKAGE_SYSTEM=${JSONV_PACKAGE_SYSTEM}")
+  endif()
+endif()

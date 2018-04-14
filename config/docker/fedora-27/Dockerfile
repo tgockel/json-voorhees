@@ -10,7 +10,8 @@ RUN dnf refresh             \
     git                     \
     lcov                    \
     make                    \
-    ninja-build
+    ninja-build             \
+    rpm-build
 
 RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-7 99
 
