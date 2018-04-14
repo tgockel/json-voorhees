@@ -1,0 +1,9 @@
+Package: libjsonv@JSONV_SO_VERSION@-dev
+Version: @JSONV_VERSION@
+Priority: optional
+Maintainer: Travis Gockel <travis@gockelhut.com>
+Architecture: all
+Section: libdevel
+Depends: libjsonv@JSONV_SO_VERSION@ (= @JSONV_VERSION@)
+Description: Development files for jsonv.
+ JSON Voorhees -- killer JSON for C++.

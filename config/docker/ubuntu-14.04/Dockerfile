@@ -3,7 +3,8 @@ MAINTAINER Travis Gockel <travis@gockelhut.com>
 
 RUN apt-get update \
  && apt-get install --yes software-properties-common \
- && add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+ && add-apt-repository --yes ppa:ubuntu-toolchain-r/test \
+ && add-apt-repository --yes ppa:george-edison55/cmake-3.x
 
 RUN apt-get update          \
  && apt-get install --yes   \

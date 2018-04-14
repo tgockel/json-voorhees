@@ -1,0 +1,7 @@
+#!/bin/sh -e
+
+update-alternatives                                 \
+    --install /usr/local/lib/libjsonv.so            \
+    libjsonv                                        \
+    /usr/local/lib/libjsonv.so.@JSONV_SO_VERSION@   \
+    @JSONV_VERSION_MAJOR@@JSONV_VERSION_MINOR@

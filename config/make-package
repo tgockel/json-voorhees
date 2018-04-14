@@ -1,0 +1,40 @@
+#!/bin/bash -e
+
+PROJECT_ROOT=$(dirname ~)/$(whoami)/jsonv
+BUILD_DIR=${PROJECT_ROOT}/build-ci-release
+echo "${DISTRO} ${PROJECT_ROOT}"
+c++ --version
+
+if [[ -e ${BUILD_DIR} ]]; then
+  echo "Build directory (${BUILD_DIR}) unclean -- deleting it"
+  rm -rf ${BUILD_DIR}
+fi
+mkdir ${BUILD_DIR}
+cd ${BUILD_DIR}
+
+if $(hash rpm 2>/dev/null); then
+  PACKAGE_SYSTEM=RPM
+  PACKAGE_SUFFIX=rpm
+
+  function show_contents {
+    rpm -qlp "$1"
+  }
+elif $(hash dpkg 2>/dev/null); then
+  PACKAGE_SYSTEM=DEB
+  PACKAGE_SUFFIX=deb
+
+  function show_contents {
+    dpkg --contents "${pkg_file}"
+  }
+else
+  echo "Unknown packaging system for this operating system"
+  exit 1
+fi
+
+cmake .. -DJSONV_PACKAGE_SYSTEM=${PACKAGE_SYSTEM} -DCMAKE_BUILD_TYPE=Release -GNinja
+ninja package
+
+for pkg_file in $(ls ${BUILD_DIR}/*.${PACKAGE_SUFFIX}); do
+  echo "PACKAGE ${pkg_file}"
+  show_contents "${pkg_file}"
+done

@@ -9,7 +9,8 @@ RUN zypper refresh          \
     gcc7-c++                \
     git                     \
     lcov                    \
-    ninja
+    ninja                   \
+    rpm-build
 
 RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-7 99
 
