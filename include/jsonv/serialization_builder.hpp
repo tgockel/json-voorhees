@@ -315,6 +315,15 @@ namespace jsonv
  *    .extend(baz)
  *  \endcode
  *  
+ *  \paragraph serialization_builder_dsl_ref_formats_level_on_duplicate_type on_duplicate_type
+ *
+ *    - <tt>on_duplicate_type(on_duplicate_type_action action);</tt>
+ *
+ *  Set what action to take when attempting to register an adapter, but there is already an adapter for that type in the
+ *  formats. The default is to throw a \ref duplicate_type_error exception (\ref duplicate_type_action::exception), but
+ *  the \c formats_builder can also be configured to ignore the duplicate (\ref duplicate_type_action::ignore), or to
+ *  replace the existing adapter with the new one (\ref duplicate_type_action::replace). This is useful when calling
+ *  multiple \c extend methods that may add common types to the \c formats_builder.
  *  
  *  \subsubsection serialization_builder_dsl_ref_formats_narrowing Narrowing
  *  
@@ -567,6 +576,8 @@ public:
     formats_builder& register_wrapper();
 
     formats_builder& check_references(formats other, const std::string& name = "");
+
+    formats_builder& on_duplicate_type(duplicate_type_action action) noexcept;
     
     operator formats() const;
     
@@ -1212,13 +1223,13 @@ public:
     
     formats_builder& register_adapter(const adapter* p)
     {
-        _formats.register_adapter(p);
+        _formats.register_adapter(p, _duplicate_type_action);
         return *this;
     }
     
     formats_builder& register_adapter(std::shared_ptr<const adapter> p)
     {
-        _formats.register_adapter(std::move(p));
+        _formats.register_adapter(std::move(p), _duplicate_type_action);
         return *this;
     }
 
@@ -1227,7 +1238,7 @@ public:
     {
         reference_type(std::type_index(typeid(typename TOptional::value_type)), std::type_index(typeid(TOptional)));
         std::unique_ptr<optional_adapter<TOptional>> p(new optional_adapter<TOptional>);
-        _formats.register_adapter(std::move(p));
+        _formats.register_adapter(std::move(p), _duplicate_type_action);
         return *this;
     }
 
@@ -1236,7 +1247,7 @@ public:
     {
         reference_type(std::type_index(typeid(typename TContainer::value_type)), std::type_index(typeid(TContainer)));
         std::unique_ptr<container_adapter<TContainer>> p(new container_adapter<TContainer>);
-        _formats.register_adapter(std::move(p));
+        _formats.register_adapter(std::move(p), _duplicate_type_action);
         return *this;
     }
 
@@ -1245,7 +1256,7 @@ public:
     {
         reference_type(std::type_index(typeid(typename TWrapper::value_type)), std::type_index(typeid(TWrapper)));
         std::unique_ptr<wrapper_adapter<TWrapper>> p(new wrapper_adapter<TWrapper>);
-        _formats.register_adapter(std::move(p));
+        _formats.register_adapter(std::move(p), _duplicate_type_action);
         return *this;
     }
     
@@ -1283,9 +1294,15 @@ public:
      *                           \a other \c formats, cannot properly serialize all the types.
     **/
     formats_builder& check_references(formats other, const std::string& name = "");
+
+    /** Assigns the action to perform when a serializer or extractor is being registered by this formats_builder and
+     *  there is already a serializer or extracter for that type.
+    **/
+    formats_builder& on_duplicate_type(duplicate_type_action action) noexcept;
     
 private:
     formats                                              _formats;
+    duplicate_type_action                                _duplicate_type_action = duplicate_type_action::exception;
     std::map<std::type_index, std::set<std::type_index>> _referenced_types;
 };
 
