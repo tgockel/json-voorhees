@@ -110,6 +110,36 @@ public:
     version_element minor;
 };
 
+/** The action to take when an insertion of an extractor or serializer into a formats is attempted, but there is alredy
+ *  an extractor or serializer for that type.
+**/
+enum class duplicate_type_action : unsigned char
+{
+    /** The existing extractor or serializer should be kept, but no exception should be thrown. **/
+    ignore,
+    /** The new extractor or serializer should be inserted, and no exception should be thrown. **/
+    replace,
+    /** A \ref duplicate_type_error should be thrown. **/
+    exception
+};
+
+/** Exception thrown if an insertion of an extractor or serializer into a formats is attempted, but there is already an
+ *  extractor or serializer for that type.
+**/
+class JSONV_PUBLIC duplicate_type_error :
+        public std::invalid_argument
+{
+public:
+    explicit duplicate_type_error(const std::string& operation, const std::type_index& type);
+
+    virtual ~duplicate_type_error() noexcept;
+
+    std::type_index type_index() const;
+
+private:
+    std::type_index _type_index;
+};
+
 /** Exception thrown if there is any problem running \c extract. Typically, there is a nested exception attached with
  *  more details as to what the underlying error is (a human-readable description is usually in the \c what string).
 **/
@@ -406,45 +436,50 @@ public:
     
     /** Register an \c extractor that lives in some unmanaged space.
      *  
-     *  \throws std::invalid_argument if this \c formats instance already has an \c extractor that serves the provided
-     *                                \c extractor::get_type.
+     *  \throws duplicate_type_error if this \c formats instance already has an \c extractor that serves the provided
+     *                               \c extractor::get_type and the \c duplicate_type_action is \c exception.
     **/
-    void register_extractor(const extractor*);
+    void register_extractor(const extractor*, duplicate_type_action action = duplicate_type_action::exception);
     
     /** Register an \c extractor with shared ownership between this \c formats instance and anything else.
      *  
-     *  \throws std::invalid_argument if this \c formats instance already has an \c extractor that serves the provided
-     *                                \c extractor::get_type.
+     *  \throws duplicate_type_error if this \c formats instance already has an \c extractor that serves the provided
+     *                               \c extractor::get_type and the \c duplicate_type_action is \c exception.
     **/
-    void register_extractor(std::shared_ptr<const extractor>);
+    void register_extractor(std::shared_ptr<const extractor>,
+                            duplicate_type_action action = duplicate_type_action::exception);
     
     /** Register a \c serializer that lives in some managed space.
      *  
-     *  \throws std::invalid_argument if this \c formats instance already has a \c serializer that serves the provided
-     *                                \c serializer::get_type.
+     *  \throws duplicate_type_error if this \c formats instance already has a \c serializer that serves the provided
+     *                               \c serializer::get_type and the \c duplicate_type_action is \c exception.
     **/
-    void register_serializer(const serializer*);
+    void register_serializer(const serializer*, duplicate_type_action action = duplicate_type_action::exception);
     
     /** Register a \c serializer with shared ownership between this \c formats instance and anything else.
      *  
-     *  \throws std::invalid_argument if this \c formats instance already has a \c serializer that serves the provided
-     *                                \c serializer::get_type.
+     *  \throws duplicate_type_error if this \c formats instance already has a \c serializer that serves the provided
+     *                               \c serializer::get_type and the \c duplicate_type_action is \c exception.
     **/
-    void register_serializer(std::shared_ptr<const serializer>);
+    void register_serializer(std::shared_ptr<const serializer>,
+                             duplicate_type_action action = duplicate_type_action::exception);
     
     /** Register an \c adapter that lives in some unmanaged space.
      *  
-     *  \throws std::invalid_argument if this \c formats instance already has either an \c extractor or \c serializer
-     *                                that serves the provided \c adapter::get_type.
+     *  \throws duplicate_type_error if this \c formats instance already has either an \c extractor or \c serializer
+     *                               that serves the provided \c adapter::get_type and the \c duplicate_type_action is
+     *                               \c exception.
     **/
-    void register_adapter(const adapter*);
+    void register_adapter(const adapter*, duplicate_type_action action = duplicate_type_action::exception);
     
     /** Register an \c adapter with shared ownership between this \c formats instance and anything else.
      *  
-     *  \throws std::invalid_argument if this \c formats instance already has either an \c extractor or \c serializer
-     *                                that serves the provided \c adapter::get_type.
+     *  \throws duplicate_type_error if this \c formats instance already has either an \c extractor or \c serializer
+     *                               that serves the provided \c adapter::get_type the \c duplicate_type_action is
+     *                               \c exception.
     **/
-    void register_adapter(std::shared_ptr<const adapter>);
+    void register_adapter(std::shared_ptr<const adapter>,
+                          duplicate_type_action action = duplicate_type_action::exception);
     
     /** Test for equality between this instance and \a other. If two \c formats are equal, they are the \e exact same
      *  node in the graph. Even if one \c formats has the exact same types for the exact same <tt>extractor</tt>s.
