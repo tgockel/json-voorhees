@@ -481,14 +481,17 @@ formats formats::global()
     return formats::compose({ global_formats_ref() });
 }
 
-void formats::set_global(formats fmt)
+formats formats::set_global(formats fmt)
 {
-    global_formats_ref() = std::move(fmt);
+    using std::swap;
+
+    swap(global_formats_ref(), fmt);
+    return fmt;
 }
 
-void formats::reset_global()
+formats formats::reset_global()
 {
-    global_formats_ref() = default_formats_ref();
+    return set_global(default_formats_ref());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

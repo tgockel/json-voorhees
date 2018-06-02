@@ -313,11 +313,17 @@ public:
     **/
     static formats global();
     
-    /** Set the \c global \c formats instance. **/
-    static void set_global(formats);
+    /** Set the \c global \c formats instance.
+     *
+     *  \returns the previous value of the global formats instance.
+    **/
+    static formats set_global(formats);
     
-    /** Reset the \c global \c formats instance to \c defaults. **/
-    static void reset_global();
+    /** Reset the \c global \c formats instance to \c defaults.
+     *
+     *  \returns the previous value of the global formats instance.
+    **/
+    static formats reset_global();
     
     /** Get the coercing \c formats instance. This uses \e loose type-checking and behaves by the same rules as the
      *  \c coerce_ functions in \c coerce.hpp.
