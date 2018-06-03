@@ -91,8 +91,16 @@ static bool needs_unicode_escaping(char c)
 
 static constexpr bool char_bitmatch(char c, char pos, char neg)
 {
-    return (c & pos) == pos
-        && !(c & neg);
+    using u8 = unsigned char;
+
+    // NOTE(tgockel, 2018-06-04): The use of casting should not be needed here. However, GCC 8.1.0 seems to have a
+    // bug in the optimizer that causes this function to erroneously return `true` in some cases (specifically, with
+    // `char_bitmatch('\xf0', '\xc0', '\x20')`, but not if you call the function directly). It is possible this issue
+    // (https://github.com/tgockel/json-voorhees/issues/108) has been misdiagnosed, but the behavior only happens on
+    // GCC 8.1.0 and only with -O3. This also fixes the problem, even though it logically should not change anything
+    // (https://stackoverflow.com/questions/50671485/bitwise-operations-on-signed-chars).
+    return (u8(c) & u8(pos)) == u8(pos)
+        && !(u8(c) & u8(neg));
 }
 
 /** Tests if \a c is a valid UTF-8 sequence continuation. **/
@@ -144,6 +152,7 @@ static void utf8_extract_info(char c, unsigned& length, char& bitmask, const FOn
         bitmask = '\x7f';
     }
 }
+
 static bool utf8_extract_info(char c, unsigned& length, char& bitmask)
 {
     bool rc = true;
