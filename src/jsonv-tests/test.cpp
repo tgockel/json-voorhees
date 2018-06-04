@@ -33,6 +33,8 @@ unit_test::unit_test(const std::string& name) :
 bool unit_test::run()
 {
     std::cout << "TEST: " << name() << " ...";
+    std::cout.flush();
+
     _success = true;
     try
     {
