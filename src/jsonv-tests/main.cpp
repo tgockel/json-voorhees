@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
 
 #include <jsonv/value.hpp>
@@ -40,19 +41,35 @@ int main(int argc, char** argv)
     std::string filter;
     if (argc == 2)
         filter = argv[1];
-    
-    int fail_count = 0;
+
+    std::deque<const jsonv_test::unit_test*> failed_tests;
     for (auto test : jsonv_test::get_unit_tests())
     {
         bool shouldrun = filter.empty()
                       || test->name().find(filter) != std::string::npos;
         if (shouldrun && !test->run())
-            ++fail_count;
+            failed_tests.push_back(test);
     }
-    #ifdef _MSC_VER
-    // Visual Studio doesn't seem to treat non-zero exits as an error...so we'll just throw an exception.
-    if (fail_count > 0)
-        throw std::runtime_error("Not all unit tests passed...");
-    #endif
-    return fail_count;
+
+    if (failed_tests.empty())
+    {
+        return 0;
+    }
+    else
+    {
+        std::ostringstream os;
+        os << "Unit test failure:" << std::endl;
+        for (auto test : failed_tests)
+            os << " - " << test->name() << std::endl;
+
+        #ifdef _MSC_VER
+        // Visual Studio doesn't seem to treat non-zero exits as an error...so we'll just throw an exception.
+        if (fail_count > 0)
+            throw std::runtime_error(os.str());
+        #else
+        std::cerr << os.str();
+        #endif
+        return 1;
+    }
+
 }
