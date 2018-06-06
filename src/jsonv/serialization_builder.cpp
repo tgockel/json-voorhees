@@ -86,6 +86,12 @@ formats_builder& formats_builder::check_references(formats other, const std::str
     }
 }
 
+formats_builder& formats_builder::on_duplicate_type(duplicate_type_action action) noexcept
+{
+    _duplicate_type_action = action;
+    return *this;
+}
+
 namespace detail
 {
 
@@ -117,6 +123,11 @@ formats_builder& formats_builder_dsl::register_adapter(std::shared_ptr<const ada
 formats_builder& formats_builder_dsl::check_references(formats other, const std::string& name)
 {
     return owner->check_references(other, name);
+}
+
+formats_builder& formats_builder_dsl::on_duplicate_type(duplicate_type_action action) noexcept
+{
+    return owner->on_duplicate_type(action);
 }
 
 }

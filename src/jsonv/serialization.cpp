@@ -43,10 +43,33 @@ serializer::~serializer() noexcept = default;
 adapter::~adapter() noexcept = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// duplicate_type_error                                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static std::string make_duplicate_type_errmsg(const std::string& operation, const std::type_index& type)
+{
+    std::ostringstream os;
+    os << "Already have " << operation << " for type " << demangle(type.name());
+    return os.str();
+}
+
+duplicate_type_error::duplicate_type_error(const std::string& operation, const std::type_index& type) :
+        std::invalid_argument(make_duplicate_type_errmsg(operation, type)),
+        _type_index(type)
+{ }
+
+duplicate_type_error::~duplicate_type_error() noexcept = default;
+
+std::type_index duplicate_type_error::type_index() const
+{
+    return _type_index;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // extraction_error                                                                                                   //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::string make_extraction_error_errmsg(const extraction_context& context, const std::string& message)
+static std::string make_extraction_error_errmsg(const extraction_context& context, const std::string& message)
 {
     std::ostringstream os;
     os << "Extraction error";
@@ -202,16 +225,22 @@ public:
     }
 
 public:
-    extractor_map::iterator insert_extractor(const extractor* ex)
+    extractor_map::iterator insert_extractor(const extractor* ex, duplicate_type_action action)
     {
         std::type_index typeidx(ex->get_type());
         auto iter = extractors.find(typeidx);
         if (iter != end(extractors))
         {
-            // if we already have a value, search the shared maps to see if it is present
-            std::ostringstream os;
-            os << "Already have an extractor for type " << demangle(typeidx.name());
-            throw std::invalid_argument(os.str());
+            if (duplicate_type_action::exception == action)
+            {
+                throw duplicate_type_error("an extractor", typeidx);
+            }
+            else if (duplicate_type_action::replace == action)
+            {
+                iter->second = ex;
+            }
+
+            return iter;
         }
         else
         {
@@ -219,24 +248,30 @@ public:
         }
     }
 
-    void insert_extractor(std::shared_ptr<const extractor> ex)
+    void insert_extractor(std::shared_ptr<const extractor> ex, duplicate_type_action action)
     {
-        auto iter = insert_extractor(ex.get());
+        auto iter = insert_extractor(ex.get(), action);
         auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
         owned_items.insert(std::move(ex));
         rollback.release();
     }
 
-    serializer_map::iterator insert_serializer(const serializer* ser)
+    serializer_map::iterator insert_serializer(const serializer* ser, duplicate_type_action action)
     {
         std::type_index typeidx(ser->get_type());
         auto iter = serializers.find(typeidx);
         if (iter != end(serializers))
         {
-            // if we already have a value, search the shared maps to see if it is present
-            std::ostringstream os;
-            os << "Already have a serializer for type " << demangle(typeidx.name());
-            throw std::invalid_argument(os.str());
+            if (duplicate_type_action::exception == action)
+            {
+                throw duplicate_type_error("a serializer", typeidx);
+            }
+            else if (duplicate_type_action::replace == action)
+            {
+                iter->second = ser;
+            }
+
+            return iter;
         }
         else
         {
@@ -244,27 +279,27 @@ public:
         }
     }
 
-    void insert_serializer(std::shared_ptr<const serializer> ser)
+    void insert_serializer(std::shared_ptr<const serializer> ser, duplicate_type_action action)
     {
-        auto iter = insert_serializer(ser.get());
+        auto iter = insert_serializer(ser.get(), action);
         auto rollback = detail::on_scope_exit([this, &iter] { serializers.erase(iter); });
         owned_items.insert(std::move(ser));
         rollback.release();
     }
 
-    void insert_adapter(const adapter* adp)
+    void insert_adapter(const adapter* adp, duplicate_type_action action)
     {
-        auto iter = insert_extractor(adp);
+        auto iter = insert_extractor(adp, action);
         auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
-        insert_serializer(adp);
+        insert_serializer(adp, action);
         rollback.release();
     }
 
-    void insert_adapter(std::shared_ptr<const adapter> adp)
+    void insert_adapter(std::shared_ptr<const adapter> adp, duplicate_type_action action)
     {
-        auto iter_ex = insert_extractor(adp.get());
+        auto iter_ex = insert_extractor(adp.get(), action);
         auto rollback_ex = detail::on_scope_exit([this, &iter_ex] { extractors.erase(iter_ex); });
-        auto iter_ser = insert_serializer(adp.get());
+        auto iter_ser = insert_serializer(adp.get(), action);
         auto rollback_ser = detail::on_scope_exit([this, &iter_ser] { serializers.erase(iter_ser); });
         owned_items.insert(std::move(adp));
         rollback_ex.release();
@@ -343,34 +378,34 @@ value formats::to_json(const std::type_info& type,
     return get_serializer(type).to_json(context, from);
 }
 
-void formats::register_extractor(const extractor* ex)
+void formats::register_extractor(const extractor* ex, duplicate_type_action action)
 {
-    _data->insert_extractor(ex);
+    _data->insert_extractor(ex, action);
 }
 
-void formats::register_extractor(std::shared_ptr<const extractor> ex)
+void formats::register_extractor(std::shared_ptr<const extractor> ex, duplicate_type_action action)
 {
-    _data->insert_extractor(std::move(ex));
+    _data->insert_extractor(std::move(ex), action);
 }
 
-void formats::register_serializer(const serializer* ser)
+void formats::register_serializer(const serializer* ser, duplicate_type_action action)
 {
-    _data->insert_serializer(ser);
+    _data->insert_serializer(ser, action);
 }
 
-void formats::register_serializer(std::shared_ptr<const serializer> ser)
+void formats::register_serializer(std::shared_ptr<const serializer> ser, duplicate_type_action action)
 {
-    _data->insert_serializer(std::move(ser));
+    _data->insert_serializer(std::move(ser), action);
 }
 
-void formats::register_adapter(const adapter* adp)
+void formats::register_adapter(const adapter* adp, duplicate_type_action action)
 {
-    _data->insert_adapter(adp);
+    _data->insert_adapter(adp, action);
 }
 
-void formats::register_adapter(std::shared_ptr<const adapter> adp)
+void formats::register_adapter(std::shared_ptr<const adapter> adp, duplicate_type_action action)
 {
-    _data->insert_adapter(std::move(adp));
+    _data->insert_adapter(std::move(adp), action);
 }
 
 bool formats::operator==(const formats& other) const

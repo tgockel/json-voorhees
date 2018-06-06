@@ -74,6 +74,11 @@ struct person
     }
 };
 
+struct sometype
+{
+    int64_t v;
+};
+
 }
 
 TEST(serialization_builder_members)
@@ -629,6 +634,46 @@ TEST(serialization_builder_polymorphic_direct)
     
     value encoded = to_json(output, fmts);
     ensure_eq(input, encoded);
+}
+
+TEST(serialization_builder_duplicate_type_actions)
+{
+    // Make one adapter that serializes and deserializes an int directly.
+    static const auto adapter1 = make_adapter(
+        [](const extraction_context&, const value& v) { return sometype{v.as_integer()}; },
+        [](const serialization_context&, const sometype& v) { return value(v.v); });
+
+    // Make another adapter that adds one each time an int is serialized and deserialized.
+    static const auto adapter2 = make_adapter(
+        [](const extraction_context&, const value& v) { return sometype{v.as_integer() + 1}; },
+        [](const serialization_context&, const sometype& v) { return value(v.v + 1); });
+
+    // Helper that serializes then deserializes an integer and returns the result.
+    static const auto serde = [] (int v, const formats& f) { return extract<sometype>(to_json(sometype{v}, f), f).v; };
+
+    // Initial adapter registration.
+    formats_builder builder;
+    builder.register_adapter(&adapter1);
+    ensure_eq(1, serde(1, builder));
+
+    // Default should throw, and the adapter should be unchanged.
+    ensure_throws(duplicate_type_error, builder.register_adapter(&adapter2));
+    ensure_eq(1, serde(1, builder));
+
+    // Ignore should not throw, but the adapter should still be unchanged.
+    builder.on_duplicate_type(duplicate_type_action::ignore);
+    builder.register_adapter(&adapter2);
+    ensure_eq(1, serde(1, builder));
+
+    // Replace should not throw, and the adapter should be replaced.
+    builder.on_duplicate_type(duplicate_type_action::replace);
+    builder.register_adapter(&adapter2);
+    ensure_eq(3, serde(1, builder));
+
+    // Going back to exception should again throw an exception.
+    builder.on_duplicate_type(duplicate_type_action::exception);
+    ensure_throws(duplicate_type_error, builder.register_adapter(&adapter1));
+    ensure_eq(3, serde(1, builder));
 }
 
 }
