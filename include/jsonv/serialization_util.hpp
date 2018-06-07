@@ -14,6 +14,7 @@
 #define __JSONV_SERIALIZATION_UTIL_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
+#include <jsonv/demangle.hpp>
 #include <jsonv/functional.hpp>
 #include <jsonv/serialization.hpp>
 
@@ -517,6 +518,22 @@ private:
 template <typename TEnum, typename FEnumComp = std::less<TEnum>>
 using enum_adapter_icase = enum_adapter<TEnum, FEnumComp, value_less_icase>;
 
+/**
+ * What to do when serializing a keyed subtype of a \ref polymorphic_adapter. See \ref
+ * polymorphic_adapter::add_subtype_keyed.
+**/
+enum class keyed_subtype_action : unsigned char
+{
+    /** Don't do any checking or insertion of the expected key/value pair. **/
+    none,
+    /** Ensure the correct key/value pair was inserted by serialization. Throws \c std::runtime_error if it wasn't. **/
+    check,
+    /** Insert the correct key/value pair as part of serialization. Throws \c std::runtime_error if the key is already
+     * present.
+    **/
+    insert
+};
+
 /** An adapter which can create polymorphic types. This allows you to parse JSON directly into a type heirarchy without
  *  some middle layer.
  *  
@@ -570,8 +587,14 @@ public:
      *  \see add_subtype
     **/
     template <typename T>
-    void add_subtype_keyed(std::string key, value expected_value)
+    void add_subtype_keyed(std::string key,
+                           value expected_value,
+                           keyed_subtype_action action = keyed_subtype_action::none)
     {
+        std::type_index tidx = std::type_index(typeid(T));
+        if (!_serialization_actions.emplace(tidx, std::make_tuple(key, expected_value, action)).second)
+            throw duplicate_type_error("polymorphic_adapter subtype", std::type_index(typeid(T)));
+
         match_predicate op = [key, expected_value] (const extraction_context&, const value& value)
                              {
                                  if (!value.is_object())
@@ -634,15 +657,57 @@ protected:
     {
         if (_check_null_output && !from)
             return null;
-        else
-            return context.to_json(typeid(*from), static_cast<const void*>(&*from));
+
+        value serialized = context.to_json(typeid(*from), static_cast<const void*>(&*from));
+
+        auto action_iter = _serialization_actions.find(std::type_index(typeid(*from)));
+        if (action_iter != _serialization_actions.end())
+        {
+            auto errmsg = [&]()
+                          {
+                              return " polymorphic_adapter<" + demangle(typeid(TPointer).name()) + ">"
+                                     "subtype(" + demangle(typeid(*from).name()) + ")";
+                          };
+
+            const std::string&          key    = std::get<0>(action_iter->second);
+            const value&                val    = std::get<1>(action_iter->second);
+            const keyed_subtype_action& action = std::get<2>(action_iter->second);
+
+            switch (action)
+            {
+            case keyed_subtype_action::none:
+                break;
+            case keyed_subtype_action::check:
+                if (!serialized.is_object())
+                    throw std::runtime_error("Expected keyed subtype to serialize as an object." + errmsg());
+                if (!serialized.count(key))
+                    throw std::runtime_error("Expected subtype key not found." + errmsg());
+                if (serialized.at(key) != val)
+                    throw std::runtime_error("Expected subtype key is not the expected value." + errmsg());
+                break;
+            case keyed_subtype_action::insert:
+                if (!serialized.is_object())
+                    throw std::runtime_error("Expected keyed subtype to serialize as an object." + errmsg());
+                if (serialized.count(key))
+                    throw std::runtime_error("Subtype key already present when trying to insert." + errmsg());
+                serialized[key] = val;
+                break;
+            default:
+                throw std::runtime_error("Unknown keyed_subtype_action.");
+            }
+        }
+
+        return serialized;
     }
     
 private:
     using create_function = std::function<TPointer (const extraction_context&, const value&)>;
     
 private:
+    using serialization_action = std::tuple<std::string, value, keyed_subtype_action>;
+
     std::vector<std::pair<match_predicate, create_function>> _subtype_ctors;
+    std::map<std::type_index, serialization_action>          _serialization_actions;
     bool                                                     _check_null_input  = false;
     bool                                                     _check_null_output = false;
 };
