@@ -293,6 +293,27 @@ namespace jsonv
  *  
  *  \see enum_adapter
  *  
+ *  \paragraph serialization_builder_dls_ref_formats_level_polymorphic_type polymorphic_type
+ *
+ *  - <tt>polymorphic_type<&lt;TPointer&gt;(std::string discrimination_key);</tt>
+ *
+ *  Create an adapter for the \c TPointer type (usually \c std::shared_ptr or \c std::unique_ptr) that knows how to
+ *  serialize and deserialize one or more types that can be polymorphically represented by \c TPointer, i.e. derived
+ *  types. It uses a discrimination key to determine which concrete type should be instantiated when extracting values
+ *  from json.
+ *
+ *  \code
+ *    .polymorphic_type<std::unique_ptr<base>>("type")
+ *      .subtype<derived_1>("derived_1")
+ *      .subtype<derived_2>("derived_2", keyed_subtype_action::check)
+ *      .subtype<derived_3>("derived_3", keyed_subtype_action::insert);
+ *  \endcode
+ *
+ *  The \ref keyed_subtype_action can be used to configure the adapter to make sure that the discrimination key was
+ *  correctly serialized (\ref keyed_subtype_action::check) or to insert the discrimination key for the underlying type
+ *  so that the underlying type doesn't need to do that itself (\ref keyed_subtype_action::insert). The default is to do
+ *  nothing (\ref keyed_subtype_action::none).
+ *
  *  \paragraph serialization_builder_dsl_ref_formats_level_extend extend
  *  
  *   - <tt>extend(std::function&lt;void (formats_builder&amp;)&gt; func)</tt>
@@ -1128,18 +1149,23 @@ public:
     }
     
     template <typename TSub>
-    polymorphic_adapter_builder& subtype(value discrimination_value)
+    polymorphic_adapter_builder& subtype(value discrimination_value,
+                                         keyed_subtype_action action = keyed_subtype_action::none)
     {
         if (_discrimination_key.empty())
             throw std::logic_error("Cannot use single-argument subtype if no discrimination_key has been set");
         
-        return subtype<TSub>(_discrimination_key, std::move(discrimination_value));
+        return subtype<TSub>(_discrimination_key, std::move(discrimination_value), action);
     }
         
     template <typename TSub>
-    polymorphic_adapter_builder& subtype(std::string discrimination_key, value discrimination_value)
+    polymorphic_adapter_builder& subtype(std::string discrimination_key,
+                                         value discrimination_value,
+                                         keyed_subtype_action action = keyed_subtype_action::none)
     {
-        _adapter->template add_subtype_keyed<TSub>(std::move(discrimination_key), std::move(discrimination_value));
+        _adapter->template add_subtype_keyed<TSub>(std::move(discrimination_key),
+                                                   std::move(discrimination_value),
+                                                   action);
         reference_type(std::type_index(typeid(TSub)), std::type_index(typeid(TPointer)));
         return *this;
     }

@@ -604,36 +604,93 @@ struct b_derived :
     {
         builder.member("type", &b_derived::x);
     }
-    
+
+    static void json_adapt_bad_value(adapter_builder<b_derived>& builder)
+    {
+        builder.member("type", &b_derived::bad);
+    }
+
+    static void json_adapt_no_value(adapter_builder<b_derived>&)
+    {
+    }
+
     std::string x = "b";
+    std::string bad = "bad";
+};
+
+struct c_derived :
+        base
+{
+    virtual std::string get() const override { return "c"; }
+
+    static void json_adapt(adapter_builder<c_derived>&)
+    {
+    }
+
+    static void json_adapt_some_value(adapter_builder<c_derived>& builder)
+    {
+        builder.member("type", &c_derived::x);
+    }
+
+    std::string x = "c";
 };
 
 }
 
 TEST(serialization_builder_polymorphic_direct)
 {
-    formats fmts =
-        formats::compose
-        ({
-            formats_builder()
-                .polymorphic_type<std::unique_ptr<base>>("type")
-                    .subtype<a_derived>("a")
-                    .subtype<b_derived>("b")
-                .type<a_derived>(a_derived::json_adapt)
-                .type<b_derived>(b_derived::json_adapt)
-                .register_container<std::vector<std::unique_ptr<base>>>()
-                .check_references(formats::defaults()),
-            formats::defaults()
-        });
+    auto make_fmts = [](std::function<void(adapter_builder<b_derived>&)> b_adapter,
+                        std::function<void(adapter_builder<c_derived>&)> c_adapter)
+                     {
+                         return formats::compose
+                                ({
+                                    formats_builder()
+                                        .polymorphic_type<std::unique_ptr<base>>("type")
+                                            .subtype<a_derived>("a")
+                                            .subtype<b_derived>("b", keyed_subtype_action::check)
+                                            .subtype<c_derived>("c", keyed_subtype_action::insert)
+                                        .type<a_derived>(a_derived::json_adapt)
+                                        .type<b_derived>(b_adapter)
+                                        .type<c_derived>(c_adapter)
+                                        .register_container<std::vector<std::unique_ptr<base>>>()
+                                        .check_references(formats::defaults()),
+                                    formats::defaults()
+                                });
+                     };
+
+    auto make_bad_fmts = []()
+                         {
+                             formats_builder()
+                                 .polymorphic_type<std::unique_ptr<base>>("type")
+                                     .subtype<a_derived>("a")
+                                     .subtype<a_derived>("a");
+                         };
     
-    value input = array({ object({{ "type", "a" }}), object({{ "type", "b" }}) });
+    auto fmts = make_fmts(b_derived::json_adapt, c_derived::json_adapt);
+    value input = array({ object({{ "type", "a" }}), object({{ "type", "b" }}), object({{ "type", "c" }}) });
     auto output = extract<std::vector<std::unique_ptr<base>>>(input, fmts);
     
     ensure(output.at(0)->get() == "a");
     ensure(output.at(1)->get() == "b");
+    ensure(output.at(2)->get() == "c");
     
     value encoded = to_json(output, fmts);
     ensure_eq(input, encoded);
+
+    // If the b type serializes the wrong value for "type" we should get a runtime_error.
+    fmts = make_fmts(b_derived::json_adapt_bad_value, c_derived::json_adapt);
+    ensure_throws(std::runtime_error, to_json(output, fmts));
+
+    // If the b type does not add a "type" key we should get a runtime_error.
+    fmts = make_fmts(b_derived::json_adapt_no_value, c_derived::json_adapt);
+    ensure_throws(std::runtime_error, to_json(output, fmts));
+
+    // If the c type serializes "type" at all we should get an error, because we expected to insert it ourselves.
+    fmts = make_fmts(b_derived::json_adapt, c_derived::json_adapt_some_value);
+    ensure_throws(std::runtime_error, to_json(output, fmts));
+
+    // Attempting to register the same keyed subtype twice should result in a duplicate_type_error.
+    ensure_throws(duplicate_type_error, make_bad_fmts());
 }
 
 TEST(serialization_builder_duplicate_type_actions)
