@@ -19,8 +19,8 @@
 #endif
 
 #define JSONV_VERSION_MAJOR 1
-#define JSONV_VERSION_MINOR 3
-#define JSONV_VERSION_PATCH 0
+#define JSONV_VERSION_MINOR 2
+#define JSONV_VERSION_PATCH 1
 
 /** \def JSONV_DEBUG
  *  \brief Was JSON Voorhees compiled in debug mode?
