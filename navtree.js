@@ -1,29 +1,101 @@
-/*
- @licstart  The following is the entire license notice for the
- JavaScript code in this file.
+var NAVTREE =
+[
+  [ "JSON Voorhees", "index.html", [
+    [ "Overview", "index.html", [
+      [ "The jsonv::value", "index.html#demo_value", null ],
+      [ "Encoding and decoding", "index.html#demo_parsing", null ],
+      [ "Serialization", "index.html#serialization", [
+        [ "Extracting with extract", "index.html#serialization_encoding", null ],
+        [ "Serialization with to_json", "index.html#serialization_to_json", null ],
+        [ "Composing Type Adapters", "index.html#serialization_composition", null ]
+      ] ],
+      [ "Algorithms", "index.html#demo_algorithm", null ]
+    ] ],
+    [ "Serialization Builder DSL", "serialization_builder_dsl.html", [
+      [ "Reference", "serialization_builder_dsl.html#Reference", [
+        [ "Formats Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats", [
+          [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level", [
+            [ "check_references", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_check_references", null ],
+            [ "reference_type", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_reference_type", null ],
+            [ "register_adapter", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_adapter", null ],
+            [ "register_optional", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_optional", null ],
+            [ "register_container", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_container", null ],
+            [ "register_containers", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_containers", null ],
+            [ "register_wrapper", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_register_wrapper", null ],
+            [ "enum_type", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_enum_type", null ],
+            [ "polymorphic_type", "serialization_builder_dsl.html#serialization_builder_dls_ref_formats_level_polymorphic_type", null ],
+            [ "extend", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_extend", null ],
+            [ "on_duplicate_type", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level_on_duplicate_type", null ]
+          ] ],
+          [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing", [
+            [ "type<T>", "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_narrowing_type", null ]
+          ] ]
+        ] ],
+        [ "Type Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type", [
+          [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level", [
+            [ "pre_extract", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_pre_extract", null ],
+            [ "type_default_on_null", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_default_on_null", null ],
+            [ "serialization_builder_dsl_ref_type_level_type_default_value", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_type_default_value", null ],
+            [ "on_extract_extra_keys", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_on_extract_extra_keys", null ]
+          ] ],
+          [ "Narrowing", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing", [
+            [ "member", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member", null ]
+          ] ]
+        ] ],
+        [ "Member Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member", [
+          [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level", [
+            [ "after", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_after", null ],
+            [ "alternate_name", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_alternate_name", null ],
+            [ "before", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_before", null ],
+            [ "check_input", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_check_input", null ],
+            [ "default_value", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_default_value", null ],
+            [ "default_on_null", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_default_on_null", null ],
+            [ "encode_if", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_encode_if", null ],
+            [ "since", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_since", null ],
+            [ "until", "serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_until", null ]
+          ] ]
+        ] ]
+      ] ]
+    ] ],
+    [ "Deprecated List", "deprecated.html", null ],
+    [ "Modules", "modules.html", "modules" ],
+    [ "Classes", null, [
+      [ "Class List", "annotated.html", "annotated" ],
+      [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
+      [ "Class Members", "functions.html", [
+        [ "All", "functions.html", "functions_dup" ],
+        [ "Functions", "functions_func.html", "functions_func" ],
+        [ "Variables", "functions_vars.html", null ],
+        [ "Typedefs", "functions_type.html", null ],
+        [ "Enumerations", "functions_enum.html", null ],
+        [ "Enumerator", "functions_eval.html", null ],
+        [ "Related Functions", "functions_rela.html", null ]
+      ] ]
+    ] ],
+    [ "Files", null, [
+      [ "File List", "files.html", "files" ],
+      [ "File Members", "globals.html", [
+        [ "All", "globals.html", null ],
+        [ "Macros", "globals_defs.html", null ]
+      ] ]
+    ] ],
+    [ "Examples", "examples.html", "examples" ]
+  ] ]
+];
 
- Copyright (C) 1997-2017 by Dimitri van Heesch
+var NAVTREEINDEX =
+[
+".html",
+"classjsonv_1_1detail_1_1string__view.html#afb867f60a1f8432d992c244b06f3e999",
+"classjsonv_1_1path__element.html#a1d07aa75c083a44758fea0928702824f",
+"encode_8hpp.html",
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_default_on_null"
+];
 
- This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
-
- You should have received a copy of the GNU General Public License along
- with this program; if not, write to the Free Software Foundation, Inc.,
- 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
- @licend  The above is the entire license notice
- for the JavaScript code in this file
- */
+var SYNCONMSG = 'click to disable panel synchronisation';
+var SYNCOFFMSG = 'click to enable panel synchronisation';
 var navTreeSubIndices = new Array();
-var arrowDown = '&#9660;';
-var arrowRight = '&#9654;';
 
 function getData(varName)
 {
@@ -96,21 +168,21 @@ function cachedLink()
 
 function getScript(scriptName,func,show)
 {
-  var head = document.getElementsByTagName("head")[0];
+  var head = document.getElementsByTagName("head")[0]; 
   var script = document.createElement('script');
   script.id = scriptName;
   script.type = 'text/javascript';
-  script.onload = func;
-  script.src = scriptName+'.js';
-  if ($.browser.msie && $.browser.version<=8) {
+  script.onload = func; 
+  script.src = scriptName+'.js'; 
+  if ($.browser.msie && $.browser.version<=8) { 
     // script.onload does not work with older versions of IE
     script.onreadystatechange = function() {
-      if (script.readyState=='complete' || script.readyState=='loaded') {
-        func(); if (show) showRoot();
+      if (script.readyState=='complete' || script.readyState=='loaded') { 
+        func(); if (show) showRoot(); 
       }
     }
   }
-  head.appendChild(script);
+  head.appendChild(script); 
 }
 
 function createIndent(o,domNode,node,level)
@@ -119,17 +191,18 @@ function createIndent(o,domNode,node,level)
   var n = node;
   while (n.parentNode) { level++; n=n.parentNode; }
   if (node.childrenData) {
-    var imgNode = document.createElement("span");
-    imgNode.className = 'arrow';
+    var imgNode = document.createElement("img");
     imgNode.style.paddingLeft=(16*level).toString()+'px';
-    imgNode.innerHTML=arrowRight;
+    imgNode.width  = 16;
+    imgNode.height = 22;
+    imgNode.border = 0;
     node.plus_img = imgNode;
     node.expandToggle = document.createElement("a");
     node.expandToggle.href = "javascript:void(0)";
     node.expandToggle.onclick = function() {
       if (node.expanded) {
         $(node.getChildrenUL()).slideUp("fast");
-        node.plus_img.innerHTML=arrowRight;
+        node.plus_img.src = node.relpath+"ftv2pnode.png";
         node.expanded = false;
       } else {
         expandNode(o, node, false, false);
@@ -137,13 +210,15 @@ function createIndent(o,domNode,node,level)
     }
     node.expandToggle.appendChild(imgNode);
     domNode.appendChild(node.expandToggle);
+    imgNode.src = node.relpath+"ftv2pnode.png";
   } else {
     var span = document.createElement("span");
-    span.className = 'arrow';
+    span.style.display = 'inline-block';
     span.style.width   = 16*(level+1)+'px';
+    span.style.height  = '22px';
     span.innerHTML = '&#160;';
     domNode.appendChild(span);
-  }
+  } 
 }
 
 var animationInProgress = false;
@@ -217,7 +292,7 @@ function newNode(o, po, text, link, childrenData, lastNode)
       var aname = '#'+link.split('#')[1];
       var srcPage = stripPath(pathName());
       var targetPage = stripPath(link.split('#')[0]);
-      a.href = srcPage!=targetPage ? url : "javascript:void(0)";
+      a.href = srcPage!=targetPage ? url : "javascript:void(0)"; 
       a.onclick = function(){
         storeLink(link);
         if (!$(a).parent().parent().hasClass('selected'))
@@ -235,7 +310,7 @@ function newNode(o, po, text, link, childrenData, lastNode)
       a.onclick = function() { storeLink(link); }
     }
   } else {
-    if (childrenData != null)
+    if (childrenData != null) 
     {
       a.className = "nolink";
       a.href = "javascript:void(0)";
@@ -284,13 +359,17 @@ function expandNode(o, node, imm, showRoot)
     } else {
       if (!node.childrenVisited) {
         getNode(o, node);
-      } if (imm || ($.browser.msie && $.browser.version>8)) {
+      } if (imm || ($.browser.msie && $.browser.version>8)) { 
         // somehow slideDown jumps to the start of tree for IE9 :-(
         $(node.getChildrenUL()).show();
       } else {
         $(node.getChildrenUL()).slideDown("fast");
       }
-      node.plus_img.innerHTML = arrowDown;
+      if (node.isLast) {
+        node.plus_img.src = node.relpath+"ftv2mlastnode.png";
+      } else {
+        node.plus_img.src = node.relpath+"ftv2mnode.png";
+      }
       node.expanded = true;
     }
   }
@@ -359,7 +438,11 @@ function showNode(o, node, index, hash)
         getNode(o, node);
       }
       $(node.getChildrenUL()).css({'display':'block'});
-      node.plus_img.innerHTML = arrowDown;
+      if (node.isLast) {
+        node.plus_img.src = node.relpath+"ftv2mlastnode.png";
+      } else {
+        node.plus_img.src = node.relpath+"ftv2mnode.png";
+      }
       node.expanded = true;
       var n = node.children[o.breadcrumbs[index]];
       if (index+1<o.breadcrumbs.length) {
@@ -496,9 +579,10 @@ function initNavTree(toroot,relpath)
   o.node.relpath = relpath;
   o.node.expanded = false;
   o.node.isLast = true;
-  o.node.plus_img = document.createElement("span");
-  o.node.plus_img.className = 'arrow';
-  o.node.plus_img.innerHTML = arrowRight;
+  o.node.plus_img = document.createElement("img");
+  o.node.plus_img.src = relpath+"ftv2pnode.png";
+  o.node.plus_img.width = 16;
+  o.node.plus_img.height = 22;
 
   if (localStorageSupported()) {
     var navSync = $('#nav-sync');
@@ -537,4 +621,4 @@ function initNavTree(toroot,relpath)
      }
   })
 }
-/* @license-end */
+

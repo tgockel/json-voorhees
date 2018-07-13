@@ -35,27 +35,27 @@ var group__Algorithm =
       ] ],
       [ "validation_error", "classjsonv_1_1validation__error.html#a806d14306caaef8da7086b857ac18c43", null ],
       [ "~validation_error", "classjsonv_1_1validation__error.html#ae79ea654e8a7be74c689ee600f2c44be", null ],
-      [ "error_code", "classjsonv_1_1validation__error.html#a1b3d3f28eb5c1a6fb3f0fdd2cf6ff99a", null ],
-      [ "path", "classjsonv_1_1validation__error.html#ad03e378181a5d99efe7561b3ee7fe086", null ],
-      [ "value", "classjsonv_1_1validation__error.html#a90a9b95991eb8d8f83bac8f2881988fb", null ]
+      [ "error_code", "classjsonv_1_1validation__error.html#a438dfccc44015a8301cfd885f45bd801", null ],
+      [ "path", "classjsonv_1_1validation__error.html#ac816f8ec0dfc5f1210205e45d895c83d", null ],
+      [ "value", "classjsonv_1_1validation__error.html#ada676042ae0963bc583680e2df265712", null ]
     ] ],
     [ "value_compare", "structjsonv_1_1value__compare.html", [
       [ "first_argument_type", "structjsonv_1_1value__compare.html#afff402e09520efb83ca775b182ee6d3c", null ],
       [ "result_type", "structjsonv_1_1value__compare.html#ac06d982073aeba76b32e40af8c547ecf", null ],
       [ "second_argument_type", "structjsonv_1_1value__compare.html#a25791d2e5d78bfa3e1af517e676f05a5", null ],
-      [ "operator()", "structjsonv_1_1value__compare.html#a1eb391c614b2e5a88c4da192da6a0f9c", null ]
+      [ "operator()", "structjsonv_1_1value__compare.html#aaea6f61d9498e45f7933abb8649fdf4e", null ]
     ] ],
     [ "value_compare_icase", "structjsonv_1_1value__compare__icase.html", [
       [ "first_argument_type", "structjsonv_1_1value__compare__icase.html#aae27774ce4ea50de101e7928cd07787e", null ],
       [ "result_type", "structjsonv_1_1value__compare__icase.html#a0881c64e20ff212d20434416eb5e5e5f", null ],
       [ "second_argument_type", "structjsonv_1_1value__compare__icase.html#a296c6bc93f4a2e1eff253d8954c14113", null ],
-      [ "operator()", "structjsonv_1_1value__compare__icase.html#a7a6868d83f464778d3470f989f5d9683", null ]
+      [ "operator()", "structjsonv_1_1value__compare__icase.html#ada74589b5cae439438b54f6de854dd86", null ]
     ] ],
     [ "basic_value_binary_predicate", "structjsonv_1_1basic__value__binary__predicate.html", [
       [ "first_argument_type", "structjsonv_1_1basic__value__binary__predicate.html#a5c2cf2c00725c1ace6102ec451d6094b", null ],
       [ "result_type", "structjsonv_1_1basic__value__binary__predicate.html#a25e7faf523297ad6da2664b1b9732f72", null ],
       [ "second_argument_type", "structjsonv_1_1basic__value__binary__predicate.html#a8cf6f6219e13da8ee8f880062872b6e2", null ],
-      [ "operator()", "structjsonv_1_1basic__value__binary__predicate.html#ac77a771dc3c6c38aed0e0bbc84afec5b", null ]
+      [ "operator()", "structjsonv_1_1basic__value__binary__predicate.html#aa84db9fc7ac483f8c50b44126165deb1", null ]
     ] ],
     [ "compare", "group__Algorithm.html#ga18053a6a38a0ddd3739a9b253e6f8301", null ],
     [ "compare", "group__Algorithm.html#gae72c162e414d753ba60c1e84b49ff2ab", null ],
@@ -64,10 +64,10 @@ var group__Algorithm =
     [ "map", "group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d", null ],
     [ "map", "group__Algorithm.html#ga20a92faf8b28a6ec0ea0360cdf475f43", null ],
     [ "map", "group__Algorithm.html#ga9e2e68ce801ca3c29f80f104dd12c99d", null ],
-    [ "map", "group__Algorithm.html#ga90c7b3b2525144b37b24593db0f8d5a9", null ],
-    [ "merge", "group__Algorithm.html#gac0b85875aad4cd7b63bf9100a65f2139", null ],
+    [ "map", "group__Algorithm.html#ga8801c26b1bb92cf42203aea4284f82be", null ],
+    [ "merge", "group__Algorithm.html#gaf7084b1883a32bab8378bd8aab6ae71f", null ],
     [ "merge_explicit", "group__Algorithm.html#ga5f3d51f2832841e7c90ba1eb9b9b93a1", null ],
-    [ "merge_recursive", "group__Algorithm.html#gad2a834e2dc802950967a7e9ef921f8a6", null ],
+    [ "merge_recursive", "group__Algorithm.html#gafbfed07c06da7ed1b28e64907aefea42", null ],
     [ "traverse", "group__Algorithm.html#gaf74e9854143e94b2b014efe15eb63fdf", null ],
     [ "traverse", "group__Algorithm.html#gacc870c7f69dc8731b6a97afa97df43cc", null ],
     [ "validate", "group__Algorithm.html#ga4073c6d09edda785ddc21f1b35c5bdf6", null ]

@@ -1,7 +1,8 @@
 var searchData=
 [
   ['basic_5farray_5fiterator',['basic_array_iterator',['../structjsonv_1_1value_1_1basic__array__iterator.html',1,'jsonv::value']]],
-  ['basic_5fobject_5fiterator',['basic_object_iterator',['../structjsonv_1_1value_1_1basic__object__iterator.html',1,'jsonv::value::basic_object_iterator&lt; T, TIterator &gt;'],['../structjsonv_1_1value_1_1basic__object__iterator.html#a445706d6b405eae21f5782ad68632c80',1,'jsonv::value::basic_object_iterator::basic_object_iterator()']]],
+  ['basic_5fobject_5fiterator',['basic_object_iterator',['../structjsonv_1_1value_1_1basic__object__iterator.html',1,'jsonv::value']]],
+  ['basic_5fobject_5fiterator',['basic_object_iterator',['../structjsonv_1_1value_1_1basic__object__iterator.html#a2a1058909d44ee962f4cd51afe23d007',1,'jsonv::value::basic_object_iterator']]],
   ['basic_5fobject_5fiterator_3c_20const_20object_5fvalue_5ftype_2c_20std_3a_3amap_3c_20std_3a_3astring_2c_20value_20_3e_3a_3aconst_5fiterator_20_3e',['basic_object_iterator&lt; const object_value_type, std::map&lt; std::string, value &gt;::const_iterator &gt;',['../structjsonv_1_1value_1_1basic__object__iterator.html',1,'jsonv::value']]],
   ['basic_5fowner',['basic_owner',['../classjsonv_1_1detail_1_1basic__owner.html',1,'jsonv::detail']]],
   ['basic_5fowner_3c_20tcontainer_20_3e',['basic_owner&lt; TContainer &gt;',['../classjsonv_1_1detail_1_1basic__owner.html',1,'jsonv::detail']]],
