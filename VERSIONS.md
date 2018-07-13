@@ -1,15 +1,59 @@
 1._ Series
 ==========
 
+1.3
+---
+
+ - [1.3.0](https://github.com/tgockel/json-voorhees/releases/tag/v1.3.0): 2018 July 13
+   - Core
+     - Expands testing for strings with the Big List of Naughty Strings
+   - Serialization
+     - Return old `formats` value when using `formats::set_global`
+     - Allow duplicate types when building formats
+     - Convenience methods for checking formats references while building a `formats` instance
+   - Platform
+     - Easy way to build packages for all platforms
+
+1.2
+---
+
+ - [1.2.1](https://github.com/tgockel/json-voorhees/releases/tag/v1.2.1): 2018 June 13
+   - Workaround an issue in GCC 8.1.0 where unicode points would be incorrectly parsed at `-O3`.
+
+ - [1.2.0](https://github.com/tgockel/json-voorhees/releases/tag/v1.2.0): 2018 April 13
+   - Core
+     - Parsing performance improvements -- about twice as fast as 1.1
+     - Eliminated usage of regular expressions
+     - No more reliance on `<codecvt>` or Boost.Locale for UTF conversions
+   - Platform
+     - Expanded support for Debian, Fedora, OpenSUSE, and Arch Linux
+   - Serialization
+     - Added support for type-level defaults -- `type_default_on_null` and `type_default_value`
+     - Default `formats` now support going to and from `string_view`
+     - `extraction_context` now supports extraction based on `std::type_info`
+
+1.1
+---
+
+ - [1.1.1](https://github.com/tgockel/json-voorhees/releases/tag/v1.1.1): 2016 January 22
+   - Cover odd integer types on OSX
+
+ - [1.1.0](https://github.com/tgockel/json-voorhees/releases/tag/v1.1.0): 2015 November 13
+   - Less bad Windows support (and true MSVC 2015)
+   - Easier functions for case-insensitive comparisons
+   - Faster parsing
+   - Faster comparisons
+   - Full checking for proper character encodings
+   - Support for `std::wstring` access methods on a `value`
+   - Serialization DSL expansions
+     - Enumeration type support
+     - Simple DSL::extend function
+     - Support for extracting and encoding polymorphic types
+
 [1.0](https://github.com/tgockel/json-voorhees/issues?q=milestone%3Av1.0)
 -------------------------------------------------------------------------
 
 Stabilizing the API and finalizing things for a release.
-
- - [1.0.1](https://github.com/tgockel/json-voorhees/releases/tag/v1.0.1): *FUTURE*
-   - More reasonable dealing with invalid UTF-8 input
-   - Improved support for JSON comments
-   - Improved support for Mac OSX
 
  - [1.0.0](https://github.com/tgockel/json-voorhees/releases/tag/v1.0.0): 2015 March 13
    - Moves to CMake as the build system
