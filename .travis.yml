@@ -1,4 +1,6 @@
 language: cpp
+dist: trusty
+sudo: required
 env:
   matrix:
   - DISTRO=ubuntu-14.04  CONF=Debug
@@ -37,6 +39,7 @@ after_success:
 - if [[ ${GIT_CURRENT_HASH} != ${GIT_MASTER_HASH} ]]; then        echo "Skipping documentation publishing due to non-master ${GIT_CURRENT_HASH} (master=${GIT_MASTER_HASH})"; exit 0; fi
 - if [[ ${GIT_REMOTE_FETCH_PATH} != ${GIT_EXPECTED_PATH} ]]; then echo "Skipping documentation publishing due to non-mainline remote ${GIT_REMOTE_FETCH_PATH}"; exit 0; fi
 - sudo add-apt-repository --yes ppa:libreoffice/ppa
+- sudo apt-get update
 - sudo apt-get install --yes doxygen graphviz texlive-full
 - openssl aes-256-cbc -K $encrypted_3e0adb789702_key -iv $encrypted_3e0adb789702_iv
   -in config/travisci_ecdsa.enc -out config/travisci_ecdsa -d
