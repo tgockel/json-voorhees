@@ -423,12 +423,14 @@ bool formats::operator!=(const formats& other) const
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-static void register_integer_adapter(formats& fmt)
+static void register_integer_adapter(formats&              fmt,
+                                     duplicate_type_action on_duplicate = duplicate_type_action::exception
+                                    )
 {
     static auto instance = make_adapter([] (const value& from) { return T(from.as_integer()); },
                                         [] (const T& from) { return value(static_cast<std::int64_t>(from)); }
                                        );
-    fmt.register_adapter(&instance);
+    fmt.register_adapter(&instance, on_duplicate);
 }
 
 static formats create_default_formats()
@@ -468,15 +470,13 @@ static formats create_default_formats()
     register_integer_adapter<std::uint32_t>(fmt);
     register_integer_adapter<std::int64_t>(fmt);
     register_integer_adapter<std::uint64_t>(fmt);
-    #if defined(__APPLE__)
-    register_integer_adapter<std::size_t>(fmt);
-    register_integer_adapter<long>(fmt);
-    #elif defined(_MSC_VER)
-    // In MSVC's 64-bit compiler, `std::int64_t` is a distinct type from `long`. Since these are really common types,
-    // we will add them explicitly.
-    register_integer_adapter<long>(fmt);
-    register_integer_adapter<unsigned long>(fmt);
-    #endif
+
+    // These common types are usually covered by the explicitly-sized integers, but try to add them for platforms like
+    // OSX and Windows.
+    register_integer_adapter<std::size_t>(fmt, duplicate_type_action::ignore);
+    register_integer_adapter<std::ptrdiff_t>(fmt, duplicate_type_action::ignore);
+    register_integer_adapter<long>(fmt, duplicate_type_action::ignore);
+    register_integer_adapter<unsigned long>(fmt, duplicate_type_action::ignore);
 
     static auto double_extractor = make_adapter([] (const value& from) { return from.as_decimal(); },
                                                 [] (const double& from) { return value(from); }
@@ -534,10 +534,11 @@ formats formats::reset_global()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-static void register_integer_coerce_extractor(formats& fmt)
+static void register_integer_coerce_extractor(formats&              fmt,
+                                              duplicate_type_action on_duplicate = duplicate_type_action::exception)
 {
     static auto instance = make_extractor([] (const value& from) { return T(coerce_integer(from)); });
-    fmt.register_extractor(&instance);
+    fmt.register_extractor(&instance, on_duplicate);
 }
 
 static formats create_coerce_formats()
@@ -558,6 +559,13 @@ static formats create_coerce_formats()
     register_integer_coerce_extractor<std::uint32_t>(fmt);
     register_integer_coerce_extractor<std::int64_t>(fmt);
     register_integer_coerce_extractor<std::uint64_t>(fmt);
+
+    // These common types are usually covered by the explicitly-sized integers, but try to add them for platforms like
+    // OSX and Windows.
+    register_integer_coerce_extractor<std::size_t>(fmt, duplicate_type_action::ignore);
+    register_integer_coerce_extractor<std::ptrdiff_t>(fmt, duplicate_type_action::ignore);
+    register_integer_coerce_extractor<long>(fmt, duplicate_type_action::ignore);
+    register_integer_coerce_extractor<unsigned long>(fmt, duplicate_type_action::ignore);
 
     static auto double_extractor = make_extractor([] (const value& from) { return coerce_decimal(from); });
     fmt.register_extractor(&double_extractor);
