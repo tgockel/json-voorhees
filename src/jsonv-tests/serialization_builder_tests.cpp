@@ -83,16 +83,15 @@ struct sometype
 
 TEST(serialization_builder_members)
 {
-    formats base = formats_builder()
+    formats fmt = formats_builder()
                     .type<person>()
                         .member("firstname", &person::firstname)
                         .member("middle_name", &person::middle_name)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
                         .register_optional<optional<std::string>>()
-                    .check_references(formats::defaults())
+                    .compose_checked(formats::defaults())
                 ;
-    formats fmt = formats::compose({ base, formats::defaults() });
 
     person p("Bob", "Builder", 29);
     to_string(p);
@@ -113,14 +112,14 @@ TEST(serialization_builder_members_since)
 {
     using my_pair = std::pair<int, int>;
 
-    formats base =
+    formats fmt =
         formats_builder()
             .type<my_pair>()
                 .member("a", &my_pair::first)
                 .member("b", &my_pair::second)
                     .since({ 2, 0 })
+            .compose_checked(formats::defaults())
         ;
-    formats fmt = formats::compose({ base, formats::defaults() });
 
     auto to_json_ver = [&fmt] (const version& v)
                        {
@@ -135,7 +134,7 @@ TEST(serialization_builder_members_since)
 
 TEST(serialization_builder_container_members)
 {
-    formats base = formats_builder()
+    formats fmt = formats_builder()
                     .type<person>()
                         .member("firstname",        &person::firstname)
                         .member("lastname",         &person::lastname)
@@ -148,9 +147,8 @@ TEST(serialization_builder_container_members)
                     .register_container<std::set<long>>()
                     .register_container<std::vector<long>>()
                     #endif
-                    .check_references(formats::defaults())
+                    .compose_checked(formats::defaults())
                 ;
-    formats fmt = formats::compose({ base, formats::defaults() });
 
     person p("Bob", "Builder", 29, { 1, 2, 3, 4 }, { 5, 6, 7, 8 });
     value expected = object({ { "firstname",        p.firstname          },
@@ -174,15 +172,14 @@ TEST(serialization_builder_extract_extra_keys)
                                   extra_keys = std::move(x);
                               };
 
-    formats base = formats_builder()
+    formats fmt = formats_builder()
                     .type<person>()
                         .member("firstname", &person::firstname)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
                         .on_extract_extra_keys(extra_keys_handler)
-                    .check_references(formats::defaults())
+                    .compose_checked(formats::defaults())
                 ;
-    formats fmt = formats::compose({ base, formats::defaults() });
 
     person p("Bob", "Builder", 29);
     value encoded = object({ { "firstname", p.firstname },
@@ -200,7 +197,7 @@ TEST(serialization_builder_extract_extra_keys)
 
 TEST(serialization_builder_defaults)
 {
-    formats base = formats_builder()
+    formats fmt = formats_builder()
                     .type<person>()
                         .member("firstname",        &person::firstname)
                         .member("lastname",         &person::lastname)
@@ -220,9 +217,8 @@ TEST(serialization_builder_defaults)
                     .register_container<std::set<long>>()
                     .register_container<std::vector<long>>()
                     #endif
-                    .check_references(formats::defaults())
+                    .compose_checked(formats::defaults())
                 ;
-    formats fmt = formats::compose({ base, formats::defaults() });
 
     person p("Bob", "Builder", 20, { 1, 2, 3, 4 }, { 1, 2, 3, 4 });
     value input = object({ { "firstname",        p.firstname          },
@@ -238,7 +234,7 @@ TEST(serialization_builder_defaults)
 
 TEST(serialization_builder_encode_checks)
 {
-    formats base = formats_builder()
+    formats fmt = formats_builder()
                     .type<person>()
                         .member("firstname",        &person::firstname)
                         .member("lastname",         &person::lastname)
@@ -254,9 +250,8 @@ TEST(serialization_builder_encode_checks)
                     .register_container<std::set<long>>()
                     .register_container<std::vector<long>>()
                     #endif
-                    .check_references(formats::defaults())
+                    .compose_checked(formats::list { formats::defaults() })
                 ;
-    formats fmt = formats::compose({ base, formats::defaults() });
 
     person p("Bob", "Builder", 20, std::set<long>(), { 1 });
     value expected = object({ { "firstname", p.firstname },
@@ -469,7 +464,7 @@ TEST(serialization_builder_enum_strings)
             #else
             .register_container<std::vector<ring>>()
             #endif
-            .check_references(jsonv::formats::defaults());
+            .check_references();
     
     ensure(ring::fire  == jsonv::extract<ring>("fire",  formats));
     ensure(ring::wind  == jsonv::extract<ring>("wind",  formats));

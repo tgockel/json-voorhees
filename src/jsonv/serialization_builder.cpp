@@ -34,10 +34,8 @@ formats_builder& formats_builder::reference_type(std::type_index type, std::type
     return *this;
 }
 
-formats_builder& formats_builder::check_references(formats other, const std::string& name)
+void formats_builder::check_references_impl(const formats& searching, const std::string& name)
 {
-    formats searching = formats::compose({ _formats, other });
-    
     std::deque<std::tuple<std::type_index, bool, bool>> failed_types;
     for (const auto& pair : _referenced_types)
     {
@@ -50,11 +48,7 @@ formats_builder& formats_builder::check_references(formats other, const std::str
             failed_types.emplace_back(type, has_extractor, has_serializer);
     }
     
-    if (failed_types.empty())
-    {
-        return *this;
-    }
-    else
+    if (!failed_types.empty())
     {
         std::ostringstream os;
         if (!name.empty())
@@ -84,6 +78,42 @@ formats_builder& formats_builder::check_references(formats other, const std::str
         }
         throw std::logic_error(os.str());
     }
+}
+
+formats_builder& formats_builder::check_references(const formats& other, const std::string& name)
+{
+    check_references_impl(formats::compose({ _formats, other }), name);
+    return *this;
+}
+
+formats_builder& formats_builder::check_references(const formats::list& others, const std::string& name)
+{
+    return check_references(formats::compose(others), name);
+}
+
+formats_builder& formats_builder::check_references(const std::string& name)
+{
+    check_references_impl(*this, name);
+    return *this;
+}
+
+formats formats_builder::compose_checked(formats other, const std::string& name)
+{
+    formats searching = formats::compose({ *this, other });
+    check_references_impl(searching, name);
+    return searching;
+}
+
+formats formats_builder::compose_checked(const formats::list& others, const std::string& name)
+{
+    formats::list all;
+    all.reserve(others.size() + 1);
+    all.emplace_back(*this);
+    std::copy(others.begin(), others.end(), std::back_inserter(all));
+
+    formats searching = formats::compose(all);
+    check_references_impl(searching, name);
+    return searching;
 }
 
 formats_builder& formats_builder::on_duplicate_type(duplicate_type_action action) noexcept
@@ -120,9 +150,29 @@ formats_builder& formats_builder_dsl::register_adapter(std::shared_ptr<const ada
     return owner->register_adapter(std::move(p));
 }
 
-formats_builder& formats_builder_dsl::check_references(formats other, const std::string& name)
+formats_builder& formats_builder_dsl::check_references(const formats& other, const std::string& name)
 {
     return owner->check_references(other, name);
+}
+
+formats_builder& formats_builder_dsl::check_references(const formats::list& others, const std::string& name)
+{
+    return owner->check_references(others, name);
+}
+
+formats_builder& formats_builder_dsl::check_references(const std::string& name)
+{
+    return owner->check_references(name);
+}
+
+formats formats_builder_dsl::compose_checked(formats other, const std::string& name)
+{
+    return owner->compose_checked(std::move(other), name);
+}
+
+formats formats_builder_dsl::compose_checked(std::vector<formats> others, const std::string& name)
+{
+    return owner->compose_checked(std::move(others), name);
 }
 
 formats_builder& formats_builder_dsl::on_duplicate_type(duplicate_type_action action) noexcept

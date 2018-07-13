@@ -148,6 +148,10 @@ namespace jsonv
  *  
  *   - <tt>check_references(formats)</tt>
  *   - <tt>check_references(formats, std::string name)</tt>
+ *   - <tt>check_references(formats::list)</tt>
+ *   - <tt>check_references(formats::list, std::string name)</tt>
+ *   - <tt>check_references()</tt>
+ *   - <tt>check_references(std::string name)</tt>
  *  
  *  Tests that every type referenced by the members of the output of the DSL have an \c extractor and a \c serializer.
  *  The provided \c formats is used to draw extra types from (a common value is \c jsonv::formats::defaults). In other
@@ -596,9 +600,14 @@ public:
     template <typename TWrapper>
     formats_builder& register_wrapper();
 
-    formats_builder& check_references(formats other, const std::string& name = "");
+    formats_builder& check_references(const formats&       other,  const std::string& name = "");
+    formats_builder& check_references(const formats::list& others, const std::string& name = "");
+    formats_builder& check_references(const std::string& name = "");
 
     formats_builder& on_duplicate_type(duplicate_type_action action) noexcept;
+
+    formats compose_checked(formats other, const std::string& name = "");
+    formats compose_checked(std::vector<formats> others, const std::string& name = "");
     
     operator formats() const;
     
@@ -1309,23 +1318,36 @@ public:
     formats_builder& reference_type(std::type_index type);
     formats_builder& reference_type(std::type_index type, std::type_index from);
     
-    /** Check that, when combined with the \c formats \a other, all types referenced by this \c formats_builder will
-     *  get decoded properly.
-     *  
-     *  \param name if non-empty and this function throws, this \a name will be provided in the exception's \c what
-     *              string. This can be useful if you are running multiple \c check_references calls and you want to
-     *              name the different checks.
-     *  
-     *  \throws std::logic_error if \c formats this \c formats_builder is generating, when combined with the provided
-     *                           \a other \c formats, cannot properly serialize all the types.
-    **/
-    formats_builder& check_references(formats other, const std::string& name = "");
+    /// \{
+    /// Check that, when combined with the \c formats \a other, all types referenced by this \c formats_builder will
+    /// get decoded properly.
+    ///
+    /// \param name if non-empty and this function throws, this \a name will be provided in the exception's \c what
+    ///             string. This can be useful if you are running multiple \c check_references calls and you want to
+    ///             name the different checks.
+    ///
+    /// \throws std::logic_error if \c formats this \c formats_builder is generating, when combined with the provided
+    ///                          \a other \c formats, cannot properly serialize all the types.
+    formats_builder& check_references(const formats&       other,  const std::string& name = "");
+    formats_builder& check_references(const formats::list& others, const std::string& name = "");
+    formats_builder& check_references(const std::string& name = "");
+    /// \}
+
+    /// \{
+    /// Check the references of this builder (see \ref check_references) and compose a \ref formats instance if
+    /// successful (see \ref formats::compose).
+    formats compose_checked(formats              other,  const std::string& name = "");
+    formats compose_checked(const formats::list& others, const std::string& name = "");
+    /// \}
 
     /** Assigns the action to perform when a serializer or extractor is being registered by this formats_builder and
      *  there is already a serializer or extracter for that type.
     **/
     formats_builder& on_duplicate_type(duplicate_type_action action) noexcept;
     
+private:
+    void check_references_impl(const formats& searching, const std::string& name);
+
 private:
     formats                                              _formats;
     duplicate_type_action                                _duplicate_type_action = duplicate_type_action::exception;
