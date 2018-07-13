@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['kind',['kind',['../group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53',1,'jsonv']]]
+  ['encoding',['encoding',['../classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593',1,'jsonv::parse_options']]]
 ];

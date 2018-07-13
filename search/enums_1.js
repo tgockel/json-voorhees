@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['encoding',['encoding',['../classjsonv_1_1parse__options.html#acdf4825f573d55b50c82d455fb93f593',1,'jsonv::parse_options']]]
+  ['duplicate_5ftype_5faction',['duplicate_type_action',['../group__Serialization.html#ga645b8b2ddf86926dab927adb704ea352',1,'jsonv']]]
 ];

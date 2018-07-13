@@ -23,7 +23,10 @@ var hierarchy =
     ] ],
     [ "std::exception", null, [
       [ "std::logic_error", null, [
-        [ "jsonv::kind_error", "classjsonv_1_1kind__error.html", null ]
+        [ "jsonv::kind_error", "classjsonv_1_1kind__error.html", null ],
+        [ "std::invalid_argument", null, [
+          [ "jsonv::duplicate_type_error", "classjsonv_1_1duplicate__type__error.html", null ]
+        ] ]
       ] ],
       [ "std::runtime_error", null, [
         [ "jsonv::extraction_error", "classjsonv_1_1extraction__error.html", null ],

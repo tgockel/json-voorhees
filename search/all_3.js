@@ -10,5 +10,7 @@ var searchData=
   ['deprecated_20list',['Deprecated List',['../deprecated.html',1,'']]],
   ['diff',['diff',['../group__Algorithm.html#ga2480514da0048b025804fd95635dbc79',1,'jsonv']]],
   ['diff_5fresult',['diff_result',['../group__Algorithm.html#structjsonv_1_1diff__result',1,'jsonv']]],
+  ['duplicate_5ftype_5faction',['duplicate_type_action',['../group__Serialization.html#ga645b8b2ddf86926dab927adb704ea352',1,'jsonv']]],
+  ['duplicate_5ftype_5ferror',['duplicate_type_error',['../classjsonv_1_1duplicate__type__error.html',1,'jsonv']]],
   ['dynamic_5fmerge_5frules',['dynamic_merge_rules',['../classjsonv_1_1dynamic__merge__rules.html',1,'jsonv']]]
 ];

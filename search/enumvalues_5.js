@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['non_5ffinite_5fnumber',['non_finite_number',['../classjsonv_1_1validation__error.html#af242a7b1e1e2c281d006a16b871e15bfa138a59ee1ba71a6b5ddedff56b90e5c9',1,'jsonv::validation_error']]]
+  ['ignore',['ignore',['../classjsonv_1_1parse__options.html#a301e7d4d58ec502dae5c1020ebc06f46a567bc1d268f135496de3d5b946b691f3',1,'jsonv::parse_options::ignore()'],['../group__Serialization.html#gga645b8b2ddf86926dab927adb704ea352a567bc1d268f135496de3d5b946b691f3',1,'jsonv::ignore()']]],
+  ['insert',['insert',['../group__Serialization.html#ggaaee4cddaeb99aafe88212663f93b9856ae0df5f3dfd2650ae5be9993434e2b2c0',1,'jsonv']]]
 ];
