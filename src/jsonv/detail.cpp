@@ -88,6 +88,7 @@ void check_type(std::initializer_list<kind> expected, kind actual)
                 stream << " or ";
             ++num;
         }
+        stream << " but found " << kind_desc(actual) << ".";
         throw kind_error(stream.str());
     }
 }
