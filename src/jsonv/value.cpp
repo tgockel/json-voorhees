@@ -516,7 +516,7 @@ bool value::empty() const
 
 value::size_type value::size() const
 {
-    check_type({ jsonv::kind::object, jsonv::kind::array, jsonv::kind::string, jsonv::kind::null }, kind());
+    check_type({ jsonv::kind::object, jsonv::kind::array, jsonv::kind::string }, kind());
     
     switch (kind())
     {
@@ -526,11 +526,10 @@ value::size_type value::size() const
         return _data.array->size();
     case jsonv::kind::string:
         return _data.string->_string.size();
-    case jsonv::kind::null:
-        return 0; // by definition a null value has zero size
     case jsonv::kind::integer:
     case jsonv::kind::decimal:
     case jsonv::kind::boolean:
+    case jsonv::kind::null:
     default:
         // Should never hit this...
         return false;
