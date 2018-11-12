@@ -491,10 +491,8 @@ std::string to_string(const value& val)
     return os.str();
 }
 
-bool value::empty() const
+bool value::empty() const noexcept
 {
-    check_type({ jsonv::kind::object, jsonv::kind::array, jsonv::kind::string, jsonv::kind::null }, kind());
-    
     switch (kind())
     {
     case jsonv::kind::object:
@@ -508,9 +506,10 @@ bool value::empty() const
     case jsonv::kind::integer:
     case jsonv::kind::decimal:
     case jsonv::kind::boolean:
+        return false; // in the sense that they contain a value
     default:
         // Should never hit this...
-        return false;
+        return true;
     }
 }
 
@@ -532,7 +531,7 @@ value::size_type value::size() const
     case jsonv::kind::null:
     default:
         // Should never hit this...
-        return false;
+        return 0;
     }
 }
 

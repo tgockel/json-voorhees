@@ -929,16 +929,17 @@ public:
     object_node_handle extract(const std::wstring& key);
     /// \}
 
-    /** Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent
-     *  to asking if the size is 0.
+    /** Is the underlying structure empty?
      *  
      *   - object: Are there no keys?
      *   - array: Are there no values?
      *   - string: Is the string 0 length?
+     *   - null: true (always)
+     *   - all other types: false (always)
      *  
-     *  \throws kind_error if the kind is not an object, array or string.
+     *  \throws nothing
     **/
-    bool empty() const;
+    bool empty() const noexcept;
     
     /** Get the number of items in this value.
      *  
