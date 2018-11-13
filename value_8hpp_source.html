@@ -1045,199 +1045,200 @@ $(document).ready(function(){initNavTree('value_8hpp_source.html','');});
 <div class="line"><a name="l00929"></a><span class="lineno">  929</span>&#160;    <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a> <a class="code" href="group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8">extract</a>(<span class="keyword">const</span> std::wstring&amp; key);<span class="comment"></span></div>
 <div class="line"><a name="l00930"></a><span class="lineno">  930</span>&#160;<span class="comment">    /// \}</span></div>
 <div class="line"><a name="l00931"></a><span class="lineno">  931</span>&#160;<span class="comment"></span><span class="comment"></span></div>
-<div class="line"><a name="l00932"></a><span class="lineno">  932</span>&#160;<span class="comment">    /** Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent</span></div>
-<div class="line"><a name="l00933"></a><span class="lineno">  933</span>&#160;<span class="comment">     *  to asking if the size is 0.</span></div>
-<div class="line"><a name="l00934"></a><span class="lineno">  934</span>&#160;<span class="comment">     *  </span></div>
-<div class="line"><a name="l00935"></a><span class="lineno">  935</span>&#160;<span class="comment">     *   - object: Are there no keys?</span></div>
-<div class="line"><a name="l00936"></a><span class="lineno">  936</span>&#160;<span class="comment">     *   - array: Are there no values?</span></div>
-<div class="line"><a name="l00937"></a><span class="lineno">  937</span>&#160;<span class="comment">     *   - string: Is the string 0 length?</span></div>
-<div class="line"><a name="l00938"></a><span class="lineno">  938</span>&#160;<span class="comment">     *  </span></div>
-<div class="line"><a name="l00939"></a><span class="lineno">  939</span>&#160;<span class="comment">     *  \throws kind_error if the kind is not an object, array or string.</span></div>
-<div class="line"><a name="l00940"></a><span class="lineno">  940</span>&#160;<span class="comment">    **/</span></div>
-<div class="line"><a name="l00941"></a><span class="lineno">  941</span>&#160;    <span class="keywordtype">bool</span> empty() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00942"></a><span class="lineno">  942</span>&#160;    <span class="comment"></span></div>
-<div class="line"><a name="l00943"></a><span class="lineno">  943</span>&#160;<span class="comment">    /** Get the number of items in this value.</span></div>
-<div class="line"><a name="l00944"></a><span class="lineno">  944</span>&#160;<span class="comment">     *  </span></div>
-<div class="line"><a name="l00945"></a><span class="lineno">  945</span>&#160;<span class="comment">     *   - object: The number of key/value pairs.</span></div>
-<div class="line"><a name="l00946"></a><span class="lineno">  946</span>&#160;<span class="comment">     *   - array: The number of values.</span></div>
-<div class="line"><a name="l00947"></a><span class="lineno">  947</span>&#160;<span class="comment">     *   - string: The number of code points in the string (including \c \\0 values and counting multi-byte encodings as</span></div>
-<div class="line"><a name="l00948"></a><span class="lineno">  948</span>&#160;<span class="comment">     *             more than one value).</span></div>
-<div class="line"><a name="l00949"></a><span class="lineno">  949</span>&#160;<span class="comment">     *  </span></div>
-<div class="line"><a name="l00950"></a><span class="lineno">  950</span>&#160;<span class="comment">     *  \throws kind_error if the kind is not an object, array or string.</span></div>
-<div class="line"><a name="l00951"></a><span class="lineno">  951</span>&#160;<span class="comment">    **/</span></div>
-<div class="line"><a name="l00952"></a><span class="lineno">  952</span>&#160;    size_type size() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00953"></a><span class="lineno">  953</span>&#160;    <span class="comment"></span></div>
-<div class="line"><a name="l00954"></a><span class="lineno">  954</span>&#160;<span class="comment">    /** \addtogroup Algorithm</span></div>
-<div class="line"><a name="l00955"></a><span class="lineno">  955</span>&#160;<span class="comment">     *  \{</span></div>
-<div class="line"><a name="l00956"></a><span class="lineno">  956</span>&#160;<span class="comment">    **/</span></div>
-<div class="line"><a name="l00957"></a><span class="lineno">  957</span>&#160;    <span class="comment"></span></div>
-<div class="line"><a name="l00958"></a><span class="lineno">  958</span>&#160;<span class="comment">    /** Run a function over the values of this instance. The behavior of this function is different, depending on the</span></div>
-<div class="line"><a name="l00959"></a><span class="lineno">  959</span>&#160;<span class="comment">     *  \c kind. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If this</span></div>
-<div class="line"><a name="l00960"></a><span class="lineno">  960</span>&#160;<span class="comment">     *  is \c kind::array, \c func is called for every value in the array and the output will be an array with each</span></div>
-<div class="line"><a name="l00961"></a><span class="lineno">  961</span>&#160;<span class="comment">     *  element transformed by \a func. If this is \c kind::object, the result will be an object with each key</span></div>
-<div class="line"><a name="l00962"></a><span class="lineno">  962</span>&#160;<span class="comment">     *  transformed by \a func.</span></div>
-<div class="line"><a name="l00963"></a><span class="lineno">  963</span>&#160;<span class="comment">     *  </span></div>
-<div class="line"><a name="l00964"></a><span class="lineno">  964</span>&#160;<span class="comment">     *  \param func The function to apply to the element or elements of this instance.</span></div>
-<div class="line"><a name="l00965"></a><span class="lineno">  965</span>&#160;<span class="comment">    **/</span></div>
-<div class="line"><a name="l00966"></a><span class="lineno">  966</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">map</a>(<span class="keyword">const</span> std::function&lt;<a class="code" href="classjsonv_1_1value.html">value</a> (<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">value</a>&amp;)&gt;&amp; func) const&amp;;</div>
-<div class="line"><a name="l00967"></a><span class="lineno">  967</span>&#160;    <span class="comment"></span></div>
-<div class="line"><a name="l00968"></a><span class="lineno">  968</span>&#160;<span class="comment">    /** Run a function over the values of this instance. The behavior of this function is different, depending on the</span></div>
-<div class="line"><a name="l00969"></a><span class="lineno">  969</span>&#160;<span class="comment">     *  \c kind. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If this</span></div>
-<div class="line"><a name="l00970"></a><span class="lineno">  970</span>&#160;<span class="comment">     *  is \c kind::array, \c func is called for every value in the array and the output will be an array with each</span></div>
-<div class="line"><a name="l00971"></a><span class="lineno">  971</span>&#160;<span class="comment">     *  element transformed by \a func. If this is \c kind::object, the result will be an object with each key</span></div>
-<div class="line"><a name="l00972"></a><span class="lineno">  972</span>&#160;<span class="comment">     *  transformed by \a func.</span></div>
-<div class="line"><a name="l00973"></a><span class="lineno">  973</span>&#160;<span class="comment">     *  </span></div>
-<div class="line"><a name="l00974"></a><span class="lineno">  974</span>&#160;<span class="comment">     *  \param func The function to apply to the element or elements of this instance.</span></div>
-<div class="line"><a name="l00975"></a><span class="lineno">  975</span>&#160;<span class="comment">     * </span></div>
-<div class="line"><a name="l00976"></a><span class="lineno">  976</span>&#160;<span class="comment">     *  \note</span></div>
-<div class="line"><a name="l00977"></a><span class="lineno">  977</span>&#160;<span class="comment">     *  This version of \c map provides only a basic exception-safety guarantee. If an exception is thrown while</span></div>
-<div class="line"><a name="l00978"></a><span class="lineno">  978</span>&#160;<span class="comment">     *  transforming a non-scalar \c kind, there is no rollback action, so \c this is left in a usable, but</span></div>
-<div class="line"><a name="l00979"></a><span class="lineno">  979</span>&#160;<span class="comment">     *  \e unpredictable state. If you need a strong exception guarantee, use the constant reference version of \c map.</span></div>
-<div class="line"><a name="l00980"></a><span class="lineno">  980</span>&#160;<span class="comment">    **/</span></div>
-<div class="line"><a name="l00981"></a><span class="lineno">  981</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">map</a>(const std::function&lt;<a class="code" href="classjsonv_1_1value.html">value</a> (<a class="code" href="classjsonv_1_1value.html">value</a>)&gt;&amp; func) &amp;&amp;;</div>
-<div class="line"><a name="l00982"></a><span class="lineno">  982</span>&#160;    <span class="comment"></span></div>
-<div class="line"><a name="l00983"></a><span class="lineno">  983</span>&#160;<span class="comment">    /** \} **/</span></div>
-<div class="line"><a name="l00984"></a><span class="lineno">  984</span>&#160;    </div>
-<div class="line"><a name="l00985"></a><span class="lineno">  985</span>&#160;private:</div>
-<div class="line"><a name="l00986"></a><span class="lineno">  986</span>&#160;    friend <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> array();</div>
-<div class="line"><a name="l00987"></a><span class="lineno">  987</span>&#160;    friend <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> <span class="keywordtype">object</span>();</div>
-<div class="line"><a name="l00988"></a><span class="lineno">  988</span>&#160;    </div>
-<div class="line"><a name="l00989"></a><span class="lineno">  989</span>&#160;private:</div>
-<div class="line"><a name="l00990"></a><span class="lineno">  990</span>&#160;    detail::value_storage _data;</div>
-<div class="line"><a name="l00991"></a><span class="lineno">  991</span>&#160;    jsonv::<a class="code" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a>           _kind;</div>
-<div class="line"><a name="l00992"></a><span class="lineno">  992</span>&#160;};</div>
-<div class="line"><a name="l00993"></a><span class="lineno">  993</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00994"></a><span class="lineno">  994</span>&#160;<span class="comment">/** An instance with \c kind::null. This is intended to be used for convenience and readability (as opposed to using the</span></div>
-<div class="line"><a name="l00995"></a><span class="lineno">  995</span>&#160;<span class="comment"> *  default constructor of \c value.</span></div>
-<div class="line"><a name="l00996"></a><span class="lineno">  996</span>&#160;<span class="comment">**/</span></div>
-<div class="line"><a name="l00997"></a><span class="lineno">  997</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> extern const <a class="code" href="classjsonv_1_1value.html">value</a> null;</div>
-<div class="line"><a name="l00998"></a><span class="lineno">  998</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l00999"></a><span class="lineno">  999</span>&#160;<span class="comment">/** A user-defined literal for parsing JSON. Uses the default (non-strict) \c parse_options.</span></div>
-<div class="line"><a name="l01000"></a><span class="lineno"> 1000</span>&#160;<span class="comment"> *  </span></div>
-<div class="line"><a name="l01001"></a><span class="lineno"> 1001</span>&#160;<span class="comment"> *  \code</span></div>
-<div class="line"><a name="l01002"></a><span class="lineno"> 1002</span>&#160;<span class="comment"> *  R&quot;({</span></div>
-<div class="line"><a name="l01003"></a><span class="lineno"> 1003</span>&#160;<span class="comment"> *    &quot;taco&quot;: &quot;cat&quot;,</span></div>
-<div class="line"><a name="l01004"></a><span class="lineno"> 1004</span>&#160;<span class="comment"> *    &quot;burrito&quot;: &quot;dog&quot;,</span></div>
-<div class="line"><a name="l01005"></a><span class="lineno"> 1005</span>&#160;<span class="comment"> *    &quot;whatever&quot;: [ &quot;goes&quot;, &quot;here&quot;, 1, 2, 3, 4 ]</span></div>
-<div class="line"><a name="l01006"></a><span class="lineno"> 1006</span>&#160;<span class="comment"> *  })&quot;_json;</span></div>
-<div class="line"><a name="l01007"></a><span class="lineno"> 1007</span>&#160;<span class="comment"> *  \endcode</span></div>
-<div class="line"><a name="l01008"></a><span class="lineno"> 1008</span>&#160;<span class="comment">**/</span></div>
-<div class="line"><a name="l01009"></a><span class="lineno"> 1009</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> operator&quot;&quot; _json(const <span class="keywordtype">char</span>* str, std::<span class="keywordtype">size_t</span> len);</div>
-<div class="line"><a name="l01010"></a><span class="lineno"> 1010</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01011"></a><span class="lineno"> 1011</span>&#160;<span class="comment">/** Swap the values \a a and \a b. **/</span></div>
-<div class="line"><a name="l01012"></a><span class="lineno"> 1012</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <span class="keywordtype">void</span> <a class="code" href="group__Value.html#ga6dcde9d9d0ea0a03bde8bcdff760e10f">swap</a>(<a class="code" href="classjsonv_1_1value.html">value</a>&amp; a, <a class="code" href="classjsonv_1_1value.html">value</a>&amp; b) noexcept;</div>
-<div class="line"><a name="l01013"></a><span class="lineno"> 1013</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01014"></a><span class="lineno"> 1014</span>&#160;<span class="comment">/** Create an empty array value. **/</span></div>
-<div class="line"><a name="l01015"></a><span class="lineno"> 1015</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> array();</div>
-<div class="line"><a name="l01016"></a><span class="lineno"> 1016</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01017"></a><span class="lineno"> 1017</span>&#160;<span class="comment">/** Create an array value from the given source. **/</span></div>
-<div class="line"><a name="l01018"></a><span class="lineno"> 1018</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> array(std::initializer_list&lt;<a class="code" href="classjsonv_1_1value.html">value</a>&gt; source);</div>
-<div class="line"><a name="l01019"></a><span class="lineno"> 1019</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01020"></a><span class="lineno"> 1020</span>&#160;<span class="comment">/** Create an array with contents defined by range [\a first, \a last). **/</span></div>
-<div class="line"><a name="l01021"></a><span class="lineno"> 1021</span>&#160;template &lt;typename TForwardIterator&gt;</div>
-<div class="line"><a name="l01022"></a><span class="lineno"><a class="line" href="group__Value.html#ga8c4ac5022703a328eddc667d4ce333ed"> 1022</a></span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> array(TForwardIterator first, TForwardIterator last)</div>
-<div class="line"><a name="l01023"></a><span class="lineno"> 1023</span>&#160;{</div>
-<div class="line"><a name="l01024"></a><span class="lineno"> 1024</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> arr = array();</div>
-<div class="line"><a name="l01025"></a><span class="lineno"> 1025</span>&#160;    arr.<a class="code" href="classjsonv_1_1value.html#a34cbe426ef55efe31111bed84c3f6dba">assign</a>(first, last);</div>
-<div class="line"><a name="l01026"></a><span class="lineno"> 1026</span>&#160;    <span class="keywordflow">return</span> arr;</div>
-<div class="line"><a name="l01027"></a><span class="lineno"> 1027</span>&#160;}</div>
-<div class="line"><a name="l01028"></a><span class="lineno"> 1028</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01029"></a><span class="lineno"> 1029</span>&#160;<span class="comment">/** Create an empty object. **/</span></div>
-<div class="line"><a name="l01030"></a><span class="lineno"> 1030</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value object();</div>
-<div class="line"><a name="l01031"></a><span class="lineno"> 1031</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01032"></a><span class="lineno"> 1032</span>&#160;<span class="comment">/** Create an object with key-value pairs from the given \a source. **/</span></div>
-<div class="line"><a name="l01033"></a><span class="lineno"> 1033</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value object(std::initializer_list&lt;std::pair&lt;std::string, value&gt;&gt;  source);</div>
-<div class="line"><a name="l01034"></a><span class="lineno"> 1034</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value object(std::initializer_list&lt;std::pair&lt;std::wstring, value&gt;&gt; source);</div>
-<div class="line"><a name="l01035"></a><span class="lineno"> 1035</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01036"></a><span class="lineno"> 1036</span>&#160;<span class="comment">/** Create an object whose contents are defined by range [\a first, \a last). **/</span></div>
-<div class="line"><a name="l01037"></a><span class="lineno"> 1037</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TForwardIterator&gt;</div>
-<div class="line"><a name="l01038"></a><span class="lineno"><a class="line" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1"> 1038</a></span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="group__Value.html#ga757770053a2714136231e26ec7c74673">object</a>(TForwardIterator first, TForwardIterator last)</div>
-<div class="line"><a name="l01039"></a><span class="lineno"> 1039</span>&#160;{</div>
-<div class="line"><a name="l01040"></a><span class="lineno"> 1040</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> obj = <a class="code" href="group__Value.html#ga757770053a2714136231e26ec7c74673">object</a>();</div>
-<div class="line"><a name="l01041"></a><span class="lineno"> 1041</span>&#160;    obj.<a class="code" href="classjsonv_1_1value.html#ae19ed935e84e274c0cc93fd397498d3a">insert</a>(first, last);</div>
-<div class="line"><a name="l01042"></a><span class="lineno"> 1042</span>&#160;    <span class="keywordflow">return</span> obj;</div>
-<div class="line"><a name="l01043"></a><span class="lineno"> 1043</span>&#160;}</div>
-<div class="line"><a name="l01044"></a><span class="lineno"> 1044</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01045"></a><span class="lineno"> 1045</span>&#160;<span class="comment">/// A &lt;a href=&quot;http://en.cppreference.com/w/cpp/container/node_handle&quot;&gt;node handle&lt;/a&gt; used when a value is</span></div>
-<div class="line"><a name="l01046"></a><span class="lineno"> 1046</span>&#160;<span class="comment">/// \ref kind::object to access elements of the object in potentially destructive manner. This makes it possible to</span></div>
-<div class="line"><a name="l01047"></a><span class="lineno"> 1047</span>&#160;<span class="comment">/// modify the contents of a node extracted from an object, and then re-insert it without having to copy the element.</span></div>
-<div class="line"><a name="l01048"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html"> 1048</a></span>&#160;<span class="comment"></span><span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a> final</div>
-<div class="line"><a name="l01049"></a><span class="lineno"> 1049</span>&#160;{</div>
-<div class="line"><a name="l01050"></a><span class="lineno"> 1050</span>&#160;<span class="keyword">public</span>:<span class="comment"></span></div>
-<div class="line"><a name="l01051"></a><span class="lineno"> 1051</span>&#160;<span class="comment">    /// The key type of the object.</span></div>
-<div class="line"><a name="l01052"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f"> 1052</a></span>&#160;<span class="comment"></span>    <span class="keyword">using</span> <a class="code" href="classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f">key_type</a> = std::string;</div>
-<div class="line"><a name="l01053"></a><span class="lineno"> 1053</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01054"></a><span class="lineno"> 1054</span>&#160;<span class="comment">    /// The mapped type of the object.</span></div>
-<div class="line"><a name="l01055"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#a781a953c0ef0ed595bfbafa860771c86"> 1055</a></span>&#160;<span class="comment"></span>    <span class="keyword">using</span> <a class="code" href="classjsonv_1_1value.html">mapped_type</a> = <a class="code" href="classjsonv_1_1value.html">value</a>;</div>
-<div class="line"><a name="l01056"></a><span class="lineno"> 1056</span>&#160;</div>
-<div class="line"><a name="l01057"></a><span class="lineno"> 1057</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l01058"></a><span class="lineno"> 1058</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>() noexcept :</div>
-<div class="line"><a name="l01059"></a><span class="lineno"> 1059</span>&#160;            _has_value(false)</div>
-<div class="line"><a name="l01060"></a><span class="lineno"> 1060</span>&#160;    { }</div>
-<div class="line"><a name="l01061"></a><span class="lineno"> 1061</span>&#160;</div>
-<div class="line"><a name="l01062"></a><span class="lineno"> 1062</span>&#160;    <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>(<a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>&amp;&amp;) noexcept;</div>
-<div class="line"><a name="l01063"></a><span class="lineno"> 1063</span>&#160;</div>
-<div class="line"><a name="l01064"></a><span class="lineno"> 1064</span>&#160;    <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>&amp; operator=(<a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>&amp;&amp;) noexcept;</div>
-<div class="line"><a name="l01065"></a><span class="lineno"> 1065</span>&#160;</div>
-<div class="line"><a name="l01066"></a><span class="lineno"> 1066</span>&#160;    ~<a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>() noexcept;</div>
-<div class="line"><a name="l01067"></a><span class="lineno"> 1067</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01068"></a><span class="lineno"> 1068</span>&#160;<span class="comment">    /// \returns \c true if the node handle is empty; \c false if otherwise.</span></div>
-<div class="line"><a name="l01069"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#a830e189a6c1a445d09164750e12f4414"> 1069</a></span>&#160;<span class="comment"></span>    <span class="keywordtype">bool</span> empty() const noexcept { <span class="keywordflow">return</span> !_has_value; }</div>
-<div class="line"><a name="l01070"></a><span class="lineno"> 1070</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01071"></a><span class="lineno"> 1071</span>&#160;<span class="comment">    /// \returns \c false if the node handle is empty; \c true if otherwise.</span></div>
-<div class="line"><a name="l01072"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#a4617068ac791997462bfd83405c5fbca"> 1072</a></span>&#160;<span class="comment"></span>    <span class="keyword">explicit</span> <span class="keyword">operator</span> bool() const noexcept { <span class="keywordflow">return</span> _has_value; }</div>
-<div class="line"><a name="l01073"></a><span class="lineno"> 1073</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01074"></a><span class="lineno"> 1074</span>&#160;<span class="comment">    /// Returns a non-const reference to the \ref key_type member of the element.</span></div>
-<div class="line"><a name="l01075"></a><span class="lineno"> 1075</span>&#160;<span class="comment">    ///</span></div>
-<div class="line"><a name="l01076"></a><span class="lineno"> 1076</span>&#160;<span class="comment">    /// \throws std::invalid_argument if the node handle is \ref empty.</span></div>
-<div class="line"><a name="l01077"></a><span class="lineno"> 1077</span>&#160;<span class="comment"></span>    key_type&amp; key() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l01078"></a><span class="lineno"> 1078</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01079"></a><span class="lineno"> 1079</span>&#160;<span class="comment">    /// Returns a non-const reference to the \ref mapped_type member of the element.</span></div>
-<div class="line"><a name="l01080"></a><span class="lineno"> 1080</span>&#160;<span class="comment">    ///</span></div>
-<div class="line"><a name="l01081"></a><span class="lineno"> 1081</span>&#160;<span class="comment">    /// \throws std::invalid_argument if the node handle is \ref empty.</span></div>
-<div class="line"><a name="l01082"></a><span class="lineno"> 1082</span>&#160;<span class="comment"></span>    mapped_type&amp; mapped() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l01083"></a><span class="lineno"> 1083</span>&#160;</div>
-<div class="line"><a name="l01084"></a><span class="lineno"> 1084</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l01085"></a><span class="lineno"> 1085</span>&#160;    <span class="keyword">enum class</span> purposeful_construction</div>
-<div class="line"><a name="l01086"></a><span class="lineno"> 1086</span>&#160;    { };</div>
-<div class="line"><a name="l01087"></a><span class="lineno"> 1087</span>&#160;</div>
-<div class="line"><a name="l01088"></a><span class="lineno"> 1088</span>&#160;    <span class="keyword">explicit</span> object_node_handle(purposeful_construction, key_type, mapped_type) noexcept;</div>
-<div class="line"><a name="l01089"></a><span class="lineno"> 1089</span>&#160;</div>
-<div class="line"><a name="l01090"></a><span class="lineno"> 1090</span>&#160;    friend class value;</div>
-<div class="line"><a name="l01091"></a><span class="lineno"> 1091</span>&#160;</div>
-<div class="line"><a name="l01092"></a><span class="lineno"> 1092</span>&#160;private:</div>
-<div class="line"><a name="l01093"></a><span class="lineno"> 1093</span>&#160;    <span class="keywordtype">bool</span>                _has_value;</div>
-<div class="line"><a name="l01094"></a><span class="lineno"> 1094</span>&#160;    mutable key_type    _key;</div>
-<div class="line"><a name="l01095"></a><span class="lineno"> 1095</span>&#160;    mutable mapped_type _value;</div>
-<div class="line"><a name="l01096"></a><span class="lineno"> 1096</span>&#160;};</div>
-<div class="line"><a name="l01097"></a><span class="lineno"> 1097</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01098"></a><span class="lineno"> 1098</span>&#160;<span class="comment">/** \} **/</span></div>
-<div class="line"><a name="l01099"></a><span class="lineno"> 1099</span>&#160;</div>
-<div class="line"><a name="l01100"></a><span class="lineno"> 1100</span>&#160;}</div>
-<div class="line"><a name="l01101"></a><span class="lineno"> 1101</span>&#160;</div>
-<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;namespace std</div>
-<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;{</div>
-<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;<span class="comment"></span></div>
-<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;<span class="comment">/** Explicit specialization of \c std::hash for \c jsonv::value types so you can store a \c value in an unordered</span></div>
-<div class="line"><a name="l01106"></a><span class="lineno"> 1106</span>&#160;<span class="comment"> *  container. Hashing results depend on the \c kind for the provided value -- most kinds directly use the hasher for</span></div>
-<div class="line"><a name="l01107"></a><span class="lineno"> 1107</span>&#160;<span class="comment"> *  their kind (hashing a \c jsonv::value for integer \c 5 should have the same hash value as directly hashing the same</span></div>
-<div class="line"><a name="l01108"></a><span class="lineno"> 1108</span>&#160;<span class="comment"> *  integer). For aggregate kinds \c array and \c object, hashing visits every sub-element recursively. This might be</span></div>
-<div class="line"><a name="l01109"></a><span class="lineno"> 1109</span>&#160;<span class="comment"> *  expensive, but is required when storing multiple values with similar layouts in the a set (which is the most common</span></div>
-<div class="line"><a name="l01110"></a><span class="lineno"> 1110</span>&#160;<span class="comment"> *  use case).</span></div>
-<div class="line"><a name="l01111"></a><span class="lineno"> 1111</span>&#160;<span class="comment">**/</span></div>
-<div class="line"><a name="l01112"></a><span class="lineno"> 1112</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
-<div class="line"><a name="l01113"></a><span class="lineno"><a class="line" href="structstd_1_1hash_3_01jsonv_1_1value_01_4.html"> 1113</a></span>&#160;<span class="keyword">struct </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> hash&lt;jsonv::value&gt;</div>
-<div class="line"><a name="l01114"></a><span class="lineno"> 1114</span>&#160;{</div>
-<div class="line"><a name="l01115"></a><span class="lineno"> 1115</span>&#160;    std::size_t operator()(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">jsonv::value</a>&amp; val) <span class="keyword">const</span> noexcept;</div>
-<div class="line"><a name="l01116"></a><span class="lineno"> 1116</span>&#160;};</div>
-<div class="line"><a name="l01117"></a><span class="lineno"> 1117</span>&#160;</div>
-<div class="line"><a name="l01118"></a><span class="lineno"> 1118</span>&#160;}</div>
-<div class="line"><a name="l01119"></a><span class="lineno"> 1119</span>&#160;</div>
-<div class="line"><a name="l01120"></a><span class="lineno"> 1120</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_VALUE_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
+<div class="line"><a name="l00932"></a><span class="lineno">  932</span>&#160;<span class="comment">    /** Is the underlying structure empty?</span></div>
+<div class="line"><a name="l00933"></a><span class="lineno">  933</span>&#160;<span class="comment">     *  </span></div>
+<div class="line"><a name="l00934"></a><span class="lineno">  934</span>&#160;<span class="comment">     *   - object: Are there no keys?</span></div>
+<div class="line"><a name="l00935"></a><span class="lineno">  935</span>&#160;<span class="comment">     *   - array: Are there no values?</span></div>
+<div class="line"><a name="l00936"></a><span class="lineno">  936</span>&#160;<span class="comment">     *   - string: Is the string 0 length?</span></div>
+<div class="line"><a name="l00937"></a><span class="lineno">  937</span>&#160;<span class="comment">     *   - null: true (always)</span></div>
+<div class="line"><a name="l00938"></a><span class="lineno">  938</span>&#160;<span class="comment">     *   - all other types: false (always)</span></div>
+<div class="line"><a name="l00939"></a><span class="lineno">  939</span>&#160;<span class="comment">     *  </span></div>
+<div class="line"><a name="l00940"></a><span class="lineno">  940</span>&#160;<span class="comment">     *  \throws nothing</span></div>
+<div class="line"><a name="l00941"></a><span class="lineno">  941</span>&#160;<span class="comment">    **/</span></div>
+<div class="line"><a name="l00942"></a><span class="lineno">  942</span>&#160;    <span class="keywordtype">bool</span> empty() const noexcept;</div>
+<div class="line"><a name="l00943"></a><span class="lineno">  943</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00944"></a><span class="lineno">  944</span>&#160;<span class="comment">    /** Get the number of items in this value.</span></div>
+<div class="line"><a name="l00945"></a><span class="lineno">  945</span>&#160;<span class="comment">     *  </span></div>
+<div class="line"><a name="l00946"></a><span class="lineno">  946</span>&#160;<span class="comment">     *   - object: The number of key/value pairs.</span></div>
+<div class="line"><a name="l00947"></a><span class="lineno">  947</span>&#160;<span class="comment">     *   - array: The number of values.</span></div>
+<div class="line"><a name="l00948"></a><span class="lineno">  948</span>&#160;<span class="comment">     *   - string: The number of code points in the string (including \c \\0 values and counting multi-byte encodings as</span></div>
+<div class="line"><a name="l00949"></a><span class="lineno">  949</span>&#160;<span class="comment">     *             more than one value).</span></div>
+<div class="line"><a name="l00950"></a><span class="lineno">  950</span>&#160;<span class="comment">     *  </span></div>
+<div class="line"><a name="l00951"></a><span class="lineno">  951</span>&#160;<span class="comment">     *  \throws kind_error if the kind is not an object, array or string.</span></div>
+<div class="line"><a name="l00952"></a><span class="lineno">  952</span>&#160;<span class="comment">    **/</span></div>
+<div class="line"><a name="l00953"></a><span class="lineno">  953</span>&#160;    size_type size() const;</div>
+<div class="line"><a name="l00954"></a><span class="lineno">  954</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00955"></a><span class="lineno">  955</span>&#160;<span class="comment">    /** \addtogroup Algorithm</span></div>
+<div class="line"><a name="l00956"></a><span class="lineno">  956</span>&#160;<span class="comment">     *  \{</span></div>
+<div class="line"><a name="l00957"></a><span class="lineno">  957</span>&#160;<span class="comment">    **/</span></div>
+<div class="line"><a name="l00958"></a><span class="lineno">  958</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00959"></a><span class="lineno">  959</span>&#160;<span class="comment">    /** Run a function over the values of this instance. The behavior of this function is different, depending on the</span></div>
+<div class="line"><a name="l00960"></a><span class="lineno">  960</span>&#160;<span class="comment">     *  \c kind. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If this</span></div>
+<div class="line"><a name="l00961"></a><span class="lineno">  961</span>&#160;<span class="comment">     *  is \c kind::array, \c func is called for every value in the array and the output will be an array with each</span></div>
+<div class="line"><a name="l00962"></a><span class="lineno">  962</span>&#160;<span class="comment">     *  element transformed by \a func. If this is \c kind::object, the result will be an object with each key</span></div>
+<div class="line"><a name="l00963"></a><span class="lineno">  963</span>&#160;<span class="comment">     *  transformed by \a func.</span></div>
+<div class="line"><a name="l00964"></a><span class="lineno">  964</span>&#160;<span class="comment">     *  </span></div>
+<div class="line"><a name="l00965"></a><span class="lineno">  965</span>&#160;<span class="comment">     *  \param func The function to apply to the element or elements of this instance.</span></div>
+<div class="line"><a name="l00966"></a><span class="lineno">  966</span>&#160;<span class="comment">    **/</span></div>
+<div class="line"><a name="l00967"></a><span class="lineno">  967</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">map</a>(const std::function&lt;<a class="code" href="classjsonv_1_1value.html">value</a> (const <a class="code" href="classjsonv_1_1value.html">value</a>&amp;)&gt;&amp; func) const&amp;;</div>
+<div class="line"><a name="l00968"></a><span class="lineno">  968</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00969"></a><span class="lineno">  969</span>&#160;<span class="comment">    /** Run a function over the values of this instance. The behavior of this function is different, depending on the</span></div>
+<div class="line"><a name="l00970"></a><span class="lineno">  970</span>&#160;<span class="comment">     *  \c kind. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If this</span></div>
+<div class="line"><a name="l00971"></a><span class="lineno">  971</span>&#160;<span class="comment">     *  is \c kind::array, \c func is called for every value in the array and the output will be an array with each</span></div>
+<div class="line"><a name="l00972"></a><span class="lineno">  972</span>&#160;<span class="comment">     *  element transformed by \a func. If this is \c kind::object, the result will be an object with each key</span></div>
+<div class="line"><a name="l00973"></a><span class="lineno">  973</span>&#160;<span class="comment">     *  transformed by \a func.</span></div>
+<div class="line"><a name="l00974"></a><span class="lineno">  974</span>&#160;<span class="comment">     *  </span></div>
+<div class="line"><a name="l00975"></a><span class="lineno">  975</span>&#160;<span class="comment">     *  \param func The function to apply to the element or elements of this instance.</span></div>
+<div class="line"><a name="l00976"></a><span class="lineno">  976</span>&#160;<span class="comment">     * </span></div>
+<div class="line"><a name="l00977"></a><span class="lineno">  977</span>&#160;<span class="comment">     *  \note</span></div>
+<div class="line"><a name="l00978"></a><span class="lineno">  978</span>&#160;<span class="comment">     *  This version of \c map provides only a basic exception-safety guarantee. If an exception is thrown while</span></div>
+<div class="line"><a name="l00979"></a><span class="lineno">  979</span>&#160;<span class="comment">     *  transforming a non-scalar \c kind, there is no rollback action, so \c this is left in a usable, but</span></div>
+<div class="line"><a name="l00980"></a><span class="lineno">  980</span>&#160;<span class="comment">     *  \e unpredictable state. If you need a strong exception guarantee, use the constant reference version of \c map.</span></div>
+<div class="line"><a name="l00981"></a><span class="lineno">  981</span>&#160;<span class="comment">    **/</span></div>
+<div class="line"><a name="l00982"></a><span class="lineno">  982</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="group__Algorithm.html#ga6f0abfde4a15bb3d727727d17e055d4d">map</a>(const std::function&lt;<a class="code" href="classjsonv_1_1value.html">value</a> (<a class="code" href="classjsonv_1_1value.html">value</a>)&gt;&amp; func) &amp;&amp;;</div>
+<div class="line"><a name="l00983"></a><span class="lineno">  983</span>&#160;    <span class="comment"></span></div>
+<div class="line"><a name="l00984"></a><span class="lineno">  984</span>&#160;<span class="comment">    /** \} **/</span></div>
+<div class="line"><a name="l00985"></a><span class="lineno">  985</span>&#160;    </div>
+<div class="line"><a name="l00986"></a><span class="lineno">  986</span>&#160;private:</div>
+<div class="line"><a name="l00987"></a><span class="lineno">  987</span>&#160;    friend <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> array();</div>
+<div class="line"><a name="l00988"></a><span class="lineno">  988</span>&#160;    friend <a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> <span class="keywordtype">object</span>();</div>
+<div class="line"><a name="l00989"></a><span class="lineno">  989</span>&#160;    </div>
+<div class="line"><a name="l00990"></a><span class="lineno">  990</span>&#160;private:</div>
+<div class="line"><a name="l00991"></a><span class="lineno">  991</span>&#160;    detail::value_storage _data;</div>
+<div class="line"><a name="l00992"></a><span class="lineno">  992</span>&#160;    jsonv::<a class="code" href="group__Value.html#ga3721c2ed2f380809f2fc3b03a6f6fa53">kind</a>           _kind;</div>
+<div class="line"><a name="l00993"></a><span class="lineno">  993</span>&#160;};</div>
+<div class="line"><a name="l00994"></a><span class="lineno">  994</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l00995"></a><span class="lineno">  995</span>&#160;<span class="comment">/** An instance with \c kind::null. This is intended to be used for convenience and readability (as opposed to using the</span></div>
+<div class="line"><a name="l00996"></a><span class="lineno">  996</span>&#160;<span class="comment"> *  default constructor of \c value.</span></div>
+<div class="line"><a name="l00997"></a><span class="lineno">  997</span>&#160;<span class="comment">**/</span></div>
+<div class="line"><a name="l00998"></a><span class="lineno">  998</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> extern const <a class="code" href="classjsonv_1_1value.html">value</a> null;</div>
+<div class="line"><a name="l00999"></a><span class="lineno">  999</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01000"></a><span class="lineno"> 1000</span>&#160;<span class="comment">/** A user-defined literal for parsing JSON. Uses the default (non-strict) \c parse_options.</span></div>
+<div class="line"><a name="l01001"></a><span class="lineno"> 1001</span>&#160;<span class="comment"> *  </span></div>
+<div class="line"><a name="l01002"></a><span class="lineno"> 1002</span>&#160;<span class="comment"> *  \code</span></div>
+<div class="line"><a name="l01003"></a><span class="lineno"> 1003</span>&#160;<span class="comment"> *  R&quot;({</span></div>
+<div class="line"><a name="l01004"></a><span class="lineno"> 1004</span>&#160;<span class="comment"> *    &quot;taco&quot;: &quot;cat&quot;,</span></div>
+<div class="line"><a name="l01005"></a><span class="lineno"> 1005</span>&#160;<span class="comment"> *    &quot;burrito&quot;: &quot;dog&quot;,</span></div>
+<div class="line"><a name="l01006"></a><span class="lineno"> 1006</span>&#160;<span class="comment"> *    &quot;whatever&quot;: [ &quot;goes&quot;, &quot;here&quot;, 1, 2, 3, 4 ]</span></div>
+<div class="line"><a name="l01007"></a><span class="lineno"> 1007</span>&#160;<span class="comment"> *  })&quot;_json;</span></div>
+<div class="line"><a name="l01008"></a><span class="lineno"> 1008</span>&#160;<span class="comment"> *  \endcode</span></div>
+<div class="line"><a name="l01009"></a><span class="lineno"> 1009</span>&#160;<span class="comment">**/</span></div>
+<div class="line"><a name="l01010"></a><span class="lineno"> 1010</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> operator&quot;&quot; _json(const <span class="keywordtype">char</span>* str, std::<span class="keywordtype">size_t</span> len);</div>
+<div class="line"><a name="l01011"></a><span class="lineno"> 1011</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01012"></a><span class="lineno"> 1012</span>&#160;<span class="comment">/** Swap the values \a a and \a b. **/</span></div>
+<div class="line"><a name="l01013"></a><span class="lineno"> 1013</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <span class="keywordtype">void</span> <a class="code" href="group__Value.html#ga6dcde9d9d0ea0a03bde8bcdff760e10f">swap</a>(<a class="code" href="classjsonv_1_1value.html">value</a>&amp; a, <a class="code" href="classjsonv_1_1value.html">value</a>&amp; b) noexcept;</div>
+<div class="line"><a name="l01014"></a><span class="lineno"> 1014</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01015"></a><span class="lineno"> 1015</span>&#160;<span class="comment">/** Create an empty array value. **/</span></div>
+<div class="line"><a name="l01016"></a><span class="lineno"> 1016</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> array();</div>
+<div class="line"><a name="l01017"></a><span class="lineno"> 1017</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01018"></a><span class="lineno"> 1018</span>&#160;<span class="comment">/** Create an array value from the given source. **/</span></div>
+<div class="line"><a name="l01019"></a><span class="lineno"> 1019</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1value.html">value</a> array(std::initializer_list&lt;<a class="code" href="classjsonv_1_1value.html">value</a>&gt; source);</div>
+<div class="line"><a name="l01020"></a><span class="lineno"> 1020</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01021"></a><span class="lineno"> 1021</span>&#160;<span class="comment">/** Create an array with contents defined by range [\a first, \a last). **/</span></div>
+<div class="line"><a name="l01022"></a><span class="lineno"> 1022</span>&#160;template &lt;typename TForwardIterator&gt;</div>
+<div class="line"><a name="l01023"></a><span class="lineno"><a class="line" href="group__Value.html#ga8c4ac5022703a328eddc667d4ce333ed"> 1023</a></span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> array(TForwardIterator first, TForwardIterator last)</div>
+<div class="line"><a name="l01024"></a><span class="lineno"> 1024</span>&#160;{</div>
+<div class="line"><a name="l01025"></a><span class="lineno"> 1025</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> arr = array();</div>
+<div class="line"><a name="l01026"></a><span class="lineno"> 1026</span>&#160;    arr.<a class="code" href="classjsonv_1_1value.html#a34cbe426ef55efe31111bed84c3f6dba">assign</a>(first, last);</div>
+<div class="line"><a name="l01027"></a><span class="lineno"> 1027</span>&#160;    <span class="keywordflow">return</span> arr;</div>
+<div class="line"><a name="l01028"></a><span class="lineno"> 1028</span>&#160;}</div>
+<div class="line"><a name="l01029"></a><span class="lineno"> 1029</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01030"></a><span class="lineno"> 1030</span>&#160;<span class="comment">/** Create an empty object. **/</span></div>
+<div class="line"><a name="l01031"></a><span class="lineno"> 1031</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value object();</div>
+<div class="line"><a name="l01032"></a><span class="lineno"> 1032</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01033"></a><span class="lineno"> 1033</span>&#160;<span class="comment">/** Create an object with key-value pairs from the given \a source. **/</span></div>
+<div class="line"><a name="l01034"></a><span class="lineno"> 1034</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value object(std::initializer_list&lt;std::pair&lt;std::string, value&gt;&gt;  source);</div>
+<div class="line"><a name="l01035"></a><span class="lineno"> 1035</span>&#160;<a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> value object(std::initializer_list&lt;std::pair&lt;std::wstring, value&gt;&gt; source);</div>
+<div class="line"><a name="l01036"></a><span class="lineno"> 1036</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01037"></a><span class="lineno"> 1037</span>&#160;<span class="comment">/** Create an object whose contents are defined by range [\a first, \a last). **/</span></div>
+<div class="line"><a name="l01038"></a><span class="lineno"> 1038</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> TForwardIterator&gt;</div>
+<div class="line"><a name="l01039"></a><span class="lineno"><a class="line" href="group__Value.html#gabae5c5bfa8dceec8849cfe0a58ad83b1"> 1039</a></span>&#160;<a class="code" href="classjsonv_1_1value.html">value</a> <a class="code" href="group__Value.html#ga757770053a2714136231e26ec7c74673">object</a>(TForwardIterator first, TForwardIterator last)</div>
+<div class="line"><a name="l01040"></a><span class="lineno"> 1040</span>&#160;{</div>
+<div class="line"><a name="l01041"></a><span class="lineno"> 1041</span>&#160;    <a class="code" href="classjsonv_1_1value.html">value</a> obj = <a class="code" href="group__Value.html#ga757770053a2714136231e26ec7c74673">object</a>();</div>
+<div class="line"><a name="l01042"></a><span class="lineno"> 1042</span>&#160;    obj.<a class="code" href="classjsonv_1_1value.html#ae19ed935e84e274c0cc93fd397498d3a">insert</a>(first, last);</div>
+<div class="line"><a name="l01043"></a><span class="lineno"> 1043</span>&#160;    <span class="keywordflow">return</span> obj;</div>
+<div class="line"><a name="l01044"></a><span class="lineno"> 1044</span>&#160;}</div>
+<div class="line"><a name="l01045"></a><span class="lineno"> 1045</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01046"></a><span class="lineno"> 1046</span>&#160;<span class="comment">/// A &lt;a href=&quot;http://en.cppreference.com/w/cpp/container/node_handle&quot;&gt;node handle&lt;/a&gt; used when a value is</span></div>
+<div class="line"><a name="l01047"></a><span class="lineno"> 1047</span>&#160;<span class="comment">/// \ref kind::object to access elements of the object in potentially destructive manner. This makes it possible to</span></div>
+<div class="line"><a name="l01048"></a><span class="lineno"> 1048</span>&#160;<span class="comment">/// modify the contents of a node extracted from an object, and then re-insert it without having to copy the element.</span></div>
+<div class="line"><a name="l01049"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html"> 1049</a></span>&#160;<span class="comment"></span><span class="keyword">class </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a> final</div>
+<div class="line"><a name="l01050"></a><span class="lineno"> 1050</span>&#160;{</div>
+<div class="line"><a name="l01051"></a><span class="lineno"> 1051</span>&#160;<span class="keyword">public</span>:<span class="comment"></span></div>
+<div class="line"><a name="l01052"></a><span class="lineno"> 1052</span>&#160;<span class="comment">    /// The key type of the object.</span></div>
+<div class="line"><a name="l01053"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f"> 1053</a></span>&#160;<span class="comment"></span>    <span class="keyword">using</span> <a class="code" href="classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f">key_type</a> = std::string;</div>
+<div class="line"><a name="l01054"></a><span class="lineno"> 1054</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01055"></a><span class="lineno"> 1055</span>&#160;<span class="comment">    /// The mapped type of the object.</span></div>
+<div class="line"><a name="l01056"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#a781a953c0ef0ed595bfbafa860771c86"> 1056</a></span>&#160;<span class="comment"></span>    <span class="keyword">using</span> <a class="code" href="classjsonv_1_1value.html">mapped_type</a> = <a class="code" href="classjsonv_1_1value.html">value</a>;</div>
+<div class="line"><a name="l01057"></a><span class="lineno"> 1057</span>&#160;</div>
+<div class="line"><a name="l01058"></a><span class="lineno"> 1058</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l01059"></a><span class="lineno"> 1059</span>&#160;    <span class="keyword">explicit</span> <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>() noexcept :</div>
+<div class="line"><a name="l01060"></a><span class="lineno"> 1060</span>&#160;            _has_value(false)</div>
+<div class="line"><a name="l01061"></a><span class="lineno"> 1061</span>&#160;    { }</div>
+<div class="line"><a name="l01062"></a><span class="lineno"> 1062</span>&#160;</div>
+<div class="line"><a name="l01063"></a><span class="lineno"> 1063</span>&#160;    <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>(<a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>&amp;&amp;) noexcept;</div>
+<div class="line"><a name="l01064"></a><span class="lineno"> 1064</span>&#160;</div>
+<div class="line"><a name="l01065"></a><span class="lineno"> 1065</span>&#160;    <a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>&amp; operator=(<a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>&amp;&amp;) noexcept;</div>
+<div class="line"><a name="l01066"></a><span class="lineno"> 1066</span>&#160;</div>
+<div class="line"><a name="l01067"></a><span class="lineno"> 1067</span>&#160;    ~<a class="code" href="classjsonv_1_1object__node__handle.html">object_node_handle</a>() noexcept;</div>
+<div class="line"><a name="l01068"></a><span class="lineno"> 1068</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01069"></a><span class="lineno"> 1069</span>&#160;<span class="comment">    /// \returns \c true if the node handle is empty; \c false if otherwise.</span></div>
+<div class="line"><a name="l01070"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#a830e189a6c1a445d09164750e12f4414"> 1070</a></span>&#160;<span class="comment"></span>    <span class="keywordtype">bool</span> empty() const noexcept { <span class="keywordflow">return</span> !_has_value; }</div>
+<div class="line"><a name="l01071"></a><span class="lineno"> 1071</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01072"></a><span class="lineno"> 1072</span>&#160;<span class="comment">    /// \returns \c false if the node handle is empty; \c true if otherwise.</span></div>
+<div class="line"><a name="l01073"></a><span class="lineno"><a class="line" href="classjsonv_1_1object__node__handle.html#a4617068ac791997462bfd83405c5fbca"> 1073</a></span>&#160;<span class="comment"></span>    <span class="keyword">explicit</span> <span class="keyword">operator</span> bool() const noexcept { <span class="keywordflow">return</span> _has_value; }</div>
+<div class="line"><a name="l01074"></a><span class="lineno"> 1074</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01075"></a><span class="lineno"> 1075</span>&#160;<span class="comment">    /// Returns a non-const reference to the \ref key_type member of the element.</span></div>
+<div class="line"><a name="l01076"></a><span class="lineno"> 1076</span>&#160;<span class="comment">    ///</span></div>
+<div class="line"><a name="l01077"></a><span class="lineno"> 1077</span>&#160;<span class="comment">    /// \throws std::invalid_argument if the node handle is \ref empty.</span></div>
+<div class="line"><a name="l01078"></a><span class="lineno"> 1078</span>&#160;<span class="comment"></span>    key_type&amp; key() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l01079"></a><span class="lineno"> 1079</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01080"></a><span class="lineno"> 1080</span>&#160;<span class="comment">    /// Returns a non-const reference to the \ref mapped_type member of the element.</span></div>
+<div class="line"><a name="l01081"></a><span class="lineno"> 1081</span>&#160;<span class="comment">    ///</span></div>
+<div class="line"><a name="l01082"></a><span class="lineno"> 1082</span>&#160;<span class="comment">    /// \throws std::invalid_argument if the node handle is \ref empty.</span></div>
+<div class="line"><a name="l01083"></a><span class="lineno"> 1083</span>&#160;<span class="comment"></span>    mapped_type&amp; mapped() <span class="keyword">const</span>;</div>
+<div class="line"><a name="l01084"></a><span class="lineno"> 1084</span>&#160;</div>
+<div class="line"><a name="l01085"></a><span class="lineno"> 1085</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l01086"></a><span class="lineno"> 1086</span>&#160;    <span class="keyword">enum class</span> purposeful_construction</div>
+<div class="line"><a name="l01087"></a><span class="lineno"> 1087</span>&#160;    { };</div>
+<div class="line"><a name="l01088"></a><span class="lineno"> 1088</span>&#160;</div>
+<div class="line"><a name="l01089"></a><span class="lineno"> 1089</span>&#160;    <span class="keyword">explicit</span> object_node_handle(purposeful_construction, key_type, mapped_type) noexcept;</div>
+<div class="line"><a name="l01090"></a><span class="lineno"> 1090</span>&#160;</div>
+<div class="line"><a name="l01091"></a><span class="lineno"> 1091</span>&#160;    friend class value;</div>
+<div class="line"><a name="l01092"></a><span class="lineno"> 1092</span>&#160;</div>
+<div class="line"><a name="l01093"></a><span class="lineno"> 1093</span>&#160;private:</div>
+<div class="line"><a name="l01094"></a><span class="lineno"> 1094</span>&#160;    <span class="keywordtype">bool</span>                _has_value;</div>
+<div class="line"><a name="l01095"></a><span class="lineno"> 1095</span>&#160;    mutable key_type    _key;</div>
+<div class="line"><a name="l01096"></a><span class="lineno"> 1096</span>&#160;    mutable mapped_type _value;</div>
+<div class="line"><a name="l01097"></a><span class="lineno"> 1097</span>&#160;};</div>
+<div class="line"><a name="l01098"></a><span class="lineno"> 1098</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01099"></a><span class="lineno"> 1099</span>&#160;<span class="comment">/** \} **/</span></div>
+<div class="line"><a name="l01100"></a><span class="lineno"> 1100</span>&#160;</div>
+<div class="line"><a name="l01101"></a><span class="lineno"> 1101</span>&#160;}</div>
+<div class="line"><a name="l01102"></a><span class="lineno"> 1102</span>&#160;</div>
+<div class="line"><a name="l01103"></a><span class="lineno"> 1103</span>&#160;namespace std</div>
+<div class="line"><a name="l01104"></a><span class="lineno"> 1104</span>&#160;{</div>
+<div class="line"><a name="l01105"></a><span class="lineno"> 1105</span>&#160;<span class="comment"></span></div>
+<div class="line"><a name="l01106"></a><span class="lineno"> 1106</span>&#160;<span class="comment">/** Explicit specialization of \c std::hash for \c jsonv::value types so you can store a \c value in an unordered</span></div>
+<div class="line"><a name="l01107"></a><span class="lineno"> 1107</span>&#160;<span class="comment"> *  container. Hashing results depend on the \c kind for the provided value -- most kinds directly use the hasher for</span></div>
+<div class="line"><a name="l01108"></a><span class="lineno"> 1108</span>&#160;<span class="comment"> *  their kind (hashing a \c jsonv::value for integer \c 5 should have the same hash value as directly hashing the same</span></div>
+<div class="line"><a name="l01109"></a><span class="lineno"> 1109</span>&#160;<span class="comment"> *  integer). For aggregate kinds \c array and \c object, hashing visits every sub-element recursively. This might be</span></div>
+<div class="line"><a name="l01110"></a><span class="lineno"> 1110</span>&#160;<span class="comment"> *  expensive, but is required when storing multiple values with similar layouts in the a set (which is the most common</span></div>
+<div class="line"><a name="l01111"></a><span class="lineno"> 1111</span>&#160;<span class="comment"> *  use case).</span></div>
+<div class="line"><a name="l01112"></a><span class="lineno"> 1112</span>&#160;<span class="comment">**/</span></div>
+<div class="line"><a name="l01113"></a><span class="lineno"> 1113</span>&#160;<span class="keyword">template</span> &lt;&gt;</div>
+<div class="line"><a name="l01114"></a><span class="lineno"><a class="line" href="structstd_1_1hash_3_01jsonv_1_1value_01_4.html"> 1114</a></span>&#160;<span class="keyword">struct </span><a class="code" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> hash&lt;jsonv::value&gt;</div>
+<div class="line"><a name="l01115"></a><span class="lineno"> 1115</span>&#160;{</div>
+<div class="line"><a name="l01116"></a><span class="lineno"> 1116</span>&#160;    std::size_t operator()(<span class="keyword">const</span> <a class="code" href="classjsonv_1_1value.html">jsonv::value</a>&amp; val) <span class="keyword">const</span> noexcept;</div>
+<div class="line"><a name="l01117"></a><span class="lineno"> 1117</span>&#160;};</div>
+<div class="line"><a name="l01118"></a><span class="lineno"> 1118</span>&#160;</div>
+<div class="line"><a name="l01119"></a><span class="lineno"> 1119</span>&#160;}</div>
+<div class="line"><a name="l01120"></a><span class="lineno"> 1120</span>&#160;</div>
+<div class="line"><a name="l01121"></a><span class="lineno"> 1121</span>&#160;<span class="preprocessor">#endif</span><span class="comment">/*__JSONV_VALUE_HPP_INCLUDED__*/</span><span class="preprocessor"></span></div>
 <div class="ttc" id="group__Value_html_ga28b56e4bcc6db35b78e8a5c075994202"><div class="ttname"><a href="group__Value.html#ga28b56e4bcc6db35b78e8a5c075994202">jsonv::operator&lt;&lt;</a></div><div class="ttdeci">JSONV_PUBLIC std::ostream &amp; operator&lt;&lt;(std::ostream &amp;, const kind &amp;)</div><div class="ttdoc">Print out the name of the kind. </div></div>
 <div class="ttc" id="classjsonv_1_1value_html_a318c2006b4bc53859c444604995ebc05"><div class="ttname"><a href="classjsonv_1_1value.html#a318c2006b4bc53859c444604995ebc05">jsonv::value::object_iterator</a></div><div class="ttdeci">basic_object_iterator&lt; object_value_type, std::map&lt; std::string, value &gt;::iterator &gt; object_iterator</div><div class="ttdoc">The object_iterator is applicable when kind is kind::object. </div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00406">value.hpp:406</a></div></div>
 <div class="ttc" id="config_8hpp_html_aa12a2d545e94053d3d0cfc63ecbbf828"><div class="ttname"><a href="config_8hpp.html#aa12a2d545e94053d3d0cfc63ecbbf828">JSONV_INTEGER_ALTERNATES_LIST</a></div><div class="ttdeci">#define JSONV_INTEGER_ALTERNATES_LIST(item)</div><div class="ttdoc">An item list of types to also consider as an integer. </div><div class="ttdef"><b>Definition:</b> <a href="config_8hpp_source.html#l00148">config.hpp:148</a></div></div>
-<div class="ttc" id="classjsonv_1_1object__node__handle_html_abce52f2f8223c29d4db00db9b7d6b89f"><div class="ttname"><a href="classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f">jsonv::object_node_handle::key_type</a></div><div class="ttdeci">std::string key_type</div><div class="ttdoc">The key type of the object. </div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l01052">value.hpp:1052</a></div></div>
+<div class="ttc" id="classjsonv_1_1object__node__handle_html_abce52f2f8223c29d4db00db9b7d6b89f"><div class="ttname"><a href="classjsonv_1_1object__node__handle.html#abce52f2f8223c29d4db00db9b7d6b89f">jsonv::object_node_handle::key_type</a></div><div class="ttdeci">std::string key_type</div><div class="ttdoc">The key type of the object. </div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l01053">value.hpp:1053</a></div></div>
 <div class="ttc" id="classjsonv_1_1kind__error_html"><div class="ttname"><a href="classjsonv_1_1kind__error.html">jsonv::kind_error</a></div><div class="ttdoc">Thrown from various value methods when attempting to perform an operation which is not valid for the ...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00092">value.hpp:92</a></div></div>
 <div class="ttc" id="classjsonv_1_1value_html_a02c37341353a2b3897d346ae153d6659"><div class="ttname"><a href="classjsonv_1_1value.html#a02c37341353a2b3897d346ae153d6659">jsonv::value::assign</a></div><div class="ttdeci">void assign(TForwardIterator first, TForwardIterator last)</div><div class="ttdoc">Assign the contents of range [first, last) to this array. </div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00759">value.hpp:759</a></div></div>
 <div class="ttc" id="classjsonv_1_1value_html_ae19ed935e84e274c0cc93fd397498d3a"><div class="ttname"><a href="classjsonv_1_1value.html#ae19ed935e84e274c0cc93fd397498d3a">jsonv::value::insert</a></div><div class="ttdeci">array_iterator insert(const_array_iterator position, value item)</div><div class="ttdoc">Insert an item into position on this array. </div></div>
@@ -1273,7 +1274,7 @@ $(document).ready(function(){initNavTree('value_8hpp_source.html','');});
 <div class="ttc" id="config_8hpp_html_acd0703012bd724b356c177b7bc3d761d"><div class="ttname"><a href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a></div><div class="ttdeci">#define JSONV_PUBLIC</div><div class="ttdoc">This function or class is part of the public API for JsonVoorhees. </div><div class="ttdef"><b>Definition:</b> <a href="config_8hpp_source.html#l00104">config.hpp:104</a></div></div>
 <div class="ttc" id="classjsonv_1_1value_html"><div class="ttname"><a href="classjsonv_1_1value.html">jsonv::value</a></div><div class="ttdoc">Represents a single JSON value, which can be any one of a potential kind, each behaving slightly diff...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00131">value.hpp:131</a></div></div>
 <div class="ttc" id="classjsonv_1_1value_html_a80ba8ef75cdb0a1b64b9d7ab9df5f723"><div class="ttname"><a href="classjsonv_1_1value.html#a80ba8ef75cdb0a1b64b9d7ab9df5f723">jsonv::value::insert</a></div><div class="ttdeci">array_iterator insert(const_array_iterator position, TForwardIterator first, TForwardIterator last)</div><div class="ttdoc">Insert the range defined by [first, last) at position in this array. </div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l00739">value.hpp:739</a></div></div>
-<div class="ttc" id="classjsonv_1_1object__node__handle_html"><div class="ttname"><a href="classjsonv_1_1object__node__handle.html">jsonv::object_node_handle</a></div><div class="ttdoc">A node handle used when a value is kind::object to access elements of the object in potentially destr...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l01048">value.hpp:1048</a></div></div>
+<div class="ttc" id="classjsonv_1_1object__node__handle_html"><div class="ttname"><a href="classjsonv_1_1object__node__handle.html">jsonv::object_node_handle</a></div><div class="ttdoc">A node handle used when a value is kind::object to access elements of the object in potentially destr...</div><div class="ttdef"><b>Definition:</b> <a href="value_8hpp_source.html#l01049">value.hpp:1049</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

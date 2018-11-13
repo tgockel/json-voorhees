@@ -71,7 +71,7 @@ var classjsonv_1_1value =
     [ "count_path", "classjsonv_1_1value.html#aa32d3d92b8f59097b10648cf585533f4", null ],
     [ "count_path", "classjsonv_1_1value.html#a659ffaed62f676ef9bcd4d447b2c5524", null ],
     [ "count_path", "classjsonv_1_1value.html#a22b9339eaca88c988d2fceaa29775e01", null ],
-    [ "empty", "classjsonv_1_1value.html#afc0eb6d0e3b9a8dcfba8c36c19ced691", null ],
+    [ "empty", "classjsonv_1_1value.html#ada88c7dd9cbdcc2eba58eb61d09c5e28", null ],
     [ "end_array", "classjsonv_1_1value.html#ae8e46475135847419326f43bb8652030", null ],
     [ "end_array", "classjsonv_1_1value.html#ab687f9758ca4b30d495255a2ce17923a", null ],
     [ "end_object", "classjsonv_1_1value.html#a4575cef7e4195a25eeba35a7f15b2fbd", null ],

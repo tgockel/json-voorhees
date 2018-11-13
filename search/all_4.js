@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['empty',['empty',['../structjsonv_1_1version.html#a0571c645cd90fdc6fbdfb55a5a1438b5',1,'jsonv::version::empty()'],['../classjsonv_1_1value.html#afc0eb6d0e3b9a8dcfba8c36c19ced691',1,'jsonv::value::empty()'],['../classjsonv_1_1object__node__handle.html#a830e189a6c1a445d09164750e12f4414',1,'jsonv::object_node_handle::empty()']]],
+  ['empty',['empty',['../structjsonv_1_1version.html#a0571c645cd90fdc6fbdfb55a5a1438b5',1,'jsonv::version::empty()'],['../classjsonv_1_1value.html#ada88c7dd9cbdcc2eba58eb61d09c5e28',1,'jsonv::value::empty()'],['../classjsonv_1_1object__node__handle.html#a830e189a6c1a445d09164750e12f4414',1,'jsonv::object_node_handle::empty()']]],
   ['encode',['encode',['../classjsonv_1_1encoder.html#a8c314dfcaa9df22f72ed16cf771a4849',1,'jsonv::encoder']]],
   ['encode_2ehpp',['encode.hpp',['../encode_8hpp.html',1,'']]],
   ['encode_5fif',['encode_if',['../classjsonv_1_1member__adapter__builder.html#acf62c5f94d6243782579ac65bf6edb4f',1,'jsonv::member_adapter_builder']]],

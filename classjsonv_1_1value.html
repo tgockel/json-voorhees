@@ -495,9 +495,9 @@ size_type&#160;</td><td class="memItemRight" valign="bottom"><b>count</b> (const
 <tr class="memitem:a68a4447bc99cd4db5b4f2737f289cd3b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a68a4447bc99cd4db5b4f2737f289cd3b"></a>
 <a class="el" href="structjsonv_1_1value_1_1basic__object__iterator.html">const_object_iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>find</b> (const std::wstring &amp;key) const </td></tr>
 <tr class="separator:a68a4447bc99cd4db5b4f2737f289cd3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc0eb6d0e3b9a8dcfba8c36c19ced691"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#afc0eb6d0e3b9a8dcfba8c36c19ced691">empty</a> () const </td></tr>
-<tr class="memdesc:afc0eb6d0e3b9a8dcfba8c36c19ced691"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent to asking if the size is 0.  <a href="#afc0eb6d0e3b9a8dcfba8c36c19ced691">More...</a><br /></td></tr>
-<tr class="separator:afc0eb6d0e3b9a8dcfba8c36c19ced691"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada88c7dd9cbdcc2eba58eb61d09c5e28"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#ada88c7dd9cbdcc2eba58eb61d09c5e28">empty</a> () const noexcept</td></tr>
+<tr class="memdesc:ada88c7dd9cbdcc2eba58eb61d09c5e28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Is the underlying structure empty?  <a href="#ada88c7dd9cbdcc2eba58eb61d09c5e28">More...</a><br /></td></tr>
+<tr class="separator:ada88c7dd9cbdcc2eba58eb61d09c5e28"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79c3e426d63d6c658470ee2295b35f82"><td class="memItemLeft" align="right" valign="top">size_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classjsonv_1_1value.html#a79c3e426d63d6c658470ee2295b35f82">size</a> () const </td></tr>
 <tr class="memdesc:a79c3e426d63d6c658470ee2295b35f82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the number of items in this value.  <a href="#a79c3e426d63d6c658470ee2295b35f82">More...</a><br /></td></tr>
 <tr class="separator:a79c3e426d63d6c658470ee2295b35f82"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1515,9 +1515,12 @@ template&lt;typename TForwardIterator &gt; </div>
 
 </div>
 </div>
-<a class="anchor" id="afc0eb6d0e3b9a8dcfba8c36c19ced691"></a>
+<a class="anchor" id="ada88c7dd9cbdcc2eba58eb61d09c5e28"></a>
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool jsonv::value::empty </td>
@@ -1526,17 +1529,24 @@ template&lt;typename TForwardIterator &gt; </div>
           <td> const</td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p>Is the underlying structure empty? This has similar meaning for all types it works on and is always equivalent to asking if the size is 0. </p>
+<p>Is the underlying structure empty? </p>
 <ul>
 <li>object: Are there no keys?</li>
 <li>array: Are there no values?</li>
 <li>string: Is the string 0 length?</li>
+<li>null: true (always)</li>
+<li>all other types: false (always)</li>
 </ul>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname"><a class="el" href="classjsonv_1_1kind__error.html" title="Thrown from various value methods when attempting to perform an operation which is not valid for the ...">kind_error</a></td><td>if the kind is not an object, array or string. </td></tr>
+    <tr><td class="paramname">nothing</td><td></td></tr>
   </table>
   </dd>
 </dl>
