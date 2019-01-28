@@ -382,6 +382,14 @@ namespace jsonv
  *  
  *  Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
  *  be called multiple times -- all functions will be called in the order they are provided.
+ *
+ *  \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
+ *  
+ *   - <tt>post_extract(std::function&lt;T (const extraction_context& context, T&& out)&gt; perform)</tt>
+ *  
+ *  Call the given \a perform function after the \c extract operation. All functions will be called in the order they
+ *  are provided. This allows validation methods to be called on the extracted object as part of extraction.
+ *  Postprocessing functions are allowed to mutate the extracted object.
  *  
  *  \paragraph serialization_builder_dsl_ref_type_level_default_on_null type_default_on_null
  *  
@@ -656,9 +664,11 @@ public:
                                               void (T::*mutate)(TMember&&)
                                              );
     
-    adapter_builder<T>& pre_extract(std::function<void (const extraction_context&, const value& from)> perform);
-    
-    adapter_builder<T>& on_extract_extra_keys(std::function<void (const extraction_context&, const value& from, std::set<std::string> extra_keys)> handler);
+    adapter_builder<T>& pre_extract(typename adapter_builder<T>::pre_extract_func perform);
+
+    adapter_builder<T>& post_extract(typename adapter_builder<T>::post_extract_func perform);
+
+    adapter_builder<T>& on_extract_extra_keys(typename adapter_builder<T>::extra_keys_func handler);
     
 protected:
     adapter_builder<T>* owner;
@@ -939,6 +949,11 @@ class adapter_builder :
         public detail::formats_builder_dsl
 {
 public:
+    using pre_extract_func  = std::function<void (const extraction_context&, const value&)>;
+    using post_extract_func = std::function<T (const extraction_context&, T&&)>;
+    using extra_keys_func   = std::function<void (const extraction_context&, const value&, std::set<std::string>)>;
+
+public:
     template <typename F>
     explicit adapter_builder(formats_builder* owner, F&& f) :
             formats_builder_dsl(owner),
@@ -1035,11 +1050,11 @@ public:
                               );
     }
     
-    adapter_builder<T>& pre_extract(std::function<void (const extraction_context&, const value& from)> perform)
+    adapter_builder<T>& pre_extract(pre_extract_func perform)
     {
         if (_adapter->_pre_extract)
         {
-            std::function<void (const extraction_context&, const value&)> old_perform = std::move(_adapter->_pre_extract);
+            pre_extract_func old_perform = std::move(_adapter->_pre_extract);
             _adapter->_pre_extract = [old_perform, perform] (const extraction_context& context, const value& from)
                                      {
                                          old_perform(context, from);
@@ -1052,8 +1067,25 @@ public:
         }
         return *this;
     }
+
+    adapter_builder<T>& post_extract(post_extract_func perform)
+    {
+        if (_adapter->_post_extract)
+        {
+            post_extract_func old_perform = std::move(_adapter->_post_extract);
+            _adapter->_post_extract = [old_perform, perform] (const extraction_context& context, T&& out)
+                                     {
+                                         return perform(context, old_perform(context, std::move(out)));
+                                     };
+        }
+        else
+        {
+            _adapter->_post_extract = std::move(perform);
+        }
+        return *this;
+    }
     
-    adapter_builder<T>& on_extract_extra_keys(std::function<void (const extraction_context&, const value& from, std::set<std::string> extra_keys)> handler)
+    adapter_builder<T>& on_extract_extra_keys(extra_keys_func handler)
     {
         adapter_impl* adapter = _adapter;
         return pre_extract([adapter, handler] (const extraction_context& context, const value& from)
@@ -1096,6 +1128,10 @@ private:
             T out;
             for (const auto& member : _members)
                 member->mutate(context, from, out);
+
+            if (_post_extract)
+                out = _post_extract(context, std::move(out));
+
             return out;
         }
         
@@ -1107,10 +1143,11 @@ private:
             return out;
         }
         
-        std::deque<std::unique_ptr<detail::member_adapter<T>>>             _members;
-        std::function<void (const extraction_context&, const value& from)> _pre_extract;
-        std::function<T (const extraction_context&)>                       _create_default;
-        bool                                                               _default_on_null;
+        std::deque<std::unique_ptr<detail::member_adapter<T>>> _members;
+        pre_extract_func                                       _pre_extract;
+        post_extract_func                                      _post_extract;
+        std::function<T (const extraction_context&)>           _create_default;
+        bool                                                   _default_on_null;
     };
     
 private:
@@ -1501,15 +1538,19 @@ adapter_builder_dsl<T>::member(std::string name,
 }
 
 template <typename T>
-adapter_builder<T>& adapter_builder_dsl<T>
-::pre_extract(std::function<void (const extraction_context&, const value& from)> perform)
+adapter_builder<T>& adapter_builder_dsl<T>::pre_extract(typename adapter_builder<T>::pre_extract_func perform)
 {
     return owner->pre_extract(std::move(perform));
 }
 
 template <typename T>
-adapter_builder<T>& adapter_builder_dsl<T>
-::on_extract_extra_keys(std::function<void (const extraction_context&, const value& from, std::set<std::string> extra_keys)> handler)
+adapter_builder<T>& adapter_builder_dsl<T>::post_extract(typename adapter_builder<T>::post_extract_func perform)
+{
+    return owner->post_extract(std::move(perform));
+}
+
+template <typename T>
+adapter_builder<T>& adapter_builder_dsl<T>::on_extract_extra_keys(typename adapter_builder<T>::extra_keys_func handler)
 {
     return owner->on_extract_extra_keys(std::move(handler));
 }

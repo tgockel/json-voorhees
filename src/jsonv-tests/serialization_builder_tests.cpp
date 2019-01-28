@@ -195,6 +195,59 @@ TEST(serialization_builder_extract_extra_keys)
     ensure(extra_keys == std::set<std::string>({ "extra1", "extra2" }));
 }
 
+TEST(serialization_builder_post_extract_single)
+{
+    auto post_extract_handler = [] (const extraction_context&, person&& p) -> person
+                              {
+                                  p.age++;
+                                  return p;
+                              };
+
+    formats fmt = formats_builder()
+                    .type<person>()
+                        .post_extract(post_extract_handler)
+                        .member("firstname", &person::firstname)
+                        .member("lastname",  &person::lastname)
+                        .member("age",       &person::age)
+                    .compose_checked(formats::defaults())
+                ;
+
+    person p("Bob", "Builder", 29);
+    auto encoded = to_json(p, fmt);
+    person q = extract<person>(encoded, fmt);
+    ensure_eq(person("Bob", "Builder", 30), q);
+}
+
+TEST(serialization_builder_post_extract_multi)
+{
+    auto post_extract_handler_1 = [] (const extraction_context&, person&& p)
+                                {
+                                    p.age++;
+                                    return p;
+                                };
+
+    auto post_extract_handler_2 = [] (const extraction_context&, person&& p)
+                                {
+                                    p.lastname = "Mc" + p.lastname;
+                                    return p;
+                                };
+
+    formats fmt = formats_builder()
+                    .type<person>()
+                        .post_extract(post_extract_handler_1)
+                        .post_extract(post_extract_handler_2)
+                        .member("firstname", &person::firstname)
+                        .member("lastname",  &person::lastname)
+                        .member("age",       &person::age)
+                    .compose_checked(formats::defaults())
+                ;
+
+    person p("Bob", "Builder", 29);
+    auto encoded = to_json(p, fmt);
+    person q = extract<person>(encoded, fmt);
+    ensure_eq(person("Bob", "McBuilder", 30), q);
+}
+
 TEST(serialization_builder_defaults)
 {
     formats fmt = formats_builder()
