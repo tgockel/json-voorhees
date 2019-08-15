@@ -34,6 +34,7 @@ var NAVTREE =
         [ "Type Context", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type", [
           [ "Level", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level", [
             [ "pre_extract", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_pre_extract", null ],
+            [ "post_extract", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_post_extract", null ],
             [ "type_default_on_null", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_default_on_null", null ],
             [ "serialization_builder_dsl_ref_type_level_type_default_value", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_type_default_value", null ],
             [ "on_extract_extra_keys", "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_on_extract_extra_keys", null ]
@@ -87,10 +88,10 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 ".html",
-"classjsonv_1_1detail_1_1string__view.html#afb867f60a1f8432d992c244b06f3e999",
-"classjsonv_1_1path__element.html#a1d07aa75c083a44758fea0928702824f",
-"encode_8hpp.html",
-"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_default_on_null"
+"classjsonv_1_1detail_1_1string__view.html#ae6027f852836869d7cf2fcf733169565",
+"classjsonv_1_1path.html#afa6721c123344a7931be1895d557b8b4",
+"detail_2string__view_8hpp.html#ac19c1e030e334d04d7efbb779c785013",
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_since"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

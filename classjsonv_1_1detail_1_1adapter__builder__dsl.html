@@ -171,12 +171,15 @@ template&lt;typename TMember &gt; </td></tr>
 <tr class="memitem:a3cffcf3f79aba145942100e9813a64d3"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="classjsonv_1_1member__adapter__builder.html">member_adapter_builder</a>&lt; T, <br class="typebreak" />
 TMember &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><b>member</b> (std::string name, const TMember &amp;(T::*access)() const, void(T::*mutate)(TMember &amp;&amp;))</td></tr>
 <tr class="separator:a3cffcf3f79aba145942100e9813a64d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff81d68e5ba4b4e8f3db59e1308d7120"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aff81d68e5ba4b4e8f3db59e1308d7120"></a>
-<a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>pre_extract</b> (std::function&lt; void(const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from)&gt; perform)</td></tr>
-<tr class="separator:aff81d68e5ba4b4e8f3db59e1308d7120"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5da48c03ccdbb52b82b2cb786773acf7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5da48c03ccdbb52b82b2cb786773acf7"></a>
-<a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>on_extract_extra_keys</b> (std::function&lt; void(const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a> &amp;, const <a class="el" href="classjsonv_1_1value.html">value</a> &amp;from, std::set&lt; std::string &gt; extra_keys)&gt; handler)</td></tr>
-<tr class="separator:a5da48c03ccdbb52b82b2cb786773acf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a396859cd75709dc2c0ec25ac391c766d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a396859cd75709dc2c0ec25ac391c766d"></a>
+<a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>pre_extract</b> (typename <a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt;::pre_extract_func perform)</td></tr>
+<tr class="separator:a396859cd75709dc2c0ec25ac391c766d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac99c608579208dfffe8454a4d55692ae"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac99c608579208dfffe8454a4d55692ae"></a>
+<a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>post_extract</b> (typename <a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt;::post_extract_func perform)</td></tr>
+<tr class="separator:ac99c608579208dfffe8454a4d55692ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e78a104c297fcbdbd8241f2dcd08a98"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0e78a104c297fcbdbd8241f2dcd08a98"></a>
+<a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>on_extract_extra_keys</b> (typename <a class="el" href="classjsonv_1_1adapter__builder.html">adapter_builder</a>&lt; T &gt;::extra_keys_func handler)</td></tr>
+<tr class="separator:a0e78a104c297fcbdbd8241f2dcd08a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -189,7 +192,7 @@ Protected Attributes</h2></td></tr>
 class jsonv::detail::adapter_builder_dsl&lt; T &gt;</h3>
 
 
-<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00619">619</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
+<p>Definition at line <a class="el" href="serialization__builder_8hpp_source.html#l00627">627</a> of file <a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>jsonv/<a class="el" href="serialization__builder_8hpp_source.html">serialization_builder.hpp</a></li>
 </ul>

@@ -1,9 +1,14 @@
 var NAVTREEINDEX4 =
 {
-"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_default_on_null":[1,0,1,0,1],
-"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_on_extract_extra_keys":[1,0,1,0,3],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_since":[1,0,2,0,7],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_member_level_until":[1,0,2,0,8],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_type":[1,0,1],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level":[1,0,1,0],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_default_on_null":[1,0,1,0,2],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_on_extract_extra_keys":[1,0,1,0,4],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_post_extract":[1,0,1,0,1],
 "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_pre_extract":[1,0,1,0,0],
-"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_type_default_value":[1,0,1,0,2],
+"serialization_builder_dsl.html#serialization_builder_dsl_ref_type_level_type_default_value":[1,0,1,0,3],
 "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing":[1,0,1,1],
 "serialization_builder_dsl.html#serialization_builder_dsl_ref_type_narrowing_member":[1,0,1,1,0],
 "string__view_8hpp.html":[5,0,0,17],

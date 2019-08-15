@@ -345,6 +345,12 @@ pre_extract</h4>
 <li><code>pre_extract(std::function&lt;void (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context, const value&amp; from)&gt; perform)</code></li>
 </ul>
 <p>Call the given <em>perform</em> function during the <code>extract</code> operation, but before performing any extraction. This can be called multiple times &ndash; all functions will be called in the order they are provided.</p>
+<h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_post_extract"></a>
+post_extract</h4>
+<ul>
+<li><code>post_extract(std::function&lt;T (const <a class="el" href="classjsonv_1_1extraction__context.html">extraction_context</a>&amp; context, T&amp;&amp; out)&gt; perform)</code></li>
+</ul>
+<p>Call the given <em>perform</em> function after the <code>extract</code> operation. All functions will be called in the order they are provided. This allows validation methods to be called on the extracted object as part of extraction. Postprocessing functions are allowed to mutate the extracted object.</p>
 <h4><a class="anchor" id="serialization_builder_dsl_ref_type_level_default_on_null"></a>
 type_default_on_null</h4>
 <ul>
