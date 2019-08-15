@@ -1,5 +1,5 @@
 language: cpp
-dist: trusty
+dist: xenial
 sudo: required
 env:
   matrix:
@@ -7,16 +7,20 @@ env:
   - DISTRO=ubuntu-14.04  CONF=Release
   - DISTRO=ubuntu-16.04  CONF=Debug
   - DISTRO=ubuntu-16.04  CONF=Release
-  - DISTRO=ubuntu-17.10  CONF=Debug
-  - DISTRO=ubuntu-17.10  CONF=Release
   - DISTRO=ubuntu-18.04  CONF=Debug
   - DISTRO=ubuntu-18.04  CONF=Release
-  - DISTRO=debian-9      CONF=Debug
-  - DISTRO=debian-9      CONF=Release
-  - DISTRO=opensuse-42.3 CONF=Debug
-  - DISTRO=opensuse-42.3 CONF=Release
+  - DISTRO=ubuntu-18.10  CONF=Debug
+  - DISTRO=ubuntu-18.10  CONF=Release
+  - DISTRO=ubuntu-19.04  CONF=Debug
+  - DISTRO=ubuntu-19.04  CONF=Release
+  - DISTRO=debian-9.9    CONF=Debug
+  - DISTRO=debian-9.9    CONF=Release
+  - DISTRO=opensuse-15.1 CONF=Debug
+  - DISTRO=opensuse-15.1 CONF=Release
   - DISTRO=fedora-27     CONF=Debug
   - DISTRO=fedora-27     CONF=Release
+  - DISTRO=fedora-30     CONF=Debug
+  - DISTRO=fedora-30     CONF=Release
   - DISTRO=arch          CONF=Debug
   - DISTRO=arch          CONF=Release
 services:
@@ -27,13 +31,12 @@ script:
   - echo "export CMAKE_BUILD_TYPE=${CONF}" >> env.sh
   - docker run -v ${TRAVIS_BUILD_DIR}:/root/jsonv dev/jsonv/${DISTRO}
 after_success:
-- if [[ ${DISTRO} != "ubuntu-16.04" ]]; then echo "Skipping documentation publishing due to non-main build environment"; exit 0; fi
+- if [[ ${DISTRO} != "ubuntu-18.04" ]]; then echo "Skipping documentation publishing due to non-main build environment"; exit 0; fi
 - if [[ ${CONF} != "Release" ]];        then echo "Skipping documentation publishing due to non-Release build"; exit 0; fi
 - GIT_CURRENT_HASH=$(git rev-parse HEAD)
 - GIT_MASTER_HASH=$(git rev-parse master)
 - GIT_REMOTE_NAME=$(git remote)
-- GIT_REMOTE_FETCH_PATH=$(git remote --verbose | grep -P '^'${GIT_REMOTE_NAME}'.*\(fetch\)$'
-  | awk '{print $2}')
+- GIT_REMOTE_FETCH_PATH=$(git remote --verbose | grep -P '^'${GIT_REMOTE_NAME}'.*\(fetch\)$' | awk '{print $2}')
 - GIT_EXPECTED_PATH=https://github.com/tgockel/json-voorhees.git
 - echo "GIT_CURRENT_HASH=${GIT_CURRENT_HASH} GIT_REMOTE_NAME=${GIT_REMOTE_NAME} GIT_REMOTE_FETCH_PATH=${GIT_REMOTE_FETCH_PATH}"
 - if [[ ${GIT_CURRENT_HASH} != ${GIT_MASTER_HASH} ]]; then        echo "Skipping documentation publishing due to non-master ${GIT_CURRENT_HASH} (master=${GIT_MASTER_HASH})"; exit 0; fi
@@ -41,8 +44,7 @@ after_success:
 - sudo add-apt-repository --yes ppa:libreoffice/ppa
 - sudo apt-get update
 - sudo apt-get install --yes doxygen graphviz texlive-full
-- openssl aes-256-cbc -K $encrypted_3e0adb789702_key -iv $encrypted_3e0adb789702_iv
-  -in config/travisci_ecdsa.enc -out config/travisci_ecdsa -d
+- openssl aes-256-cbc -K $encrypted_3e0adb789702_key -iv $encrypted_3e0adb789702_iv -in config/travisci_ecdsa.enc -out config/travisci_ecdsa -d
 - chmod 0600 config/travisci_ecdsa
 - cp config/travisci_ecdsa ~/.ssh/id_ecdsa
 - "./config/publish-doxygen"
