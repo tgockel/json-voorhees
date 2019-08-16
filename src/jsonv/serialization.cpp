@@ -21,17 +21,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#if __cplusplus >= 201703L
-#   if __has_include(<cxxabi.h>)
-#       define JSONV_HAS_CXXABI 1
-#       include <cxxabi.h>
-#   else
-#       define JSONV_HAS_CXXABI 0
-#   endif
-#else
-#   define JSONV_HAS_CXXABI 0
-#endif
-
 namespace jsonv
 {
 
@@ -634,16 +623,6 @@ extraction_context::extraction_context() :
 { }
 
 extraction_context::~extraction_context() noexcept = default;
-
-static std::string current_exception_type_name()
-{
-    #if JSONV_HAS_CXXABI
-    if (auto type_ptr = __cxxabiv1::__cxa_current_exception_type())
-        return demangle(type_ptr->name());
-    #endif
-
-    return "unknown";
-}
 
 void extraction_context::extract(const std::type_info& type, const value& from, void* into) const
 {

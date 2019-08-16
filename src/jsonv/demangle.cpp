@@ -1,5 +1,5 @@
 /** \file
- *  
+ *
  *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -11,22 +11,25 @@
 #include <jsonv/demangle.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 
-#ifndef _MSC_VER
-#include <cxxabi.h>
+#if __cplusplus >= 201703L || defined __has_include
+#   if __has_include(<cxxabi.h>)
+#       define JSONV_HAS_CXXABI 1
+#       include <cxxabi.h>
+#   else
+#       define JSONV_HAS_CXXABI 0
+#   endif
+#else
+#   define JSONV_HAS_CXXABI 0
 #endif
+
 #include <cstdlib>
 
 namespace jsonv
 {
 
-#ifdef _MSC_VER
 static std::string demangle_impl(string_view source)
 {
-    return std::string(source);
-}
-#else
-static std::string demangle_impl(string_view source)
-{
+    #if JSONV_HAS_CXXABI
     namespace cxxabi = __cxxabiv1;
     int status;
     char* demangled = cxxabi::__cxa_demangle(source.data(), nullptr, nullptr, &status);
@@ -39,8 +42,10 @@ static std::string demangle_impl(string_view source)
     {
         return std::string(source);
     }
+    #else
+    return std::string(source);
+    #endif
 }
-#endif
 
 static demangle_function& demangle_function_ref()
 {
@@ -65,6 +70,16 @@ std::string demangle(string_view source)
         return func(source);
     else
         return std::string(source);
+}
+
+std::string current_exception_type_name()
+{
+    #if JSONV_HAS_CXXABI
+    if (auto type_ptr = __cxxabiv1::__cxa_current_exception_type())
+        return demangle(type_ptr->name());
+    #endif
+
+    return "unknown";
 }
 
 }
