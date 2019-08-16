@@ -1,6 +1,6 @@
 /** \file
  *
- *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2015-2019 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -329,26 +329,26 @@ namespace
 
 struct foo
 {
-  int         a;
-  int         b;
-  std::string c;
-  
-  static foo create_default()
-  {
-      foo out;
-      out.a = 0;
-      out.b = 1;
-      out.c = "default";
-      return out;
-  }
+    int         a;
+    int         b;
+    std::string c;
+
+    static foo create_default()
+    {
+        foo out;
+        out.a = 0;
+        out.b = 1;
+        out.c = "default";
+        return out;
+    }
 };
 
 struct bar
 {
-  foo         x;
-  foo         y;
-  std::string z;
-  std::string w;
+    foo         x;
+    foo         y;
+    std::string z;
+    std::string w;
 };
 
 TEST(serialization_builder_extra_unchecked_key)
@@ -370,14 +370,14 @@ TEST(serialization_builder_extra_unchecked_key)
                    .until(jsonv::version(5, 0))
     ;
     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
-    
-    jsonv::value val = object({ { "x", object({ { "aaaaa", 50 }, { "b", 20 }, { "c", "Blah"  } }) },
-                                { "y", object({ { "a",     10 },              { "c", "No B?" } }) },
+
+    jsonv::value val = object({ { "x", object({ { "a", 50 }, { "b", 20 }, { "c", "Blah"  }, {  "extra", "key" } }) },
+                                { "y", object({ { "a", 10 },              { "c", "No B?" } }) },
                                 { "z", "Only serialized in 2.0+" },
                                 { "w", "Only serialized before 5.0" }
                               }
                              );
-    bar x = jsonv::extract<bar>(val, format);  
+    bar x = jsonv::extract<bar>(val, format);
 }
 
 TEST(serialization_builder_extra_unchecked_key_throws)
@@ -400,9 +400,9 @@ TEST(serialization_builder_extra_unchecked_key_throws)
                    .until(jsonv::version(5, 0))
     ;
     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
-    
-    jsonv::value val = object({ { "x", object({ { "aaaaa", 50 }, { "b", 20 }, { "c", "Blah"  } }) },
-                                { "y", object({ { "a",     10 },              { "c", "No B?" } }) },
+
+    jsonv::value val = object({ { "x", object({ { "a", 50 }, { "b", 20 }, { "c", "Blah"  }, { "extra", "key" } }) },
+                                { "y", object({ { "a", 10 },              { "c", "No B?" } }) },
                                 { "z", "Only serialized in 2.0+" },
                                 { "w", "Only serialized before 5.0" }
                               }
@@ -430,7 +430,7 @@ TEST(serialization_builder_type_based_default_value)
                 .type_default_value(foo::create_default())
         ;
     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
-    
+
     auto f = jsonv::extract<foo>(value(), format);
     auto e = foo::create_default();
     ensure_eq(e.a, f.a);
@@ -500,7 +500,7 @@ enum class ring
 TEST(serialization_builder_enum_strings)
 {
     using namespace x;
-    
+
     jsonv::formats formats =
         jsonv::formats_builder()
             .enum_type<ring>("ring",
@@ -518,21 +518,21 @@ TEST(serialization_builder_enum_strings)
             .register_container<std::vector<ring>>()
             #endif
             .check_references();
-    
+
     ensure(ring::fire  == jsonv::extract<ring>("fire",  formats));
     ensure(ring::wind  == jsonv::extract<ring>("wind",  formats));
     ensure(ring::water == jsonv::extract<ring>("water", formats));
     ensure(ring::earth == jsonv::extract<ring>("earth", formats));
     ensure(ring::heart == jsonv::extract<ring>("heart", formats));
-    
+
     jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
     std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
     std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
     ensure(val == exp);
-    
+
     value enc = jsonv::to_json(exp, formats);
     ensure(enc == jsons);
-    
+
     ensure_throws(jsonv::extraction_error, jsonv::extract<ring>("FIRE",    formats));
     ensure_throws(jsonv::extraction_error, jsonv::extract<ring>("useless", formats));
 }
@@ -540,7 +540,7 @@ TEST(serialization_builder_enum_strings)
 TEST(serialization_builder_enum_strings_icase)
 {
     using namespace x;
-    
+
     jsonv::formats formats =
         jsonv::formats_builder()
             .enum_type_icase<ring>("ring",
@@ -558,28 +558,28 @@ TEST(serialization_builder_enum_strings_icase)
             .register_container<std::vector<ring>>()
             #endif
             .check_references(jsonv::formats::defaults());
-    
+
     ensure(ring::fire  == jsonv::extract<ring>("fiRe",  formats));
     ensure(ring::wind  == jsonv::extract<ring>("wIND",  formats));
     ensure(ring::water == jsonv::extract<ring>("Water", formats));
     ensure(ring::earth == jsonv::extract<ring>("EARTH", formats));
     ensure(ring::heart == jsonv::extract<ring>("HEART", formats));
-    
+
     jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
     std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
     std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
     ensure(val == exp);
-    
+
     value enc = jsonv::to_json(exp, formats);
     ensure(enc == jsons);
-    
+
     ensure_throws(jsonv::extraction_error, jsonv::extract<ring>("useless", formats));
 }
 
 TEST(serialization_builder_enum_strings_icase_multimapping)
 {
     using namespace x;
-    
+
     jsonv::formats formats =
         jsonv::formats_builder()
             .enum_type_icase<ring>("ring",
@@ -600,7 +600,7 @@ TEST(serialization_builder_enum_strings_icase_multimapping)
              .register_container<std::vector<ring>>()
              #endif
             .check_references(jsonv::formats::defaults());
-    
+
     ensure(ring::fire  == jsonv::extract<ring>("fiRe",  formats));
     ensure(ring::fire  == jsonv::extract<ring>(666,     formats));
     ensure(ring::wind  == jsonv::extract<ring>("wIND",  formats));
@@ -609,15 +609,15 @@ TEST(serialization_builder_enum_strings_icase_multimapping)
     ensure(ring::earth == jsonv::extract<ring>(true, formats));
     ensure(ring::heart == jsonv::extract<ring>("HEART", formats));
     ensure(ring::heart == jsonv::extract<ring>("useless", formats));
-    
+
     jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
     std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
     std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
     ensure(val == exp);
-    
+
     value enc = jsonv::to_json(exp, formats);
     ensure(enc == jsons);
-    
+
     ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(false, formats));
     ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(5,     formats));
 }
@@ -634,12 +634,12 @@ struct a_derived :
         base
 {
     virtual std::string get() const override { return "a"; }
-    
+
     static void json_adapt(adapter_builder<a_derived>& builder)
     {
         builder.member("type", &a_derived::x);
     }
-    
+
     std::string x = "a";
 };
 
@@ -647,7 +647,7 @@ struct b_derived :
         base
 {
     virtual std::string get() const override { return "b"; }
-    
+
     static void json_adapt(adapter_builder<b_derived>& builder)
     {
         builder.member("type", &b_derived::x);
@@ -713,15 +713,15 @@ TEST(serialization_builder_polymorphic_direct)
                                      .subtype<a_derived>("a")
                                      .subtype<a_derived>("a");
                          };
-    
+
     auto fmts = make_fmts(b_derived::json_adapt, c_derived::json_adapt);
     value input = array({ object({{ "type", "a" }}), object({{ "type", "b" }}), object({{ "type", "c" }}) });
     auto output = extract<std::vector<std::unique_ptr<base>>>(input, fmts);
-    
+
     ensure(output.at(0)->get() == "a");
     ensure(output.at(1)->get() == "b");
     ensure(output.at(2)->get() == "c");
-    
+
     value encoded = to_json(output, fmts);
     ensure_eq(input, encoded);
 

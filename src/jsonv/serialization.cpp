@@ -1,7 +1,7 @@
 /** \file
  *  Conversion between C++ types and JSON values.
  *
- *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
+ *  Copyright (c) 2015-2019 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -20,6 +20,17 @@
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+
+#if __cplusplus >= 201703L
+#   if __has_include(<cxxabi.h>)
+#       define JSONV_HAS_CXXABI 1
+#       include <cxxabi.h>
+#   else
+#       define JSONV_HAS_CXXABI 0
+#   endif
+#else
+#   define JSONV_HAS_CXXABI 0
+#endif
 
 namespace jsonv
 {
@@ -624,6 +635,16 @@ extraction_context::extraction_context() :
 
 extraction_context::~extraction_context() noexcept = default;
 
+static std::string current_exception_type_name()
+{
+    #if JSONV_HAS_CXXABI
+    if (auto type_ptr = __cxxabiv1::__cxa_current_exception_type())
+        return demangle(type_ptr->name());
+    #endif
+
+    return "unknown";
+}
+
 void extraction_context::extract(const std::type_info& type, const value& from, void* into) const
 {
     try
@@ -640,7 +661,7 @@ void extraction_context::extract(const std::type_info& type, const value& from, 
     }
     catch (...)
     {
-        throw extraction_error(*this, "");
+        throw extraction_error(*this, std::string("Exception with type ") + current_exception_type_name());
     }
 }
 
@@ -666,7 +687,7 @@ void extraction_context::extract_sub(const std::type_info& type,
     }
     catch (...)
     {
-        throw extraction_error(sub, "");
+        throw extraction_error(sub, std::string("Exception with type ") + current_exception_type_name());
     }
 }
 
