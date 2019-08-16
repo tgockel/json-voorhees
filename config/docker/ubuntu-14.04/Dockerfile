@@ -1,5 +1,5 @@
 FROM ubuntu:14.04
-MAINTAINER Travis Gockel <travis@gockelhut.com>
+LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN apt-get update \
  && apt-get install --yes software-properties-common \
@@ -13,8 +13,7 @@ RUN apt-get update          \
     g++-4.9                 \
     lcov                    \
     libboost-all-dev        \
-    ninja-build
-
-RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-4.9 99
+    ninja-build             \
+ && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-4.9 99
 
 CMD ["/root/jsonv/config/run-tests"]

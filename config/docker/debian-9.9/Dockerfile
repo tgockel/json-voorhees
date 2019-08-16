@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM debian:9.9
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN apt-get update          \

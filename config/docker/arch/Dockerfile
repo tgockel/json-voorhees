@@ -1,5 +1,5 @@
-FROM base/archlinux
-MAINTAINER Travis Gockel <travis@gockelhut.com>
+FROM archlinux/base
+LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN pacman -Sy --noconfirm  \
     boost                   \
