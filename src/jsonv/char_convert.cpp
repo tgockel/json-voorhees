@@ -1,5 +1,5 @@
 /** \file
- *  
+ *
  *  Copyright (c) 2012-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -23,6 +23,26 @@
 #include <stdexcept>
 
 #include "detail/fixed_map.hpp"
+
+#if __cplusplus >= 201703L || defined __has_include
+#   if __has_include(<alloca.h>)
+#       define JSONV_HAS_ALLOCA 1
+#       include <alloca.h>
+#   else
+#       define JSONV_HAS_ALLOCA 0
+#   endif
+#else
+#   define JSONV_HAS_ALLOCA 0
+#endif
+
+#if JSONV_HAS_ALLOCA
+#   define JSONV_TEMP_BUFFER(type_, name_, elem_count_)                                                                \
+        type_* name_ = reinterpret_cast<type_*>(::alloca(sizeof(type_) * (elem_count_)))
+#else
+#   include <memory>
+#   define JSONV_TEMP_BUFFER(type_, name_, elem_count_)                                                                \
+        std::unique_ptr<type_[]> name_ = std::make_unique<type_[]>((elem_count_))
+#endif
 
 namespace jsonv
 {
@@ -51,7 +71,7 @@ decode_error::~decode_error() noexcept
 typedef detail::fixed_map<char, char, ESCAPES_LIST(TUPLE_PLUS_1_GEN)> converter_map;
 
 /** These entries are sorted by the numeric value of the ASCII character (\c less_entry_cpp).
- *  
+ *
  *  \note
  *  The encode and decode map must be in a different order (even though they contain the same data) because the ASCII
  *  representations of escape sequences are not in the same order as the characters they are escaping.
@@ -163,10 +183,10 @@ static bool utf8_extract_info(char c, unsigned& length, char& bitmask)
 static bool utf8_extract_code(const char* c, unsigned length, char bitmask, char32_t& num)
 {
     const char submask = '\x3f';
-    
+
     num = char32_t(*c & bitmask);
     ++c;
-    
+
     for (unsigned i = 1; i < length; ++i, ++c)
     {
         if (char_bitmatch(*c, '\x80', '\x40'))
@@ -180,7 +200,7 @@ static bool utf8_extract_code(const char* c, unsigned length, char bitmask, char
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -211,7 +231,7 @@ static void utf16_create_surrogates(char32_t codepoint, uint16_t* high, uint16_t
 std::ostream& string_encode(std::ostream& stream, string_view source, bool ensure_ascii)
 {
     typedef string_view::size_type size_type;
-    
+
     for (size_type idx = 0, source_size = source.size(); idx < source_size; /* incremented inline */)
     {
         const char& current = source[idx];
@@ -225,7 +245,7 @@ std::ostream& string_encode(std::ostream& stream, string_view source, bool ensur
             unsigned length;
             char bitmask;
             bool valid_utf8 = utf8_extract_info(current, length, bitmask);
-            
+
             if (!needs_unicode_escaping(current))
             {
                 stream << current;
@@ -243,7 +263,7 @@ std::ostream& string_encode(std::ostream& stream, string_view source, bool ensur
                     length = 1;
                     code = char32_t(current) & 0xff;
                 }
-                
+
                 // if the input string is valid UTF-8, let it pass through
                 if (valid_utf8 && !ensure_ascii)
                 {
@@ -266,11 +286,11 @@ std::ostream& string_encode(std::ostream& stream, string_view source, bool ensur
                     to_hex(stream, low);
                 }
             }
-            
+
             idx += length;
         }
     }
-    
+
     return stream;
 }
 
@@ -330,7 +350,7 @@ static uint16_t from_hex(const char* s, std::size_t idx_base)
         x = uint16_t(x + (from_hex_digit(*s, idx_base + idx) << (idx * 4)));
         ++s;
     }
-    
+
     return x;
 }
 
@@ -373,11 +393,11 @@ static void utf8_append_code(std::string& str, char32_t val)
     char c;
     std::size_t length;
     utf8_sequence_info(val, &length, &c);
-    
+
     char buffer[8];
     char* bufferOut = buffer;
     *bufferOut++ = c;
-    
+
     std::size_t shift = (length - 2) * 6;
     for (std::size_t idx = 1; idx < length; ++idx)
     {
@@ -385,7 +405,7 @@ static void utf8_append_code(std::string& str, char32_t val)
         *bufferOut++ = c;
         shift -= 6;
     }
-    
+
     str.append(buffer, bufferOut);
 }
 
@@ -418,12 +438,12 @@ template <parse_options::encoding encoding, bool require_printable>
 std::string string_decode(string_view source)
 {
     typedef std::string::size_type size_type;
-    
+
     std::string output;
     const char* last_pushed_src = source.data();
     size_type utf8_sequence_start = 0;
     unsigned remaining_utf8_sequence = 0;
-    
+
     for (size_type idx = 0; idx < source.size(); /* incremented inline */)
     {
         const char& current = source[idx];
@@ -432,7 +452,7 @@ std::string string_decode(string_view source)
             if (current == '\\')
             {
                 output.append(last_pushed_src, source.data()+idx);
-                
+
                 const char& next = source[idx + 1];
                 if (const char* replacement = find_decoding(next))
                 {
@@ -444,11 +464,11 @@ std::string string_decode(string_view source)
                     if (idx + 6 > source.size())
                         throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
                     uint16_t hexval = from_hex(&source[idx + 2], idx + 2);
-                    
+
                     if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
                     {
                         utf8_append_code(output, hexval);
-                        
+
                         idx += 6;
                     }
                     // numeric encoding is in U+d800 - U+dfff with UTF-8 output, so deal with surrogate pairing...
@@ -465,9 +485,9 @@ std::string string_decode(string_view source)
                         char32_t codepoint;
                         if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
                             throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
-                        
+
                         utf8_append_code(output, codepoint);
-                        
+
                         idx += 12;
                     }
                 }
@@ -477,10 +497,10 @@ std::string string_decode(string_view source)
                     //output += '?'; Maybe better solution if we don't want to throw
                     //++idx;
                 }
-                
+
                 last_pushed_src = source.data() + idx;
             }
-            else 
+            else
             {
                 unsigned utf8_length;
                 char utf8_bitmask;
@@ -495,7 +515,7 @@ std::string string_decode(string_view source)
                                       throw decode_error(idx, os.str());
                                   }
                                  );
-                
+
                 if (utf8_length > 1)
                 {
                     utf8_sequence_start = idx;
@@ -545,7 +565,7 @@ std::string string_decode(string_view source)
             }
         }
     }
-    
+
     if (encoding != parse_options::encoding::cesu8 && remaining_utf8_sequence > 0)
     {
         std::ostringstream os;
@@ -558,7 +578,7 @@ std::string string_decode(string_view source)
         os << '\"';
         throw decode_error(utf8_sequence_start, os.str());
     }
-    
+
     output.append(last_pushed_src, source.end());
     return output;
 }
@@ -580,7 +600,7 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
 std::wstring convert_to_wide(string_view source)
 {
     // Step 1: Determine the codepoints from the source
-    char32_t    unicode_buff[source.size()];
+    JSONV_TEMP_BUFFER(char32_t, unicode_buff, source.size());
     std::size_t unicode_idx = 0;
     std::size_t large_codes = 0;
 
@@ -669,7 +689,7 @@ std::wstring convert_to_wide(string_view source)
 static std::string convert_to_narrow(const wchar_t* source_data, std::size_t source_size)
 {
     // Step 1: Extract codepoints from the source
-    char32_t    unicode_buff[source_size];
+    JSONV_TEMP_BUFFER(char32_t, unicode_buff, source_size);
     std::size_t unicode_idx = 0;
     std::size_t out_chars   = 0;
 
