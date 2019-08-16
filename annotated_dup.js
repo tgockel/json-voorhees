@@ -1,4 +1,4 @@
-var annotated =
+var annotated_dup =
 [
     [ "jsonv", null, [
       [ "detail", null, [

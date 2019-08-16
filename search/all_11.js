@@ -21,6 +21,7 @@ var searchData=
   ['strict',['strict',['../classjsonv_1_1parse__options.html#a07d2a01c5527614ea710a84e8c88d714a2133fd717402a7966ee88d06f9e0b792',1,'jsonv::parse_options::strict()'],['../classjsonv_1_1parse__options.html#a62238f46e2076c4e3ac113345476176aa2133fd717402a7966ee88d06f9e0b792',1,'jsonv::parse_options::strict()']]],
   ['string_5fencoding',['string_encoding',['../classjsonv_1_1parse__options.html#ac8763752b079dadae3f78780a81aed3a',1,'jsonv::parse_options']]],
   ['string_5fview',['string_view',['../classjsonv_1_1detail_1_1string__view.html',1,'jsonv::detail']]],
+  ['string_5fview',['string_view',['../string__view_8hpp.html#a9cc8d30ac4b07b6f3b7e5c22fb98bcd6',1,'jsonv']]],
   ['string_5fview_2ehpp',['string_view.hpp',['../string__view_8hpp.html',1,'']]],
   ['string_5fview_2ehpp',['string_view.hpp',['../detail_2string__view_8hpp.html',1,'']]],
   ['swap',['swap',['../classjsonv_1_1value.html#acea6f1f938880b1b1761324e59abad83',1,'jsonv::value::swap()'],['../group__Value.html#ga6dcde9d9d0ea0a03bde8bcdff760e10f',1,'jsonv::swap()']]]

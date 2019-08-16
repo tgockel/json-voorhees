@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['parse',['parse',['../parse_8hpp.html#a32d4b73fbf71903a1a838c787219c4cb',1,'jsonv::parse(const string_view &amp;input, const parse_options &amp;=parse_options())'],['../parse_8hpp.html#a1430a7a2795f11c5cd20c822ef603153',1,'jsonv::parse(const char *begin, const char *end, const parse_options &amp;=parse_options())']]],
   ['parse_2ehpp',['parse.hpp',['../parse_8hpp.html',1,'']]],
   ['parse_5ferror',['parse_error',['../classjsonv_1_1parse__error.html',1,'jsonv']]],
   ['parse_5foptions',['parse_options',['../classjsonv_1_1parse__options.html',1,'jsonv']]],
