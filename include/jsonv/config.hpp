@@ -1,6 +1,6 @@
 /** \file jsonv/config.hpp
- *  
- *  Copyright (c) 2014-2016 by Travis Gockel. All rights reserved.
+ *
+ *  Copyright (c) 2014-2019 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -19,7 +19,7 @@
 #endif
 
 #define JSONV_VERSION_MAJOR 1
-#define JSONV_VERSION_MINOR 3
+#define JSONV_VERSION_MINOR 4
 #define JSONV_VERSION_PATCH 0
 
 /** \def JSONV_DEBUG
@@ -55,10 +55,10 @@
 
 /** \def JSONV_EXPORT
  *  If using shared objects, this class or function should be exported.
- *  
+ *
  *  \def JSONV_IMPORT
  *  If using shared objects, this class or function should be imported.
- *  
+ *
  *  \def JSONV_HIDDEN
  *  This symbol is only visible within the same shared object in which the translation unit will end up. Symbols which
  *  are "hidden" will \e not be put into the global offset table, which means code can be more optimal when it involves
@@ -92,7 +92,7 @@
  *  \brief This function or class is part of the public API for JsonVoorhees.
  *  If you are including JsonVoorhees for another library, this will have import semantics (\c JSONV_IMPORT); if you are
  *  building JsonVoorhees, this will have export semantics (\c JSONV_EXPORT).
- *  
+ *
  *  \def JSONV_LOCAL
  *  \brief This function or class is internal-use only.
  *  \see JSONV_HIDDEN
