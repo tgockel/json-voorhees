@@ -41,12 +41,13 @@ var searchData=
   ['config_2ehpp',['config.hpp',['../config_8hpp.html',1,'']]],
   ['container_5fadapter',['container_adapter',['../classjsonv_1_1container__adapter.html',1,'jsonv']]],
   ['container_5fadapter_3c_20optional_3c_20t_20_3e_20_3e',['container_adapter&lt; optional&lt; T &gt; &gt;',['../classjsonv_1_1container__adapter_3_01optional_3_01T_01_4_01_4.html',1,'jsonv']]],
-  ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html',1,'jsonv']]],
   ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html#a43f445f3d44d5bd78e1cc9dee440ca63',1,'jsonv::context_base::context_base()'],['../classjsonv_1_1context__base.html#a7ae9085313c6150a02a1385607ee5929',1,'jsonv::context_base::context_base(jsonv::formats fmt, const jsonv::version &amp;ver=jsonv::version(1), const void *userdata=nullptr)']]],
+  ['context_5fbase',['context_base',['../classjsonv_1_1context__base.html',1,'jsonv']]],
   ['count',['count',['../classjsonv_1_1value.html#a7442b42d745e649222506080a05e3913',1,'jsonv::value']]],
   ['count_5fpath',['count_path',['../classjsonv_1_1value.html#aa32d3d92b8f59097b10648cf585533f4',1,'jsonv::value']]],
   ['create',['create',['../classjsonv_1_1path.html#aafa798395256d7ea06e3cbe2de5f940b',1,'jsonv::path']]],
   ['create_5fdefault',['create_default',['../classjsonv_1_1parse__options.html#a699b9ee16f5c3ac8cb3d1ab1f39c1fb9',1,'jsonv::parse_options']]],
   ['create_5fstrict',['create_strict',['../classjsonv_1_1parse__options.html#a27a3f08de1318c06049ec1c264f71740',1,'jsonv::parse_options']]],
-  ['current',['current',['../classjsonv_1_1tokenizer.html#a738c2b782c3fa1b1a1c9293b9d1c6cb4',1,'jsonv::tokenizer']]]
+  ['current',['current',['../classjsonv_1_1tokenizer.html#a738c2b782c3fa1b1a1c9293b9d1c6cb4',1,'jsonv::tokenizer']]],
+  ['current_5fexception_5ftype_5fname',['current_exception_type_name',['../group__Serialization.html#ga98f8d3e2274c2960673761e37c292861',1,'jsonv']]]
 ];

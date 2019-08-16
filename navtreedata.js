@@ -90,7 +90,7 @@ var NAVTREEINDEX =
 "classjsonv_1_1detail_1_1string__view.html#a8ec8399db20ffe34b3d0e4bc7c1a33c9",
 "classjsonv_1_1parse__options.html#ac8763752b079dadae3f78780a81aed3a",
 "config_8hpp.html#a58dc2b5727768f0a5b79e0a0b8ff1d25",
-"serialization_builder_dsl.html#serialization_builder_dls_ref_formats_level_polymorphic_type"
+"serialization_builder_dsl.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

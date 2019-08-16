@@ -1,5 +1,7 @@
 var NAVTREEINDEX4 =
 {
+"serialization_builder_dsl.html":[1],
+"serialization_builder_dsl.html#Reference":[1,0],
 "serialization_builder_dsl.html#serialization_builder_dls_ref_formats_level_polymorphic_type":[1,0,0,0,8],
 "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats":[1,0,0],
 "serialization_builder_dsl.html#serialization_builder_dsl_ref_formats_level":[1,0,0,0],

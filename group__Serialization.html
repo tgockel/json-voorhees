@@ -221,6 +221,9 @@ Functions</h2></td></tr>
 <tr class="memitem:ga5122b2a35367e3978eecfe18f2c74958"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga5122b2a35367e3978eecfe18f2c74958">jsonv::reset_demangle_function</a> ()</td></tr>
 <tr class="memdesc:ga5122b2a35367e3978eecfe18f2c74958"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets the demangle function to the default.  <a href="group__Serialization.html#ga5122b2a35367e3978eecfe18f2c74958">More...</a><br /></td></tr>
 <tr class="separator:ga5122b2a35367e3978eecfe18f2c74958"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga98f8d3e2274c2960673761e37c292861"><td class="memItemLeft" align="right" valign="top"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga98f8d3e2274c2960673761e37c292861">jsonv::current_exception_type_name</a> ()</td></tr>
+<tr class="memdesc:ga98f8d3e2274c2960673761e37c292861"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the demangled type name of the current exception.  <a href="group__Serialization.html#ga98f8d3e2274c2960673761e37c292861">More...</a><br /></td></tr>
+<tr class="separator:ga98f8d3e2274c2960673761e37c292861"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga75b53c85ab73bce4a1d0027c556715a8"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
 <tr class="memitem:ga75b53c85ab73bce4a1d0027c556715a8"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8">jsonv::extract</a> (const value &amp;from, const formats &amp;fmts)</td></tr>
 <tr class="memdesc:ga75b53c85ab73bce4a1d0027c556715a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract a C++ value from <em>from</em> using the provided <em>fmts</em>.  <a href="group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8">More...</a><br /></td></tr>
@@ -374,6 +377,25 @@ template&lt;typename TEnum , typename FEnumComp  = std::less&lt;TEnum&gt;&gt; </
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga98f8d3e2274c2960673761e37c292861"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="config_8hpp.html#acd0703012bd724b356c177b7bc3d761d">JSONV_PUBLIC</a> std::string jsonv::current_exception_type_name </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the demangled type name of the current exception. </p>
+<p>This is meant to be called from <code>catch (...)</code> blocks to attempt to get more information about the exception type when it doesn't derive from a known entity.</p>
+<dl class="section return"><dt>Returns</dt><dd>The demangled type name of the current exception or "unknown" if this cannot be discovered. Failure to discover is not an error &ndash; this can happen if the exception is foreign to C++ (it does not have a <code>std::type_info</code> implementation) or if discovery is not known for this platform. </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="ga26c620d20cffb45e1145fe95eeb37d00"></a>
 <div class="memitem">
 <div class="memproto">

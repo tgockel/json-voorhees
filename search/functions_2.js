@@ -36,5 +36,6 @@ var searchData=
   ['create',['create',['../classjsonv_1_1path.html#aafa798395256d7ea06e3cbe2de5f940b',1,'jsonv::path']]],
   ['create_5fdefault',['create_default',['../classjsonv_1_1parse__options.html#a699b9ee16f5c3ac8cb3d1ab1f39c1fb9',1,'jsonv::parse_options']]],
   ['create_5fstrict',['create_strict',['../classjsonv_1_1parse__options.html#a27a3f08de1318c06049ec1c264f71740',1,'jsonv::parse_options']]],
-  ['current',['current',['../classjsonv_1_1tokenizer.html#a738c2b782c3fa1b1a1c9293b9d1c6cb4',1,'jsonv::tokenizer']]]
+  ['current',['current',['../classjsonv_1_1tokenizer.html#a738c2b782c3fa1b1a1c9293b9d1c6cb4',1,'jsonv::tokenizer']]],
+  ['current_5fexception_5ftype_5fname',['current_exception_type_name',['../group__Serialization.html#ga98f8d3e2274c2960673761e37c292861',1,'jsonv']]]
 ];

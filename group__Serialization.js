@@ -174,6 +174,7 @@ var group__Serialization =
       [ "check", "group__Serialization.html#ggaaee4cddaeb99aafe88212663f93b9856a0ba4439ee9a46d9d9f14c60f88f45f87", null ],
       [ "insert", "group__Serialization.html#ggaaee4cddaeb99aafe88212663f93b9856ae0df5f3dfd2650ae5be9993434e2b2c0", null ]
     ] ],
+    [ "current_exception_type_name", "group__Serialization.html#ga98f8d3e2274c2960673761e37c292861", null ],
     [ "demangle", "group__Serialization.html#ga26c620d20cffb45e1145fe95eeb37d00", null ],
     [ "extract", "group__Serialization.html#ga75b53c85ab73bce4a1d0027c556715a8", null ],
     [ "extract", "group__Serialization.html#gac24f0cb864988715300f4741b5031546", null ],
