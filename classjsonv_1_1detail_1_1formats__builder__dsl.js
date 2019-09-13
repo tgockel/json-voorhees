@@ -10,7 +10,7 @@ var classjsonv_1_1detail_1_1formats__builder__dsl =
     [ "enum_type_icase", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a92257fd2f1fd0799e4fc1726e87809df", null ],
     [ "extend", "classjsonv_1_1detail_1_1formats__builder__dsl.html#afedbd43f931d90de20a62a9b1ed7b865", null ],
     [ "on_duplicate_type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#ae5566267fff2a5c9d5195d29693cac13", null ],
-    [ "operator formats", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a3ba068f0be3773560cab480c4709c8e6", null ],
+    [ "operator formats", "classjsonv_1_1detail_1_1formats__builder__dsl.html#ae6a586874e0b588da5b79db57aec99b8", null ],
     [ "polymorphic_type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#aecc472274f04615e974f956c11728958", null ],
     [ "polymorphic_type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#a1d598b1190a38743459a68e59c32b656", null ],
     [ "reference_type", "classjsonv_1_1detail_1_1formats__builder__dsl.html#af6de598bf6d4b0deae468266e975b0af", null ],

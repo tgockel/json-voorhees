@@ -25,7 +25,7 @@ var value_8hpp =
     [ "object", "value_8hpp.html#ga0626c41c76cb46a7859de92c1f3bdd68", null ],
     [ "object", "value_8hpp.html#ga9052e7acde85ae6681c6512943851b68", null ],
     [ "object", "value_8hpp.html#gabae5c5bfa8dceec8849cfe0a58ad83b1", null ],
-    [ "operator\"\"_json", "value_8hpp.html#gacbd9685699111e35574f44d3793f600c", null ],
+    [ "operator\"\" _json", "value_8hpp.html#ga80387018debb257582cdf38614912f6f", null ],
     [ "operator<<", "value_8hpp.html#ga28b56e4bcc6db35b78e8a5c075994202", null ],
     [ "swap", "value_8hpp.html#ga6dcde9d9d0ea0a03bde8bcdff760e10f", null ],
     [ "to_string", "value_8hpp.html#ga2d5017f8b832a4b66bd16923ebde1c3d", null ],
