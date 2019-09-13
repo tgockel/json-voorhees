@@ -1,6 +1,17 @@
 1._ Series
 ==========
 
+1.4
+---
+
+ - [1.4.0](https://github.com/tgockel/json-voorhees/releases/tag/v1.4.0): 2019 September 13
+   - Core
+     - Removes use of variable length arrays in character conversion code
+   - Serialization
+     - Adds support for required fields
+   - Platform
+     - Adds support for newer Ubuntu, Fedora, and openSUSE flavors
+
 1.3
 ---
 
