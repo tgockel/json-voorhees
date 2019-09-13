@@ -5,7 +5,7 @@ var classjsonv_1_1validation__error =
     ] ],
     [ "validation_error", "classjsonv_1_1validation__error.html#a806d14306caaef8da7086b857ac18c43", null ],
     [ "~validation_error", "classjsonv_1_1validation__error.html#ae79ea654e8a7be74c689ee600f2c44be", null ],
-    [ "error_code", "classjsonv_1_1validation__error.html#a1b3d3f28eb5c1a6fb3f0fdd2cf6ff99a", null ],
-    [ "path", "classjsonv_1_1validation__error.html#ad03e378181a5d99efe7561b3ee7fe086", null ],
-    [ "value", "classjsonv_1_1validation__error.html#a90a9b95991eb8d8f83bac8f2881988fb", null ]
+    [ "error_code", "classjsonv_1_1validation__error.html#a438dfccc44015a8301cfd885f45bd801", null ],
+    [ "path", "classjsonv_1_1validation__error.html#ac816f8ec0dfc5f1210205e45d895c83d", null ],
+    [ "value", "classjsonv_1_1validation__error.html#ada676042ae0963bc583680e2df265712", null ]
 ];

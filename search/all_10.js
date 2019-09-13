@@ -5,7 +5,7 @@ var searchData=
   ['register_5fextractor',['register_extractor',['../classjsonv_1_1formats.html#aaf6e36e4e7edc4702294a4e039113c62',1,'jsonv::formats::register_extractor(const extractor *, duplicate_type_action action=duplicate_type_action::exception)'],['../classjsonv_1_1formats.html#a657e9796acf713616035029cea1c0c71',1,'jsonv::formats::register_extractor(std::shared_ptr&lt; const extractor &gt;, duplicate_type_action action=duplicate_type_action::exception)']]],
   ['register_5fserializer',['register_serializer',['../classjsonv_1_1formats.html#a2cff39889701f38d7e09a05f01c5ebc7',1,'jsonv::formats::register_serializer(const serializer *, duplicate_type_action action=duplicate_type_action::exception)'],['../classjsonv_1_1formats.html#a22c66da8ba0548592db9eac837a68862',1,'jsonv::formats::register_serializer(std::shared_ptr&lt; const serializer &gt;, duplicate_type_action action=duplicate_type_action::exception)']]],
   ['replace',['replace',['../group__Serialization.html#gga645b8b2ddf86926dab927adb704ea352a9dde360102c103867bd2f45872f1129c',1,'jsonv']]],
-  ['require_5fdocument',['require_document',['../classjsonv_1_1parse__options.html#a1cda2b13ded34722abeda97d571071d0',1,'jsonv::parse_options']]],
+  ['require_5fdocument',['require_document',['../classjsonv_1_1parse__options.html#a57f5c91bc1491c9556d0d86a74d09a05',1,'jsonv::parse_options']]],
   ['reset_5fdemangle_5ffunction',['reset_demangle_function',['../group__Serialization.html#ga5122b2a35367e3978eecfe18f2c74958',1,'jsonv']]],
   ['reset_5fglobal',['reset_global',['../classjsonv_1_1formats.html#a4e8870ecbecb357b2429632053665198',1,'jsonv::formats']]],
   ['resize',['resize',['../classjsonv_1_1value.html#a961156664c4bf71ebe27c516be6d8ae9',1,'jsonv::value']]],
