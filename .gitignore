@@ -61,6 +61,7 @@ nbproject
 .project
 .settings
 composer.lock
+*.code-workspace
 
 #Cmake
 CMakeCache.txt
