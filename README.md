@@ -30,8 +30,8 @@ Features include (but are not necessarily limited to):
    - Consumable by human beings
    - Answers questions you might actually ask
  - Compiler support
-     - GCC (4.8+)
-     - Clang++ (3.3+)
+     - GCC (5+)
+     - Clang++ (4+)
 
 [![Build Status](https://travis-ci.org/tgockel/json-voorhees.svg?branch=master)](https://travis-ci.org/tgockel/json-voorhees)
 [![Coverage Status](https://coveralls.io/repos/tgockel/json-voorhees/badge.svg?branch=master&service=github)](https://coveralls.io/github/tgockel/json-voorhees?branch=master)
