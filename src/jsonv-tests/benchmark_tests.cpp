@@ -1,6 +1,6 @@
 /** \file
- *  
- *  Copyright (c) 2016 by Travis Gockel. All rights reserved.
+ *
+ *  Copyright (c) 2016-2019 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
  *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -73,8 +73,15 @@ public:
     {
         recursive_directory_for_each(rootpath, ".json", [&, this] (const std::string& path)
         {
-            _tests.emplace_back(new benchmark_test<std::ifstream>([] (const std::string& p) { return p; }, "ifstream", path));
-            _tests.emplace_back(new benchmark_test<std::string>(load_from_file, "string", path));
+            if (path.find("fail") == std::string::npos)
+            {
+                _tests.emplace_back(new benchmark_test<std::ifstream>([] (const std::string& p) { return p; },
+                                                                      "ifstream",
+                                                                      path
+                                                                     )
+                                   );
+                _tests.emplace_back(new benchmark_test<std::string>(load_from_file, "string", path));
+            }
         });
     }
 

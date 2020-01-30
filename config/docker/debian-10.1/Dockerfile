@@ -1,12 +1,12 @@
-FROM archlinux/base
+FROM debian:10.1
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
-RUN pacman -Sy --noconfirm  \
+RUN apt-get update          \
+ && apt-get install --yes   \
     cmake                   \
-    gcc                     \
-    git                     \
     grep                    \
-    make                    \
-    ninja
+    g++                     \
+    lcov                    \
+    ninja-build
 
 CMD ["/root/jsonv/config/run-tests"]

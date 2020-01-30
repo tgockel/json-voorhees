@@ -53,12 +53,6 @@ option(JSONV_BUILD_TESTS
        OFF
       )
 
-set(REQUIRED_BOOST_LIBRARIES)
-
-if (JSONV_BUILD_TESTS)
-    list(APPEND REQUIRED_BOOST_LIBRARIES "filesystem" "system")
-endif()
-
 #############################
 # String View Configuration #
 #############################
@@ -147,13 +141,6 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
                     "${PROJECT_SOURCE_DIR}/src"
                    )
 
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost
-             COMPONENTS "${REQUIRED_BOOST_LIBRARIES}"
-             REQUIRED
-            )
-include_directories(${Boost_INCLUDE_DIRS})
-
 add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
 
 configure_file(libjsonv.pc.in libjsonv.pc)
@@ -169,16 +156,12 @@ set_target_properties(jsonv
                         SOVERSION ${JSONV_SO_VERSION}
                         VERSION   ${JSONV_SO_VERSION}
                      )
-if (Boost_LIBRARIES)
-    target_link_libraries(jsonv ${Boost_LIBRARIES})
-endif()
 
 if (JSONV_BUILD_TESTS)
     file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
     add_executable(jsonv-tests ${jsonv_tests_cpps})
     target_link_libraries(jsonv-tests
             "jsonv"
-            ${Boost_LIBRARIES}
         )
 
     add_custom_target(check
@@ -247,7 +230,6 @@ if (BENCHMARK)
     add_executable(json-benchmark ${BENCHMARK_CPPS})
     target_link_libraries(json-benchmark
         ${BENCHMARK_LIBS}
-        ${Boost_LIBRARIES}
     )
 endif(BENCHMARK)
 
