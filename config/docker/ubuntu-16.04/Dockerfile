@@ -7,7 +7,6 @@ RUN apt-get update          \
     grep                    \
     g++                     \
     lcov                    \
-    libboost-all-dev        \
     ninja-build
 
 CMD ["/root/jsonv/config/run-tests"]

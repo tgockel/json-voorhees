@@ -7,12 +7,14 @@ env:
   - DISTRO=ubuntu-16.04  CONF=Release
   - DISTRO=ubuntu-18.04  CONF=Debug
   - DISTRO=ubuntu-18.04  CONF=Release
-  - DISTRO=ubuntu-18.10  CONF=Debug
-  - DISTRO=ubuntu-18.10  CONF=Release
-  - DISTRO=ubuntu-19.04  CONF=Debug
-  - DISTRO=ubuntu-19.04  CONF=Release
+  - DISTRO=ubuntu-19.10  CONF=Debug
+  - DISTRO=ubuntu-19.10  CONF=Release
   - DISTRO=debian-9.9    CONF=Debug
   - DISTRO=debian-9.9    CONF=Release
+  - DISTRO=debian-10.1   CONF=Debug
+  - DISTRO=debian-10.1   CONF=Release
+  - DISTRO=debian-10.2   CONF=Debug
+  - DISTRO=debian-10.2   CONF=Release
   - DISTRO=opensuse-15.1 CONF=Debug
   - DISTRO=opensuse-15.1 CONF=Release
   - DISTRO=fedora-27     CONF=Debug

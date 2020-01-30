@@ -1,4 +1,4 @@
-FROM ubuntu:19.04
+FROM debian:10.2
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN apt-get update          \
@@ -7,7 +7,6 @@ RUN apt-get update          \
     grep                    \
     g++                     \
     lcov                    \
-    libboost-all-dev        \
     ninja-build
 
 CMD ["/root/jsonv/config/run-tests"]

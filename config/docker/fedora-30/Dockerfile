@@ -2,7 +2,6 @@ FROM fedora:30
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN dnf install -y --refresh    \
-    boost-devel                 \
     cmake                       \
     grep                        \
     gcc-c++                     \

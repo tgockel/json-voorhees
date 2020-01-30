@@ -1,5 +1,5 @@
 /** \file
- *  
+ *
  *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -20,8 +20,6 @@
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
-
-#include <boost/lexical_cast.hpp>
 
 namespace jsonv
 {
@@ -120,7 +118,7 @@ path_element& path_element::operator=(const path_element& src)
             _data.key = src._data.key;
         }
     }
-    
+
     return *this;
 }
 
@@ -162,7 +160,7 @@ path_element& path_element::operator=(path_element&& src) noexcept
             _data.key = std::move(src._data.key);
         }
     }
-    
+
     return *this;
 }
 
@@ -269,6 +267,18 @@ path& path::operator=(path&& src) noexcept
 }
 path::~path() noexcept = default;
 
+static std::size_t extract_size_t(string_view src)
+{
+    auto  src_end  = src.data() + src.size();
+    char* scan_end = nullptr;
+    auto  val      = std::strtoull(src.data(), &scan_end, 10);
+
+    if (scan_end == src_end)
+        return val;
+    else
+        throw std::invalid_argument(std::string("Could not extract integer from \"") + std::string(src) + "\"");
+}
+
 path path::create(string_view specification)
 {
     path out;
@@ -285,17 +295,17 @@ path path::create(string_view specification)
             if (match.at(1) == '\"')
                 out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
             else
-                out += boost::lexical_cast<std::size_t>(match.data() + 1, match.size() - 2);
+                out += extract_size_t(string_view(match.data() + 1, match.size() - 2));
             break;
         default:
             throw std::invalid_argument(std::string("Invalid specification \"") + std::string(specification) + "\". "
                                         +"Syntax error at \"" + std::string(remaining) + "\""
                                        );
         }
-            
+
         remaining.remove_prefix(match.size());
     }
-    
+
     return out;
 }
 

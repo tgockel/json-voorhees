@@ -3,7 +3,6 @@ LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN dnf refresh             \
  && dnf install -y          \
-    boost-devel             \
     cmake                   \
     grep                    \
     gcc-c++                 \
