@@ -3,14 +3,12 @@ dist: xenial
 sudo: required
 env:
   matrix:
-  - DISTRO=ubuntu-16.04  CONF=Debug
-  - DISTRO=ubuntu-16.04  CONF=Release
   - DISTRO=ubuntu-18.04  CONF=Debug
   - DISTRO=ubuntu-18.04  CONF=Release
   - DISTRO=ubuntu-19.10  CONF=Debug
   - DISTRO=ubuntu-19.10  CONF=Release
-  - DISTRO=debian-9.9    CONF=Debug
-  - DISTRO=debian-9.9    CONF=Release
+  - DISTRO=ubuntu-20.04  CONF=Debug
+  - DISTRO=ubuntu-20.04  CONF=Release
   - DISTRO=debian-10.1   CONF=Debug
   - DISTRO=debian-10.1   CONF=Release
   - DISTRO=debian-10.2   CONF=Debug
