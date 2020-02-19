@@ -73,7 +73,8 @@ public:
     {
         recursive_directory_for_each(rootpath, ".json", [&, this] (const std::string& path)
         {
-            if (path.find("fail") == std::string::npos)
+            // TODO(#145): Re-enable loading blns.json when non-strict parsing is enabled
+            if (path.find("fail") == std::string::npos && path.find("blns") == std::string::npos)
             {
                 _tests.emplace_back(new benchmark_test<std::ifstream>([] (const std::string& p) { return p; },
                                                                       "ifstream",

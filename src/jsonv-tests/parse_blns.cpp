@@ -44,17 +44,18 @@
 namespace jsonv_test
 {
 
-TEST(parse_naughty_strings)
-{
-    std::ifstream src_file(test_path("blns.json"));
-    auto val = jsonv::parse(src_file);
-
-    // Unclear exactly how to test this...so we'll just make sure that we parse an array and that all elements of the
-    // array are strings.
-    ensure(val.is_array());
-    for (const auto& sub : val.as_array())
-    {
-        ensure(sub.is_string());
-    }
-}
+// TODO(#145): When non-strict UTF-8 is supported again, this should be re-enabled
+// TEST(parse_naughty_strings)
+// {
+//     std::ifstream src_file(test_path("blns.json"));
+//     auto val = jsonv::parse(src_file);
+//
+//     // Unclear exactly how to test this...so we'll just make sure that we parse an array and that all elements of the
+//     // array are strings.
+//     ensure(val.is_array());
+//     for (const auto& sub : val.as_array())
+//     {
+//         ensure(sub.is_string());
+//     }
+// }
 }

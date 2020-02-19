@@ -1,3 +1,17 @@
+2._ Series
+==========
+
+2.0
+---
+
+ - [2.0.0](https://github.com/tgockel/json-voorhees/milestone/12): 2020 March 13
+   - Core
+     - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
+     - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
+   - Serialization
+     - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
+       saving time and memory
+
 1._ Series
 ==========
 
@@ -121,7 +135,7 @@ The focus of this release was the creation of tools to traverse and manipulate t
 -------------------------------------------------------------------------
 
 The main focus of this release is access and modification of the low-level parsing and encoding system.
- 
+
  - [0.3.1](https://github.com/tgockel/json-voorhees/releases/tag/v0.3.1): 2014 September 27
    - Greatly expands the flexibility of `parse_options`
    - Adds all the tests from [JSON_Checker](http://json.org/JSON_checker/)

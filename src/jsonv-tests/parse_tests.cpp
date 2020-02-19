@@ -1,19 +1,17 @@
-/** \file
- *  
- *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2014-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
 #include <jsonv/array.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/object.hpp>
-#include <jsonv/tokenizer.hpp>
 
 #include <iostream>
 
@@ -67,18 +65,18 @@ TEST_PARSE(object_simple_general_havoc)
                 4,"raz"
                                                                         :
 {
-    
-    
-    
-    
+
+
+
+
         },"bar"       :
               [
                2,
                          3,4,
                       "5"
 ]}
-        
-        
+
+
     )");
     ensure_eq(simple_obj, result);
 }
@@ -199,14 +197,6 @@ TEST_PARSE(malformed_decimal_in_object)
     ensure_throws(jsonv::parse_error, parse(R"({"x": 123.456.789 })"));
 }
 
-TEST_PARSE(malformed_decimal_ignore)
-{
-    auto options = jsonv::parse_options()
-                       .failure_mode(jsonv::parse_options::on_error::ignore);
-    // Could potentially check that the result is still a decimal, but the result is undefined.
-    parse("123.456.789", options);
-}
-
 TEST_PARSE(malformed_string_unterminated)
 {
     ensure_throws(jsonv::parse_error, parse(R"("abc)"));
@@ -218,48 +208,35 @@ TEST_PARSE(malformed_boolean)
     ensure_throws(jsonv::parse_error, parse("try"));
 }
 
-TEST_PARSE(option_complete_parse_false)
-{
-    auto options = jsonv::parse_options()
-                         .complete_parse(false);
-    std::string input = R"({ "x": [4, 3, 5] })";
-    jsonv::value expected = parse(input);
-    std::istringstream istream(input + input + input + input);
-    jsonv::tokenizer tokens(istream);
-    for (std::size_t x = 0; x < 4; ++x)
-    {
-        jsonv::value entry = jsonv::parse(tokens, options);
-        ensure_eq(expected, entry);
-    }
-}
+// TODO(#145): Probably remove entirely
+// TEST_PARSE(partial_array)
+// {
+//     try
+//     {
+//         parse_options options = parse_options()
+//                                 .failure_mode(parse_options::on_error::collect_all)
+//                                 .max_failures(1);
+//         parse("[1, 2, bogus]", options);
+//         ensure(false);
+//     }
+//     catch (const jsonv::parse_error& err)
+//     {
+//         // just check that we can...
+//         to_string(err);
+//         to_string(err.problems().at(0));
+//         value expected = array({ 1, 2, null });
+//         ensure_eq(expected, err.partial_result());
+//     }
+// }
 
-TEST_PARSE(partial_array)
-{
-    try
-    {
-        parse_options options = parse_options()
-                                .failure_mode(parse_options::on_error::collect_all)
-                                .max_failures(1);
-        parse("[1, 2, bogus]", options);
-        ensure(false);
-    }
-    catch (const jsonv::parse_error& err)
-    {
-        // just check that we can...
-        to_string(err);
-        to_string(err.problems().at(0));
-        value expected = array({ 1, 2, null });
-        ensure_eq(expected, err.partial_result());
-    }
-}
-
-TEST_PARSE(depth)
-{
-    std::string src = R"({"a": null, "b": [{}, 3, 4.5, false, [[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]})";
-    // this isn't all that useful -- we just want to ensure that the normal src parses
-    parse(src);
-    ensure_throws(parse_error, parse(src, parse_options::create_strict()));
-}
+// TODO(#145): Depth checking
+// TEST_PARSE(depth)
+// {
+//     std::string src = R"({"a": null, "b": [{}, 3, 4.5, false, [[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]})";
+//     // this isn't all that useful -- we just want to ensure that the normal src parses
+//     parse(src);
+//     ensure_throws(parse_error, parse(src, parse_options::create_strict()));
+// }
 
 TEST_PARSE(literal)
 {

@@ -1,13 +1,12 @@
-/** \file
- *  
- *  Copyright (c) 2012-2014 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2012-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #ifndef __TEST_JSONV_TEST_HPP_INCLUDED__
 #define __TEST_JSONV_TEST_HPP_INCLUDED__
 
@@ -29,37 +28,48 @@ class unit_test;
 typedef std::deque<unit_test*> unit_test_list_type;
 unit_test_list_type& get_unit_tests();
 
+class test_failure final
+{
+public:
+    test_failure(std::string message) noexcept :
+            _message(std::move(message))
+    { }
+
+    virtual ~test_failure() noexcept;
+
+    const std::string& message() const { return _message; }
+
+private:
+    std::string _message;
+};
+
 #if ASSERT_ON_TEST_FAILURE
 #   define ensure assert
 #else
-#   define ensure(cond_)                    \
-        do                                  \
-        {                                   \
-            if (!(cond_))                   \
-            {                               \
-                this->_success = false;     \
-                this->_failstring = #cond_; \
-                return;                     \
-            }                               \
+#   define ensure(cond_)                                    \
+        do                                                  \
+        {                                                   \
+            if (!(cond_))                                   \
+            {                                               \
+                throw ::jsonv_test::test_failure(#cond_);   \
+            }                                               \
         } while (0)
 #endif
 
 #if ASSERT_ON_TEST_FAILURE
 #   define ensure_op(a_, op_, b_) assert((a_) op_ (b_))
 #else
-#   define ensure_op(a_, op_, b_)                         \
-        do                                                \
-        {                                                 \
-            if (!((a_) op_ (b_)))                         \
-            {                                             \
-                this->_success = false;                   \
-                std::ostringstream ss;                    \
-                ss << "!(" << #a_ << " {" << (a_) << "}"; \
-                ss << " " << #op_ << " ";                 \
-                ss << #b_ << " {" << (b_) << "})";        \
-                this->_failstring = ss.str();             \
-                return;                                   \
-            }                                             \
+#   define ensure_op(a_, op_, b_)                           \
+        do                                                  \
+        {                                                   \
+            if (!((a_) op_ (b_)))                           \
+            {                                               \
+                std::ostringstream ss;                      \
+                ss << "!(" << #a_ << " {" << (a_) << "}";   \
+                ss << " " << #op_ << " ";                   \
+                ss << #b_ << " {" << (b_) << "})";          \
+                throw ::jsonv_test::test_failure(ss.str()); \
+            }                                               \
         } while (0)
 #endif
 
@@ -86,17 +96,17 @@ class unit_test
 {
 public:
     explicit unit_test(const std::string& name);
-    
+
     bool run();
-    
+
     const std::string& name() const
     {
         return _name;
     }
-    
+
 private:
     virtual void run_impl() = 0;
-    
+
 protected:
     std::string _name;
     bool        _success;

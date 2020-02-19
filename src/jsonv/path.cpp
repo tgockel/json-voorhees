@@ -11,8 +11,10 @@
 #include <jsonv/path.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/detail.hpp>
+#include <jsonv/detail/match/number.hpp>
+#include <jsonv/detail/match/string.hpp>
 #include <jsonv/char_convert.hpp>
-#include <jsonv/detail/token_patterns.hpp>
+#include <jsonv/optional.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -239,6 +241,116 @@ std::string to_string(const path_element& val)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// path Parsing Details                                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace detail
+{
+
+enum class path_match_result : char
+{
+    simple_object = '.',
+    brace         = '[',
+    invalid       = '\x00',
+};
+
+static optional<string_view> match_simple_string(const char* begin, const char* end)
+{
+    auto length     = std::size_t(0U);
+    auto max_length = std::size_t(end - begin);
+
+    auto current = [&] ()
+                   {
+                       if (length < max_length)
+                           return begin[length];
+                       else
+                           return '\0';
+                   };
+
+    // R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)"
+    char c = current();
+    if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$'))
+        ++length;
+    else
+        return nullopt;
+
+    while (true)
+    {
+        c = current();
+        if (c == '\0')
+            return string_view(begin, length);
+        else if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$') || ('0' <= c && c <= '9'))
+            ++length;
+        else
+            return string_view(begin, length);
+    }
+}
+
+/// Attempt to match a path.
+///
+/// \param input The input to match
+/// \param[out] match_contents The full contents of a match
+static path_match_result path_match(string_view input, string_view& match_contents)
+{
+    if (input.length() < 2U)
+        return path_match_result::invalid;
+
+    switch (input.at(0))
+    {
+    case '.':
+        if (auto result = match_simple_string(input.data() + 1, input.data() + input.size()))
+        {
+            match_contents = input.substr(0, result->length() + 1);
+            return path_match_result::simple_object;
+        }
+        else
+        {
+            return path_match_result::invalid;
+        }
+    case '[':
+        if (input.size() < 2U)
+            return path_match_result::invalid;
+
+        if (input[1] == '\"')
+        {
+            if (auto result = match_string(input.data() + 1, input.data() + input.size()))
+            {
+                if (input.length() == result.length + 1U || input.at(1 + result.length) != ']')
+                    return path_match_result::invalid;
+                match_contents = input.substr(0, result.length + 2U);
+                return path_match_result::brace;
+            }
+            else
+            {
+                return path_match_result::invalid;
+            }
+        }
+        else if (input[1] >= '0' && input[1] <= '9')
+        {
+            if (auto result = match_number(input.data() + 1, input.data() + input.size()); result && !result.decimal)
+            {
+                if (input.length() == result.length + 1U || input.at(1 + result.length) != ']')
+                    return path_match_result::invalid;
+                match_contents = input.substr(0, result.length + 2U);
+                return path_match_result::brace;
+            }
+            else
+            {
+                return path_match_result::invalid;
+            }
+        }
+        else
+        {
+            return path_match_result::invalid;
+        }
+    default:
+        return path_match_result::invalid;
+    }
+}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // path                                                                                                               //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -289,8 +401,8 @@ path path::create(string_view specification)
         switch (detail::path_match(remaining, match))
         {
         case detail::path_match_result::simple_object:
-                out += match.substr(1);
-                break;
+            out += match.substr(1);
+            break;
         case detail::path_match_result::brace:
             if (match.at(1) == '\"')
                 out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
