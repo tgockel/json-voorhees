@@ -1,6 +1,6 @@
 # File: CMakeLists used for generating a Makefile (or whatever your build system is).
 #
-# Copyright 2015-2018 by Travis Gockel
+# Copyright 2015-2020 by Travis Gockel
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
@@ -52,54 +52,6 @@ option(JSONV_BUILD_TESTS
        "Should the unit test library get built?"
        OFF
       )
-
-#############################
-# String View Configuration #
-#############################
-
-option(USE_BOOST_STRING_VIEW
-       "Controls the variable JSONV_STRING_VIEW_USE_BOOST (see C++ documentation)."
-       OFF
-      )
-if (USE_BOOST_STRING_VIEW)
-    add_definitions("-DJSONV_STRING_VIEW_USE_BOOST=1")
-endif(USE_BOOST_STRING_VIEW)
-
-option(USE_STD_STRING_VIEW
-       "Controls the variable JSONV_STRING_VIEW_USE_STD (see C++ documentation)."
-       OFF
-      )
-if (USE_STD_STRING_VIEW)
-    add_definitions("-DJSONV_STRING_VIEW_USE_STD=1")
-endif(USE_STD_STRING_VIEW)
-
-##########################
-# Optional Configuration #
-##########################
-
-option(USE_STD_OPTIONAL
-       "Controls the variable JSONV_OPTIONAL_USE_STD (see C++ documentation)."
-       OFF
-      )
-if (USE_STD_OPTIONAL)
-    add_definitions("-DJSONV_OPTIONAL_USE_STD=1")
-endif()
-
-option(USE_STD_EXPERIMENTAL_OPTIONAL
-       "Controls the variable JSONV_OPTIONAL_USE_STD_EXPERIMENTAL (see C++ documentation)."
-       OFF
-      )
-if (USE_STD_EXPERIMENTAL_OPTIONAL)
-    add_definitions("-DJSONV_OPTIONAL_USE_STD_EXPERIMENTAL=1")
-endif()
-
-option(USE_BOOST_OPTIONAL
-       "Controls the variable JSONV_OPTIONAL_USE_BOOST (see C++ documentation)."
-       OFF
-      )
-if (USE_BOOST_OPTIONAL)
-    add_definitions("-DJSONV_OPTIONAL_USE_BOOST=1")
-endif()
 
 ##########################
 # Coverage Configuration #
