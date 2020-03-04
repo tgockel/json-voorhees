@@ -1,5 +1,5 @@
 /** \file
- *  
+ *
  *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -161,6 +161,12 @@ void value::assign(std::initializer_list<value> items)
 {
     check_type(jsonv::kind::array, kind());
     _data.array->_values.assign(std::move(items));
+}
+
+void value::reserve(size_type count JSONV_UNUSED)
+{
+    check_type(jsonv::kind::array, kind());
+    // TODO(#144): Call `.reserve` on the vector
 }
 
 void value::resize(size_type count, const value& val)

@@ -1,6 +1,6 @@
 /** \file jsonv/algorithm.hpp
  *  A collection of algorithms a la `&lt;algorithm&gt;`.
- *  
+ *
  *  Copyright (c) 2014-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -32,7 +32,7 @@ class path;
 
 /** Traits describing how to perform various aspects of comparison. This implementation for comparison is strict and is
  *  ultimately the one used by \c value::compare.
- *  
+ *
  *  \see compare
 **/
 struct JSONV_PUBLIC compare_traits
@@ -47,7 +47,7 @@ struct JSONV_PUBLIC compare_traits
         int vb = kindval(b);
         return va == vb ? 0 : va < vb ? -1 : 1;
     }
-    
+
     /** Compare two boolean values. **/
     static int compare_booleans(bool a, bool b)
     {
@@ -55,7 +55,7 @@ struct JSONV_PUBLIC compare_traits
              : a      ?  1
              :          -1;
     }
-    
+
     /** Compare two integer values. **/
     static int compare_integers(std::int64_t a, std::int64_t b)
     {
@@ -71,19 +71,19 @@ struct JSONV_PUBLIC compare_traits
              : (a < b)                                                                ? -1
              :                                                                           1;
     }
-    
+
     /** Compare two string values. **/
     static int compare_strings(const std::string& a, const std::string& b)
     {
         return a.compare(b);
     }
-    
+
     /** Compare two strings used for the keys of objects. **/
     static int compare_object_keys(const std::string& a, const std::string& b)
     {
         return a.compare(b);
     }
-    
+
     /** Compare two objects \e before comparing the values. The \c compare function will only check the contents of an
      *  object if this function returns 0.
     **/
@@ -91,7 +91,7 @@ struct JSONV_PUBLIC compare_traits
     {
         return 0;
     }
-    
+
 private:
     static int kindval(kind k)
     {
@@ -117,7 +117,7 @@ private:
 };
 
 /** Compare the values \a a and \a b using the comparison \a traits.
- *  
+ *
  *  \tparam TCompareTraits A type which should be compatible with the public signatures on the \c compare_traits class.
 **/
 template <typename TCompareTraits>
@@ -125,10 +125,10 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
 {
     if (&a == &b)
         return 0;
-    
+
     if (int kindcmp = traits.compare_kinds(a.kind(), b.kind()))
         return kindcmp;
-    
+
     switch (a.kind())
     {
     case jsonv::kind::null:
@@ -158,7 +158,7 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
     {
         if (int objmetacmp = traits.compare_objects_meta(a, b))
             return objmetacmp;
-        
+
         auto aiter = a.begin_object();
         auto biter = b.begin_object();
         for ( ; aiter != a.end_object() && biter != b.end_object(); ++aiter, ++biter)
@@ -176,30 +176,28 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
     }
 }
 
-/** Compare the values \a a and \a b with strict comparison traits.
- *  
- *  \see value::compare
- *  \see compare_icase
-**/
+/// Compare the values \a a and \a b with strict comparison traits.
+///
+/// \see value::compare
+/// \see compare_icase
 JSONV_PUBLIC int compare(const value& a, const value& b);
 
-/** Compare the values \a a and \a b, but use case-insensitive matching on \c kind::string values. This does \e not use
- *  case-insensitive matching on the keys of objects!
- *  
- *  \see compare
-**/
+/// Compare the values \a a and \a b, but use case-insensitive matching on \c kind::string values. This does \e not use
+/// case-insensitive matching on the keys of objects!
+///
+/// \see compare
 JSONV_PUBLIC int compare_icase(const value& a, const value& b);
 
-/** The results of the \c diff operation. **/
+/// The results of the \c diff operation.
 struct JSONV_PUBLIC diff_result
 {
-    /** Elements that were the same between the two halves of the diff. **/
+    /// Elements that were the same between the two halves of the diff.
     value same;
 
-    /** Elements that were unique to the left hand side of the diff. **/
+    /// Elements that were unique to the left hand side of the diff.
     value left;
 
-    /** Elements that were unique to the right hand side of the diff. **/
+    /// Elements that were unique to the right hand side of the diff.
     value right;
 };
 
@@ -217,7 +215,7 @@ JSONV_PUBLIC diff_result diff(value left, value right);
  *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
  *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
  *  transformed by \a func.
- *  
+ *
  *  \param func The function to apply to the element or elements of \a input.
  *  \param input The value to transform.
 **/
@@ -230,10 +228,10 @@ JSONV_PUBLIC value map(const std::function<value (const value&)>& func,
  *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
  *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
  *  transformed by \a func.
- *  
+ *
  *  \param func The function to apply to the element or elements of \a input.
  *  \param input The value to transform.
- *  
+ *
  *  \note
  *  This version of \c map provides only a basic exception-safety guarantee. If an exception is thrown while
  *  transforming a non-scalar \c kind, there is no rollback action, so \a input is left in a usable, but
@@ -245,7 +243,7 @@ JSONV_PUBLIC value map(const std::function<value (value)>& func,
                       );
 
 /** Recursively walk the provided \a tree and call \a func for each item in the tree.
- *  
+ *
  *  \param tree The JSON value to traverse.
  *  \param func The function to call for each element in the tree.
  *  \param base_path The path to prepend to each output path to \a func. This can be useful if beginning traversal from
@@ -261,7 +259,7 @@ JSONV_PUBLIC void traverse(const value&                                         
                           );
 
 /** Recursively walk the provided \a tree and call \a func for each item in the tree.
- *  
+ *
  *  \param tree The JSON value to traverse.
  *  \param func The function to call for each element in the tree.
  *  \param leafs_only If true, call \a func only when the current path is a "leaf" value (\c string, \c integer,

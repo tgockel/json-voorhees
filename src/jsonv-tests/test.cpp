@@ -1,13 +1,12 @@
-/** \file
- *  
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2012-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
 #include <iostream>
@@ -24,12 +23,15 @@ unit_test_list_type& get_unit_tests()
     return instance;
 }
 
+test_failure::~test_failure() noexcept
+{ }
+
 unit_test::unit_test(const std::string& name) :
         _name(name)
 {
     get_unit_tests().push_back(this);
 }
-    
+
 bool unit_test::run()
 {
     std::cout << "TEST: " << name() << " ...";
@@ -40,10 +42,20 @@ bool unit_test::run()
     {
         run_impl();
     }
+    catch (const test_failure& ex)
+    {
+        _success = false;
+        _failstring = ex.message();
+    }
     catch (const std::exception& ex)
     {
         _success = false;
         _failstring = std::string("Threw exception of type ") + jsonv::demangle(typeid(ex).name()) + ": " + ex.what();
+    }
+    catch (const char* const& ex)
+    {
+        _success = false;
+        _failstring = std::string("Threw exception of type `const char*`: ") + ex;
     }
     catch (...)
     {

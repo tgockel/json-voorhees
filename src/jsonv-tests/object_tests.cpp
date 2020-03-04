@@ -1,5 +1,5 @@
 /** \file
- *  
+ *
  *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -31,11 +31,11 @@ TEST(object)
 TEST(object_view_iter_assign)
 {
     using namespace jsonv;
-    
+
     value obj = object({ { "foo", 5 }, { "bar", "wat" } });
     value found = object({ { "foo", false }, { "bar", false } });
     ensure(obj.size() == 2);
-    
+
     for (auto iter = obj.begin_object(); iter != obj.end_object(); ++iter)
     {
         value::object_iterator fiter;
@@ -43,7 +43,7 @@ TEST(object_view_iter_assign)
         ensure(!fiter->second.as_boolean());
         fiter->second = true;
     }
-    
+
     for (auto iter = found.begin_object(); iter != found.end_object(); ++iter)
         ensure(iter->second.as_boolean());
 }
@@ -51,7 +51,7 @@ TEST(object_view_iter_assign)
 TEST(object_view_reverse_iter)
 {
     using namespace jsonv;
-    
+
     value obj = object({ { "a", 1 }, { "b", 2 }, { "c", 3 } });
     auto riter = obj.as_object().rbegin();
     ensure_eq(riter->first, "c");
@@ -66,10 +66,10 @@ TEST(object_view_reverse_iter)
 TEST(object_compare)
 {
     using namespace jsonv;
-    
+
     value obj = object();
     value i = 5;
-    
+
     // really just a test to see if this compiles:
     ensure(obj != i);
 }
@@ -149,7 +149,7 @@ TEST(object_nested_access)
         p = &(*p)[name];
         ++depth;
     }
-    
+
     ensure_eq(v["x"],                     0);
     ensure_eq(v["a"]["x"],                1);
     ensure_eq(v["a"]["b"]["x"],           2);
@@ -168,7 +168,7 @@ TEST(object_wide_nested_access)
         p = &(*p)[name];
         ++depth;
     }
-    
+
     ensure_eq(v.at(L"x"),                      0);
     ensure_eq(v[L"a"][L"x"],                   1);
     ensure_eq(v[L"a"][L"b"][L"x"],             2);
@@ -198,20 +198,8 @@ TEST(object_wide_keys)
 TEST(parse_empty_object)
 {
     auto obj = jsonv::parse("{}");
-    
-    ensure(obj.size() == 0);
-}
 
-TEST(parse_keyless_object)
-{
-    try
-    {
-        jsonv::parse("{a : 3}", jsonv::parse_options().failure_mode(jsonv::parse_options::on_error::collect_all));
-    }
-    catch (const jsonv::parse_error& err)
-    {
-        ensure_eq(jsonv::object({ { "a", 3 } }), err.partial_result());
-    }
+    ensure(obj.size() == 0);
 }
 
 TEST(parse_object_wrong_kind_keys)
@@ -239,11 +227,12 @@ TEST(parse_object_value_stops)
     ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah)"));
 }
 
-TEST(parse_object_duplicate_keys)
-{
-    std::string source = R"({ "a": 1, "a": 2 })";
-    ensure_throws(jsonv::parse_error, jsonv::parse(source));
-    ensure_eq(jsonv::object({ { "a", 2 } }),
-              jsonv::parse(source, jsonv::parse_options().failure_mode(jsonv::parse_options::on_error::ignore))
-             );
-}
+// TODO(#145): Revisit this when JSON tree extraction is a separate thing.
+// TEST(parse_object_duplicate_keys)
+// {
+//     std::string source = R"({ "a": 1, "a": 2 })";
+//     ensure_throws(jsonv::parse_error, jsonv::parse(source));
+//     ensure_eq(jsonv::object({ { "a", 2 } }),
+//               jsonv::parse(source, jsonv::parse_options().failure_mode(jsonv::parse_options::on_error::ignore))
+//              );
+// }

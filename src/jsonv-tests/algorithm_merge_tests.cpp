@@ -1,6 +1,6 @@
 /** \file
  *  Data-driven tests for testing merges.
- *  
+ *
  *  Copyright (c) 2015-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -42,11 +42,11 @@ public:
             b(std::move(b)),
             expected(std::move(expected))
     { }
-    
+
     virtual void run_impl() override
     {
         bool expect_failure = expected.kind() == jsonv::kind::string && expected.as_string() == "FAILURE";
-        
+
         try
         {
             TMergeRules rules;
@@ -60,7 +60,7 @@ public:
                 throw;
         }
     }
-    
+
 private:
     jsonv::value a;
     jsonv::value b;
@@ -77,12 +77,12 @@ public:
             jsonv::value whole = [&p] { std::ifstream in(p.c_str()); return jsonv::parse(in); }();
             jsonv::value a = whole.at("a");
             jsonv::value b = whole.at("b");
-            
+
             checked_add<jsonv::throwing_merge_rules>(p, "expected", whole, a, b);
             checked_add<jsonv::recursive_merge_rules>(p, "recursive", whole, a, b);
         });
     }
-    
+
 private:
     template <typename TMergeRules>
     void checked_add(const std::string&  p,
@@ -105,7 +105,7 @@ private:
                                 );
         }
     }
-    
+
 private:
     std::deque<std::unique_ptr<unit_test>> _tests;
 } json_merge_test_initializer_instance(test_path("merges"));

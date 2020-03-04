@@ -1,13 +1,12 @@
-/** \file
- *  
- *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2012-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/value.hpp>
 #include <jsonv/algorithm.hpp>
 #include <jsonv/encode.hpp>
@@ -27,32 +26,6 @@
 
 namespace jsonv
 {
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// kind                                                                                                               //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-std::ostream& operator<<(std::ostream& os, const kind& k)
-{
-    switch (k)
-    {
-        case jsonv::kind::array:   return os << "array";
-        case jsonv::kind::boolean: return os << "boolean";
-        case jsonv::kind::decimal: return os << "decimal";
-        case jsonv::kind::integer: return os << "integer";
-        case jsonv::kind::null:    return os << "null";
-        case jsonv::kind::object:  return os << "object";
-        case jsonv::kind::string:  return os << "string";
-        default:            return os << "kind(" << static_cast<int>(k) << ")";
-    }
-}
-
-std::string to_string(const kind& k)
-{
-    std::ostringstream ss;
-    ss << k;
-    return ss.str();
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // kind_error                                                                                                         //
@@ -117,7 +90,7 @@ value::value(bool val) :
 
 #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR(type_)              \
     value::value(type_ val) :                                              \
-            _kind(jsonv::kind::integer)                                           \
+            _kind(jsonv::kind::integer)                                    \
     {                                                                      \
         _data.integer = val;                                               \
     }
@@ -176,13 +149,13 @@ value& value::operator=(value&& source) noexcept
     if (this != &source)
     {
         clear();
-        
+
         _data = source._data;
         _kind = source._kind;
         source._data.object = 0;
         source._kind = jsonv::kind::null;
     }
-    
+
     return *this;
 }
 
@@ -230,7 +203,7 @@ TValueRef walk_path(TValueRef&&               current,
 {
     if (first == last)
         return current;
-    
+
     const path_element& elem = *first;
     switch (elem.kind())
     {
@@ -333,7 +306,7 @@ value& value::path(size_type path_idx)
 
 value::size_type value::count_path(const jsonv::path& p) const
 {
-    // TODO: Performance of this function sucks!
+    // TODO(#148): Performance of this function sucks!
     try
     {
         at_path(p);
@@ -362,7 +335,7 @@ value::size_type value::count_path(size_type p) const
 void value::swap(value& other) noexcept
 {
     using std::swap;
-    
+
     // All types of this union a trivially swappable
     swap(_data, other._data);
     swap(_kind, other._kind);
@@ -388,7 +361,7 @@ void value::clear()
         // do nothing
         break;
     }
-    
+
     _kind = jsonv::kind::null;
     _data.object = 0;
 }
@@ -443,7 +416,7 @@ bool value::operator !=(const value& other) const
     // must be first: an invalid type is not equal to itself
     if (!kind_valid(kind()))
         return true;
-    
+
     if (this == &other)
         return false;
     else
@@ -453,7 +426,7 @@ bool value::operator !=(const value& other) const
 int value::compare(const value& other) const
 {
     using jsonv::compare;
-    
+
     return compare(*this, other);
 }
 
@@ -516,7 +489,7 @@ bool value::empty() const noexcept
 value::size_type value::size() const
 {
     check_type({ jsonv::kind::object, jsonv::kind::array, jsonv::kind::string }, kind());
-    
+
     switch (kind())
     {
     case jsonv::kind::object:
@@ -565,14 +538,14 @@ static std::size_t hash_range(TForwardIterator first, TForwardIterator last, con
     std::size_t x = 0;
     for ( ; first != last; ++first)
         x = (x << 1) ^ hasher(*first);
-    
+
     return x;
 }
 
 size_t hash<jsonv::value>::operator()(const jsonv::value& val) const noexcept
 {
     using namespace jsonv;
-    
+
     switch (val.kind())
     {
     case jsonv::kind::object:
