@@ -164,7 +164,7 @@ TEST(array_push_pop)
 
     value arr = array({ 1, 2, 3 });
     ensure(!arr.empty());
-    arr.push_front(0);
+    arr.insert(arr.begin_array(), 0);
     {
         std::int64_t exp = 0;
         for (const value& x : arr.as_array())
@@ -176,7 +176,7 @@ TEST(array_push_pop)
     }
     ensure_throws(std::out_of_range, arr.at(10));
     ensure_eq(4U, arr.size());
-    arr.pop_front();
+    arr.pop_back();
     ensure_eq(3U, arr.size());
     arr.pop_back();
     ensure_eq(2U, arr.size());
