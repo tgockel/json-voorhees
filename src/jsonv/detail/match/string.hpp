@@ -14,6 +14,13 @@
 
 #include <cstddef>
 
+namespace jsonv
+{
+
+class parse_options;
+
+}
+
 namespace jsonv::detail
 {
 
@@ -45,5 +52,6 @@ struct JSONV_LOCAL match_string_result
     }
 };
 
-match_string_result JSONV_LOCAL match_string(const char* iter, const char* end);
+match_string_result JSONV_LOCAL match_string(const char* iter, const char* end, const parse_options& options);
+
 }

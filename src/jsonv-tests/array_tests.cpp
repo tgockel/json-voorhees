@@ -1,16 +1,14 @@
-/** \file
- *  
- *  Copyright (c) 2012-2015 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2012-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
-#include <jsonv/array.hpp>
 #include <jsonv/parse.hpp>
 
 #include <algorithm>
@@ -42,7 +40,7 @@ TEST(array_init_list)
         arr2.push_back(2);
         arr2.push_back("pie");
     }
-    
+
     ensure_eq(arr1, arr2);
 }
 
@@ -70,7 +68,7 @@ TEST(parse_array)
 TEST(array_view_iter_assign)
 {
     using namespace jsonv;
-    
+
     value val = array({ 0, 1, 2, 3, 4, 5 });
     const value& arr = val;
     int64_t i = 0;
@@ -84,7 +82,7 @@ TEST(array_view_iter_assign)
 TEST(array_erase_single)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
     auto iter = arr.erase(arr.begin_array() + 2);
@@ -96,7 +94,7 @@ TEST(array_erase_single)
 TEST(array_erase_multi)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
     auto iter = arr.erase(arr.begin_array() + 2, arr.begin_array() + 4);
@@ -108,7 +106,7 @@ TEST(array_erase_multi)
 TEST(array_erase_multi_to_end)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
     auto iter = arr.erase(arr.begin_array() + 3, arr.end_array());
@@ -120,7 +118,7 @@ TEST(array_erase_multi_to_end)
 TEST(array_erase_multi_from_begin)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 0, 1, 2, 3, 4, 5 });
     ensure_eq(arr.size(), 6);
     auto iter = arr.erase(arr.begin_array(), arr.end_array() - 3);
@@ -141,7 +139,7 @@ TEST(array_push_move)
 TEST(array_algo_sort)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 9, 1, 3, 4, 2, 8, 6, 7, 0, 5 });
     ensure_eq(arr.size(), 10);
     std::sort(arr.begin_array(), arr.end_array());
@@ -151,19 +149,19 @@ TEST(array_algo_sort)
 TEST(array_view)
 {
     using namespace jsonv;
-    
+
     const value arr1 = array({ "pie", 5, null, 0 });
     value arr2 = array();
     for (const value& val : arr1.as_array())
         arr2.push_back(val);
-    
+
     ensure_eq(arr1, arr2);
 }
 
 TEST(array_push_pop)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 1, 2, 3 });
     ensure(!arr.empty());
     arr.push_front(0);
@@ -189,7 +187,7 @@ TEST(array_push_pop)
 TEST(array_insertion)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 1, 2, 3, 4 });
     auto iter = arr.insert(arr.begin_array(), 0);
     ensure(arr.begin_array() == iter);
@@ -204,7 +202,7 @@ TEST(array_insertion)
 TEST(array_multi_insertion)
 {
     using namespace jsonv;
-    
+
     value arr = array({ 0, 1, 4, 5 });
     std::vector<std::size_t> to_add({ 2, 3 });
     auto iter = arr.insert(arr.begin_array() + 2, to_add.begin(), to_add.end());
@@ -223,7 +221,7 @@ TEST(array_iterate_over_temp)
 TEST(parse_empty_array)
 {
     auto arr = jsonv::parse("[]");
-    
+
     ensure_eq(arr.size(), 0);
     ensure(arr.empty());
 }

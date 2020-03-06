@@ -1,18 +1,16 @@
-/** \file
- *
- *  Copyright (c) 2012 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2012-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
-#include <jsonv/array.hpp>
-#include <jsonv/object.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/serialization.hpp>
 
 #include <string>
 #include <utility>
@@ -227,12 +225,28 @@ TEST(parse_object_value_stops)
     ensure_throws(jsonv::parse_error, jsonv::parse(R"({"a": "blah)"));
 }
 
-// TODO(#145): Revisit this when JSON tree extraction is a separate thing.
-// TEST(parse_object_duplicate_keys)
-// {
-//     std::string source = R"({ "a": 1, "a": 2 })";
-//     ensure_throws(jsonv::parse_error, jsonv::parse(source));
-//     ensure_eq(jsonv::object({ { "a", 2 } }),
-//               jsonv::parse(source, jsonv::parse_options().failure_mode(jsonv::parse_options::on_error::ignore))
-//              );
-// }
+TEST(parse_object_duplicate_keys)
+{
+    std::string source = R"({ "a": 1, "a": 2, "a": 3 })";
+
+    // Default settings choose last key
+    ensure_eq(jsonv::object({ { "a", 3 } }),
+              jsonv::parse(source, jsonv::extract_options::create_default())
+             );
+
+    // Choose to ignore
+    ensure_eq(jsonv::object({ { "a", 1 } }),
+              jsonv::parse(source,
+                           jsonv::extract_options::create_default()
+                                .on_duplicate_key(jsonv::extract_options::duplicate_key_action::ignore)
+                          )
+             );
+
+    // Throw
+    ensure_throws(jsonv::extraction_error,
+                  jsonv::parse(source,
+                               jsonv::extract_options::create_default()
+                                    .on_duplicate_key(jsonv::extract_options::duplicate_key_action::exception)
+                              )
+                 );
+}

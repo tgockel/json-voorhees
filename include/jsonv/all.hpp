@@ -737,3 +737,4 @@ namespace jsonv
 #include "string_view.hpp"
 #include "util.hpp"
 #include "value.hpp"
+#include "version.hpp"

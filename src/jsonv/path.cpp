@@ -313,7 +313,8 @@ static path_match_result path_match(string_view input, string_view& match_conten
 
         if (input[1] == '\"')
         {
-            if (auto result = match_string(input.data() + 1, input.data() + input.size()))
+            static const parse_options match_options = parse_options::create_strict();
+            if (auto result = match_string(input.data() + 1, input.data() + input.size(), match_options))
             {
                 if (input.length() == result.length + 1U || input.at(1 + result.length) != ']')
                     return path_match_result::invalid;

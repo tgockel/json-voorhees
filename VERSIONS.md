@@ -8,6 +8,9 @@
    - Core
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
+     - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
+       (things like allowing ECMAScript-style block comments `/* ... */`) and extraction-specific options and errors
+       (things like what to do if an object has the same key).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory

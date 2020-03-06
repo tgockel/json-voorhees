@@ -9,16 +9,19 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
-#include <jsonv/value.hpp>
-#include <jsonv/string_view.hpp>
+#include <jsonv/config.hpp>
 
-namespace jsonv
+namespace jsonv::detail
 {
 
-const char* kind_desc(kind type);
-bool kind_valid(kind k);
-void check_type(kind expected, kind actual);
-void check_type(std::initializer_list<kind> expected, kind actual);
-std::ostream& stream_escaped_string(std::ostream& stream, string_view str, bool require_ascii);
+/// Creates a \c clone function which uses the copy constructor of the leaf type to create a pointer clone.
+template <typename T>
+struct cloneable
+{
+    T* clone() const
+    {
+        return new T(*static_cast<const T*>(this));
+    }
+};
 
 }

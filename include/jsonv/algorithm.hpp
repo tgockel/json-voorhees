@@ -296,7 +296,7 @@ public:
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const = 0;
 };
 
-/** An implementation of \c merge_rules that allows you to bind whatever functions you want to resolve conflicts. **/
+/// An implementation of \c merge_rules that allows you to bind whatever functions you want to resolve conflicts.
 class JSONV_PUBLIC dynamic_merge_rules :
         public merge_rules
 {
@@ -323,51 +323,51 @@ public:
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
-/** These rules throw an exception on all conflicts. **/
+/// These rules throw an exception on all conflicts.
 class JSONV_PUBLIC throwing_merge_rules :
         public merge_rules
 {
 public:
-    /** \throws std::logic_error **/
+    /// \throws std::logic_error
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const override;
 
-    /** \throws kind_error **/
+    /// \throws kind_error
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
-/** These rules will recursively merge everything they can and coerce all values. **/
+/// These rules will recursively merge everything they can and coerce all values.
 class JSONV_PUBLIC recursive_merge_rules :
         public merge_rules
 {
 public:
-    /** Recursively calls \c merge_explicit with the two values. **/
+    /// Recursively calls \c merge_explicit with the two values.
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const override;
 
-    /** Calls \c coerce_merge to combine the values. **/
+    /// Calls \c coerce_merge to combine the values.
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
-/** Merges two \c values, \a a and \a b into a single \c value.
- *
- *  The merging follows a few simple rules:
- *
- *   - If \a a.kind() != \a b.kind() and they are not \c kind::integer and \c kind::decimal, call \a on_type_conflict
- *     and return the result.
- *   - Otherwise, branch based on the (shared) type:
- *     - \c kind::object - Return a new object with all the values from \a a and \a b for the keys which are unique per
- *       object. For the keys which are shared, the value is the result of \a on_same_key.
- *     - \c kind::array - Return a new array with the values of \a b appended to \a a.
- *     - \c kind::string - Return a new string with \a b appended to \a a.
- *     - \c kind::boolean - Return `a.as_boolean() || b.as_boolean()`
- *     - \c kind::integer - If \b is \c kind::integer, return `a + b` as an integer; otherwise, return it as a decimal.
- *     - \c kind::decimal - Return `a + b` as a decimal.
- *
- *  \param rules are the rules to merge with (see \c merge_rules).
- *  \param current_path The current \c path into the \c value that we are merging. This can be used to give more useful
- *                      error information if we are merging recursively.
- *  \param a is a \c value to merge.
- *  \param b is a \c value to merge.
-**/
+/// Merges two \c values, \a a and \a b into a single \c value.
+///
+/// The merging follows a few simple rules:
+///
+///  - If \a a.kind() != \a b.kind() and they are not \c kind::integer and \c kind::decimal, call \a on_type_conflict
+///    and return the result.
+///  - Otherwise, branch based on the (shared) type:
+///    - \c kind::object - Return a new object with all the values from \a a and \a b for the keys which are unique per
+///      object. For the keys which are shared, the value is the result of \a on_same_key.
+///    - \c kind::array - Return a new array with the values of \a b appended to \a a.
+///    - \c kind::string - Return a new string with \a b appended to \a a.
+///    - \c kind::boolean - Return `a.as_boolean() || b.as_boolean()`
+///    - \c kind::integer - If \a b is \c kind::integer, return `a + b` as an integer; otherwise, return it as a
+///      decimal.
+///    - \c kind::decimal - Return `a + b` as a decimal.
+///
+/// \param rules are the rules to merge with (see \c merge_rules).
+/// \param current_path The current \c path into the \c value that we are merging. This can be used to give more useful
+///                     error information if we are merging recursively.
+/// \param a is a \c value to merge.
+/// \param b is a \c value to merge.
 JSONV_PUBLIC value merge_explicit(const merge_rules& rules,
                                   path               current_path,
                                   value              a,

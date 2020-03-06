@@ -467,7 +467,7 @@ std::string string_decode(string_view source)
                         throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
                     uint16_t hexval = from_hex(&source[idx + 2], idx + 2);
 
-                    if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
+                    if (hexval < 0xd800U || hexval > 0xdfffU)
                     {
                         utf8_append_code(output, hexval);
 
@@ -572,7 +572,7 @@ std::string string_decode(string_view source)
         }
     }
 
-    if (encoding != parse_options::encoding::cesu8 && remaining_utf8_sequence > 0)
+    if (remaining_utf8_sequence > 0)
     {
         JSONV_UNLIKELY
 
@@ -595,8 +595,6 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
 {
     switch (encoding)
     {
-    case parse_options::encoding::cesu8:
-        return string_decode<parse_options::encoding::cesu8, false>;
     case parse_options::encoding::utf8_strict:
         return string_decode<parse_options::encoding::utf8, true>;
     case parse_options::encoding::utf8:

@@ -12,10 +12,11 @@
 #include <jsonv/encode.hpp>
 #include <jsonv/path.hpp>
 
-#include "array.hpp"
+#include "array_impl.hpp"
 #include "char_convert.hpp"
 #include "detail.hpp"
-#include "object.hpp"
+#include "object_impl.hpp"
+#include "string_impl.hpp"
 
 #include <algorithm>
 #include <cmath>

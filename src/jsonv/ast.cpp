@@ -9,6 +9,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/ast.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/serialization.hpp>
 #include <jsonv/value.hpp>
 
 #include <cassert>
@@ -50,7 +51,8 @@ namespace detail
 
 std::string string_from_token(string_view token, std::true_type is_escaped JSONV_UNUSED)
 {
-    static const string_decode_fn decoder = get_string_decoder(parse_options::encoding::utf8_strict);
+    // TODO(#150): This logic should be in a dedicated extractor
+    static const string_decode_fn decoder = get_string_decoder(parse_options::encoding::utf8);
 
     // chop off the ""s
     token.remove_prefix(1);
@@ -62,8 +64,9 @@ std::string string_from_token(string_view token, std::true_type is_escaped JSONV
     }
     catch (const decode_error& ex)
     {
-        // TODO(#145): This makes more sense as an extraction error
-        std::throw_with_nested(parse_error({ { 0, 0, 0, ex.what() } }, null));
+        // While this occurs during extraction, this is technically a parse error -- we should not have accepted the
+        // source JSON into the AST
+        throw parse_error(ex.what());
     }
 }
 
@@ -161,6 +164,7 @@ std::ostream& operator<<(std::ostream& os, const ast_error& src)
     switch (src)
     {
     case ast_error::none:                   return os << "none";
+    case ast_error::expected_document:      return os << "expected document (object or array)";
     case ast_error::unexpected_token:       return os << "unexpected token";
     case ast_error::eof:                    return os << "input ended unexpectedly";
     case ast_error::expected_eof:           return os << "extra characters in input";

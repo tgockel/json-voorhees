@@ -1,13 +1,12 @@
-/** \file
- *  
- *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2014-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
 #include <jsonv/char_convert.hpp>
@@ -135,7 +134,7 @@ TEST(string_decode_unicode_surrogates_valid)
 {
     #define JSONV_TEST_GEN_DECODE_EQ(utf8encoding_, jsonencoding_)     \
         ensure_eq(utf8encoding_, string_decode_static(jsonencoding_)); \
-    
+
     JSONV_TEST_SURROGATE_PAIRS(JSONV_TEST_GEN_DECODE_EQ)
 }
 
@@ -176,6 +175,12 @@ TEST(string_decode_unicode_surrogates_invalid_not_low_follower)
     ensure_throws(decode_error, string_decode_static(R"(\ud92b\udbff\udc00)"));
 }
 
+TEST(string_decode_blns_94)
+{
+    string_decode_static(R"("\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\u000e\u000f\u0010\u0011\u0012)"
+                          R"(\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f")");
+}
+
 static std::string string_encode_static(const std::string& source)
 {
     std::ostringstream ss;
@@ -187,68 +192,8 @@ TEST(string_encode_surrogates_valid)
 {
     #define JSONV_TEST_GEN_ENCODE_EQ(utf8encoding_, jsonencoding_)     \
         ensure_eq(jsonencoding_, string_encode_static(utf8encoding_)); \
-    
+
     JSONV_TEST_SURROGATE_PAIRS(JSONV_TEST_GEN_ENCODE_EQ)
-}
-
-#define JSONV_TEST_CESU8_ENCODINGS(item) \
-    item("\\u0ff5", "\xe0\xbf\xb5")      \
-    item("\\u091b", "\xe0\xa4\x9b")      \
-    item("\\uc486", "\xec\x92\x86")      \
-    item("\\u88cf", "\xe8\xa3\x8f")      \
-    item("\\u282e", "\xe2\xa0\xae")      \
-    item("\\u3bff", "\xe3\xaf\xbf")      \
-    item("\\ub469", "\xeb\x91\xa9")      \
-    item("\\ucb0b", "\xec\xac\x8b")      \
-    item("\\ufab2", "\xef\xaa\xb2")      \
-    item("\\u0044", "D")                 \
-    item("\\ufdba", "\xef\xb6\xba")      \
-    item("\\u3aa5", "\xe3\xaa\xa5")      \
-    item("\\uaffe", "\xea\xbf\xbe")      \
-    item("\\u3500", "\xe3\x94\x80")      \
-    item("\\ubaa5", "\xeb\xaa\xa5")      \
-    item("\\ud1b5", "\xed\x86\xb5")      \
-    item("\\u4ff9", "\xe4\xbf\xb9")      \
-    item("\\u7b08", "\xe7\xac\x88")      \
-    item("\\u2044", "\xe2\x81\x84")      \
-    item("\\uab55", "\xea\xad\x95")      \
-    item("\\u7944", "\xe7\xa5\x84")      \
-    item("\\uf513", "\xef\x94\x93")      \
-    item("\\ue2dc", "\xee\x8b\x9c")      \
-    item("\\ue072", "\xee\x81\xb2")      \
-    item("\\ub100", "\xeb\x84\x80")      \
-    item("\\u6868", "\xe6\xa1\xa8")      \
-    item("\\u907f", "\xe9\x81\xbf")      \
-    item("\\ue5ef", "\xee\x97\xaf")      \
-    item("\\ucb23", "\xec\xac\xa3")      \
-    item("\\u2283", "\xe2\x8a\x83")      \
-    item("\\uf365", "\xef\x8d\xa5")      \
-    item("\\u53d0", "\xe5\x8f\x90")      \
-    item("\\u5605", "\xe5\x98\x85")      \
-    item("\\u1ad2", "\xe1\xab\x92")      \
-    item("\\u0279", "\xc9\xb9")          \
-    item("\\u498b", "\xe4\xa6\x8b")      \
-    item("\\u8463", "\xe8\x91\xa3")      \
-    item("\\u48bb", "\xe4\xa2\xbb")      \
-    item("\\u1bd1", "\xe1\xaf\x91")      \
-    item("\\uf963", "\xef\xa5\xa3")      \
-    item("\\u8383", "\xe8\x8e\x83")      \
-    item("\\u4d63", "\xe4\xb5\xa3")      \
-    item("\\udced", "\xed\xb3\xad")      \
-    item("\\u5410", "\xe5\x90\x90")      \
-    item("\\ucac8", "\xec\xab\x88")      \
-    item("\\ucacb", "\xec\xab\x8b")      \
-    item("\\ubc82", "\xeb\xb2\x82")      \
-    item("\\u919e", "\xe9\x86\x9e")      \
-    item("\\ua2ad", "\xea\x8a\xad")      \
-    item("\\ud89c", "\xed\xa2\x9c")      \
-
-TEST(string_decode_cesu8)
-{
-    #define JSONV_TEST_GEN_ENCODE_CESU8_EQ(jsonencoding_, cesu8encoding_)                                      \
-        ensure_eq(string_decode_static(jsonencoding_, jsonv::parse_options::encoding::cesu8), cesu8encoding_); \
-    
-    JSONV_TEST_CESU8_ENCODINGS(JSONV_TEST_GEN_ENCODE_CESU8_EQ)
 }
 
 TEST(string_decode_long_utf8_sequences)

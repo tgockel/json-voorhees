@@ -1,16 +1,14 @@
-/** \file jsonv/serialization_builder.hpp
- *  DSL for building \c formats.
- *
- *  Copyright (c) 2015-2019 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
-#ifndef __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
-#define __JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__
+/// \file jsonv/serialization_builder.hpp
+/// DSL for building \c formats.
+///
+/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
+#pragma once
 
 #include <jsonv/config.hpp>
 #include <jsonv/serialization.hpp>
@@ -25,531 +23,530 @@
 namespace jsonv
 {
 
-/** \page serialization_builder_dsl Serialization Builder DSL
- *
- *  Most applications tend to have a lot of structure types. While it is possible to write an \c extractor and
- *  \c serializer (or \c adapter) for each type, this can get a little bit tedious. Beyond that, it is very difficult to
- *  look at the contents of adapter code and discover what the JSON might actually look like. The builder DSL is meant
- *  to solve these issues by providing a convenient way to describe conversion operations for your C++ types.
- *
- *  At the end of the day, the goal is to take some C++ structures like this:
- *
- *  \code
- *  struct person
- *  {
- *      std::string first_name;
- *      std::string last_name;
- *      int         age;
- *      std::string role;
- *  };
- *
- *  struct company
- *  {
- *      std::string         name;
- *      bool                certified;
- *      std::vector<person> employees;
- *      std::list<person>   candidates;
- *  };
- *  \endcode
- *
- *  ...and easily convert it to an from a JSON representation that looks like this:
- *
- *  \code
- *  {
- *      "name": "Paul's Construction",
- *      "certified": false,
- *      "employees": [
- *          {
- *              "first_name": "Bob",
- *              "last_name":  "Builder",
- *              "age":        29
- *          },
- *          {
- *              "first_name": "James",
- *              "last_name":  "Johnson",
- *              "age":        38,
- *              "role":       "Foreman"
- *          }
- *      ],
- *      "candidates": [
- *          {
- *              "firstname": "Adam",
- *              "lastname":  "Ant"
- *          }
- *      ]
- *  }
- *  \endcode
- *
- *  To define a \c formats for this \c person type using the serialization builder DSL, you would say:
- *
- *  \code
- *  jsonv::formats fmts =
- *      jsonv::formats_builder()
- *          .type<person>()
- *              .member("first_name", &person::first_name)
- *                  .alternate_name("firstname")
- *              .member("last_name",  &person::last_name)
- *                  .alternate_name("lastname")
- *              .member("age",        &person::age)
- *                  .until({ 6,1 })
- *                  .default_value(21)
- *                  .default_on_null()
- *                  .check_input([] (int value) { if (value < 0) throw std::logic_error("Age must be positive."); })
- *              .member("role",       &person::role)
- *                  .since({ 2,0 })
- *                  .default_value("Builder")
- *          .type<company>()
- *              .member("name",       &company::name)
- *              .member("certified",  &company::certified)
- *              .member("employees",  &company::employees)
- *              .member("candidates", &company::candidates)
- *          .register_containers<company, std::vector, std::list>()
- *          .check_references(jsonv::formats::defaults())
- *      ;
- *  \endcode
- *
- *  \section Reference
- *
- *  The DSL is made up of three major parts:
- *
- *   1. \e formats -- modifies a \c jsonv::formats object by adding new type adapters to it
- *   2. \e type -- modifies the behavior of a \c jsonv::adapter by adding new members to it
- *   3. \e member -- modifies an individual member inside of a specific type
- *
- *  Each successive function call transforms your context. \e Narrowing calls make your context more specific; for
- *  example, calling \c type from a \e formats context allows you to modify a specific type. \e Widening calls make the
- *  context less specific and are always available; for example, when in the \e member context, you can still call
- *  \c type from the \e formats context to specify a new type.
- *
- *  \dot
- *  digraph serialization_builder_dsl {
- *    formats  [label="formats"]
- *    type     [label="type"]
- *    member   [label="member"]
- *
- *    formats -> formats
- *    formats -> type
- *    type    -> formats
- *    type    -> type
- *    type    -> member
- *    member  -> formats
- *    member  -> type
- *    member  -> member
- *  }
- *  \enddot
- *
- *  \subsection serialization_builder_dsl_ref_formats Formats Context
- *
- *  Commands in this section modify the behavior of the underlying \c jsonv::formats object.
- *
- *  \subsubsection serialization_builder_dsl_ref_formats_level Level
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_check_references check_references
- *
- *   - <tt>check_references(formats)</tt>
- *   - <tt>check_references(formats, std::string name)</tt>
- *   - <tt>check_references(formats::list)</tt>
- *   - <tt>check_references(formats::list, std::string name)</tt>
- *   - <tt>check_references()</tt>
- *   - <tt>check_references(std::string name)</tt>
- *
- *  Tests that every type referenced by the members of the output of the DSL have an \c extractor and a \c serializer.
- *  The provided \c formats is used to draw extra types from (a common value is \c jsonv::formats::defaults). In other
- *  words, it asks the question: If the \c formats from this DSL was combined with these other \c formats, could all of
- *  the types be encoded and decoded?
- *
- *  This does not mutate the DSL in any way. On successful verification, it will appear that nothing happened. If the
- *  verification is not successful, an exception will be thrown with the offending types in the message. For example:
- *
- *  \code
- *  There are 2 types referenced that the formats do not know how to serialize:
- *   - date_type (referenced by: name_space::foo, other::name::space::bar)
- *   - tree
- *  \endcode
- *
- *  If \a name is provided, the value will be output to the error message on failure. This can be useful if you have
- *  multiple \c check_references statements and wish to more easily determine the failing \c formats combination from
- *  the error message alone.
- *
- *  \note
- *  This is evaluated \e immediately, so it is best to call this function as the very last step in the DSL.
- *
- *  \code
- *    .check_references(jsonv::formats::defaults())
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_reference_type reference_type
- *
- *   - <tt>reference_type(std::type_index type)</tt>
- *   - <tt>reference_type(std::type_index type, std::type_index from)</tt>
- *
- *  Explicitly add a reference to the provided \a type in the DSL. If \a from is provided, also add a back reference for
- *  tracking purposes. The \a from field is useful for tracking \e why the \a type is referenced.
- *
- *  Type references are used in \ref serialization_builder_dsl_ref_formats_level_check_references to both check and
- *  generate error messages if the \c formats the DSL is building cannot fully create and extract JSON values. You do
- *  not usually have to call this, as each call to \ref serialization_builder_dsl_ref_type_narrowing_member calls this
- *  automatically.
- *
- *  \code
- *    .reference_type(std::type_index(typeid(int)), std::type_index(typeid(my_type)))
- *    .reference_type(std::type_index(typeid(my_type))
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_register_adapter register_adapter
- *
- *   - <tt>register_adapter(const adapter*)</tt>
- *   - <tt>register_adapter(std::shared_ptr&lt;const adapter&gt;)</tt>
- *
- *  Register an arbitrary \c adapter with the \c formats we are currently building. This is useful for integrating with
- *  type adapters that do not (or can not) use the DSL.
- *
- *  \code
- *    .register_adapter(my_type::get_adapter())
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_register_optional register_optional
- *
- *   - <tt>register_optional&lt;TOptional&gt;()</tt>
- *
- *  Similar to \c register_adapter, but automatically create an <tt>optional_adapter&lt;TOptional&gt;</tt> to store.
- *
- *  \code
- *    .register_optional<std::optional<int>>()
- *    .register_optional<boost::optional<double>>()
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_register_container register_container
- *
- *   - <tt>register_container&lt;TContainer&gt;()</tt>
- *
- *  Similar to \c register_adapter, but automatically create a <tt>container_adapter&lt;TContainer&gt;</tt> to store.
- *
- *  \code
- *    .register_container<std::vector<int>>()
- *    .register_container<std::list<std::string>>()
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_register_containers register_containers
- *
- *   - <tt>register_containers&lt;T, template &lt;T, ...&gt;... TTContainer&gt;</tt>
- *
- *  Convenience function for calling \c register_container for multiple containers with the same \c value_type.
- *  Unfortunately, it only supports varying the first template parameter of the \c TTContainer types, so if you wish to
- *  do something like vary the allocator, you will have to either call \c register_container multiple times or use a
- *  template alias.
- *
- *  \code
- *    .register_containers<int, std::list, std::deque>()
- *    .register_containers<double, std::vector, std::set>()
- *  \endcode
- *
- *  \note
- *  Not supported in MSVC 14 (CTP 5).
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_register_wrapper register_wrapper
- *
- *   - <tt>register_wrapper&lt;TWrapper&gt;()</tt>
- *
- *  Similar to \c register_adapter, but automatically create an <tt>wrapper_adapter&lt;TWrapper&gt;</tt> to store.
- *
- *  \code
- *    .register_optional<std::optional<int>>()
- *    .register_optional<boost::optional<double>>()
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_enum_type enum_type
- *
- *   - <tt>enum_type&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, jsonv::value&gt;&gt;)</tt>
- *   - <tt>enum_type_icase&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, jsonv::value&gt;&gt;)</tt>
- *
- *  Create an adapter for the \c TEnum type with a mapping of C++ values to JSON values and vice versa. The most common
- *  use of this is to map \c enum values in C++ to string representations in JSON. \c TEnum is not restricted to types
- *  which are \c enum, but can be anything which you would like to restrict to a limited subset of possible values.
- *  Likewise, JSON representations are not restricted to being of \c kind::string.
- *
- *  The sibling function \c enum_type_icase will create an adapter which uses case-insensitive checking when converting
- *  to C++ values in \c extract.
- *
- *  \code
- *    .enum_type<ring>("ring",
- *                     {
- *                       { ring::fire,  "fire"    },
- *                       { ring::wind,  "wind"    },
- *                       { ring::earth, "earth"   },
- *                       { ring::water, "water"   },
- *                       { ring::heart, "heart"   }, // "heart" is preferred for to_json
- *                       { ring::heart, "useless" }, // "useless" is interpreted as ring::heart in extract
- *                       { ring::fire,  1         }, // the JSON value 1 will also be interpreted as ring::fire in extract
- *                       { ring::ussr,  "wind"    }, // old C++ value ring::ussr will get output as "wind"
- *                     }
- *                    )
- *    .enum_type_icase<int>("integer",
- *                          {
- *                            { 0, "zero"   },
- *                            { 0, "naught" },
- *                            { 1, "one"    },
- *                            { 2, "two"    },
- *                            { 3, "three"  },
- *                          }
- *                         )
- *  \endcode
- *
- *  \see enum_adapter
- *
- *  \paragraph serialization_builder_dls_ref_formats_level_polymorphic_type polymorphic_type
- *
- *  - <tt>polymorphic_type<&lt;TPointer&gt;(std::string discrimination_key);</tt>
- *
- *  Create an adapter for the \c TPointer type (usually \c std::shared_ptr or \c std::unique_ptr) that knows how to
- *  serialize and deserialize one or more types that can be polymorphically represented by \c TPointer, i.e. derived
- *  types. It uses a discrimination key to determine which concrete type should be instantiated when extracting values
- *  from json.
- *
- *  \code
- *    .polymorphic_type<std::unique_ptr<base>>("type")
- *      .subtype<derived_1>("derived_1")
- *      .subtype<derived_2>("derived_2", keyed_subtype_action::check)
- *      .subtype<derived_3>("derived_3", keyed_subtype_action::insert);
- *  \endcode
- *
- *  The \ref keyed_subtype_action can be used to configure the adapter to make sure that the discrimination key was
- *  correctly serialized (\ref keyed_subtype_action::check) or to insert the discrimination key for the underlying type
- *  so that the underlying type doesn't need to do that itself (\ref keyed_subtype_action::insert). The default is to do
- *  nothing (\ref keyed_subtype_action::none).
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_extend extend
- *
- *   - <tt>extend(std::function&lt;void (formats_builder&amp;)&gt; func)</tt>
- *
- *  Extend the \c formats_builder with the provided \a func by passing the current builder to it. This provides a more
- *  convenient way to call helper functions.
- *
- *  \code
- *  jsonv::formats_builder builder;
- *  foo(builder);
- *  bar(builder);
- *  baz(builder);
- *  \endcode
- *
- *  This can be done equivalently with:
- *  \code
- *  jsonv::formats_builder()
- *    .extend(foo)
- *    .extend(bar)
- *    .extend(baz)
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_formats_level_on_duplicate_type on_duplicate_type
- *
- *    - <tt>on_duplicate_type(on_duplicate_type_action action);</tt>
- *
- *  Set what action to take when attempting to register an adapter, but there is already an adapter for that type in the
- *  formats. The default is to throw a \ref duplicate_type_error exception (\ref duplicate_type_action::exception), but
- *  the \c formats_builder can also be configured to ignore the duplicate (\ref duplicate_type_action::ignore), or to
- *  replace the existing adapter with the new one (\ref duplicate_type_action::replace). This is useful when calling
- *  multiple \c extend methods that may add common types to the \c formats_builder.
- *
- *  \subsubsection serialization_builder_dsl_ref_formats_narrowing Narrowing
- *
- *  \paragraph serialization_builder_dsl_ref_formats_narrowing_type type&lt;T&gt;
- *
- *   - <tt>type&lt;T&gt;()</tt>
- *   - <tt>type&lt;T&gt;(std::function&lt;void (adapter_builder&lt;T&gt;&amp;)&gt; func)</tt>
- *
- *  Create an \c adapter for type \c T and begin building the members for it. If \a func is provided, it will be called
- *  with the adapter_builder&lt;T&gt; this call to \c type creates, which can be used for creating common extension
- *  functions.
- *
- *  \code
- *    .type<my_type>()
- *        .member(...)
- *        .
- *        .
- *        .
- *  \endcode
- *
- *
- *  \subsection serialization_builder_dsl_ref_type Type Context
- *
- *  Commands in this section modify the behavior of the \c jsonv::adapter for a particular type.
- *
- *  \subsubsection serialization_builder_dsl_ref_type_level Level
- *
- *  \paragraph serialization_builder_dsl_ref_type_level_pre_extract pre_extract
- *
- *   - <tt>pre_extract(std::function&lt;void (const extraction_context& context, const value& from)&gt; perform)</tt>
- *
- *  Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
- *  be called multiple times -- all functions will be called in the order they are provided.
- *
- *  \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
- *
- *   - <tt>post_extract(std::function&lt;T (const extraction_context& context, T&& out)&gt; perform)</tt>
- *
- *  Call the given \a perform function after the \c extract operation. All functions will be called in the order they
- *  are provided. This allows validation methods to be called on the extracted object as part of extraction.
- *  Postprocessing functions are allowed to mutate the extracted object.
- *
- *  \paragraph serialization_builder_dsl_ref_type_level_default_on_null type_default_on_null
- *
- *   - <tt>type_default_on_null()</tt>
- *   - <tt>type_default_on_null(bool on)</tt>
- *
- *  If the JSON value \c null is in the input, should this type take on some default?
- *  This should be used with \ref serialization_builder_dsl_ref_type_level_type_default_value type_default_value.
- *
- *  \paragraph serialization_builder_dsl_ref_type_level_type_default_value
- *
- *   - <tt>type_default_value(T value)</tt>
- *   - <tt>type_default_value(std::function&lt;T (const extraction_context& context)&gt;)</tt>
- *
- *  What value should be used to create the default for this type?
- *
- *  \code
- *    .type<my_type>()
- *        .type_default_on_null()
- *        .type_default_value(my_type("default"))
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys on_extract_extra_keys
- *
- *   - <tt>on_extract_extra_keys(std::function&lt;void (const extraction_context&   context,
- *                                                      const value&                from,
- *                                                      std::set&lt;std::string&gt; extra_keys)&gt; action
- *                              )</tt>
- *
- *  When extracting, perform some \a action if extra keys are provided. By default, extra keys are usually simply
- *  ignored, so this is useful if you wish to throw an exception (or anything you want).
- *
- *  \code
- *    .type<my_type>()
- *        .member("x", &my_type::x)
- *        .member("y", &my_type::y)
- *        .on_extract_extra_keys([] (const extraction_context&, const value&, std::set<std::string> extra_keys)
- *                               {
- *                                   throw extracted_extra_keys("my_type", std::move(extra_keys));
- *                               }
- *                              )
- *  \endcode
- *
- *  There is a convenience function named \c throw_extra_keys_extraction_error which does this for you.
- *
- *  \code
- *    .type<my_type>()
- *        .member("x", &my_type::x)
- *        .member("y", &my_type::y)
- *        .on_extract_extra_keys(jsonv::throw_extra_keys_extraction_error)
- *  \endcode
- *
- *  \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
- *
- *  \paragraph serialization_builder_dsl_ref_type_narrowing_member member
- *
- *   - <tt>member(std::string name, TMember T::*selector)</tt>
- *   - <tt>member(std::string name, const TMember& (*access)(const T&), void (*mutate)(T&, TMember&&))</tt>
- *   - <tt>member(std::string name, const TMember& (T::*access)() const, TMember& (T::*mutable_access)())</tt>
- *   - <tt>member(std::string name, const TMember& (T::*access)() const, void (T::*mutate)(TMember))</tt>
- *   - <tt>member(std::string name, const TMember& (T::*access)() const, void (T::*mutate)(TMember&&))</tt>
- *
- *  Adds a member to the type we are currently building. By default, the member will be serialized with the key of the
- *  given \a name and the extractor will search for the given \a name. If you wish to change properties of this field,
- *  use the \ref serialization_builder_dsl_ref_member.
- *
- *  \code
- *    .type<my_type>()
- *        .member("x", &my_type::x)
- *        .member("y", &my_type::y)
- *        .member("thing", &my_type::get_thing, &my_type::set_thing)
- *  \endcode
- *
- *
- *  \subsection serialization_builder_dsl_ref_member Member Context
- *
- *  Commands in this section modify the behavior of a particular member. Here, \c T refers to the containing type (the
- *  one we are adding a member to) and \c TMember refers to the type of the member we are modifying.
- *
- *  \subsubsection serialization_builder_dsl_ref_member_level Level
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_after after
- *
- *   - <tt>after(version)</tt>
- *
- *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than or
- *  equal to the provided \c version.
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_alternate_name alternate_name
- *
- *   - <tt>alternate_name(std::string name)</tt>
- *
- *  Provide an alternate name to search for when extracting this member. If a user provides values for multiple names,
- *  preference is given to names earlier in the list, starting with the original given name.
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_before before
- *
- *   - <tt>before(version)</tt>
- *
- *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than or
- *  equal to the provided \c version.
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_check_input check_input
- *
- *   - <tt>check_input(std::function&lt;void (const TMember&)&gt; check)</tt>
- *   - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, std::function&lt;void (const TMember&)&gt; thrower)</tt>
- *   - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, TException ex)</tt>
- *
- *  Checks the extracted value with the given \a check function. In the first form, you are expected to throw inside the
- *  function. In the latter forms, the second parameter will be invoked (in the case of \a thrower) or thrown directly
- *  (in the case of \a ex).
- *
- *  \code
- *    .member("x", &my_type::x)
- *        .check_input([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
- *        .check_input([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
- *        .check_input([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
- *
- *   - <tt>default_value(TMember value)</tt>
- *   - <tt>default_value(std::function&lt;TMember (const extraction_context&, const value&)&gt; create)</tt>
- *
- *  Provide a default value for this member if no key is found when extracting. You can use the function implementation
- *  to synthesize the key however you want.
- *
- *  \code
- *   .member("x", &my_type::x)
- *       .default_value(10)
- *  \endcode
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_default_on_null default_on_null
- *
- *   - <tt>default_on_null()</tt>
- *   - <tt>default_on_null(bool on)</tt>
- *
- *  If the value associated with this key is \c kind::null, should that be treated as the default value? This option is
- *  only considered if a \ref serialization_builder_dsl_ref_member_level_default_value default_value was provided.
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_encode_if encode_if
- *
- *   - <tt>encode_if(std::function&lt;bool (const serialization_context&, const TMember&amp;)&gt; check)</tt>
- *
- *  Only serialize this member if the \a check function returns true.
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_since since
- *
- *   - <tt>since(version)</tt>
- *
- *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than the
- *  provided \c version.
- *
- *  \paragraph serialization_builder_dsl_ref_member_level_until until
- *
- *   - <tt>until(version)</tt>
- *
- *  Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than the
- *  provided \c version.
-**/
+/// \page serialization_builder_dsl Serialization Builder DSL
+///
+/// Most applications tend to have a lot of structure types. While it is possible to write an \c extractor and
+/// \c serializer (or \c adapter) for each type, this can get a little bit tedious. Beyond that, it is very difficult to
+/// look at the contents of adapter code and discover what the JSON might actually look like. The builder DSL is meant
+/// to solve these issues by providing a convenient way to describe conversion operations for your C++ types.
+///
+/// At the end of the day, the goal is to take some C++ structures like this:
+///
+/// \code
+/// struct person
+/// {
+///     std::string first_name;
+///     std::string last_name;
+///     int         age;
+///     std::string role;
+/// };
+///
+/// struct company
+/// {
+///     std::string         name;
+///     bool                certified;
+///     std::vector<person> employees;
+///     std::list<person>   candidates;
+/// };
+/// \endcode
+///
+/// ...and easily convert it to an from a JSON representation that looks like this:
+///
+/// \code
+/// {
+///     "name": "Paul's Construction",
+///     "certified": false,
+///     "employees": [
+///         {
+///             "first_name": "Bob",
+///             "last_name":  "Builder",
+///             "age":        29
+///         },
+///         {
+///             "first_name": "James",
+///             "last_name":  "Johnson",
+///             "age":        38,
+///             "role":       "Foreman"
+///         }
+///     ],
+///     "candidates": [
+///         {
+///             "firstname": "Adam",
+///             "lastname":  "Ant"
+///         }
+///     ]
+/// }
+/// \endcode
+///
+/// To define a \c formats for this \c person type using the serialization builder DSL, you would say:
+///
+/// \code
+/// jsonv::formats fmts =
+///     jsonv::formats_builder()
+///         .type<person>()
+///             .member("first_name", &person::first_name)
+///                 .alternate_name("firstname")
+///             .member("last_name",  &person::last_name)
+///                 .alternate_name("lastname")
+///             .member("age",        &person::age)
+///                 .until({ 6,1 })
+///                 .default_value(21)
+///                 .default_on_null()
+///                 .check_input([] (int value) { if (value < 0) throw std::logic_error("Age must be positive."); })
+///             .member("role",       &person::role)
+///                 .since({ 2,0 })
+///                 .default_value("Builder")
+///         .type<company>()
+///             .member("name",       &company::name)
+///             .member("certified",  &company::certified)
+///             .member("employees",  &company::employees)
+///             .member("candidates", &company::candidates)
+///         .register_containers<company, std::vector, std::list>()
+///         .check_references(jsonv::formats::defaults())
+///     ;
+/// \endcode
+///
+/// \section Reference
+///
+/// The DSL is made up of three major parts:
+///
+///  1. \e formats -- modifies a \c jsonv::formats object by adding new type adapters to it
+///  2. \e type -- modifies the behavior of a \c jsonv::adapter by adding new members to it
+///  3. \e member -- modifies an individual member inside of a specific type
+///
+/// Each successive function call transforms your context. \e Narrowing calls make your context more specific; for
+/// example, calling \c type from a \e formats context allows you to modify a specific type. \e Widening calls make the
+/// context less specific and are always available; for example, when in the \e member context, you can still call
+/// \c type from the \e formats context to specify a new type.
+///
+/// \dot
+/// digraph serialization_builder_dsl {
+///   formats  [label="formats"]
+///   type     [label="type"]
+///   member   [label="member"]
+///
+///   formats -> formats
+///   formats -> type
+///   type    -> formats
+///   type    -> type
+///   type    -> member
+///   member  -> formats
+///   member  -> type
+///   member  -> member
+/// }
+/// \enddot
+///
+/// \subsection serialization_builder_dsl_ref_formats Formats Context
+///
+/// Commands in this section modify the behavior of the underlying \c jsonv::formats object.
+///
+/// \subsubsection serialization_builder_dsl_ref_formats_level Level
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_check_references check_references
+///
+///  - <tt>check_references(formats)</tt>
+///  - <tt>check_references(formats, std::string name)</tt>
+///  - <tt>check_references(formats::list)</tt>
+///  - <tt>check_references(formats::list, std::string name)</tt>
+///  - <tt>check_references()</tt>
+///  - <tt>check_references(std::string name)</tt>
+///
+/// Tests that every type referenced by the members of the output of the DSL have an \c extractor and a \c serializer.
+/// The provided \c formats is used to draw extra types from (a common value is \c jsonv::formats::defaults). In other
+/// words, it asks the question: If the \c formats from this DSL was combined with these other \c formats, could all of
+/// the types be encoded and decoded?
+///
+/// This does not mutate the DSL in any way. On successful verification, it will appear that nothing happened. If the
+/// verification is not successful, an exception will be thrown with the offending types in the message. For example:
+///
+/// \code
+/// There are 2 types referenced that the formats do not know how to serialize:
+///  - date_type (referenced by: name_space::foo, other::name::space::bar)
+///  - tree
+/// \endcode
+///
+/// If \a name is provided, the value will be output to the error message on failure. This can be useful if you have
+/// multiple \c check_references statements and wish to more easily determine the failing \c formats combination from
+/// the error message alone.
+///
+/// \note
+/// This is evaluated \e immediately, so it is best to call this function as the very last step in the DSL.
+///
+/// \code
+///   .check_references(jsonv::formats::defaults())
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_reference_type reference_type
+///
+///  - <tt>reference_type(std::type_index type)</tt>
+///  - <tt>reference_type(std::type_index type, std::type_index from)</tt>
+///
+/// Explicitly add a reference to the provided \a type in the DSL. If \a from is provided, also add a back reference for
+/// tracking purposes. The \a from field is useful for tracking \e why the \a type is referenced.
+///
+/// Type references are used in \ref serialization_builder_dsl_ref_formats_level_check_references to both check and
+/// generate error messages if the \c formats the DSL is building cannot fully create and extract JSON values. You do
+/// not usually have to call this, as each call to \ref serialization_builder_dsl_ref_type_narrowing_member calls this
+/// automatically.
+///
+/// \code
+///   .reference_type(std::type_index(typeid(int)), std::type_index(typeid(my_type)))
+///   .reference_type(std::type_index(typeid(my_type))
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_register_adapter register_adapter
+///
+///  - <tt>register_adapter(const adapter*)</tt>
+///  - <tt>register_adapter(std::shared_ptr&lt;const adapter&gt;)</tt>
+///
+/// Register an arbitrary \c adapter with the \c formats we are currently building. This is useful for integrating with
+/// type adapters that do not (or can not) use the DSL.
+///
+/// \code
+///   .register_adapter(my_type::get_adapter())
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_register_optional register_optional
+///
+///  - <tt>register_optional&lt;TOptional&gt;()</tt>
+///
+/// Similar to \c register_adapter, but automatically create an <tt>optional_adapter&lt;TOptional&gt;</tt> to store.
+///
+/// \code
+///   .register_optional<std::optional<int>>()
+///   .register_optional<boost::optional<double>>()
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_register_container register_container
+///
+///  - <tt>register_container&lt;TContainer&gt;()</tt>
+///
+/// Similar to \c register_adapter, but automatically create a <tt>container_adapter&lt;TContainer&gt;</tt> to store.
+///
+/// \code
+///   .register_container<std::vector<int>>()
+///   .register_container<std::list<std::string>>()
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_register_containers register_containers
+///
+///  - <tt>register_containers&lt;T, template &lt;T, ...&gt;... TTContainer&gt;</tt>
+///
+/// Convenience function for calling \c register_container for multiple containers with the same \c value_type.
+/// Unfortunately, it only supports varying the first template parameter of the \c TTContainer types, so if you wish to
+/// do something like vary the allocator, you will have to either call \c register_container multiple times or use a
+/// template alias.
+///
+/// \code
+///   .register_containers<int, std::list, std::deque>()
+///   .register_containers<double, std::vector, std::set>()
+/// \endcode
+///
+/// \note
+/// Not supported in MSVC 14 (CTP 5).
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_register_wrapper register_wrapper
+///
+///  - <tt>register_wrapper&lt;TWrapper&gt;()</tt>
+///
+/// Similar to \c register_adapter, but automatically create an <tt>wrapper_adapter&lt;TWrapper&gt;</tt> to store.
+///
+/// \code
+///   .register_optional<std::optional<int>>()
+///   .register_optional<boost::optional<double>>()
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_enum_type enum_type
+///
+///  - <tt>enum_type&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, jsonv::value&gt;&gt;)</tt>
+///  - <tt>enum_type_icase&lt;TEnum&gt;(std::string name, std::initializer_list&lt;std::pair&lt;TEnum, jsonv::value&gt;&gt;)</tt>
+///
+/// Create an adapter for the \c TEnum type with a mapping of C++ values to JSON values and vice versa. The most common
+/// use of this is to map \c enum values in C++ to string representations in JSON. \c TEnum is not restricted to types
+/// which are \c enum, but can be anything which you would like to restrict to a limited subset of possible values.
+/// Likewise, JSON representations are not restricted to being of \c kind::string.
+///
+/// The sibling function \c enum_type_icase will create an adapter which uses case-insensitive checking when converting
+/// to C++ values in \c extract.
+///
+/// \code
+///   .enum_type<ring>("ring",
+///                    {
+///                      { ring::fire,  "fire"    },
+///                      { ring::wind,  "wind"    },
+///                      { ring::earth, "earth"   },
+///                      { ring::water, "water"   },
+///                      { ring::heart, "heart"   }, // "heart" is preferred for to_json
+///                      { ring::heart, "useless" }, // "useless" is interpreted as ring::heart in extract
+///                      { ring::fire,  1         }, // the JSON value 1 will also be interpreted as ring::fire in extract
+///                      { ring::ussr,  "wind"    }, // old C++ value ring::ussr will get output as "wind"
+///                    }
+///                   )
+///   .enum_type_icase<int>("integer",
+///                         {
+///                           { 0, "zero"   },
+///                           { 0, "naught" },
+///                           { 1, "one"    },
+///                           { 2, "two"    },
+///                           { 3, "three"  },
+///                         }
+///                        )
+/// \endcode
+///
+/// \see enum_adapter
+///
+/// \paragraph serialization_builder_dls_ref_formats_level_polymorphic_type polymorphic_type
+///
+/// - <tt>polymorphic_type<&lt;TPointer&gt;(std::string discrimination_key);</tt>
+///
+/// Create an adapter for the \c TPointer type (usually \c std::shared_ptr or \c std::unique_ptr) that knows how to
+/// serialize and deserialize one or more types that can be polymorphically represented by \c TPointer, i.e. derived
+/// types. It uses a discrimination key to determine which concrete type should be instantiated when extracting values
+/// from json.
+///
+/// \code
+///   .polymorphic_type<std::unique_ptr<base>>("type")
+///     .subtype<derived_1>("derived_1")
+///     .subtype<derived_2>("derived_2", keyed_subtype_action::check)
+///     .subtype<derived_3>("derived_3", keyed_subtype_action::insert);
+/// \endcode
+///
+/// The \ref keyed_subtype_action can be used to configure the adapter to make sure that the discrimination key was
+/// correctly serialized (\ref keyed_subtype_action::check) or to insert the discrimination key for the underlying type
+/// so that the underlying type doesn't need to do that itself (\ref keyed_subtype_action::insert). The default is to do
+/// nothing (\ref keyed_subtype_action::none).
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_extend extend
+///
+///  - <tt>extend(std::function&lt;void (formats_builder&amp;)&gt; func)</tt>
+///
+/// Extend the \c formats_builder with the provided \a func by passing the current builder to it. This provides a more
+/// convenient way to call helper functions.
+///
+/// \code
+/// jsonv::formats_builder builder;
+/// foo(builder);
+/// bar(builder);
+/// baz(builder);
+/// \endcode
+///
+/// This can be done equivalently with:
+/// \code
+/// jsonv::formats_builder()
+///   .extend(foo)
+///   .extend(bar)
+///   .extend(baz)
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_formats_level_on_duplicate_type on_duplicate_type
+///
+///   - <tt>on_duplicate_type(on_duplicate_type_action action);</tt>
+///
+/// Set what action to take when attempting to register an adapter, but there is already an adapter for that type in the
+/// formats. The default is to throw a \ref duplicate_type_error exception (\ref duplicate_type_action::exception), but
+/// the \c formats_builder can also be configured to ignore the duplicate (\ref duplicate_type_action::ignore), or to
+/// replace the existing adapter with the new one (\ref duplicate_type_action::replace). This is useful when calling
+/// multiple \c extend methods that may add common types to the \c formats_builder.
+///
+/// \subsubsection serialization_builder_dsl_ref_formats_narrowing Narrowing
+///
+/// \paragraph serialization_builder_dsl_ref_formats_narrowing_type type&lt;T&gt;
+///
+///  - <tt>type&lt;T&gt;()</tt>
+///  - <tt>type&lt;T&gt;(std::function&lt;void (adapter_builder&lt;T&gt;&amp;)&gt; func)</tt>
+///
+/// Create an \c adapter for type \c T and begin building the members for it. If \a func is provided, it will be called
+/// with the adapter_builder&lt;T&gt; this call to \c type creates, which can be used for creating common extension
+/// functions.
+///
+/// \code
+///   .type<my_type>()
+///       .member(...)
+///       .
+///       .
+///       .
+/// \endcode
+///
+///
+/// \subsection serialization_builder_dsl_ref_type Type Context
+///
+/// Commands in this section modify the behavior of the \c jsonv::adapter for a particular type.
+///
+/// \subsubsection serialization_builder_dsl_ref_type_level Level
+///
+/// \paragraph serialization_builder_dsl_ref_type_level_pre_extract pre_extract
+///
+///  - <tt>pre_extract(std::function&lt;void (const extraction_context& context, const value& from)&gt; perform)</tt>
+///
+/// Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
+/// be called multiple times -- all functions will be called in the order they are provided.
+///
+/// \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
+///
+///  - <tt>post_extract(std::function&lt;T (const extraction_context& context, T&& out)&gt; perform)</tt>
+///
+/// Call the given \a perform function after the \c extract operation. All functions will be called in the order they
+/// are provided. This allows validation methods to be called on the extracted object as part of extraction.
+/// Postprocessing functions are allowed to mutate the extracted object.
+///
+/// \paragraph serialization_builder_dsl_ref_type_level_default_on_null type_default_on_null
+///
+///  - <tt>type_default_on_null()</tt>
+///  - <tt>type_default_on_null(bool on)</tt>
+///
+/// If the JSON value \c null is in the input, should this type take on some default?
+/// This should be used with \ref serialization_builder_dsl_ref_type_level_type_default_value type_default_value.
+///
+/// \paragraph serialization_builder_dsl_ref_type_level_type_default_value
+///
+///  - <tt>type_default_value(T value)</tt>
+///  - <tt>type_default_value(std::function&lt;T (const extraction_context& context)&gt;)</tt>
+///
+/// What value should be used to create the default for this type?
+///
+/// \code
+///   .type<my_type>()
+///       .type_default_on_null()
+///       .type_default_value(my_type("default"))
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys on_extract_extra_keys
+///
+///  - <tt>on_extract_extra_keys(std::function&lt;void (const extraction_context&   context,
+///                                                     const value&                from,
+///                                                     std::set&lt;std::string&gt; extra_keys)&gt; action
+///                             )</tt>
+///
+/// When extracting, perform some \a action if extra keys are provided. By default, extra keys are usually simply
+/// ignored, so this is useful if you wish to throw an exception (or anything you want).
+///
+/// \code
+///   .type<my_type>()
+///       .member("x", &my_type::x)
+///       .member("y", &my_type::y)
+///       .on_extract_extra_keys([] (const extraction_context&, const value&, std::set<std::string> extra_keys)
+///                              {
+///                                  throw extracted_extra_keys("my_type", std::move(extra_keys));
+///                              }
+///                             )
+/// \endcode
+///
+/// There is a convenience function named \c throw_extra_keys_extraction_error which does this for you.
+///
+/// \code
+///   .type<my_type>()
+///       .member("x", &my_type::x)
+///       .member("y", &my_type::y)
+///       .on_extract_extra_keys(jsonv::throw_extra_keys_extraction_error)
+/// \endcode
+///
+/// \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
+///
+/// \paragraph serialization_builder_dsl_ref_type_narrowing_member member
+///
+///  - <tt>member(std::string name, TMember T::*selector)</tt>
+///  - <tt>member(std::string name, const TMember& (*access)(const T&), void (*mutate)(T&, TMember&&))</tt>
+///  - <tt>member(std::string name, const TMember& (T::*access)() const, TMember& (T::*mutable_access)())</tt>
+///  - <tt>member(std::string name, const TMember& (T::*access)() const, void (T::*mutate)(TMember))</tt>
+///  - <tt>member(std::string name, const TMember& (T::*access)() const, void (T::*mutate)(TMember&&))</tt>
+///
+/// Adds a member to the type we are currently building. By default, the member will be serialized with the key of the
+/// given \a name and the extractor will search for the given \a name. If you wish to change properties of this field,
+/// use the \ref serialization_builder_dsl_ref_member.
+///
+/// \code
+///   .type<my_type>()
+///       .member("x", &my_type::x)
+///       .member("y", &my_type::y)
+///       .member("thing", &my_type::get_thing, &my_type::set_thing)
+/// \endcode
+///
+///
+/// \subsection serialization_builder_dsl_ref_member Member Context
+///
+/// Commands in this section modify the behavior of a particular member. Here, \c T refers to the containing type (the
+/// one we are adding a member to) and \c TMember refers to the type of the member we are modifying.
+///
+/// \subsubsection serialization_builder_dsl_ref_member_level Level
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_after after
+///
+///  - <tt>after(version)</tt>
+///
+/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than or
+/// equal to the provided \c version.
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_alternate_name alternate_name
+///
+///  - <tt>alternate_name(std::string name)</tt>
+///
+/// Provide an alternate name to search for when extracting this member. If a user provides values for multiple names,
+/// preference is given to names earlier in the list, starting with the original given name.
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_before before
+///
+///  - <tt>before(version)</tt>
+///
+/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than or
+/// equal to the provided \c version.
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_check_input check_input
+///
+///  - <tt>check_input(std::function&lt;void (const TMember&)&gt; check)</tt>
+///  - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, std::function&lt;void (const TMember&)&gt; thrower)</tt>
+///  - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, TException ex)</tt>
+///
+/// Checks the extracted value with the given \a check function. In the first form, you are expected to throw inside the
+/// function. In the latter forms, the second parameter will be invoked (in the case of \a thrower) or thrown directly
+/// (in the case of \a ex).
+///
+/// \code
+///   .member("x", &my_type::x)
+///       .check_input([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
+///       .check_input([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
+///       .check_input([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
+///
+///  - <tt>default_value(TMember value)</tt>
+///  - <tt>default_value(std::function&lt;TMember (const extraction_context&, const value&)&gt; create)</tt>
+///
+/// Provide a default value for this member if no key is found when extracting. You can use the function implementation
+/// to synthesize the key however you want.
+///
+/// \code
+///  .member("x", &my_type::x)
+///      .default_value(10)
+/// \endcode
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_default_on_null default_on_null
+///
+///  - <tt>default_on_null()</tt>
+///  - <tt>default_on_null(bool on)</tt>
+///
+/// If the value associated with this key is \c kind::null, should that be treated as the default value? This option is
+/// only considered if a \ref serialization_builder_dsl_ref_member_level_default_value default_value was provided.
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_encode_if encode_if
+///
+///  - <tt>encode_if(std::function&lt;bool (const serialization_context&, const TMember&amp;)&gt; check)</tt>
+///
+/// Only serialize this member if the \a check function returns true.
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_since since
+///
+///  - <tt>since(version)</tt>
+///
+/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than the
+/// provided \c version.
+///
+/// \paragraph serialization_builder_dsl_ref_member_level_until until
+///
+///  - <tt>until(version)</tt>
+///
+/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than the
+/// provided \c version.
 
 class formats_builder;
 
@@ -722,7 +719,7 @@ public:
         {
             use_default = bool(_default_value);
             if (!use_default)
-                throw extraction_error(context, std::string("Missing required field ") + _names.at(0));
+                throw extraction_error(context.path(), std::string("Missing required field ") + _names.at(0));
         }
         else if (_default_on_null && iter->second.kind() == kind::null)
         {
@@ -1568,5 +1565,3 @@ void throw_extra_keys_extraction_error(const extraction_context&    context,
                                       );
 
 }
-
-#endif/*__JSONV_SERIALIZATION_BUILDER_HPP_INCLUDED__*/

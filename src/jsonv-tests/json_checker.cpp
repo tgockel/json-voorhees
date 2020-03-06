@@ -44,9 +44,17 @@ private:
     {
         std::ifstream file(_datapath.c_str());
         auto text = std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
-        auto ast  = jsonv::parse_index::parse(text);
+        auto ast  = jsonv::parse_index::parse(text, _options);
+
+        // If we expected a failure, but got a successful parse, run `validate()` to get an exception message
         if (_expect_failure == ast.success())
             ast.validate();
+
+        ensure_eq(!_expect_failure, ast.success());
+
+        // If we were successful, make sure we can extract a
+        if (ast.success())
+            ast.extract_tree();
     }
 
 private:
@@ -66,7 +74,7 @@ public:
             std::unique_ptr<json_checker_test> test(new json_checker_test(p,
                                                                           "",
                                                                           expect_failure,
-                                                                          jsonv::parse_options::create_default()
+                                                                          jsonv::parse_options::create_strict()
                                                                          )
                                                    );
             _tests.emplace_back(std::move(test));

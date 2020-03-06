@@ -9,13 +9,15 @@
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/config.hpp>
-
+#include <jsonv/parse.hpp>
 #include <jsonv/detail/is_print.hpp>
 
 #include <cassert>
 #include <cctype>
 
 #include "string.hpp"
+
+#include <iostream>
 
 namespace jsonv::detail
 {
@@ -91,13 +93,14 @@ static unsigned utf8_length(char c)
     }
 }
 
-match_string_result match_string(const char* iter, const char* end)
+match_string_result match_string(const char* iter, const char* end, const parse_options& options)
 {
     assert(*iter == '\"');
 
     ++iter;
     std::size_t length  = 1U;
     bool        escaped = false;
+    const bool  check_printability = options.string_encoding() == parse_options::encoding::utf8_strict;
 
     while (iter < end)
     {
@@ -153,7 +156,7 @@ match_string_result match_string(const char* iter, const char* end)
         }
         else if (!(*iter & '\x80'))
         {
-            if (!is_print(*iter))
+            if (check_printability && !is_print(*iter))
             {
                 JSONV_UNLIKELY
                 return match_string_result::create_unmatched(length);

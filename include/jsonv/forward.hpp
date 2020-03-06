@@ -22,6 +22,7 @@ enum class ast_node_type : std::uint8_t;
 class encoder;
 class extractor;
 class extraction_context;
+class extract_options;
 class formats;
 class formats_builder;
 enum class kind : unsigned char;
