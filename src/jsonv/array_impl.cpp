@@ -113,10 +113,16 @@ const value& value::at(size_type idx) const
     return _data.array->_values.at(idx);
 }
 
-void value::push_back(value item)
+void value::push_back(value&& item)
 {
     check_type(jsonv::kind::array, kind());
     _data.array->_values.emplace_back(std::move(item));
+}
+
+void value::push_back(const value& item)
+{
+    check_type(jsonv::kind::array, kind());
+    _data.array->_values.emplace_back(item);
 }
 
 void value::pop_back()
@@ -125,20 +131,6 @@ void value::pop_back()
     if (_data.array->_values.empty())
         throw std::logic_error("Cannot pop from empty array");
     _data.array->_values.pop_back();
-}
-
-void value::push_front(value item)
-{
-    check_type(jsonv::kind::array, kind());
-    _data.array->_values.emplace_front(std::move(item));
-}
-
-void value::pop_front()
-{
-    check_type(jsonv::kind::array, kind());
-    if (_data.array->_values.empty())
-        throw std::logic_error("Cannot pop from empty array");
-    _data.array->_values.pop_front();
 }
 
 value::array_iterator value::insert(const_array_iterator position, value item)
@@ -161,10 +153,10 @@ void value::assign(std::initializer_list<value> items)
     _data.array->_values.assign(std::move(items));
 }
 
-void value::reserve(size_type count JSONV_UNUSED)
+void value::reserve(size_type count)
 {
     check_type(jsonv::kind::array, kind());
-    // TODO(#144): Call `.reserve` on the vector
+    _data.array->_values.reserve(count);
 }
 
 void value::resize(size_type count, const value& val)

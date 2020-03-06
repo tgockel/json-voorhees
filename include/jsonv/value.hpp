@@ -1,15 +1,13 @@
-/** \file jsonv/value.hpp
- *
- *  Copyright (c) 2012-2018 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
-#ifndef __JSONV_VALUE_HPP_INCLUDED__
-#define __JSONV_VALUE_HPP_INCLUDED__
+/// \file jsonv/value.hpp
+///
+/// Copyright (c) 2012-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
+#pragma once
 
 #include <jsonv/config.hpp>
 #include <jsonv/kind.hpp>
@@ -58,12 +56,11 @@ union value_storage
 
 }
 
-/** \defgroup Value
- *  JSON \ref value instances.
- *  \{
-**/
+/// \defgroup Value
+/// JSON \ref value instances.
+/// \{
 
-/** Get a string representation of the given \c value. **/
+/// Get a string representation of the given \c value.
 JSONV_PUBLIC std::string to_string(const value&);
 
 /// Thrown from various \c value methods when attempting to perform an operation which is not valid for the \c kind of
@@ -96,8 +93,8 @@ public:
 ///    the cases where it makes sense (for example: \c empty and \c size), but in general, string manipulation should be
 ///    done after calling \c as_string.
 ///  - \c kind::array
-///    An array behaves like a \c std::deque because it is ultimately backed by one. If you feel the documentation is
-///    lacking, read this: http://en.cppreference.com/w/cpp/container/deque.
+///    An array behaves like a \c std::vector because it is ultimately backed by one. If you feel the documentation is
+///    lacking, read this: http://en.cppreference.com/w/cpp/container/vector.
 ///  - \c kind::object
 ///    An object behaves lake a \c std::map because it is ultimately backed by one. If you feel the documentation is
 ///    lacking, read this: http://en.cppreference.com/w/cpp/container/map. This library follows the recommendation in
@@ -630,88 +627,80 @@ public:
     bool operator<=(const value& other) const;
     bool operator>=(const value& other) const;
 
-    /** Output this value to a stream. **/
+    /// Output this value to a stream.
     friend std::ostream& operator<<(std::ostream& stream, const value& val);
 
-    /** Get a string representation of the given \c value. **/
+    /// Get a string representation of the given \c value.
     friend std::string to_string(const value&);
 
-    /** Get an iterator to the beginning of this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// \{
+    /// Get an iterator to the beginning of this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     array_iterator       begin_array();
     const_array_iterator begin_array() const;
+    /// \}
 
-    /** Get an iterator to the end of this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// \{
+    /// Get an iterator to the end of this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     array_iterator       end_array();
     const_array_iterator end_array() const;
+    /// \}
 
-    /** View this instance as an array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// \{
+    /// View this instance as an array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     array_view        as_array() &;
     const_array_view  as_array() const &;
     owning_array_view as_array() &&;
+    /// \}
 
-    /** Get the value in this array at the given \a idx. The overloads which accept an \c int are required to resolve
-     *  the type ambiguity of the literal \c 0 between a size_type and a char*.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
-    value& operator[](size_type idx);
-    const value& operator[](size_type idx) const;
-    inline value&       operator[](int idx)       { return operator[](size_type(idx)); }
-    inline const value& operator[](int idx) const { return operator[](size_type(idx)); }
+    /// \{
+    /// Get the value in this array at the given \a idx. The overloads which accept an \c int are required to resolve
+    /// the type ambiguity of the literal \c 0 between a size_type and a char*.
+    ///
+    /// \throws kind_error if the kind is not an array.
+    value&              operator[](size_type idx);
+    const value&        operator[](size_type idx) const;
+    inline value&       operator[](int       idx)       { return operator[](size_type(idx)); }
+    inline const value& operator[](int       idx) const { return operator[](size_type(idx)); }
+    /// \}
 
-    /** Get the value in this array at the given \a idx.
-     *
-     *  \throws kind_error if the kind is not an array.
-     *  \throws std::out_of_range if the provided \a idx is above \c size.
-    **/
-    value& at(size_type idx);
+    /// \{
+    /// Get the value in this array at the given \a idx.
+    ///
+    /// \throws kind_error if the kind is not an array.
+    /// \throws std::out_of_range if the provided \a idx is above \c size.
+    ///
+    value&       at(size_type idx);
     const value& at(size_type idx) const;
+    /// \}
 
-    /** Push \a item to the back of this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
-    void push_back(value item);
+    /// \{
+    /// Push \a item to the back of this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
+    void push_back(value&&      item);
+    void push_back(const value& item);
+    /// \}
 
-    /** Pop an item off the back of this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-     *  \throws std::logic_error if the array is empty.
-    **/
+    /// Pop an item off the back of this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
+    /// \throws std::logic_error if the array is empty.
     void pop_back();
 
-    /** Push \a item to the front of this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
-    void push_front(value item);
-
-    /** Pop an item from the front of this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-     *  \throws std::logic_error if the array is empty.
-    **/
-    void pop_front();
-
-    /** Insert an item into \a position on this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Insert an item into \a position on this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     array_iterator insert(const_array_iterator position, value item);
 
-    /** Insert the range defined by [\a first, \a last) at \a position in this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Insert the range defined by [\a first, \a last) at \a position in this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     template <typename TForwardIterator>
     array_iterator insert(const_array_iterator position, TForwardIterator first, TForwardIterator last)
     {
@@ -722,16 +711,14 @@ public:
         return begin_array() + orig_offset;
     }
 
-    /** Assign \a count elements to this array with \a val.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Assign \a count elements to this array with \a val.
+    ///
+    /// \throws kind_error if the kind is not an array.
     void assign(size_type count, const value& val);
 
-    /** Assign the contents of range [\a first, \a last) to this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Assign the contents of range [\a first, \a last) to this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     template <typename TForwardIterator>
     void assign(TForwardIterator first, TForwardIterator last)
     {
@@ -745,10 +732,9 @@ public:
         }
     }
 
-    /** Assign the given \a items to this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Assign the given \a items to this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     void assign(std::initializer_list<value> items);
 
     /// Reserve at least \a count elements in the array.
@@ -756,23 +742,20 @@ public:
     /// \throws kind_error if the kind is not an array.
     void reserve(size_type count);
 
-    /** Resize the length of this array to \a count items. If the resize creates new elements, fill those newly-created
-     *  elements with \a val.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Resize the length of this array to \a count items. If the resize creates new elements, fill those newly-created
+    /// elements with \a val.
+    ///
+    /// \throws kind_error if the kind is not an array.
     void resize(size_type count, const value& val = value());
 
-    /** Erase the item at this array's \a position.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Erase the item at this array's \a position.
+    ///
+    /// \throws kind_error if the kind is not an array.
     array_iterator erase(const_array_iterator position);
 
-    /** Erase the range [\a first, \a last) from this array.
-     *
-     *  \throws kind_error if the kind is not an array.
-    **/
+    /// Erase the range [\a first, \a last) from this array.
+    ///
+    /// \throws kind_error if the kind is not an array.
     array_iterator erase(const_array_iterator first, const_array_iterator last);
 
     /** Get an iterator to the first key-value pair in this object.
@@ -1098,5 +1081,3 @@ struct JSONV_PUBLIC hash<jsonv::value>
 };
 
 }
-
-#endif/*__JSONV_VALUE_HPP_INCLUDED__*/

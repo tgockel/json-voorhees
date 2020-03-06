@@ -12,7 +12,7 @@
 
 #include <jsonv/value.hpp>
 
-#include <deque>
+#include <vector>
 
 #include "detail/cloneable.hpp"
 
@@ -23,7 +23,7 @@ class JSONV_LOCAL array_impl :
         public cloneable<array_impl>
 {
 public:
-    typedef std::deque<jsonv::value> array_type;
+    typedef std::vector<jsonv::value> array_type;
 
 public:
     value::size_type size() const;

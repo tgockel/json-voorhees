@@ -6,6 +6,7 @@
 
  - [2.0.0](https://github.com/tgockel/json-voorhees/milestone/12): 2020 March 13
    - Core
+     - Changed the backing data type of `kind::array`s to an `std::vector<value>`
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
