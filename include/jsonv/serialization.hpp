@@ -1,22 +1,20 @@
-/** \file jsonv/serialization.hpp
- *  Conversion between C++ types and JSON values.
- *
- *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
-#ifndef __JSONV_SERIALIZATION_HPP_INCLUDED__
-#define __JSONV_SERIALIZATION_HPP_INCLUDED__
+/// \file jsonv/serialization.hpp
+/// Conversion between C++ types and JSON values.
+///
+/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
+#pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/detail/nested_exception.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/value.hpp>
+#include <jsonv/version.hpp>
 
 #include <memory>
 #include <new>
@@ -29,152 +27,146 @@
 namespace jsonv
 {
 
-/** \addtogroup Serialization
- *  \{
- *  Serialization components are responsible for conversion between a C++ type and a JSON \c value.
-**/
+/// \addtogroup Serialization
+/// \{
+/// Serialization components are responsible for conversion between a C++ type and a JSON \c value.
 
 class extractor;
 class value;
 class extraction_context;
 class serialization_context;
 
-/** Represents a version used to extract and encode JSON objects from C++ classes. This is useful for API versioning: if
- *  you need certain fields to be serialized only after a certain version or only before a different one.
-**/
-struct JSONV_PUBLIC version
-{
-public:
-    using version_element = std::uint32_t;
-
-public:
-    /** Initialize an instance with the given \a major and \a minor version info. **/
-    constexpr version(version_element major = 0, version_element minor = 0) :
-            major{major},
-            minor{minor}
-    { }
-
-    /** Check if this version is an "empty" value -- meaning \c major and \c minor are both \c 0. **/
-    constexpr bool empty() const
-    {
-        return major == 0 && minor == 0;
-    }
-
-    /** Convert this instance into a \c uint64_t. The \c major version will be in the higher-order bits, while \c minor
-     *  will be in the lower-order bits.
-    **/
-    explicit constexpr operator std::uint64_t() const
-    {
-        return static_cast<std::uint64_t>(major) << 32
-             | static_cast<std::uint64_t>(minor) <<  0;
-    }
-
-    /** Test for equality with \a other. **/
-    constexpr bool operator==(const version& other) const
-    {
-        return static_cast<std::uint64_t>(*this) == static_cast<std::uint64_t>(other);
-    }
-
-    /** Test for inequality with \a other. **/
-    constexpr bool operator!=(const version& other) const
-    {
-        return static_cast<std::uint64_t>(*this) != static_cast<std::uint64_t>(other);
-    }
-
-    /** Check that this version is less than \a other. The comparison is done lexicographically. **/
-    constexpr bool operator<(const version& other) const
-    {
-        return static_cast<std::uint64_t>(*this) < static_cast<std::uint64_t>(other);
-    }
-
-    /** Check that this version is less than or equal to \a other. The comparison is done lexicographically. **/
-    constexpr bool operator<=(const version& other) const
-    {
-        return static_cast<std::uint64_t>(*this) <= static_cast<std::uint64_t>(other);
-    }
-
-    /** Check that this version is greater than \a other. The comparison is done lexicographically. **/
-    constexpr bool operator>(const version& other) const
-    {
-        return static_cast<std::uint64_t>(*this) > static_cast<std::uint64_t>(other);
-    }
-
-    /** Check that this version is greater than or equal to \a other. The comparison is done lexicographically. **/
-    constexpr bool operator>=(const version& other) const
-    {
-        return static_cast<std::uint64_t>(*this) >= static_cast<std::uint64_t>(other);
-    }
-
-public:
-    version_element major;
-    version_element minor;
-};
-
-/** The action to take when an insertion of an extractor or serializer into a formats is attempted, but there is alredy
- *  an extractor or serializer for that type.
-**/
+/// The action to take when an insertion of an extractor or serializer into a formats is attempted, but there is alredy
+/// an extractor or serializer for that type.
 enum class duplicate_type_action : unsigned char
 {
-    /** The existing extractor or serializer should be kept, but no exception should be thrown. **/
+    /// The existing extractor or serializer should be kept, but no exception should be thrown.
     ignore,
-    /** The new extractor or serializer should be inserted, and no exception should be thrown. **/
+    /// The new extractor or serializer should be inserted, and no exception should be thrown.
     replace,
-    /** A \ref duplicate_type_error should be thrown. **/
-    exception
+    /// A \ref duplicate_type_error should be thrown.
+    exception,
 };
 
-/** Exception thrown if an insertion of an extractor or serializer into a formats is attempted, but there is already an
- *  extractor or serializer for that type.
-**/
+/// Exception thrown if an insertion of an extractor or serializer into a formats is attempted, but there is already an
+/// extractor or serializer for that type.
 class JSONV_PUBLIC duplicate_type_error :
         public std::invalid_argument
 {
 public:
     explicit duplicate_type_error(const std::string& operation, const std::type_index& type);
 
-    virtual ~duplicate_type_error() noexcept;
+    virtual ~duplicate_type_error() noexcept override;
 
-    std::type_index type_index() const;
+    const std::type_index& type_index() const { return _type_index; }
 
 private:
     std::type_index _type_index;
 };
 
-/** Exception thrown if there is any problem running \c extract. Typically, there is a nested exception attached with
- *  more details as to what the underlying error is (a human-readable description is usually in the \c what string).
-**/
+/// Exception thrown if there is any problem running \c extract.
 class JSONV_PUBLIC extraction_error :
-        public std::runtime_error,
-        public nested_exception
+        public std::runtime_error
 {
 public:
-    /** Create a new \c extraction_error from the given \a context and \a message. **/
-    explicit extraction_error(const extraction_context& context, const std::string& message);
+    /// Description of a single problem with extraction.
+    class problem
+    {
+    public:
+        /// \{
+        /// Create a problem for the given \a path, \a message, and optional \a cause.
+        explicit problem(jsonv::path path, std::string message, std::exception_ptr cause) noexcept;
+        explicit problem(jsonv::path path, std::string message) noexcept;
+        /// \}
+
+        /// Create a problem with a \c message extracted from \a cause.
+        ///
+        /// \param cause The underlying cause of this problem to extract the message from. If the exception backing
+        ///              \a cause is not derived from \c std::exception, a message about unknown exception will be used
+        ///              instead.
+        explicit problem(jsonv::path path, std::exception_ptr cause) noexcept;
+
+        /// The path this problem was encountered at.
+        const jsonv::path& path() const noexcept
+        {
+            return _path;
+        }
+
+        /// Human-readable details about the encountered problem.
+        const std::string& message() const noexcept
+        {
+            return _message;
+        }
+
+        /// If there was an exception that caused this problem, extra details can be found in the nested exception. This
+        /// can be \c nullptr if there was no underlying cause.
+        const std::exception_ptr& nested_ptr() const noexcept
+        {
+            return _cause;
+        }
+
+    private:
+        jsonv::path        _path;
+        std::string        _message;
+        std::exception_ptr _cause;
+    };
+
+    using problem_list = std::vector<problem>;
+
+public:
+    /// Create an \c extraction_error from the given list of \a problems.
+    ///
+    /// \param problems The list of problems which caused this error. It is expected that \c problems.size() is greater
+    ///                 than \c 0. If it is not, a single \c problem will be created with a note about an unspecified
+    ///                 error.
+    explicit extraction_error(problem_list problems) noexcept;
+
+    /// \{
+    /// Create a new \c extraction_error with a single \c problem from the given \a path, \a message, and optional
+    /// underlying \a cause.
+    explicit extraction_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept;
+    explicit extraction_error(jsonv::path path, std::string message) noexcept;
+    explicit extraction_error(jsonv::path path, std::exception_ptr cause) noexcept;
+    /// \}
 
     virtual ~extraction_error() noexcept;
 
-    /** Get the path this extraction error came from. **/
-    const jsonv::path& path() const;
+    /// Get the path the first extraction error came from.
+    const jsonv::path& path() const noexcept;
+
+    /// Get the first \c problem::cause. This can be \c nullptr if the first \c problem does not have an underlying
+    /// cause.
+    const std::exception_ptr& nested_ptr() const noexcept;
+
+    /// Get the list of problems which caused this \c extraction_error. There will always be at least one \c problem in
+    /// this list.
+    const problem_list& problems() const noexcept { return _problems; }
 
 private:
-    jsonv::path _path;
+    template <typename... TArgs>
+    explicit extraction_error(std::in_place_t, TArgs&&... problem_args) noexcept;
+
+private:
+    problem_list _problems;
 };
 
-/** Thrown when \c formats::extract does not have an \c extractor for the provided type. **/
+/// Thrown when \c formats::extract does not have an \c extractor for the provided type.
 class JSONV_PUBLIC no_extractor :
         public std::runtime_error
 {
 public:
-    /** Create a new exception. **/
+    /// \{
+    /// Create a new exception.
     explicit no_extractor(const std::type_info& type);
     explicit no_extractor(const std::type_index& type);
+    /// \}
 
     virtual ~no_extractor() noexcept;
 
-    /** The name of the type. **/
+    /// The name of the type.
     string_view type_name() const;
 
-    /** Get an ID for the type of \c extractor that \c formats::extract could not locate. **/
+    /// Get an ID for the type of \c extractor that \c formats::extract could not locate.
     std::type_index type_index() const;
 
 private:
@@ -204,27 +196,95 @@ private:
     std::string     _type_name;
 };
 
-/** An \c extractor holds the method for converting a \c value into an arbitrary C++ type. **/
+/// Configuration for various extraction options. This becomes part of the \c extraction_context.
+class JSONV_PUBLIC extract_options final
+{
+public:
+    using size_type = extraction_error::problem_list::size_type;
+
+    /// When an error is encountered during extraction, what should happen?
+    enum class on_error
+    {
+        /// Immediately throw an \c extraction_error -- do not attempt to continue.
+        fail_immediately,
+        /// Attempt to continue extraction, collecting all errors and throwing at the end.
+        collect_all,
+    };
+
+    /// When an object key has the same value as a previously-seen key, what should happen?
+    enum class duplicate_key_action
+    {
+        /// Replace the previous value with the new one. The final value of the key in the object will be the
+        /// last-encountered one.
+        ///
+        /// For example: `{ "a": 1, "a": 2, "a": 3 }` will end with `{ "a": 3 }`.
+        replace,
+        /// Ignore the new values. The final value of the key in the object will be the first-encountered one.
+        ///
+        /// For example: `{ "a": 1, "a": 2, "a": 3 }` will end with `{ "a": 1 }`.
+        ignore,
+        /// Repeated keys should raise an \c extraction_error.
+        exception,
+    };
+
+public:
+    /// Create an instance with the default options.
+    extract_options() noexcept;
+
+    ~extract_options() noexcept;
+
+    /// Create a default set of options.
+    static extract_options create_default();
+
+    /// \{
+    /// See \c on_error. The default failure mode is \c fail_immediately.
+    on_error         failure_mode() const noexcept { return _failure_mode; };
+    extract_options& failure_mode(on_error mode);
+    /// \}
+
+    /// \{
+    /// The maximum allowed extractor failures the parser can encounter before throwing an error. This is only
+    /// applicable if the \c failure_mode is not \c on_error::fail_immediately. By default, this value is 10.
+    ///
+    /// You should probably not set this value to an unreasonably high number, as each error encountered must be stored
+    /// in memory for some period of time.
+    size_type        max_failures() const { return _max_failures; }
+    extract_options& max_failures(size_type limit);
+    /// \}
+
+    /// \{
+    /// See \c duplicate_key_action. The default action is \c replace.
+    duplicate_key_action on_duplicate_key() const { return _on_duplicate_key; }
+    extract_options&     on_duplicate_key(duplicate_key_action action);
+    /// \}
+
+private:
+    // For the purposes of ABI compliance, most modifications to the variables in this class should bump the minor
+    // version number.
+    on_error             _failure_mode     = on_error::fail_immediately;
+    size_type            _max_failures     = 10U;
+    duplicate_key_action _on_duplicate_key = duplicate_key_action::replace;
+};
+
+/// An \c extractor holds the method for converting JSON source into an arbitrary C++ type.
 class JSONV_PUBLIC extractor
 {
 public:
     virtual ~extractor() noexcept;
 
-    /** Get the run-time type this \c extractor knows how to extract. Once this \c extractor is registered with a
-     *  \c formats, it is not allowed to change.
-    **/
+    /// Get the run-time type this \c extractor knows how to extract. Once this \c extractor is registered with a
+    /// \c formats, it is not allowed to change.
     virtual const std::type_info& get_type() const = 0;
 
-    /** Extract a the type \a from a \c value \a into a region of memory.
-     *
-     *  \param context Extra information to help you decode sub-objects, such as looking up other \c formats. It also
-     *                 tracks your \c path in the decoding heirarchy, so any exceptions thrown will have \c path
-     *                 information in the error message.
-     *  \param from The JSON \c value to extract something from.
-     *  \param into The region of memory to create the extracted object in. There will always be enough room to create
-     *              your object and the alignment of the pointer should be correct (assuming a working \c alignof
-     *              implementation).
-    **/
+    /// Extract a the type \a from a \c value \a into a region of memory.
+    ///
+    /// \param context Extra information to help you decode sub-objects, such as looking up other \c formats. It also
+    ///                tracks your \c path in the decoding heirarchy, so any exceptions thrown will have \c path
+    ///                information in the error message.
+    /// \param from The JSON \c value to extract something from.
+    /// \param into The region of memory to create the extracted object in. There will always be enough room to create
+    ///             your object and the alignment of the pointer should be correct (assuming a working \c alignof
+    ///             implementation).
     virtual void extract(const extraction_context& context,
                          const value&              from,
                          void*                     into
@@ -267,57 +327,56 @@ public:
     virtual ~adapter() noexcept;
 };
 
-/** Simply put, this class is a collection of \c extractor and \c serializer instances.
- *
- *  Ultimately, \c formats form a directed graph of possible types to load. This allows you to compose formats including
- *  your application with any number of 3rd party libraries an base formats. Imagine an application that has both a user
- *  facing API and an object storage system, both of which speak JSON. When loading from the database, you would like
- *  strict type enforcement -- check that when you say <tt>extract&lt;int&gt;(val)</tt>, that \c val actually has
- *  \c kind::integer. When getting values from the API, you happily convert \c kind::string with the value \c "51" into
- *  the integer \c 51. You really don't want to have to write two versions of decoders for all of your objects: one
- *  which uses the standard checked \c value::as_integer and one that uses \c coerce_integer -- you want the same object
- *  model.
- *
- *  \dot
- *  digraph formats {
- *    defaults  [label="formats::defaults"]
- *    coerce    [label="formats::coerce"]
- *    lib       [label="some_3rd_party"]
- *    my_app    [label="my_app_formats"]
- *    db        [label="my_app_database_loader"]
- *    api       [label="my_app_api_loader"]
- *
- *    my_app -> lib
- *    db ->  defaults
- *    db ->  my_app
- *    api -> coerce
- *    api -> my_app
- *  }
- *  \enddot
- *
- *  To do this, you would create your object model (called \c my_app_formats in the chart) with the object models for
- *  your application-specific types. This can use any number of 3rd party libraries to get the job done. To make a
- *  functional \c formats, you would \c compose different \c formats instances into a single one. From there,
- *
- *  \code
- *  jsonv::formats get_api_formats()
- *  {
- *      static jsonv::formats instance = jsonv::formats::compose({ jsonv::formats::coerce(), get_app_formats() });
- *      return instance;
- *  }
- *
- *  jsonv::formats get_db_formats()
- *  {
- *      static jsonv::formats instance = jsonv::formats::compose({ jsonv::formats::defaults(), get_app_formats() });
- *      return instance;
- *  }
- *
- *  MyType extract_thing(const jsonv::value& from, bool from_db)
- *  {
- *      return jsonv::extract<MyType>(from, from_db ? get_db_formats() : get_api_formats());
- *  }
- *  \endcode
-**/
+/// Simply put, this class is a collection of \c extractor and \c serializer instances.
+///
+/// Ultimately, \c formats form a directed graph of possible types to load. This allows you to compose formats including
+/// your application with any number of 3rd party libraries an base formats. Imagine an application that has both a user
+/// facing API and an object storage system, both of which speak JSON. When loading from the database, you would like
+/// strict type enforcement -- check that when you say <tt>extract&lt;int&gt;(val)</tt>, that \c val actually has
+/// \c kind::integer. When getting values from the API, you happily convert \c kind::string with the value \c "51" into
+/// the integer \c 51. You really don't want to have to write two versions of decoders for all of your objects: one
+/// which uses the standard checked \c value::as_integer and one that uses \c coerce_integer -- you want the same object
+/// model.
+///
+/// \dot
+/// digraph formats {
+///   defaults  [label="formats::defaults"]
+///   coerce    [label="formats::coerce"]
+///   lib       [label="some_3rd_party"]
+///   my_app    [label="my_app_formats"]
+///   db        [label="my_app_database_loader"]
+///   api       [label="my_app_api_loader"]
+///
+///   my_app -> lib
+///   db ->  defaults
+///   db ->  my_app
+///   api -> coerce
+///   api -> my_app
+/// }
+/// \enddot
+///
+/// To do this, you would create your object model (called \c my_app_formats in the chart) with the object models for
+/// your application-specific types. This can use any number of 3rd party libraries to get the job done. To make a
+/// functional \c formats, you would \c compose different \c formats instances into a single one. From there,
+///
+/// \code
+/// jsonv::formats get_api_formats()
+/// {
+///     static jsonv::formats instance = jsonv::formats::compose({ jsonv::formats::coerce(), get_app_formats() });
+///     return instance;
+/// }
+///
+/// jsonv::formats get_db_formats()
+/// {
+///     static jsonv::formats instance = jsonv::formats::compose({ jsonv::formats::defaults(), get_app_formats() });
+///     return instance;
+/// }
+///
+/// MyType extract_thing(const jsonv::value& from, bool from_db)
+/// {
+///     return jsonv::extract<MyType>(from, from_db ? get_db_formats() : get_api_formats());
+/// }
+/// \endcode
 class JSONV_PUBLIC formats
 {
 public:
@@ -679,8 +738,6 @@ value to_json(const T& from)
     return context.to_json(from);
 }
 
-/** \} **/
+/// \}
 
 }
-
-#endif/*__JSONV_SERIALIZATION_HPP_INCLUDED__*/

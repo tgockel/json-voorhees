@@ -9,16 +9,20 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
-#include <jsonv/value.hpp>
-#include <jsonv/string_view.hpp>
+#include <jsonv/config.hpp>
 
-namespace jsonv
+#include <string>
+
+#include "detail/cloneable.hpp"
+
+namespace jsonv::detail
 {
 
-const char* kind_desc(kind type);
-bool kind_valid(kind k);
-void check_type(kind expected, kind actual);
-void check_type(std::initializer_list<kind> expected, kind actual);
-std::ostream& stream_escaped_string(std::ostream& stream, string_view str, bool require_ascii);
+class JSONV_LOCAL string_impl final :
+        public cloneable<string_impl>
+{
+public:
+    std::string _string;
+};
 
 }

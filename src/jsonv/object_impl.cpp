@@ -1,15 +1,15 @@
-/** \file
- *  Implementation of \c jsonv::value member functions related to objects.
- *  
- *  Copyright (c) 2012-2018 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
-#include <jsonv/object.hpp>
+/// \file
+/// Implementation of \c jsonv::value member functions related to objects.
+///
+/// Copyright (c) 2012-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
+#include "object_impl.hpp"
+
 #include <jsonv/char_convert.hpp>
 
 #include <algorithm>

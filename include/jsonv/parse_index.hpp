@@ -16,6 +16,7 @@
 namespace jsonv
 {
 
+class extract_options;
 class parse_options;
 
 /// \ingroup Value
@@ -89,11 +90,22 @@ public:
 
     ~parse_index() noexcept;
 
+    /// \{
     /// Create an \c parse_index from the given \a src JSON.
     ///
-    /// \param initial_buffer_capacity The initial capacity of the underlying buffer. By default (\c nullopt), this will
-    ///  size the buffer according to the length of the \a src string.
-    static parse_index parse(string_view src, optional<std::size_t> initial_buffer_capacity = nullopt);
+    /// \param options
+    ///     The options used to control parsing. If unspecified, these will be \c parse_options::create_default().
+    /// \param initial_buffer_capacity
+    ///     The initial capacity of the underlying buffer. By default (\c nullopt), this will size the buffer according
+    ///     to the length of the \a src string.
+    static parse_index parse(string_view           src,
+                             const parse_options&  options,
+                             optional<std::size_t> initial_buffer_capacity
+                            );
+    static parse_index parse(string_view src, optional<std::size_t> initial_buffer_capacity);
+    static parse_index parse(string_view src, const parse_options& options);
+    static parse_index parse(string_view src);
+    /// \}
 
     /// Clear the contents of this instance.
     void reset();
@@ -120,8 +132,13 @@ public:
     iterator end() const;
     iterator cend() const { return end(); }
 
-    value extract_tree(const parse_options& options) const;
+    /// \{
+    /// \param options
+    ///     The options used to control how values are extracted from this source. If unspecified, these will be
+    ///     \c extract_options::create_default().
+    value extract_tree(const extract_options& options) const;
     value extract_tree() const;
+    /// \}
 
     /// \{
     /// Get a string representation of the AST.

@@ -1,13 +1,12 @@
-/** \file
- *  
- *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/demangle.hpp>
 
@@ -40,14 +39,14 @@ void formats_builder::check_references_impl(const formats& searching, const std:
     for (const auto& pair : _referenced_types)
     {
         const std::type_index& type = pair.first;
-        
+
         bool has_extractor  = [&] { try { searching.get_extractor(type);  return true; } catch (const no_extractor&)  { return false; } }();
         bool has_serializer = [&] { try { searching.get_serializer(type); return true; } catch (const no_serializer&) { return false; } }();
-        
+
         if (!has_extractor || !has_serializer)
             failed_types.emplace_back(type, has_extractor, has_serializer);
     }
-    
+
     if (!failed_types.empty())
     {
         std::ostringstream os;
@@ -199,7 +198,7 @@ void throw_extra_keys_extraction_error(const extraction_context&    context,
             os << ", ";
         os << key;
     }
-    throw extraction_error(context, os.str());
+    throw extraction_error(context.path(), os.str());
 }
 
 }

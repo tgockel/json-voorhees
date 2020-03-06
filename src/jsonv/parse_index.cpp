@@ -9,6 +9,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/parse.hpp>
 #include <jsonv/parse_index.hpp>
+#include <jsonv/serialization.hpp>
 
 #include <cassert>
 #include <cstring>
@@ -17,6 +18,7 @@
 #include <sstream>
 #include <utility>
 
+#include "detail/fallthrough.hpp"
 #include "detail/match/number.hpp"
 #include "detail/match/string.hpp"
 
@@ -26,10 +28,6 @@ namespace jsonv
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private Helper Functions                                                                                           //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#ifndef JSONV_AST_PARSE_MAX_DEPTH
-#   define JSONV_AST_PARSE_MAX_DEPTH 128
-#endif
 
 static inline ast_node_type ast_node_type_from_coded(std::uint64_t src)
 {
@@ -197,7 +195,7 @@ struct JSONV_LOCAL parse_index::impl final
         return ast_exception(error_code, self->first_error_index);
     }
 
-    static void parse(impl*& self, string_view src);
+    static void parse(impl*& self, string_view src, const parse_options& options);
 
     template <std::size_t N>
     static void parse_literal(impl*&        self,
@@ -280,8 +278,11 @@ void parse_index::impl::parse_literal(impl*&        self,
     }
 }
 
-void parse_index::impl::parse(impl*& self, string_view src)
+void parse_index::impl::parse(impl*& self, string_view src, const parse_options& options)
 {
+    if (options.max_structure_depth() && *options.max_structure_depth() > parse_options::k::max_structure_depth)
+        throw std::invalid_argument("parse_options::max_structure_depth too large");
+
     enum class container_state
     {
         item_finished = 0,  // <- an item just finished parsing (value 0 because it is set frequently)
@@ -302,11 +303,11 @@ void parse_index::impl::parse(impl*& self, string_view src)
         }
     };
 
-    static constexpr std::size_t max_depth    = std::size_t(JSONV_AST_PARSE_MAX_DEPTH);
-    structure_state              structure[max_depth];
-    std::size_t                  depth        = 0;
-    ast_node_type                container    = ast_node_type::error;
-    container_state              state        = container_state::none;
+    structure_state structure[parse_options::k::max_structure_depth];
+    std::size_t     max_depth = options.max_structure_depth().value_or(parse_options::k::max_structure_depth);
+    std::size_t     depth     = 0;
+    ast_node_type   container = ast_node_type::error;
+    container_state state     = container_state::none;
 
     const char* const begin = src.data();
     const char* iter        = begin;
@@ -378,9 +379,9 @@ void parse_index::impl::parse(impl*& self, string_view src)
             if (*iter != '\"')
                 throw push_error(self, ast_error::expected_string, begin, iter);
 
-            auto result = detail::match_string(iter, end);
+            auto result = detail::match_string(iter, end, options);
             if (!result)
-                throw push_error(self, ast_error::eof, begin, iter);
+                throw push_error(self, ast_error::invalid_string, begin, iter + result.length);
 
             auto idx = push_back(self, result.needs_conversion ? token_escaped : token_ascii, iter);
             self->data(idx + 1) = result.length;
@@ -498,14 +499,18 @@ void parse_index::impl::parse(impl*& self, string_view src)
             }
             break;
         case '/':
-            if (fastforward_comment(*&iter, end))
+            if (options.comments())
             {
-                break;
+                if (fastforward_comment(*&iter, end))
+                {
+                    break;
+                }
+                else
+                {
+                    throw push_error(self, ast_error::invalid_comment, begin, iter);
+                }
             }
-            else
-            {
-                throw push_error(self, ast_error::invalid_comment, begin, iter);
-            }
+            JSONV_FALLTHROUGH();
         default:
             throw push_error(self, ast_error::unexpected_token, begin, iter);
             break;
@@ -513,6 +518,17 @@ void parse_index::impl::parse(impl*& self, string_view src)
     }
 
     push_back_out(ast_node_type::document_end, ast_node_type::document_start, iter);
+
+    if (options.require_document())
+    {
+        auto first_token = ast_node_type_from_coded(self->data(code_size(ast_node_type::document_start)));
+
+        if (first_token != ast_node_type::object_begin && first_token != ast_node_type::array_begin)
+        {
+            JSONV_UNLIKELY
+            throw push_error(*&self, ast_error::expected_document, begin, begin);
+        }
+    }
 }
 
 parse_index::parse_index(impl* ptr) noexcept :
@@ -544,7 +560,7 @@ void parse_index::validate() const
     if (success())
         return;
 
-    throw parse_error({ parse_error::problem(0, 0, _impl->first_error_index, std::string(to_string(_impl->first_error_code))) }, value());
+    throw parse_error(to_string(_impl->first_error_code).c_str(), _impl->first_error_index);
 }
 
 parse_index::iterator parse_index::begin() const
@@ -571,7 +587,10 @@ parse_index::iterator parse_index::end() const
     }
 }
 
-parse_index parse_index::parse(string_view src, optional<std::size_t> initial_buffer_capacity)
+parse_index parse_index::parse(string_view           src,
+                               const parse_options&  options,
+                               optional<std::size_t> initial_buffer_capacity
+                              )
 {
     // OPTIMIZATION: Better heuristics on initial buffer capacity.
     auto p       = impl::allocate(initial_buffer_capacity.value_or(src.size() / 16));
@@ -579,7 +598,7 @@ parse_index parse_index::parse(string_view src, optional<std::size_t> initial_bu
 
     try
     {
-        impl::parse(p, src);
+        impl::parse(p, src, options);
         return parse_index(p);
     }
     catch (const ast_exception&)
@@ -591,6 +610,21 @@ parse_index parse_index::parse(string_view src, optional<std::size_t> initial_bu
         impl::destroy(p);
         throw;
     }
+}
+
+parse_index parse_index::parse(string_view src, optional<std::size_t> initial_buffer_capacity)
+{
+    return parse(src, parse_options::create_default(), initial_buffer_capacity);
+}
+
+parse_index parse_index::parse(string_view src, const parse_options& options)
+{
+    return parse(src, options, nullopt);
+}
+
+parse_index parse_index::parse(string_view src)
+{
+    return parse(src, parse_options::create_default(), nullopt);
 }
 
 std::ostream& operator<<(std::ostream& os, const parse_index& self)
@@ -672,9 +706,15 @@ struct overload : F...
 template <typename... F>
 overload(F...) -> overload<F...>;
 
-value extract_single(parse_index::const_iterator& iter, parse_index::const_iterator last);
+value extract_single(parse_index::const_iterator& iter,
+                     parse_index::const_iterator  last,
+                     const extract_options&       options
+                    );
 
-value extract_object(parse_index::const_iterator& iter, parse_index::const_iterator last)
+value extract_object(parse_index::const_iterator& iter,
+                     parse_index::const_iterator  last,
+                     const extract_options&       options
+                    )
 {
     auto first_token = *iter;
     if (first_token.type() != ast_node_type::object_begin)
@@ -704,16 +744,40 @@ value extract_object(parse_index::const_iterator& iter, parse_index::const_itera
             });
 
         ++iter;
-        value val = extract_single(*&iter, last);
+        value val = extract_single(*&iter, last, options);
 
-        out.insert({ std::move(key), std::move(val) });
+        switch (options.on_duplicate_key())
+        {
+        case extract_options::duplicate_key_action::replace:
+            out[std::move(key)] = std::move(val);
+            break;
+        case extract_options::duplicate_key_action::ignore:
+            if (out.find(key) == out.end_object())
+                out[std::move(key)] = std::move(val);
+            break;
+        case extract_options::duplicate_key_action::exception:
+            if (out.find(key) == out.end_object())
+            {
+                out[std::move(key)] = std::move(val);
+            }
+            else
+            {
+                std::ostringstream os;
+                os << "Duplicate key in object: \"" << key << "\"";
+                throw extraction_error(path(), std::move(os).str());
+            }
+            break;
+        }
         ++iter;
     }
 
     throw std::invalid_argument("Did not find end of object");
 }
 
-value extract_array(parse_index::const_iterator& iter, parse_index::const_iterator last)
+value extract_array(parse_index::const_iterator& iter,
+                    parse_index::const_iterator  last,
+                    const extract_options&       options
+                   )
 {
     auto first_token = *iter;
     value out        = first_token.visit(overload
@@ -738,14 +802,17 @@ value extract_array(parse_index::const_iterator& iter, parse_index::const_iterat
         if (token.type() == ast_node_type::array_end)
             return out;
 
-        out.push_back(extract_single(*&iter, last));
+        out.push_back(extract_single(*&iter, last, options));
         ++iter;
     }
 
     throw std::invalid_argument("Did not find end of array");
 }
 
-value extract_single(parse_index::const_iterator& iter, parse_index::const_iterator last)
+value extract_single(parse_index::const_iterator& iter,
+                     parse_index::const_iterator  last,
+                     const extract_options&       options
+                    )
 {
     if (iter == last)
         throw std::invalid_argument("Can not extract from empty");
@@ -754,8 +821,8 @@ value extract_single(parse_index::const_iterator& iter, parse_index::const_itera
     return node.visit(
         overload
         {
-            [&](const ast_node::object_begin&)       -> value { return extract_object(*&iter, last); },
-            [&](const ast_node::array_begin&)        -> value { return extract_array(*&iter, last); },
+            [&](const ast_node::object_begin&)       -> value { return extract_object(*&iter, last, options); },
+            [&](const ast_node::array_begin&)        -> value { return extract_array(*&iter, last, options); },
             [&](const ast_node::integer& x)          -> value { return x.value(); },
             [&](const ast_node::decimal& x)          -> value { return x.value(); },
             [&](const ast_node::string_canonical& x) -> value { return x.value(); },
@@ -763,9 +830,10 @@ value extract_single(parse_index::const_iterator& iter, parse_index::const_itera
             [&](const ast_node::literal_false& x)    -> value { return x.value(); },
             [&](const ast_node::literal_true& x)     -> value { return x.value(); },
             [&](const ast_node::literal_null& x)     -> value { return x.value(); },
-            [&](const ast_node::error& x)         -> value
+            [&](const ast_node::error& x)            -> value
             {
-                throw parse_error({ { 0, 0, 0, to_string(x.error_code()) } }, null);
+                // Not an extraction error -- someone forgot to call `.validate()`
+                throw parse_error(to_string(x.error_code()).c_str());
             },
             [&](const auto& x) -> value
             {
@@ -777,7 +845,7 @@ value extract_single(parse_index::const_iterator& iter, parse_index::const_itera
 
 }
 
-value parse_index::extract_tree(const parse_options& options /* TODO(#145) */) const
+value parse_index::extract_tree(const extract_options& options) const
 {
     if (!_impl)
         throw std::invalid_argument("AST index was not initialized");
@@ -793,7 +861,7 @@ value parse_index::extract_tree(const parse_options& options /* TODO(#145) */) c
         throw std::invalid_argument("AST index did not start with a `document_start`");
 
     ++iter;
-    auto out = extract_single(*&iter, last);
+    auto out = extract_single(*&iter, last, options);
 
     if (iter == last)
         throw std::invalid_argument("Extracting value into a JSON tree ended early");
@@ -812,14 +880,7 @@ value parse_index::extract_tree(const parse_options& options /* TODO(#145) */) c
 
 value parse_index::extract_tree() const
 {
-    return extract_tree(parse_options::create_default());
-}
-
-value parse(const string_view& input, const parse_options& options)
-{
-    auto ast = parse_index::parse(input);
-    ast.validate();
-    return ast.extract_tree(options);
+    return extract_tree(extract_options::create_default());
 }
 
 }

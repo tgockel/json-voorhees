@@ -9,20 +9,45 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
-#include <jsonv/array.hpp>
 #include <jsonv/parse.hpp>
-#include <jsonv/object.hpp>
 
 #include <iostream>
 
 using namespace jsonv;
 
+#define TEST_PARSE(name) TEST(parse_ ## name)
+
+TEST_PARSE(number_0)
+{
+    value result = parse("0");
+    ensure_eq(value(0), result);
+}
+
+TEST_PARSE(number_negative_0)
+{
+    value result = parse("-0");
+    ensure_eq(value(0), result);
+}
+
+TEST_PARSE(number_double_zero)
+{
+    ensure_throws(parse_error, parse("00"));
+}
+
+TEST_PARSE(number_negative_double_zero)
+{
+    ensure_throws(parse_error, parse("-00"));
+}
+
+TEST_PARSE(number_leading_zero)
+{
+    ensure_throws(parse_error, parse("013"));
+}
+
 static const value simple_obj = object({ { "foo", 4 },
                                          { "bar", array({ 2, 3, 4, "5" }) },
                                          { "raz", object() }
                                        });
-
-#define TEST_PARSE(name) TEST(parse_ ## name)
 
 TEST_PARSE(object_simple_no_spaces)
 {
@@ -185,13 +210,6 @@ TEST_PARSE(malformed_decimal)
     ensure_throws(jsonv::parse_error, parse("123.456.789"));
 }
 
-TEST_PARSE(malformed_decimal_collect_all)
-{
-    auto options = jsonv::parse_options()
-                       .failure_mode(jsonv::parse_options::on_error::collect_all);
-    ensure_throws(jsonv::parse_error, parse("123.456.789", options));
-}
-
 TEST_PARSE(malformed_decimal_in_object)
 {
     ensure_throws(jsonv::parse_error, parse(R"({"x": 123.456.789 })"));
@@ -208,35 +226,13 @@ TEST_PARSE(malformed_boolean)
     ensure_throws(jsonv::parse_error, parse("try"));
 }
 
-// TODO(#145): Probably remove entirely
-// TEST_PARSE(partial_array)
-// {
-//     try
-//     {
-//         parse_options options = parse_options()
-//                                 .failure_mode(parse_options::on_error::collect_all)
-//                                 .max_failures(1);
-//         parse("[1, 2, bogus]", options);
-//         ensure(false);
-//     }
-//     catch (const jsonv::parse_error& err)
-//     {
-//         // just check that we can...
-//         to_string(err);
-//         to_string(err.problems().at(0));
-//         value expected = array({ 1, 2, null });
-//         ensure_eq(expected, err.partial_result());
-//     }
-// }
-
-// TODO(#145): Depth checking
-// TEST_PARSE(depth)
-// {
-//     std::string src = R"({"a": null, "b": [{}, 3, 4.5, false, [[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]})";
-//     // this isn't all that useful -- we just want to ensure that the normal src parses
-//     parse(src);
-//     ensure_throws(parse_error, parse(src, parse_options::create_strict()));
-// }
+TEST_PARSE(depth)
+{
+    std::string src = R"({"a": null, "b": [{}, 3, 4.5, false, [[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]})";
+    // this isn't all that useful -- we just want to ensure that the normal src parses
+    parse(src);
+    ensure_throws(parse_error, parse(src, parse_options::create_strict()));
+}
 
 TEST_PARSE(literal)
 {

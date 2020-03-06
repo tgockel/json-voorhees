@@ -117,11 +117,7 @@ match_number_result match_number(const char* begin, const char* end)
         case '7':
         case '8':
         case '9':
-            // NOTE: This behavior is incorrect according to strict JSON parsing. However, this library matches the
-            // input as a number in case `parse_options::numbers::decimal` is used.
-            ++length;
-            state = match_number_state::integer;
-            break;
+            return match_number_result::create_unmatched(length);
         case '.':
             ++length;
             state   = match_number_state::decimal;
