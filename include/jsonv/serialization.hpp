@@ -601,10 +601,10 @@ class JSONV_PUBLIC extraction_context :
         public context_base
 {
 public:
-    /** Create a new instance using the default \c formats (\c formats::global). **/
+    /// Create a new instance using the default \c formats (\c formats::global).
     extraction_context();
 
-    /** Create a new instance using the given \a fmt, \a ver and \a p. **/
+    /// Create a new instance using the given \a fmt, \a ver and \a p.
     explicit extraction_context(jsonv::formats        fmt,
                                 const jsonv::version& ver      = jsonv::version(),
                                 jsonv::path           p        = jsonv::path(),
@@ -613,9 +613,8 @@ public:
 
     virtual ~extraction_context() noexcept;
 
-    /** Get the current \c path this \c extraction_context is extracting for. This is useful when debugging and
-     *  generating error messages.
-    **/
+    /// Get the current \c path this \c extraction_context is extracting for. This is useful when debugging and
+    /// generating error messages.
     const jsonv::path& path() const
     {
         return _path;

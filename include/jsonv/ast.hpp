@@ -134,7 +134,7 @@ enum class ast_error : std::uint64_t
     expected_key_delimiter,
     unexpected_token,
     unexpected_comma,
-    eof,
+    unexpected_eof,
     expected_eof,
     depth_exceeded,
     extra_close,
@@ -164,7 +164,7 @@ public:
     {
     public:
         /// Get the \c ast_node_type type.
-        constexpr ast_node_type type() const
+        static constexpr ast_node_type type()
         {
             return KIndexToken;
         }
@@ -430,7 +430,8 @@ public:
                                       literal_null,
                                       integer,
                                       decimal,
-                                      error>;
+                                      error
+                                     >;
 
 public:
     ast_node(const storage_type& value) :
@@ -457,6 +458,13 @@ public:
         return std::visit(std::forward<FVisitor>(visitor), _impl);
     }
 
+    /// Convenience function for calling \c std::visit on a key (see \c as_key).
+    template <typename FVisitor>
+    auto visit_key(FVisitor&& visitor) const
+    {
+        return std::visit(std::forward<FVisitor>(visitor), as_key());
+    }
+
     /// Get the \c ast_node_type that tells the underlying type of this instance.
     ast_node_type type() const
     {
@@ -477,6 +485,17 @@ public:
     const T& as() const
     {
         return std::get<T>(_impl);
+    }
+
+    /// Get the underlying data of this node as one of the key types: \c key_canonical or \c key_escaped.
+    ///
+    /// \throw std::bad_variant_access if the \c type of this instance is neither \c key_canonical nor \c key_escaped.
+    std::variant<key_canonical, key_escaped> as_key() const
+    {
+        if (type() == ast_node_type::key_canonical)
+            return as<key_canonical>();
+        else
+            return as<key_escaped>();
     }
 
 private:

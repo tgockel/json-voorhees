@@ -21,6 +21,7 @@
 #include "detail/fallthrough.hpp"
 #include "detail/match/number.hpp"
 #include "detail/match/string.hpp"
+#include "detail/overload.hpp"
 
 namespace jsonv
 {
@@ -274,7 +275,7 @@ void parse_index::impl::parse_literal(impl*&        self,
     else
     {
         JSONV_UNLIKELY
-        throw push_error(*&self, ast_error::eof, begin, iter);
+        throw push_error(*&self, ast_error::unexpected_eof, begin, iter);
     }
 }
 
@@ -393,7 +394,7 @@ void parse_index::impl::parse(impl*& self, string_view src, const parse_options&
         {
             fastforward_whitespace(*&iter, end);
             if (iter >= end)
-                throw push_error(self, ast_error::eof, begin, iter);
+                throw push_error(self, ast_error::unexpected_eof, begin, iter);
             else if (*iter == '}')
                 return false;
 
@@ -401,7 +402,7 @@ void parse_index::impl::parse(impl*& self, string_view src, const parse_options&
 
             fastforward_whitespace(*&iter, end);
             if (iter >= end)
-                throw push_error(self, ast_error::eof, begin, iter);
+                throw push_error(self, ast_error::unexpected_eof, begin, iter);
 
             if (*iter != ':')
                 throw push_error(self, ast_error::expected_key_delimiter, begin, iter);
@@ -702,15 +703,6 @@ ast_node parse_index::iterator::operator*() const
 namespace
 {
 
-template <typename... F>
-struct overload : F...
-{
-    using F::operator()...;
-};
-
-template <typename... F>
-overload(F...) -> overload<F...>;
-
 value extract_single(parse_index::const_iterator& iter,
                      parse_index::const_iterator  last,
                      const extract_options&       options
@@ -736,7 +728,7 @@ value extract_object(parse_index::const_iterator& iter,
             return out;
         }
 
-        std::string key = key_token.visit(overload
+        std::string key = key_token.visit(detail::overload
             {
                 [](const ast_node::key_canonical& x) { return std::string(x.value()); },
                 [](const ast_node::key_escaped&   x) { return x.value(); },
@@ -785,7 +777,7 @@ value extract_array(parse_index::const_iterator& iter,
                    )
 {
     auto first_token = *iter;
-    value out        = first_token.visit(overload
+    value out        = first_token.visit(detail::overload
         {
             [](const ast_node::array_begin& arr) -> value
             {
@@ -824,7 +816,7 @@ value extract_single(parse_index::const_iterator& iter,
 
     auto node = *iter;
     return node.visit(
-        overload
+        detail::overload
         {
             [&](const ast_node::object_begin&)       -> value { return extract_object(*&iter, last, options); },
             [&](const ast_node::array_begin&)        -> value { return extract_array(*&iter, last, options); },
