@@ -1,6 +1,6 @@
 /// \file jsonv/serialization/polymorphic_adapter.hpp
 ///
-/// Copyright (c) 2017-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2017-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -11,6 +11,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/serialization.hpp>
+#include <jsonv/serialization/adapter_for.hpp>
 
 namespace jsonv
 {
@@ -54,7 +55,7 @@ enum class keyed_subtype_action : unsigned char
 ///
 template <typename TPointer>
 class polymorphic_adapter :
-        public adapter_for<TPointer>
+        public value_adapter_for<TPointer>
 {
 public:
     using match_predicate = std::function<bool (const extraction_context&, const value&)>;
@@ -72,7 +73,7 @@ public:
         _subtype_ctors.emplace_back(std::move(pred),
                                     [] (const extraction_context& context, const value& value)
                                     {
-                                        return TPointer(new T(context.extract<T>(value)));
+                                        return TPointer(new T(jsonv::extract<T>(value, context.formats())));
                                     }
                                    );
     }
@@ -129,7 +130,7 @@ public:
     /// \}
 
 protected:
-    virtual TPointer create(const extraction_context& context, const value& from) const override
+    virtual TPointer create(extraction_context& context, const value& from) const override
     {
         using std::begin;
         using std::end;

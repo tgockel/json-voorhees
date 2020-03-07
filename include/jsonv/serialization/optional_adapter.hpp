@@ -1,6 +1,6 @@
 /// \file jsonv/serialization/optional_adapter.hpp
 ///
-/// Copyright (c) 2017-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2017-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -30,17 +30,17 @@ namespace jsonv
 ///  these properties.
 template <typename TOptional>
 class optional_adapter :
-        public adapter_for<TOptional>
+        public value_adapter_for<TOptional>
 {
     using element_type = typename TOptional::value_type;
 
 protected:
-    virtual TOptional create(const extraction_context& context, const value& from) const override
+    virtual TOptional create(extraction_context& context, const value& from) const override
     {
         if (from.is_null())
             return TOptional();
         else
-            return TOptional(context.extract<element_type>(from));
+            return TOptional(jsonv::extract<element_type>(from, context.formats()));
     }
 
     virtual value to_json(const serialization_context& context, const TOptional& from) const override

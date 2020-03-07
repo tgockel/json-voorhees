@@ -1,7 +1,7 @@
 /// \file jsonv/serialization_builder.hpp
 /// DSL for building \c formats.
 ///
-/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -678,7 +678,7 @@ public:
     virtual ~member_adapter() noexcept
     { }
 
-    virtual void mutate(const extraction_context& context, const value& from, T& out) const = 0;
+    virtual void mutate(extraction_context& context, const value& from, T& out) const = 0;
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
 
@@ -707,7 +707,7 @@ public:
                                )
     { }
 
-    virtual void mutate(const extraction_context& context, const value& from, T& out) const override
+    virtual void mutate(extraction_context& context, const value& from, T& out) const override
     {
         value::const_object_iterator iter;
         for (const auto& name : _names)
@@ -726,10 +726,28 @@ public:
             use_default = true;
         }
 
+        const std::string& path_key = (iter == from.end_object()) ? _names.at(0) : iter->first;
+        extraction_context::path_scope path_guard(context, path_element(path_key));
+
         if (use_default)
+        {
             _set_value(out, _default_value(context, from));
+        }
         else
-            _set_value(out, context.extract_sub<TMember>(from, iter->first));
+        {
+            reader sub_rdr(iter->second);
+            if (sub_rdr.good() && sub_rdr.current().type() == ast_node_type::document_start)
+                (void) sub_rdr.next_token();
+            auto sub = context.extract<TMember>(sub_rdr);
+            if (!sub)
+                throw extraction_error(context.path(),
+                                       std::string("Failed to extract field \"") + _names.at(0) + "\""
+                                      );
+            TMember member_value = std::move(sub).value();
+            if (_extract_mutate)
+                member_value = _extract_mutate(std::move(member_value));
+            _set_value(out, std::move(member_value));
+        }
     }
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const override
@@ -1107,14 +1125,14 @@ public:
 
 private:
     class adapter_impl :
-            public adapter_for<T>
+            public value_adapter_for<T>
     {
     public:
         adapter_impl() :
                 _default_on_null(false)
         { }
 
-        virtual T create(const extraction_context& context, const value& from) const override
+        virtual T create(extraction_context& context, const value& from) const override
         {
             if (_pre_extract)
                 _pre_extract(context, from);

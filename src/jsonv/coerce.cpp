@@ -11,6 +11,7 @@
 #include <jsonv/coerce.hpp>
 #include <jsonv/algorithm.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/reader.hpp>
 #include <jsonv/value.hpp>
 
 #include <limits>
@@ -103,6 +104,30 @@ std::string coerce_string(const value& from)
         return to_string(from);
 }
 
+std::string coerce_string(reader& from)
+{
+    const auto& current = from.current();
+    switch (current.type())
+    {
+    case ast_node_type::string_canonical:
+        return std::string(current.as<ast_node::string_canonical>().value());
+    case ast_node_type::string_escaped:
+        return current.as<ast_node::string_escaped>().value();
+    case ast_node_type::key_canonical:
+        return std::string(current.as<ast_node::key_canonical>().value());
+    case ast_node_type::key_escaped:
+        return current.as<ast_node::key_escaped>().value();
+    case ast_node_type::literal_true:
+    case ast_node_type::literal_false:
+    case ast_node_type::literal_null:
+    case ast_node_type::integer:
+    case ast_node_type::decimal:
+        return std::string(current.token_raw());
+    default:
+        throw kind_error(std::string("Invalid AST node type for string: ") + to_string(current.type()));
+    }
+}
+
 std::int64_t coerce_integer(const value& from)
 {
     switch (from.kind())
@@ -161,6 +186,27 @@ double coerce_decimal(const value& from)
     }
 }
 
+double coerce_decimal(reader& from)
+{
+    const auto& current = from.current();
+    switch (current.type())
+    {
+    case ast_node_type::literal_true:
+        return 1.0;
+    case ast_node_type::literal_false:
+        return 0.0;
+    case ast_node_type::integer:
+        return static_cast<double>(current.as<ast_node::integer>().value());
+    case ast_node_type::decimal:
+        return current.as<ast_node::decimal>().value();
+    case ast_node_type::string_canonical:
+    case ast_node_type::string_escaped:
+        return coerce_decimal(value(coerce_string(from)));
+    default:
+        throw kind_error(std::string("Invalid AST node type for decimal: ") + to_string(current.type()));
+    }
+}
+
 bool coerce_boolean(const value& from)
 {
     switch (from.kind())
@@ -179,6 +225,34 @@ bool coerce_boolean(const value& from)
         return from.as_boolean();
     default:
         throw kind_error(std::string("Invalid kind for boolean: ") + to_string(from.kind()));
+    }
+}
+
+bool coerce_boolean(reader& from)
+{
+    const auto& current = from.current();
+    switch (current.type())
+    {
+    case ast_node_type::literal_null:
+    case ast_node_type::literal_false:
+        return false;
+    case ast_node_type::literal_true:
+        return true;
+    case ast_node_type::object_begin:
+        return current.as<ast_node::object_begin>().element_count() != 0U;
+    case ast_node_type::array_begin:
+        return current.as<ast_node::array_begin>().element_count() != 0U;
+    case ast_node_type::string_canonical:
+    case ast_node_type::string_escaped:
+    case ast_node_type::key_canonical:
+    case ast_node_type::key_escaped:
+        return !coerce_string(from).empty();
+    case ast_node_type::integer:
+        return current.as<ast_node::integer>().value() != 0;
+    case ast_node_type::decimal:
+        return current.as<ast_node::decimal>().value() != 0.0;
+    default:
+        throw kind_error(std::string("Invalid AST node type for boolean: ") + to_string(current.type()));
     }
 }
 

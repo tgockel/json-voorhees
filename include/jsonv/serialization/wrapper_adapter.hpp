@@ -1,6 +1,6 @@
 /// \file jsonv/serialization/wrapper_adapter.hpp
 ///
-/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -26,14 +26,14 @@ namespace jsonv
 ///  be explicitly convertible to and from the \c value_type.
 template <typename TWrapper>
 class wrapper_adapter :
-        public adapter_for<TWrapper>
+        public value_adapter_for<TWrapper>
 {
     using element_type = typename TWrapper::value_type;
 
 protected:
-    virtual TWrapper create(const extraction_context& context, const value& from) const override
+    virtual TWrapper create(extraction_context& context, const value& from) const override
     {
-        return TWrapper(context.extract<element_type>(from));
+        return TWrapper(jsonv::extract<element_type>(from, context.formats()));
     }
 
     virtual value to_json(const serialization_context& context, const TWrapper& from) const override
