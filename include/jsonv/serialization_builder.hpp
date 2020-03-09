@@ -11,8 +11,13 @@
 #pragma once
 
 #include <jsonv/config.hpp>
+#include <jsonv/demangle.hpp>
 #include <jsonv/serialization.hpp>
-#include <jsonv/serialization_util.hpp>
+#include <jsonv/serialization/container_adapter.hpp>
+#include <jsonv/serialization/enum_adapter.hpp>
+#include <jsonv/serialization/optional_adapter.hpp>
+#include <jsonv/serialization/polymorphic_adapter.hpp>
+#include <jsonv/serialization/wrapper_adapter.hpp>
 
 #include <deque>
 #include <map>
