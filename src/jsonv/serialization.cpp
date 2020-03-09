@@ -1,18 +1,19 @@
-/** \file
- *  Conversion between C++ types and JSON values.
- *
- *  Copyright (c) 2015-2019 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+/// Conversion between C++ types and JSON values.
+///
+/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/serialization.hpp>
 #include <jsonv/coerce.hpp>
 #include <jsonv/demangle.hpp>
-#include <jsonv/serialization_util.hpp>
+#include <jsonv/serialization/function_adapter.hpp>
+#include <jsonv/serialization/function_extractor.hpp>
+#include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/value.hpp>
 
 #include <cstdint>

@@ -12,6 +12,7 @@
 #include <jsonv/optional.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization_builder.hpp>
+#include <jsonv/serialization/function_adapter.hpp>
 
 #include <set>
 #include <sstream>
@@ -82,10 +83,10 @@ TEST(serialization_builder_members)
 {
     formats fmt = formats_builder()
                     .type<person>()
-                        .member("firstname", &person::firstname)
+                        .member("firstname",   &person::firstname)
                         .member("middle_name", &person::middle_name)
-                        .member("lastname",  &person::lastname)
-                        .member("age",       &person::age)
+                        .member("lastname",    &person::lastname)
+                        .member("age",         &person::age)
                         .register_optional<optional<std::string>>()
                     .compose_checked(formats::defaults())
                 ;
