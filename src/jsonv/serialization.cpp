@@ -11,9 +11,11 @@
 #include <jsonv/serialization.hpp>
 #include <jsonv/coerce.hpp>
 #include <jsonv/demangle.hpp>
+#include <jsonv/detail/clamp.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
 #include <jsonv/serialization/function_extractor.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
+#include <jsonv/reader.hpp>
 #include <jsonv/value.hpp>
 
 #include <cstdint>
@@ -26,12 +28,6 @@ namespace jsonv
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extractor                                                                                                          //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extractor::~extractor() noexcept = default;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // serializer                                                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -42,159 +38,6 @@ serializer::~serializer() noexcept = default;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 adapter::~adapter() noexcept = default;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// duplicate_type_error                                                                                               //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static std::string make_duplicate_type_errmsg(const std::string& operation, const std::type_index& type)
-{
-    std::ostringstream os;
-    os << "Already have " << operation << " for type " << demangle(type.name());
-    return os.str();
-}
-
-duplicate_type_error::duplicate_type_error(const std::string& operation, const std::type_index& type) :
-        std::invalid_argument(make_duplicate_type_errmsg(operation, type)),
-        _type_index(type)
-{ }
-
-duplicate_type_error::~duplicate_type_error() noexcept = default;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extraction_error::problem                                                                                          //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extraction_error::problem::problem(jsonv::path path, std::string message, std::exception_ptr cause) noexcept :
-        _path(std::move(path)),
-        _message(std::move(message)),
-        _cause(std::move(cause))
-{
-    if (_message.empty())
-        _message = "Unknown problem";
-}
-
-extraction_error::problem::problem(jsonv::path path, std::string message) noexcept :
-        problem(std::move(path), std::move(message), nullptr)
-{ }
-
-extraction_error::problem::problem(jsonv::path path, std::exception_ptr cause) noexcept :
-        problem(std::move(path),
-                [&]() -> std::string
-                {
-                    try
-                    {
-                        std::rethrow_exception(cause);
-                    }
-                    catch (const std::exception& ex)
-                    {
-                        return ex.what();
-                    }
-                    catch (...)
-                    {
-                        std::ostringstream os;
-                        os << "Exception with type " << current_exception_type_name();
-                        return std::move(os).str();
-                    }
-                }(),
-                cause
-               )
-{ }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extraction_error                                                                                                   //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-static std::string make_extraction_error_errmsg(const extraction_error::problem_list& problems)
-{
-    std::ostringstream os;
-
-    auto write_problem =
-        [&](const extraction_error::problem& problem)
-        {
-            if (!problem.path().empty())
-                os << " at " << problem.path() << ": ";
-
-            os << problem.message();
-        };
-
-    if (problems.size() == 0U)
-    {
-        os << "Extraction error with unspecified problem";
-    }
-    else if (problems.size() == 1U)
-    {
-        os << "Extraction error";
-        write_problem(problems[0]);
-    }
-    else if (problems.size() > 1U)
-    {
-        os << problems.size() << " extraction errors:";
-
-        for (const auto& problem : problems)
-        {
-            os << std::endl;
-            os << " -";
-            write_problem(problem);
-        }
-    }
-
-    return std::move(os).str();
-}
-
-extraction_error::extraction_error(problem_list problems) noexcept :
-        std::runtime_error(make_extraction_error_errmsg(problems)),
-        _problems(std::move(problems))
-{ }
-
-template <typename... TArgs>
-extraction_error::extraction_error(std::in_place_t, TArgs&&... args) noexcept :
-        extraction_error(problem_list({ problem(std::forward<TArgs>(args)...) }))
-{ }
-
-extraction_error::extraction_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept :
-        extraction_error(std::in_place, std::move(path), std::move(message), std::move(cause))
-{ }
-
-extraction_error::extraction_error(jsonv::path path, std::string message) noexcept :
-        extraction_error(std::in_place, std::move(path), std::move(message))
-{ }
-
-extraction_error::extraction_error(jsonv::path path, std::exception_ptr cause) noexcept :
-        extraction_error(std::in_place, std::move(path), std::move(cause))
-{ }
-
-extraction_error::~extraction_error() noexcept = default;
-
-const path& extraction_error::path() const noexcept
-{
-    if (_problems.empty())
-    {
-        JSONV_UNLIKELY
-
-        static const jsonv::path empty_path;
-        return empty_path;
-    }
-    else
-    {
-        return _problems[0].path();
-    }
-}
-
-const std::exception_ptr& extraction_error::nested_ptr() const noexcept
-{
-    if (_problems.empty())
-    {
-        JSONV_UNLIKELY
-
-        static const std::exception_ptr empty_ex;
-        return empty_ex;
-    }
-    else
-    {
-        return _problems[0].nested_ptr();
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // no_extractor                                                                                                       //
@@ -478,15 +321,6 @@ const extractor& formats::get_extractor(const std::type_info& type) const
     return get_extractor(std::type_index(type));
 }
 
-void formats::extract(const std::type_info&     type,
-                      const value&              from,
-                      void*                     into,
-                      const extraction_context& context
-                     ) const
-{
-    get_extractor(type).extract(context, from, into);
-}
-
 const serializer& formats::get_serializer(std::type_index type) const
 {
     const serializer* ser = _data->find_serializer(type);
@@ -558,9 +392,18 @@ static void register_integer_adapter(formats&              fmt,
                                      duplicate_type_action on_duplicate = duplicate_type_action::exception
                                     )
 {
-    static auto instance = make_adapter([] (const value& from) { return T(from.as_integer()); },
-                                        [] (const T& from) { return value(static_cast<std::int64_t>(from)); }
-                                       );
+    static auto instance =
+        make_adapter([] (extraction_context& cxt, reader& from) -> result<T, void>
+                     {
+                         return cxt.current_as<ast_node::integer>(from)
+                            .map([](const ast_node::integer& x)
+                            {
+                                // TODO: Bounds checking or something
+                                return T(x.value());
+                            });
+                     },
+                     [] (const T& from) { return value(static_cast<std::int64_t>(from)); }
+                    );
     fmt.register_adapter(&instance, on_duplicate);
 }
 
@@ -568,19 +411,40 @@ static formats create_default_formats()
 {
     formats fmt;
 
-    static auto json_extractor = make_adapter([] (const value& from) { return from; },
-                                              [] (const value& from) { return from; }
-                                             );
-    fmt.register_adapter(&json_extractor);
+    // TODO: extract a whole tree
+    //static auto json_extractor = make_adapter([] (const value& from) { return from; },
+    //                                          [] (const value& from) { return from; }
+    //                                         );
+    //fmt.register_adapter(&json_extractor);
 
-    static auto string_extractor = make_adapter([] (const value& from) { return from.as_string(); },
-                                                [] (const std::string& from) { return value(from); }
-                                               );
+    static auto string_extractor =
+        make_adapter([] (extraction_context& cxt, reader& from) -> result<std::string, void>
+                     {
+                        if (!cxt.expect(from, { ast_node_type::string_canonical, ast_node_type::string_escaped }))
+                            return error{};
+
+
+                        if (from.current().type() == ast_node_type::string_canonical)
+                        {
+                            return ok(std::string(from.current_as<ast_node::string_canonical>()->value()));
+                        }
+                        else
+                        {
+                            return ok(from.current_as<ast_node::string_escaped>()->value());
+                        }
+                     },
+                     [] (const std::string& from) { return value(from); }
+                    );
     fmt.register_adapter(&string_extractor);
 
-    static auto string_view_adapter = make_adapter([] (const value& from) { return from.as_string_view(); },
-                                                   [] (const string_view& from) { return value(from); }
-                                                  );
+    static auto string_view_adapter =
+        make_adapter([] (extraction_context& cxt, reader& from)
+                     {
+                         return cxt.current_as<ast_node::string_canonical>(from)
+                            .map([](const auto& x) { return x.value(); });
+                     },
+                     [] (const string_view& from) { return value(from); }
+                    );
     fmt.register_adapter(&string_view_adapter);
 
     static auto cchar_ptr_serializer = make_serializer<const char*>([] (const char* from) { return value(from); });
@@ -588,9 +452,16 @@ static formats create_default_formats()
     static auto char_ptr_serializer = make_serializer<char*>([] (char* from) { return value(from); });
     fmt.register_serializer(&char_ptr_serializer);
 
-    static auto bool_extractor = make_adapter([] (const value& from) { return from.as_boolean(); },
-                                              [] (const bool& from) { return value(from); }
-                                             );
+    static auto bool_extractor =
+        make_adapter([] (extraction_context& cxt, reader& from) -> result<bool, void>
+                     {
+                         if (!cxt.expect(from, { ast_node_type::literal_false, ast_node_type::literal_true }))
+                            return error{};
+
+                         return from.current().type() == ast_node_type::literal_true;
+                     },
+                     [] (const bool& from) { return value(from); }
+                    );
     fmt.register_adapter(&bool_extractor);
 
     register_integer_adapter<std::int8_t>(fmt);
@@ -609,13 +480,23 @@ static formats create_default_formats()
     register_integer_adapter<long>(fmt, duplicate_type_action::ignore);
     register_integer_adapter<unsigned long>(fmt, duplicate_type_action::ignore);
 
-    static auto double_extractor = make_adapter([] (const value& from) { return from.as_decimal(); },
-                                                [] (const double& from) { return value(from); }
-                                               );
+    static auto double_extractor =
+        make_adapter([] (extraction_context& cxt, reader& from) -> result<double, void>
+                     {
+                         return cxt.current_as<ast_node::decimal>(from)
+                            .map([] (const auto& x) { return x.value(); });
+                     },
+                     [] (const double& from) { return value(from); }
+                    );
     fmt.register_adapter(&double_extractor);
-    static auto float_extractor = make_adapter([] (const value& from) { return float(from.as_decimal()); },
-                                               [] (const float& from) { return value(from); }
-                                              );
+    static auto float_extractor =
+        make_adapter([] (extraction_context& cxt, reader& from) -> result<float, void>
+                     {
+                         return cxt.current_as<ast_node::decimal>(from)
+                            .map([] (const auto& x) { return float(x.value()); });
+                     },
+                     [] (const float& from) { return value(from); }
+                    );
     fmt.register_adapter(&float_extractor);
 
     return fmt;
@@ -668,7 +549,34 @@ template <typename T>
 static void register_integer_coerce_extractor(formats&              fmt,
                                               duplicate_type_action on_duplicate = duplicate_type_action::exception)
 {
-    static auto instance = make_extractor([] (const value& from) { return T(coerce_integer(from)); });
+    static auto instance =
+        make_extractor([] (extraction_context& cxt, reader& from) -> result<T, void>
+                       {
+                           const auto& current = from.current();
+                           switch (current.type())
+                           {
+                           case ast_node_type::literal_true:
+                               return ok(T(1));
+                           case ast_node_type::literal_false:
+                           case ast_node_type::literal_null:
+                               return ok(T(0));
+                           case ast_node_type::decimal:
+                           {
+                               auto value = current.as<ast_node::decimal>().value();
+                               if (value > double(std::numeric_limits<T>::max()))
+                                   return ok(std::numeric_limits<T>::max());
+                               else if (value < double(std::numeric_limits<T>::min()))
+                                   return ok(std::numeric_limits<T>::min());
+                               else
+                                   return ok(T(value));
+                           }
+                           case ast_node_type::integer:
+                               return ok(detail::clamp_cast<T>(current.as<ast_node::integer>().value()));
+                           default:
+                               return cxt.problem(from.current_path(), "Could not coerce integer");
+                           }
+                       }
+                      );
     fmt.register_extractor(&instance, on_duplicate);
 }
 
@@ -676,10 +584,12 @@ static formats create_coerce_formats()
 {
     formats fmt;
 
-    static auto string_extractor = make_extractor([] (const value& from) { return coerce_string(from); });
+    static auto string_extractor =
+        make_extractor([](reader& from) -> result<std::string, void> { return ok(coerce_string(from)); });
     fmt.register_extractor(&string_extractor);
 
-    static auto bool_extractor = make_extractor([] (const value& from) { return coerce_boolean(from); });
+    static auto bool_extractor =
+        make_extractor([] (reader& from) -> result<bool, void> { return ok(coerce_boolean(from)); });
     fmt.register_extractor(&bool_extractor);
 
     register_integer_coerce_extractor<std::int8_t>(fmt);
@@ -698,9 +608,11 @@ static formats create_coerce_formats()
     register_integer_coerce_extractor<long>(fmt, duplicate_type_action::ignore);
     register_integer_coerce_extractor<unsigned long>(fmt, duplicate_type_action::ignore);
 
-    static auto double_extractor = make_extractor([] (const value& from) { return coerce_decimal(from); });
+    static auto double_extractor =
+        make_extractor([] (reader& from) -> result<double, void> { return coerce_decimal(from); });
     fmt.register_extractor(&double_extractor);
-    static auto float_extractor = make_extractor([] (const value& from) { return float(coerce_decimal(from)); });
+    static auto float_extractor =
+        make_extractor([] (reader& from) -> result<float, void> { return float(coerce_decimal(from)); });
     fmt.register_extractor(&float_extractor);
 
     return fmt;
@@ -735,77 +647,6 @@ context_base::context_base() :
 { }
 
 context_base::~context_base() noexcept = default;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extraction_context                                                                                                 //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-extraction_context::extraction_context(jsonv::formats        fmt,
-                                       const jsonv::version& ver,
-                                       jsonv::path           p,
-                                       const void*           userdata
-                                      ) :
-        context_base(std::move(fmt), ver, userdata),
-        _path(std::move(p))
-{ }
-
-extraction_context::extraction_context() :
-        context_base()
-{ }
-
-extraction_context::~extraction_context() noexcept = default;
-
-void extraction_context::extract(const std::type_info& type, const value& from, void* into) const
-{
-    try
-    {
-        formats().extract(type, from, into, *this);
-    }
-    catch (const extraction_error&)
-    {
-        throw;
-    }
-    catch (const std::exception& ex)
-    {
-        throw extraction_error(path(), ex.what(), std::current_exception());
-    }
-    catch (...)
-    {
-        throw extraction_error(path(),
-                               std::string("Exception with type ") + current_exception_type_name(),
-                               std::current_exception()
-                              );
-    }
-}
-
-void extraction_context::extract_sub(const std::type_info& type,
-                                     const value&          from,
-                                     jsonv::path           subpath,
-                                     void*                 into
-                                    ) const
-{
-    extraction_context sub(*this);
-    sub._path += subpath;
-    try
-    {
-        return sub.extract(type, from.at_path(subpath), into);
-    }
-    catch (const extraction_error&)
-    {
-        throw;
-    }
-    catch (const std::exception& ex)
-    {
-        throw extraction_error(sub.path(), ex.what(), std::current_exception());
-    }
-    catch (...)
-    {
-        throw extraction_error(sub.path(),
-                               std::string("Exception with type ") + current_exception_type_name(),
-                               std::current_exception()
-                              );
-    }
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // serialization_context                                                                                              //

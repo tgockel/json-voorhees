@@ -32,21 +32,30 @@ public:
     { }
 
 protected:
-    virtual T create(const extraction_context& context, const value& from) const override
+    virtual result<T, void> create(extraction_context& context, reader& from) const override
     {
-        return create_impl(_func, context, from);
+        using create_result_type = decltype(create_impl(_func, context, from));
+
+        if constexpr (is_result_v<create_result_type>)
+        {
+            return create_impl(_func, context, from);
+        }
+        else
+        {
+            return ok{ create_impl(_func, context, from) };
+        }
     }
 
 private:
     template <typename FUExtract>
-    static auto create_impl(const FUExtract& func, const extraction_context& context, const value& from)
+    static auto create_impl(const FUExtract& func, extraction_context& context, reader& from)
             -> decltype(func(context, from))
     {
         return func(context, from);
     }
 
     template <typename FUExtract, typename = void>
-    static auto create_impl(const FUExtract& func, const extraction_context&, const value& from)
+    static auto create_impl(const FUExtract& func, extraction_context&, reader& from)
             -> decltype(func(from))
     {
         return func(from);
@@ -56,13 +65,14 @@ private:
     FExtract _func;
 };
 
+// TODO(#150): These should be deduction guides _and_ have some checking for `result`
 template <typename FExtract>
 auto make_extractor(FExtract func)
-    -> function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
+    -> function_extractor<decltype(func(std::declval<extraction_context&>(), std::declval<reader&>())),
                           FExtract
                          >
 {
-    return function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
+    return function_extractor<decltype(func(std::declval<extraction_context&>(), std::declval<reader&>())),
                               FExtract
                              >
             (std::move(func));
@@ -70,11 +80,11 @@ auto make_extractor(FExtract func)
 
 template <typename FExtract, typename = void>
 auto make_extractor(FExtract func)
-    -> function_extractor<decltype(func(std::declval<const value&>())),
+    -> function_extractor<decltype(func(std::declval<reader&>())),
                           FExtract
                          >
 {
-    return function_extractor<decltype(func(std::declval<const value&>())), FExtract>
+    return function_extractor<decltype(func(std::declval<reader&>())), FExtract>
             (std::move(func));
 }
 

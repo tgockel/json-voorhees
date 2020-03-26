@@ -10,7 +10,7 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization.hpp>
+#include <jsonv/serialization/adapter.hpp>
 
 #include <new>
 
@@ -22,24 +22,36 @@ namespace jsonv
 
 /// An adapter for the type \c T. This is a utility class which converts the `void*`s used in the \c extractor and
 /// \c serializer interfaces into the more-friendly \c T.
+///
+/// \see extractor_for
+/// \see serializer_for
 template <typename T>
 class adapter_for :
         public adapter
 {
 public:
-    virtual const std::type_info& get_type() const override
+    /// \see adapter::get_type
+    /// \see serializer::get_type
+    virtual const std::type_info& get_type() const noexcept override
     {
         return typeid(T);
     }
 
-    virtual void extract(const extraction_context& context,
-                         const value&              from,
-                         void*                     into
-                        ) const override
+    /// \see adapter::extract
+    virtual result<void, void> extract(extraction_context& context, reader& from, void* into) const override
     {
-        new(into) T(create(context, from));
+        if (auto res = create(context, from))
+        {
+            new(into) T(std::move(res).value());
+            return ok{};
+        }
+        else
+        {
+            return error{};
+        }
     }
 
+    /// \see serializer::to_json
     virtual value to_json(const serialization_context& context,
                           const void*                  from
                          ) const override
@@ -48,7 +60,16 @@ public:
     }
 
 protected:
-    virtual T create(const extraction_context& context, const value& from) const = 0;
+    /// Create an instance from \a context and \a from.
+    ///
+    /// \param context Extra information to help you decode sub-objects, such as looking up other \c extractor
+    ///                implementations via \c formats.
+    /// \param from The JSON \c reader to extract something from.
+    ///
+    /// \returns A result with \c result_state::ok upon successful extraction from the reader. If extraction is not
+    ///          successful, a \c problem should be added to the \a context and an `error<void>` instance should be
+    ///          returned.
+    virtual result<T, void> create(extraction_context& context, reader& from) const = 0;
 
     virtual value to_json(const serialization_context& context, const T& from) const = 0;
 };

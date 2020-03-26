@@ -524,10 +524,8 @@ std::string string_decode(string_view source)
                     remaining_utf8_sequence = utf8_length - 1;
                     ++idx;
                 }
-                else if (require_printable && !is_print(current))
+                else if (require_printable && !is_print(current)) JSONV_UNLIKELY
                 {
-                    JSONV_UNLIKELY
-
                     std::ostringstream os;
                     os << "Unprintable character found in input: ";
                     switch (current)
@@ -556,10 +554,8 @@ std::string string_decode(string_view source)
                 --remaining_utf8_sequence;
             }
             // not on a UTF8 continuation, even though we should be...
-            else
+            else JSONV_UNLIKELY
             {
-                JSONV_UNLIKELY
-
                 std::ostringstream os;
                 os << "Invalid UTF-8 multi-byte sequence in source: \"";
                 for (size_type pos = utf8_sequence_start; pos <= idx; ++pos)
@@ -572,10 +568,8 @@ std::string string_decode(string_view source)
         }
     }
 
-    if (remaining_utf8_sequence > 0)
+    if (remaining_utf8_sequence > 0) JSONV_UNLIKELY
     {
-        JSONV_UNLIKELY
-
         std::ostringstream os;
         os << "unterminated UTF-8 sequence at end of string: \"";
         os << std::hex;

@@ -9,6 +9,10 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
+// TODO(#150): Re-enable
+
+#if 0
+
 #include <jsonv/optional.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization_builder.hpp>
@@ -780,3 +784,5 @@ TEST(serialization_builder_duplicate_type_actions)
 }
 
 }
+
+#endif

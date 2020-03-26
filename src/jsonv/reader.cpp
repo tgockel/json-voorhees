@@ -67,36 +67,14 @@ bool reader::good() const
         return false;
 }
 
-void reader::expect(ast_node_type type)
+result<void, ast_node_type> reader::expect(ast_node_type type)
 {
-    if (current().type() != type)
-    {
-        JSONV_UNLIKELY
-
-        std::ostringstream ss;
-        ss << "Read node of type " << current().type() << " when expecting " << type;
-        throw extraction_error(current_path(), std::move(ss).str());
-    }
+    return current().expect(type);
 }
 
-void reader::expect(std::initializer_list<ast_node_type> types)
+result<void, ast_node_type> reader::expect(std::initializer_list<ast_node_type> types)
 {
-    if (types.size() == 0U)
-        throw std::invalid_argument("Cannot expect 0 types");
-    else if (types.size() == 1U)
-        return expect(*types.begin());
-
-    if (std::find(types.begin(), types.end(), current().type()) == types.end())
-    {
-        JSONV_UNLIKELY
-
-        std::ostringstream ss;
-        ss << "Read node of type " << current().type() << " when expecting one of ";
-        for (const auto& type : types)
-            ss << type;
-
-        throw extraction_error(current_path(), std::move(ss).str());
-    }
+    return current().expect(types);
 }
 
 const ast_node& reader::current() const

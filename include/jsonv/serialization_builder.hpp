@@ -712,7 +712,7 @@ public:
                                )
     { }
 
-    virtual void mutate(const extraction_context& context, const value& from, T& out) const override
+    virtual void mutate(extraction_context& context, const value& from, T& out) const override
     {
         value::const_object_iterator iter;
         for (const auto& name : _names)
@@ -734,7 +734,7 @@ public:
         if (use_default)
             _set_value(out, _default_value(context, from));
         else
-            _set_value(out, context.extract_sub<TMember>(from, iter->first));
+            _set_value(out, *context.extract<TMember>(from, iter->first));
     }
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const override

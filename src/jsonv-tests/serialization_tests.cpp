@@ -41,11 +41,69 @@ struct my_thing
     int b;
     std::string c;
 
-    my_thing(const value& from, const extraction_context& cxt) :
-            a(cxt.extract_sub<int>(from, "a")),
-            b(cxt.extract_sub<int>(from, "b")),
-            c(cxt.extract_sub<std::string>(from, "c"))
-    { }
+    my_thing(reader& from, extraction_context& cxt)
+    {
+        if (!cxt.current_as<ast_node::object_begin>(from))
+            throw extraction_error(from.current_path(), "Expected an object");
+
+        while (from.next_token())
+        {
+            auto current = from.current();
+            if (current.type() == ast_node_type::key_canonical)
+            {
+                auto key = current.as<ast_node::key_canonical>().value();
+                if (key == "a")
+                {
+                    if (!from.next_token())
+                        throw extraction_error(from.current_path(), "Unexpected EOF");
+
+                    if (auto x = cxt.extract<int>(from))
+                    {
+                        a = x.value();
+                    }
+                    else
+                    {
+                        throw extraction_error(from.current_path(), "Failed to extract \"a\"");
+                    }
+                }
+                else if (key == "b")
+                {
+                    if (!from.next_token())
+                        throw extraction_error(from.current_path(), "Unexpected EOF");
+
+                    if (auto x = cxt.extract<int>(from))
+                    {
+                        b = x.value();
+                    }
+                    else
+                    {
+                        throw extraction_error(from.current_path(), "Failed to extract \"b\"");
+                    }
+                }
+                else if (key == "c")
+                {
+                    if (!from.next_token())
+                        throw extraction_error(from.current_path(), "Unexpected EOF");
+
+                    if (auto x = cxt.extract<std::string>(from))
+                    {
+                        c = x.value();
+                    }
+                    else
+                    {
+                        throw extraction_error(from.current_path(), "Failed to extract \"c\"");
+                    }
+                }
+            }
+            else if (current.type() == ast_node_type::object_end)
+            {
+                break;
+            }
+            else
+            {
+            }
+        }
+    }
 
     my_thing(int a, int b, std::string c) :
             a(a),
@@ -122,36 +180,58 @@ TEST(formats_throws_on_duplicate)
     ensure_throws(std::invalid_argument, fmt.register_serializer(my_thing::get_serializer()));
 }
 
-TEST(extract_basics)
+TEST(extract_basic_int32)
 {
-    value val = parse(R"({
-                        "i": 5,
-                        "d": 4.5,
-                        "s": "thing",
-                        "a": [ 1, 2, 3 ],
-                        "o": { "i": 5, "d": 4.5 }
-                      })");
-    extraction_context cxt(formats::defaults());
-    ensure(cxt.user_data() == nullptr);
-    ensure_eq(val, cxt.extract<value>(val));
-    ensure_eq(5, cxt.extract_sub<std::int8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int64_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint64_t>(val, "i"));
-    ensure_eq(4.5f, cxt.extract_sub<float>(val, "d"));
-    ensure_eq(4.5, cxt.extract_sub<double>(val, "d"));
-    ensure_eq("thing", cxt.extract_sub<std::string>(val, "s"));
+    reader rdr("5");
+    ensure_eq(5, extract<std::int32_t>(rdr));
+}
+
+TEST(extract_basic_uint32)
+{
+    reader rdr("5");
+    ensure_eq(5U, extract<std::uint32_t>(rdr));
+}
+
+TEST(extract_basic_int8)
+{
+    reader rdr("9");
+    ensure_eq(std::int8_t(9), extract<std::int8_t>(rdr));
+}
+
+TEST(extract_basic_float)
+{
+    reader rdr("4.5");
+    ensure_eq(4.5f, extract<float>(rdr));
+}
+
+TEST(extract_basic_double)
+{
+    reader rdr("-8.5");
+    ensure_eq(-8.5, extract<double>(rdr));
+}
+
+TEST(extract_basic_string_canonical)
+{
+    reader rdr("\"canonical form\"");
+    ensure_eq("canonical form", extract<std::string>(rdr));
+}
+
+TEST(extract_basic_string_escaped)
+{
+    reader rdr(R"("\u0068\u0065\u006c\u006c\u006f")");
+    ensure_eq("hello", extract<std::string>(rdr));
+}
+
+TEST(extract_no_extractor)
+{
+    reader rdr("{}");
     try
     {
-        cxt.extract_sub<unassociated>(val, "o");
+        extract<unassociated>(rdr);
     }
     catch (const extraction_error& extract_err)
     {
-        ensure_eq(path::create(".o"), extract_err.path());
+        ensure_eq(path::create("."), extract_err.path());
         ensure(extract_err.nested_ptr());
 
         try
@@ -163,15 +243,6 @@ TEST(extract_basics)
             ensure_eq(demangle(typeid(unassociated).name()), noex.type_name());
             ensure(noex.type_index() == std::type_index(typeid(unassociated)));
         }
-    }
-
-    try
-    {
-        cxt.extract_sub<int>(val, path::create(".a[3]"));
-    }
-    catch (const extraction_error& extract_err)
-    {
-        ensure_eq(path::create(".a[3]"), extract_err.path());
     }
 }
 
@@ -200,7 +271,7 @@ TEST(extract_object_search)
     base_fmts.register_extractor(my_thing::get_extractor());
     formats fmts = formats::compose({ formats::defaults(), base_fmts });
 
-    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
+    my_thing res = extract<my_thing>(reader(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
@@ -213,52 +284,35 @@ TEST(extract_object_with_globals)
     }
     auto reset_global_on_exit = jsonv::detail::on_scope_exit([] { formats::reset_global(); });
 
-    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"));
+    my_thing res = extract<my_thing>(reader(R"({ "a": 1, "b": 2, "c": "thing" })"));
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
-TEST(extract_coerce)
+TEST(extract_coerce_int32)
 {
-    value val = parse(R"({
-                        "i": 5,
-                        "d": 4.5,
-                        "s": "10",
-                        "a": [ 1, 2, 3 ],
-                        "o": { "i": 5, "d": 4.5 }
-                      })");
-    extraction_context cxt(formats::coerce());
+    ensure_eq(5, extract<std::int32_t>(reader("5"), formats::coerce()));
+}
 
-    // regular
-    ensure_eq(val, cxt.extract<value>(val));
-    ensure_eq(5, cxt.extract_sub<std::int8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int64_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint64_t>(val, "i"));
-    ensure_eq(4.5f, cxt.extract_sub<float>(val, "d"));
-    ensure_eq(4.5, cxt.extract_sub<double>(val, "d"));
-    ensure_eq("10", cxt.extract_sub<std::string>(val, "s"));
+TEST(extract_coerce_int32_to_string)
+{
+    ensure_eq("5", extract<std::string>(reader("5"), formats::coerce()));
+}
 
-    // some coercing...
-    ensure_eq("5", cxt.extract_sub<std::string>(val, "i"));
-    ensure_eq(10, cxt.extract_sub<int>(val, "s"));
+TEST(extract_coerce_string_to_int32)
+{
+    ensure_eq(10, extract<std::int32_t>(reader("\"10\""), formats::coerce()));
 }
 
 // Tests that even if we throw a completely bogus exception type, the extraction_context wraps it in an extraction_error
 TEST(extractor_throws_random_thing)
 {
-    static auto instance = make_extractor([] (const value& from) -> unassociated { throw from; });
+    static auto instance = make_extractor([] (reader&) -> unassociated { throw "Who knows?"; });
     formats locals;
     locals.register_extractor(&instance);
 
     value val = object({ { "a", 1 } });
 
-    extraction_context cxt(locals);
-    ensure_throws(extraction_error, cxt.extract<unassociated>(val));
-    ensure_throws(extraction_error, cxt.extract_sub<unassociated>(val, "a"));
+    ensure_throws(extraction_error, extract<unassociated>(val, locals));
 }
 
 TEST(serialize_basics)

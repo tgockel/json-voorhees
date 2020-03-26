@@ -10,7 +10,9 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization.hpp>
+#include <jsonv/serialization/extract.hpp>
+
+#include <exception>
 
 namespace jsonv
 {
@@ -18,31 +20,61 @@ namespace jsonv
 /// \addtogroup Serialization
 /// \{
 
-/// An \c extractor for type \c T that has a constructor that accepts either a \c jsonv::value or a \c jsonv::value and
-/// \c extraction_context.
+/// An \c extractor for type \c T that has a constructor that accepts either a \c jsonv::reader or a \c jsonv::reader
+/// and \c jsonv::extraction_context.
 template <typename T>
 class extractor_construction :
         public extractor
 {
 public:
-    virtual const std::type_info& get_type() const override
+    /// \see extractor::get_type
+    virtual const std::type_info& get_type() const noexcept override
     {
         return typeid(T);
     }
 
-    virtual void extract(const extraction_context& context,
-                         const value&              from,
-                         void*                     into
-                        ) const override
+    /// \see extractor::extract
+    virtual
+    result<void, void>
+    extract(extraction_context& context,
+            reader&             from,
+            void*               into
+           ) const override
     {
-        return extract_impl<T>(context, from, into);
+        auto problem_count_before = context.problems().size();
+        try
+        {
+            extract_impl<T>(context, from, into);
+            return ok{};
+        }
+        catch (const extraction_error& ex)
+        {
+            // If we still have the same number of problems in the list, the constructor threw without adding to the
+            // problem list.
+            if (problem_count_before == context.problems().size())
+            {
+                for (const auto& p : ex.problems())
+                    context.problem(p);
+            }
+            return error{};
+        }
+        catch (...)
+        {
+            // If we still have the same number of problems in the list, the constructor threw without adding to the
+            // problem list.
+            if (problem_count_before == context.problems().size())
+            {
+                context.problem(from.current_path(), std::current_exception());
+            }
+            return error{};
+        }
     }
 
 protected:
     template <typename U>
-    auto extract_impl(const extraction_context& context,
-                      const value&              from,
-                      void*                     into
+    auto extract_impl(extraction_context& context,
+                      reader&             from,
+                      void*               into
                      ) const
             -> decltype(U(from, context), void())
     {
@@ -50,9 +82,9 @@ protected:
     }
 
     template <typename U, typename = void>
-    auto extract_impl(const extraction_context&,
-                      const value&              from,
-                      void*                     into
+    auto extract_impl(extraction_context&,
+                      reader&             from,
+                      void*               into
                      ) const
             -> decltype(U(from), void())
     {

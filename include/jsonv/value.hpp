@@ -485,30 +485,27 @@ public:
     **/
     string_view as_string_view() const &;
 
-    /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
-     *  the \c char base \c std::string.
-     *
-     *  \throws kind_error if this value does not represent a string.
-    **/
+    /// Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
+    /// the \c char base \c std::string.
+    ///
+    /// \throws kind_error if this value does not represent a string.
     std::wstring as_wstring() const;
 
-    /** Get this value as an integer.
-     *
-     *  \throws kind_error if this value does not represent an integer.
-    **/
+    /// Get this value as an integer.
+    ///
+    /// \throws kind_error if this value does not represent an integer.
     int64_t as_integer() const;
 
-    /** Tests if this \c kind is \c kind::integer. **/
+    /// Tests if this \c kind is \c kind::integer.
     bool is_integer() const;
 
-    /** Get this value as a decimal. If the value's underlying kind is actually an integer type, cast the integer to a
-     *  double before returning. This ignores the potential loss of precision.
-     *
-     *  \throws kind_error if this value does not represent a decimal or integer.
-    **/
+    /// Get this value as a decimal. If the value's underlying kind is actually an integer type, cast the integer to a
+    /// double before returning. This ignores the potential loss of precision.
+    ///
+    /// \throws kind_error if this value does not represent a decimal or integer.
     double as_decimal() const;
 
-    /** Tests if this \c kind is \c kind::integer or \c kind::decimal. **/
+    /// Tests if this \c kind is \c kind::integer or \c kind::decimal.
     bool is_decimal() const;
 
     /** Get this value as a boolean.
@@ -529,23 +526,22 @@ public:
     /** Tests if this \c kind is \c kind::null. **/
     bool is_null() const;
 
-    /** Resets this value to null. **/
+    /// Resets this value to null.
     void clear();
 
-    /** Get this value's kind. **/
+    /// Get this value's \c kind.
     inline jsonv::kind kind() const
     {
         return _kind;
     }
 
-    /** Get the value specified by the path \a p.
-     *
-     *  \throws std::out_of_range if any path along the chain did not exist.
-     *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
-     *                     index when the value is a string).
-     *  \throws parse_error if a \c string_view was specified that did not have a valid specification (see
-     *                      \c path::create).
-    **/
+    /// Get the value specified by the path \a p.
+    ///
+    /// \throws std::out_of_range if any path along the chain did not exist.
+    /// \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
+    ///                    index when the value is a string).
+    /// \throws parse_error if a \c string_view was specified that did not have a valid specification (see
+    ///                     \c path::create).
     value&       at_path(const path& p);
     value&       at_path(string_view p);
     value&       at_path(size_type   p);
@@ -553,30 +549,28 @@ public:
     const value& at_path(string_view p) const;
     const value& at_path(size_type   p) const;
 
-    /** Similar to \c count, but walks the given path \a p to determine its presence.
-     *
-     *  \returns \c 1 if the path finds an element; \c 0 if there is no such path in the tree.
-     *
-     *  \throws parse_error if a \c string_view was specified that did not have a valid specification (see
-     *                      \c path::create).
-    **/
+    /// Similar to \c count, but walks the given path \a p to determine its presence.
+    ///
+    /// \returns \c 1 if the path finds an element; \c 0 if there is no such path in the tree.
+    ///
+    /// \throws parse_error if a \c string_view was specified that did not have a valid specification (see
+    ///                     \c path::create).
     size_type count_path(const path& p) const;
     size_type count_path(string_view p) const;
     size_type count_path(size_type   p) const;
 
-    /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
-     *  no value exists at the path, a new one is created as the default (\c null) value. If any path along the way
-     *  either does not exist or is \c null, it is created for you, based on the \e implications of the specification
-     *  \a p. Unlike \c at_path, which will throw if accessing a non-existent key of an \c object or going past the end
-     *  of an \c array, this will simply create that path and fill in the blanks with \c null values.
-     *
-     *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
-     *                     index when the value is a string).
-     *  \throws parse_error if a \c string_view was specified that did not have a valid specification (see
-     *                      \c path::create).
-     *
-     *  \see at_path
-    **/
+    /// Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
+    /// no value exists at the path, a new one is created as the default (\c null) value. If any path along the way
+    /// either does not exist or is \c null, it is created for you, based on the \e implications of the specification
+    /// \a p. Unlike \c at_path, which will throw if accessing a non-existent key of an \c object or going past the end
+    /// of an \c array, this will simply create that path and fill in the blanks with \c null values.
+    ///
+    /// \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
+    ///                    index when the value is a string).
+    /// \throws parse_error if a \c string_view was specified that did not have a valid specification (see
+    ///                     \c path::create).
+    ///
+    /// \see at_path
     value& path(const path& p);
     value& path(string_view p);
     value& path(size_type   p);
@@ -584,42 +578,41 @@ public:
     /** Swap the value this instance represents with \a other. **/
     void swap(value& other) noexcept;
 
-    /** Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions
-     *  apply:
-     *
-     *   1. They have the same valid value for \c kind.
-     *      - If \c kind is invalid (memory corruption), then two JSON values are \e not equal, even if they have been
-     *        corrupted in the same way and even if they share \c this (a corrupt object is not equal to itself).
-     *   2. The kind comparison is also equal:
-     *      - Two null values are always equivalent.
-     *      - string, integer, decimal and boolean follow the classic rules for their type.
-     *      - objects are equal if they have the same keys and values corresponding with the same key are also equal.
-     *      - arrays are equal if they have the same length and the values at each index are also equal.
-     *
-     *  \note
-     *  The rules for equality are based on Python \c dict and \c list.
-    **/
+    /// Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions
+    /// apply:
+    ///
+    ///  1. They have the same valid value for \c kind.
+    ///     - If \c kind is invalid (memory corruption), then two JSON values are \e not equal, even if they have been
+    ///       corrupted in the same way and even if they share \c this (a corrupt object is not equal to itself).
+    ///  2. The kind comparison is also equal:
+    ///     - Two null values are always equivalent.
+    ///     - string, integer, decimal and boolean follow the classic rules for their type.
+    ///     - objects are equal if they have the same keys and values corresponding with the same key are also equal.
+    ///     - arrays are equal if they have the same length and the values at each index are also equal.
+    ///
+    /// \note
+    /// The rules for equality are based on Python \c dict and \c list.
+    ///
     bool operator==(const value& other) const;
 
-    /** Compares two JSON values for inequality. The rules for inequality are the exact opposite of equality.
-    **/
+    /// Compares two JSON values for inequality. The rules for inequality are the exact opposite of equality.
     bool operator!=(const value& other) const;
 
-    /** Used to build a strict-ordering of JSON values. When comparing values of the same kind, the ordering should
-     *  align with your intuition. When comparing values of different kinds, some arbitrary rules were created based on
-     *  how "complicated" the author thought the type to be.
-     *
-     *   - null: less than everything but null, which it is equal to.
-     *   - boolean: false is less than true.
-     *   - integer, decimal: compared by their numeric value. Comparisons between two integers do not cast, but comparison
-     *     between an integer and a decimal will coerce to decimal.
-     *   - string: compared lexicographically by character code (with basic char strings and non-ASCII encoding, this
-     *     might lead to surprising results)
-     *   - array: compared lexicographically by elements (recursively following this same technique)
-     *   - object: entries in the object are sorted and compared lexicographically, first by key then by value
-     *
-     *  \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; -1 if otherwise.
-    **/
+    /// Used to build a strict-ordering of JSON values. When comparing values of the same kind, the ordering should
+    /// align with your intuition. When comparing values of different kinds, some arbitrary rules were created based on
+    /// how "complicated" the author thought the type to be.
+    ///
+    ///  - null: less than everything but null, which it is equal to.
+    ///  - boolean: false is less than true.
+    ///  - integer, decimal: compared by their numeric value. Comparisons between two integers do not cast, but
+    ///    comparison between an integer and a decimal will coerce to decimal.
+    ///  - string: compared lexicographically by character code (with basic char strings and non-ASCII encoding, this
+    ///    might lead to surprising results)
+    ///  - array: compared lexicographically by elements (recursively following this same technique)
+    ///  - object: entries in the object are sorted and compared lexicographically, first by key then by value
+    ///
+    /// \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; -1 if otherwise.
+    ///
     int compare(const value& other) const;
 
     bool operator< (const value& other) const;

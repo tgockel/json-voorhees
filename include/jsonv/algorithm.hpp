@@ -1,16 +1,14 @@
-/** \file jsonv/algorithm.hpp
- *  A collection of algorithms a la `&lt;algorithm&gt;`.
- *
- *  Copyright (c) 2014-2018 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
-#ifndef __JSONV_ALGORITHM_HPP_INCLUDED__
-#define __JSONV_ALGORITHM_HPP_INCLUDED__
+/// \file jsonv/algorithm.hpp
+/// A collection of algorithms a la `&lt;algorithm&gt;`.
+///
+/// Copyright (c) 2014-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
+#pragma once
 
 #include <jsonv/config.hpp>
 #include <jsonv/value.hpp>
@@ -464,5 +462,3 @@ JSONV_PUBLIC void validate(const value& val);
 /** \} **/
 
 }
-
-#endif/*__JSONV_ALGORITHM_HPP_INCLUDED__*/

@@ -14,6 +14,7 @@
 #include <jsonv/kind.hpp>
 #include <jsonv/optional.hpp>
 #include <jsonv/string_view.hpp>
+#include <jsonv/result.hpp>
 
 #include <cstdint>
 #include <iosfwd>
@@ -470,6 +471,15 @@ public:
     {
         return visit([](const auto& x) { return x.type(); });
     }
+
+    /// \{
+    /// Check that this AST node has the given \a type or is one of the expected \a types.
+    ///
+    /// \returns an \c ok result if this instance has \a type or one of the given \a types. If this does not match the
+    ///          expectations, an \c error result is returned with the actual type.
+    result<void, ast_node_type> expect(ast_node_type                        type) const;
+    result<void, ast_node_type> expect(std::initializer_list<ast_node_type> types) const;
+    /// \}
 
     /// Get a view of the raw token. For example, \c "true", \c "{", or \c "1234". Note that this includes the complete
     /// source, so string types such as \c ast_node_type::string_canonical include the opening and closing quotations.

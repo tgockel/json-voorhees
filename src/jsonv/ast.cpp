@@ -156,6 +156,40 @@ double ast_node::decimal::value() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ast_node                                                                                                           //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+result<void, ast_node_type> ast_node::expect(ast_node_type expected_type) const
+{
+    if (auto found_type = this->type(); found_type == expected_type)
+    {
+        return ok{};
+    }
+    else
+    {
+        return jsonv::error{ found_type };
+    }
+}
+
+result<void, ast_node_type> ast_node::expect(std::initializer_list<ast_node_type> expected_types) const
+{
+    if (expected_types.size() == 0U)
+        throw std::invalid_argument("Cannot expect 0 types");
+    else if (expected_types.size() == 1U)
+        return expect(*expected_types.begin());
+
+    auto found_type = this->type();
+    if (std::find(expected_types.begin(), expected_types.end(), found_type) != expected_types.end())
+    {
+        return ok{};
+    }
+    else
+    {
+        return jsonv::error{ found_type };
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ast_error                                                                                                          //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

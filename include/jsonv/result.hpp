@@ -1,6 +1,6 @@
 /// \file jsonv/result.hpp
 ///
-/// Copyright (c) 2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2020-2022 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -31,6 +31,21 @@ class ok;
 
 template <typename TError>
 class error;
+
+/// Checks whether \c T is a \c result type. Provides the member constant \c value as \c true if \c T is some form of
+/// \c result. Otherwise, \c value will be \c false.
+///
+/// \see is_result_v
+template <typename T>
+struct is_result : public std::false_type
+{ };
+
+template <typename TValue, typename TError>
+struct is_result<result<TValue, TError>> : public std::true_type
+{ };
+
+template <typename T>
+inline constexpr bool is_result_v = is_result<T>::value;
 
 }
 
@@ -1189,18 +1204,19 @@ public:
     constexpr result(const result&) = default;
 
     /// Result instances are move-constructible iff \c value_type and \c error_type are.
-    constexpr result(result&&) noexcept = default;
+    constexpr result(result&&) = default;
 
     /// Result instances are copy-assignable iff \c value_type and \c error_type are.
     constexpr result& operator=(const result&) = default;
 
     /// Result instances are move-assignable iff \c value_type and \c error_type are.
-    constexpr result& operator=(result&&) noexcept = default;
+    constexpr result& operator=(result&&) = default;
 
     /// Converting constructor from a \c result with a convertible \c value_type and \c error_type.
     template <typename UValue,
               typename UError,
-              typename = std::enable_if_t<  std::is_convertible_v<UValue, value_type>
+              typename = std::enable_if_t<  !std::is_same_v<result<TValue, TError>, result<UValue, UError>>
+                                         && std::is_convertible_v<UValue, value_type>
                                          && std::is_convertible_v<UError, error_type>
                                          >
              >
@@ -1237,7 +1253,8 @@ public:
     /// Converting constructor from a \c result with a convertible \c value_type and \c error_type.
     template <typename UValue,
               typename UError,
-              typename = std::enable_if_t<  std::is_convertible_v<UValue, value_type>
+              typename = std::enable_if_t<  !std::is_same_v<result<TValue, TError>, result<UValue, UError>>
+                                         && std::is_convertible_v<UValue, value_type>
                                          && std::is_convertible_v<UError, error_type>
                                          >
              >
@@ -1293,6 +1310,15 @@ public:
     constexpr explicit operator bool() const noexcept
     {
         return is_ok();
+    }
+
+    /// Check that this result not OK.
+    ///
+    /// \returns \c true if the \c state is \c result_state::error or \c result_state::empty; \c false if \c state is
+    ///          \c result_state::ok.
+    constexpr bool operator!() const noexcept
+    {
+        return !is_ok();
     }
 
     /// Check that this result has \c state of \c result_state::error.

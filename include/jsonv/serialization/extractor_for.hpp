@@ -10,7 +10,8 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization.hpp>
+#include <jsonv/serialization/extract.hpp>
+#include <jsonv/result.hpp>
 
 namespace jsonv
 {
@@ -24,23 +25,29 @@ class extractor_for :
         public extractor
 {
 public:
-    virtual const std::type_info& get_type() const override
+    /// \see extractor::get_type
+    virtual const std::type_info& get_type() const noexcept override
     {
         return typeid(T);
     }
 
-    virtual void extract(const extraction_context& context,
-                         const value&              from,
-                         void*                     into
-                        ) const override
+    /// \see extractor::extract
+    virtual result<void, void> extract(extraction_context& context, reader& from, void* into) const override
     {
-        new(into) T(create(context, from));
+        if (auto res = create(context, from))
+        {
+            new(into) T(std::move(res).value());
+            return ok{};
+        }
+        else
+        {
+            return error{};
+        }
     }
 
 protected:
-    virtual T create(const extraction_context& context, const value& from) const = 0;
+    virtual result<T, void> create(extraction_context& context, reader& from) const = 0;
 };
-
 
 /// \}
 

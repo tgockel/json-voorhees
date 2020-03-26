@@ -10,7 +10,9 @@
 #pragma once
 
 #include <jsonv/config.hpp>
+#include <jsonv/detail/reserve.hpp>
 #include <jsonv/serialization.hpp>
+#include <jsonv/reader.hpp>
 
 #include "adapter_for.hpp"
 
@@ -32,20 +34,47 @@ class container_adapter :
     using element_type = typename TContainer::value_type;
 
 protected:
-    virtual TContainer create(const extraction_context& context, const value& from) const override
+    virtual result<TContainer, void> create(extraction_context& context, reader& from) const override
     {
-        using std::end;
+        auto first = context.current_as<ast_node::array_begin>(from);
+        if (first.is_error())
+            return error{};
 
         TContainer out;
-        from.as_array(); // get nice error if input is not an array
-        for (value::size_type idx = 0U; idx < from.size(); ++idx)
-            out.insert(end(out), context.extract_sub<element_type>(from, idx));
-        return out;
+        detail::reserve_if_possible(out, first->element_count());
+
+        bool good = true;
+        while (from.next_token())
+        {
+            auto node = from.current();
+            if (node.type() == ast_node_type::array_end)
+                break;
+
+            if (auto sub = context.extract<element_type>(from))
+            {
+                // If we have failed to extract a previous element, don't bother adding it to the output
+                if (good)
+                {
+                    using std::end;
+                    out.insert(end(out), std::move(sub).value());
+                }
+            }
+            else
+            {
+                good = false;
+            }
+        }
+
+        if (good)
+            return ok{ std::move(out) };
+        else
+            return error{};
     }
 
     virtual value to_json(const serialization_context& context, const TContainer& from) const override
     {
         value out = array();
+        out.reserve(from.size());
         for (const element_type& x : from)
             out.push_back(context.to_json(x));
         return out;

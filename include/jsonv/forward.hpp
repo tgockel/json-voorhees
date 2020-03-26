@@ -39,6 +39,7 @@ enum class path_element_kind : unsigned char;
 template <typename TPointer> class polymorphic_adapter_builder;
 class reader;
 template <typename TValue, typename TError> class result;
+enum class result_state : unsigned char;
 class serializer;
 class serialization_context;
 class value;

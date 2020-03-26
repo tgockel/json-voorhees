@@ -13,6 +13,7 @@
 #include <jsonv/config.hpp>
 #include <jsonv/ast.hpp>
 #include <jsonv/string_view.hpp>
+#include <jsonv/result.hpp>
 
 #include <cstdint>
 #include <initializer_list>
@@ -30,14 +31,21 @@ class value;
 /// \ingroup Serialization
 /// \{
 
+/// A reader reads from some JSON source into an \c ast_node sequence.
 class JSONV_PUBLIC reader final
 {
 public:
-    /// Create a reader which reads from the given \a index.
+    /// Create a reader which reads from the given \a index. The source text \a index refers to must stay in memory
+    /// while this instance is used.
     explicit reader(parse_index index);
 
+    /// \{
     /// Create a reader which reads from an in-memory \a value.
-    explicit reader(const value* value);
+    ///
+    /// TODO(#150): Implement these.
+    explicit reader(const value& value);
+    explicit reader(value&&      value);
+    /// \}
 
     /// \{
     /// Create a reader which reads from JSON \a source.
@@ -56,6 +64,12 @@ public:
     explicit reader(std::string&& source, const parse_options& parse_options);
     /// \}
 
+    reader(const reader&)            = delete;
+    reader& operator=(const reader&) = delete;
+
+    reader(reader&& src)        noexcept = default;
+    reader& operator=(reader&&) noexcept = default;
+
     ~reader() noexcept;
 
     /// Check if this reader is still good to read from. If this is \c false, \c current or \c current_path will throw
@@ -68,24 +82,23 @@ public:
     const ast_node& current() const;
 
     /// \{
-    /// Check that the \c current AST node has the given \a type or is one of the expected \a types. Using this leads to
-    /// a slightly more informative error message than `current.as<T>()` call.
+    /// Check that the \c current AST node has the given \a type or is one of the expected \a types.
     ///
-    /// \throws extraction_error if the current node does not match the expected \a type or \a types.
-    /// \throws std::invalid_argument if this instance is not \c good.
-    void expect(ast_node_type type);
-    void expect(std::initializer_list<ast_node_type> types);
+    /// \returns an \c ok result if the \c current node's type matches the specified \a type or \a types. If the
+    ///          \c current node does not match expectations, an \c error result is returned containing the \c current
+    ///          node's actual type.
+    result<void, ast_node_type> expect(ast_node_type type);
+    result<void, ast_node_type> expect(std::initializer_list<ast_node_type> types);
     /// \}
 
     /// Get the \c current AST node as a specific \c TAstNode subtype, calling \c expect beforehand.
     ///
     /// \throws std::invalid_argument if this instance is not \c good.
-    /// \throws extraction_error if the current node does not match `TAstNode::type()`.
     template <typename TAstNode>
-    TAstNode current_as() const
+    result<TAstNode, ast_node_type> current_as() const
     {
-        expect(TAstNode::type());
-        return current().as<TAstNode>();
+        return expect(TAstNode::type())
+            .map([&] { return current().as<TAstNode>(); });
     }
 
     /// Get the path to the current node this reader is pointing at. This is used in the generation of error messages to
