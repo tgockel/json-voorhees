@@ -553,6 +553,11 @@ bool parse_index::success() const noexcept
     return _impl ? _impl->first_error_code == ast_error::none : false;
 }
 
+parse_index::operator bool() const noexcept
+{
+    return success();
+}
+
 void parse_index::validate() const
 {
     if (!_impl)
