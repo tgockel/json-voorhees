@@ -1,12 +1,13 @@
 FROM debian:10.2
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
-RUN apt-get update          \
- && apt-get install --yes   \
-    cmake                   \
-    grep                    \
-    g++                     \
-    lcov                    \
+RUN apt-get update                  \
+ && DEBIAN_FRONTEND=noninteractive  \
+    apt-get install --yes           \
+    cmake                           \
+    grep                            \
+    g++                             \
+    lcov                            \
     ninja-build
 
 CMD ["/root/jsonv/config/run-tests"]
