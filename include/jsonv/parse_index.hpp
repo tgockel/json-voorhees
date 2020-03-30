@@ -119,6 +119,9 @@ public:
     /// acceptable range for numbers, but the storage of \c jsonv::value does.
     bool success() const noexcept;
 
+    /// See \ref success.
+    explicit operator bool() const noexcept;
+
     /// Validate that the parse was a \c success.
     ///
     /// \throws parse_error if the parse was not successful. This will contain additional details about why the parse
