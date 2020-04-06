@@ -101,6 +101,9 @@
     <ClInclude Include="..\..\..\src\jsonv\detail\token_patterns.hpp">
       <Filter>src\detail</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\jsonv\detail\fallthrough.hpp">
+      <Filter>src\detail</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\jsonv\algorithm_map.cpp">
@@ -145,14 +148,26 @@
     <ClCompile Include="..\..\..\src\jsonv\tokenizer.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\jsonv\util.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\jsonv\value.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\jsonv\detail\token_patterns.cpp">
       <Filter>src\detail</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_compare.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv\functional.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_diff.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_merge.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_validate.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
