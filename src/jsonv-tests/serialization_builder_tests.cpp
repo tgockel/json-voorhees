@@ -472,6 +472,7 @@ private:
 
 TEST(serialization_builder_access_mutate)
 {
+#ifndef _MSC_VER
     jsonv::formats local_formats =
         jsonv::formats_builder()
             .type<wrapped_things>()
@@ -479,6 +480,7 @@ TEST(serialization_builder_access_mutate)
                 .member("y", &wrapped_things::y, &wrapped_things::y)
         ;
     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
+#endif
 }
 
 }
