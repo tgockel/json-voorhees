@@ -105,4 +105,12 @@ std::ostream& stream_escaped_string(std::ostream& stream, string_view str, bool 
     return stream;
 }
 
+std::ostream& stream_escaped_iso_string(std::ostream& stream, string_view str)
+{
+	stream << "\"";
+	detail::string_iso_encode(stream, str);
+	stream << "\"";
+	return stream;
+}
+
 }

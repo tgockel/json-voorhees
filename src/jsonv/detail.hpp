@@ -42,6 +42,7 @@ bool kind_valid(kind k);
 void check_type(kind expected, kind actual);
 void check_type(std::initializer_list<kind> expected, kind actual);
 std::ostream& stream_escaped_string(std::ostream& stream, string_view str, bool require_ascii);
+std::ostream& stream_escaped_iso_string(std::ostream& stream, string_view str);
 
 }
 

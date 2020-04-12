@@ -282,4 +282,15 @@ void ostream_pretty_encoder::write_string(string_view value)
     ostream_encoder::write_string(value);
 }
 
+
+ostream_iso_encoder::ostream_iso_encoder(std::ostream& output) :
+	ostream_encoder(output)
+{
+}
+
+void ostream_iso_encoder::write_string(string_view value)
+{
+	stream_escaped_iso_string(output(), value);
+}
+
 }

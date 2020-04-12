@@ -745,5 +745,26 @@ std::string convert_to_narrow(const std::wstring& source)
     return convert_to_narrow(source.c_str(), source.size());
 }
 
+std::ostream& string_iso_encode(std::ostream& stream, string_view source)
+{
+	typedef string_view::size_type size_type;
+
+	for (size_type idx = 0, source_size = source.size(); idx < source_size; ++idx)
+	{
+		const char& current = source[idx];
+		if (const char* replacement = find_encoding(current))
+		{
+			stream << "\\" << *replacement;
+		}
+		else
+		{
+			stream << current;
+		}
+	}
+
+	return stream;
+}
+
+
 }
 }

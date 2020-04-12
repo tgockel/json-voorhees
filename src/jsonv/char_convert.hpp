@@ -46,6 +46,10 @@ private:
 **/
 std::ostream& string_encode(std::ostream& stream, string_view source, bool ensure_ascii = true);
 
+/** Encodes C++ string \a source into a escaped JSON string with ISO 8-bit encoding into \a stream ready for sending over the wire.
+**/
+std::ostream& string_iso_encode(std::ostream& stream, string_view source);
+
 /** A function that decodes an over the wire character sequence \c source into a C++ string. **/
 typedef std::string (*string_decode_fn)(string_view source);
 

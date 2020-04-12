@@ -156,7 +156,7 @@ public:
      *  This functionality cannot be used to passthrough malformed UTF-8 encoded strings. If a given string is invalid
      *  UTF-8, it will still get replaced with a numeric encoding.
     **/
-    void ensure_ascii(bool value);
+	void ensure_ascii(bool value);
     
 protected:
     virtual void write_null() override;
@@ -244,6 +244,18 @@ private:
     std::size_t   _indent;
     std::size_t   _indent_size;
     bool          _defer_indent;
+};
+
+/** An encoder that outputs to an \c std::ostream. This encoder uses ISO 8-bit encoding **/
+class JSONV_PUBLIC ostream_iso_encoder :
+	public ostream_encoder
+{
+public:
+	/** Create an instance which places text into \a output. **/
+	explicit ostream_iso_encoder(std::ostream& output);
+
+protected:
+	virtual void write_string(string_view value) override;
 };
 
 }
