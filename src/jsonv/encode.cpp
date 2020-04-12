@@ -90,6 +90,11 @@ ostream_encoder::ostream_encoder(std::ostream& output) :
 
 ostream_encoder::~ostream_encoder() noexcept = default;
 
+void ostream_encoder::ensure_ascii(bool value)
+{
+	_ensure_ascii = value;
+}
+
 void ostream_encoder::write_array_begin()
 {
     _output << '[';
