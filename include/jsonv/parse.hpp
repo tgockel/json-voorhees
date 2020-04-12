@@ -149,6 +149,9 @@ public:
          *  \see http://www.unicode.org/reports/tr26/
         **/
         cesu8,
+		/** Use ISO 8-bit encoding
+		 **/
+		iso8
     };
     
     /** When dealing with comma separators, how should extra commas be treated? **/

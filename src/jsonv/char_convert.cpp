@@ -583,6 +583,38 @@ std::string string_decode(string_view source)
     return output;
 }
 
+template <>
+std::string string_decode<parse_options::encoding::iso8, false>(string_view source)
+{
+	typedef std::string::size_type size_type;
+	std::string output;
+
+	for (size_type idx = 0; idx < source.size(); ++idx)
+	{
+		const char& current = source[idx];
+
+		if (current == '\\')
+		{
+			const char& next = source[idx + 1];
+			if (const char* replacement = find_decoding(next))
+			{
+				output += *replacement;
+				idx ++;
+			}
+			else
+			{
+				throw decode_error(idx, std::string("Unknown escape character: ") + next);
+			}
+		}
+		else
+		{
+			output += current;
+		}
+	}
+
+	return output;
+}
+
 string_decode_fn get_string_decoder(parse_options::encoding encoding)
 {
     switch (encoding)
@@ -592,7 +624,10 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
     case parse_options::encoding::utf8_strict:
         return string_decode<parse_options::encoding::utf8, true>;
     case parse_options::encoding::utf8:
-    default:
+		return string_decode<parse_options::encoding::utf8, false>;
+	case parse_options::encoding::iso8:
+		return string_decode<parse_options::encoding::iso8, false>;
+	default:
         return string_decode<parse_options::encoding::utf8, false>;
     };
 }
