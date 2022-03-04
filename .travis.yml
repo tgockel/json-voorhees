@@ -5,20 +5,18 @@ env:
   matrix:
   - DISTRO=ubuntu-18.04  CONF=Debug
   - DISTRO=ubuntu-18.04  CONF=Release
-  - DISTRO=ubuntu-19.10  CONF=Debug
-  - DISTRO=ubuntu-19.10  CONF=Release
   - DISTRO=ubuntu-20.04  CONF=Debug
   - DISTRO=ubuntu-20.04  CONF=Release
-  - DISTRO=debian-10.1   CONF=Debug
-  - DISTRO=debian-10.1   CONF=Release
-  - DISTRO=debian-10.2   CONF=Debug
-  - DISTRO=debian-10.2   CONF=Release
-  - DISTRO=opensuse-15.1 CONF=Debug
-  - DISTRO=opensuse-15.1 CONF=Release
-  - DISTRO=fedora-27     CONF=Debug
-  - DISTRO=fedora-27     CONF=Release
-  - DISTRO=fedora-30     CONF=Debug
-  - DISTRO=fedora-30     CONF=Release
+  - DISTRO=ubuntu-22.04  CONF=Debug
+  - DISTRO=ubuntu-22.04  CONF=Release
+  - DISTRO=debian-10.11  CONF=Debug
+  - DISTRO=debian-10.11  CONF=Release
+  - DISTRO=debian-11.2   CONF=Debug
+  - DISTRO=debian-11.2   CONF=Release
+  - DISTRO=opensuse-15.4 CONF=Debug
+  - DISTRO=opensuse-15.4 CONF=Release
+  - DISTRO=fedora-35     CONF=Debug
+  - DISTRO=fedora-35     CONF=Release
   - DISTRO=arch          CONF=Debug
   - DISTRO=arch          CONF=Release
 services:
@@ -29,7 +27,7 @@ script:
   - echo "export CMAKE_BUILD_TYPE=${CONF}" >> env.sh
   - docker run -v ${TRAVIS_BUILD_DIR}:/root/jsonv dev/jsonv/${DISTRO}
 after_success:
-- if [[ ${DISTRO} != "ubuntu-18.04" ]]; then echo "Skipping documentation publishing due to non-main build environment"; exit 0; fi
+- if [[ ${DISTRO} != "ubuntu-20.04" ]]; then echo "Skipping documentation publishing due to non-main build environment"; exit 0; fi
 - if [[ ${CONF} != "Release" ]];        then echo "Skipping documentation publishing due to non-Release build"; exit 0; fi
 - GIT_CURRENT_HASH=$(git rev-parse HEAD)
 - GIT_MASTER_HASH=$(git rev-parse master)

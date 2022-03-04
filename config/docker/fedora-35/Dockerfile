@@ -1,4 +1,4 @@
-FROM fedora:30
+FROM fedora:35
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN dnf install -y --refresh    \

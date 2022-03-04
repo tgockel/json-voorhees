@@ -61,7 +61,7 @@ if [[ ${ALL} -eq 1 ]]; then
   fi
 
   # All distros with working package systems.
-  DISTROS=(debian-10.1 debian-10.2 ubuntu-18.04 ubuntu-19.10 ubuntu-20.04)
+  DISTROS=(debian-10.11 debian-11.2 ubuntu-18.04 ubuntu-20.04 ubuntu-22.04)
 fi
 
 if [[ -n "${COPY_TO}" ]]; then

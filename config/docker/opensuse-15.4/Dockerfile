@@ -1,10 +1,9 @@
-FROM opensuse/leap:15.1
+FROM opensuse/leap:15.4
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN zypper refresh                  \
  && zypper install -y               \
     boost-devel                     \
-    libboost_filesystem1_66_0-devel \
     cmake                           \
     grep                            \
     gcc-c++                         \

@@ -8,6 +8,7 @@ RUN apt-get update                  \
     grep                            \
     g++                             \
     lcov                            \
-    ninja-build
+    ninja-build                     \
+ && rm -rf /var/lib/apt/lists/*
 
 CMD ["/root/jsonv/config/run-tests"]

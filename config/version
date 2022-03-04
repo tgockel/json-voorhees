@@ -1,0 +1,98 @@
+#!/bin/bash -e
+# Print the version information for this repository.
+
+PROJECT_ROOT=$(readlink -f $(dirname $0)/..)
+
+EXTENDED=
+OFFICIAL=
+OPTS_VALID=1
+
+function show_usage {
+  echo "$0: Print the version information for this repository."
+  echo ""
+  echo "Usage:"
+  echo ""
+  echo "  $0 [OPTION...]"
+  echo ""
+  echo "Options:"
+  echo ""
+  echo "  --extended EXT"
+  echo "      Set the extended version information -- the version component that comes"
+  echo "      after the dash. If both this and --official are unset, the extended"
+  echo "      information will be created using the git HEAD and current datetime."
+  echo ""
+  echo "  --official NUMBER"
+  echo "      The version of the software for an official build. This must be a number."
+}
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+    --extended)
+      EXTENDED=$2
+      shift 2
+      ;;
+    --extended=*)
+      EXTENDED=${key/--extended=/}
+      shift
+      ;;
+    --official)
+      OFFICIAL=$2
+      shift 2
+      ;;
+    --official=*)
+      OFFICIAL=${key/--official=/}
+      shift
+      ;;
+    --help|-h)
+      show_usage
+      exit 1
+      ;;
+    *)
+      >&2 echo "Unrecognized option: \"${key}\""
+      OPTS_VALID=0
+      shift
+      ;;
+  esac
+done
+
+if [[ ${OPTS_VALID} -eq 0 ]]; then
+  >&2 show_usage
+  exit 1
+fi
+
+VERSION_FILE="${PROJECT_ROOT}/include/jsonv/config.hpp"
+BASE_VERSION_MAJOR=$(grep '#define JSONV_VERSION_MAJOR' "${VERSION_FILE}" | grep -Po '\d+')
+BASE_VERSION_MINOR=$(grep '#define JSONV_VERSION_MINOR' "${VERSION_FILE}" | grep -Po '\d+')
+BASE_VERSION_PATCH=$(grep '#define JSONV_VERSION_PATCH' "${VERSION_FILE}" | grep -Po '\d+')
+BASE_VERSION="${BASE_VERSION_MAJOR}.${BASE_VERSION_MINOR}.${BASE_VERSION_PATCH}"
+
+# This block gets the EXTENDED version information
+if [[ ! -z "${OFFICIAL}" ]]; then
+  if [[ ! -z "${EXTENDED}" ]]; then
+    >&2 echo "Cannot set both --extended and --official."
+    exit 1
+  fi
+
+  set +e
+  echo "${OFFICIAL}" | grep -P '^[1-9][0-9]*$' >/dev/null
+  RC=$?
+  set -e
+
+  if [[ ${RC} -eq 0 ]]; then
+    EXTENDED=${OFFICIAL}
+  else
+    >&2 echo "Official builds must be a number greater than 0."
+    exit 1
+  fi
+elif [[ -z "${EXTENDED}" ]]; then
+  REMOTE_NAME=$(git remote get-url origin | grep -Po '[^/:]+[/:][^/:]+$' | cut -d / -f 1)
+  BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD | sed 's|/|-|g')
+  DATE=$(date --utc '+%Y%m%dT%H%M%S')
+  TAG=$(git rev-parse HEAD | cut -c -12)$(git diff-index --quiet HEAD -- || echo "-dirty")
+
+  EXTENDED=$(echo "${REMOTE_NAME}-${BRANCH_NAME}-${DATE}-git.${TAG}" | tr '[:upper:]' '[:lower:]')
+fi
+
+echo ${BASE_VERSION}-${EXTENDED}

@@ -1,4 +1,4 @@
-FROM archlinux/base
+FROM archlinux
 LABEL maintainer="Travis Gockel <travis@gockelhut.com>"
 
 RUN pacman -Sy --noconfirm  \
