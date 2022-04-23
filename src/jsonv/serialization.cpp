@@ -170,8 +170,6 @@ const path& extraction_error::path() const noexcept
 {
     if (_problems.empty())
     {
-        JSONV_UNLIKELY
-
         static const jsonv::path empty_path;
         return empty_path;
     }
@@ -185,8 +183,6 @@ const std::exception_ptr& extraction_error::nested_ptr() const noexcept
 {
     if (_problems.empty())
     {
-        JSONV_UNLIKELY
-
         static const std::exception_ptr empty_ex;
         return empty_ex;
     }

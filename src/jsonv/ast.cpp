@@ -166,7 +166,7 @@ std::ostream& operator<<(std::ostream& os, const ast_error& src)
     case ast_error::none:                   return os << "none";
     case ast_error::expected_document:      return os << "expected document (object or array)";
     case ast_error::unexpected_token:       return os << "unexpected token";
-    case ast_error::eof:                    return os << "input ended unexpectedly";
+    case ast_error::unexpected_eof:         return os << "input ended unexpectedly";
     case ast_error::expected_eof:           return os << "extra characters in input";
     case ast_error::depth_exceeded:         return os << "max structural depth exceeded";
     case ast_error::extra_close:            return os << "extra closing character";

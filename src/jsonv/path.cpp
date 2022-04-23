@@ -394,6 +394,9 @@ static std::size_t extract_size_t(string_view src)
 
 path path::create(string_view specification)
 {
+    if (specification.size() == 1U && specification[0] == '.')
+        return path();
+
     path out;
     string_view remaining = specification;
     while (!remaining.empty())
@@ -451,6 +454,9 @@ path path::operator+(path_element elem) const
 
 std::ostream& operator<<(std::ostream& os, const path& val)
 {
+    if (val.empty())
+        return os << '.';
+
     for (const path_element& elem : val)
     {
         stream_path_element(os, elem);
