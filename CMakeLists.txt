@@ -10,7 +10,8 @@
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
-cmake_minimum_required(VERSION 3.2)
+# Keep CMP0167 out of the global policy set; Boost config/module lookup is handled below.
+cmake_minimum_required(VERSION 3.5...3.29)
 project(json-voorhees)
 
 set(PACKAGE_NAME "jsonv"
@@ -20,11 +21,6 @@ set(PACKAGE_NAME "jsonv"
 ################################################################################
 # Configuration                                                                #
 ################################################################################
-
-if (CMAKE_VERSION VERSION_GREATER "3.0")
-  cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
-  cmake_policy(SET CMP0037 OLD) # Allow use of reserved names
-endif()
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
@@ -154,11 +150,44 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
                    )
 
 set(Boost_USE_MULTITHREADED ON)
-find_package(Boost
-             COMPONENTS "${REQUIRED_BOOST_LIBRARIES}"
-             REQUIRED
+find_package(Boost CONFIG QUIET
+             COMPONENTS ${REQUIRED_BOOST_LIBRARIES}
             )
+if (NOT Boost_FOUND)
+    if (POLICY CMP0167)
+        cmake_policy(PUSH)
+        cmake_policy(SET CMP0167 OLD)
+    endif()
+    find_package(Boost
+                 MODULE
+                 COMPONENTS ${REQUIRED_BOOST_LIBRARIES}
+                 REQUIRED
+                )
+    if (POLICY CMP0167)
+        cmake_policy(POP)
+    endif()
+endif()
 include_directories(${Boost_INCLUDE_DIRS})
+
+foreach(boost_headers_target Boost::headers Boost::boost)
+    if (NOT Boost_INCLUDE_DIRS AND TARGET "${boost_headers_target}")
+        get_target_property(JSONV_BOOST_INCLUDE_DIRS "${boost_headers_target}" INTERFACE_INCLUDE_DIRECTORIES)
+        if (JSONV_BOOST_INCLUDE_DIRS)
+            set(Boost_INCLUDE_DIRS ${JSONV_BOOST_INCLUDE_DIRS})
+            include_directories(${Boost_INCLUDE_DIRS})
+        endif()
+    endif()
+endforeach()
+
+set(JSONV_BOOST_LIBRARIES)
+foreach(boost_library ${REQUIRED_BOOST_LIBRARIES})
+    if (TARGET "Boost::${boost_library}")
+        list(APPEND JSONV_BOOST_LIBRARIES "Boost::${boost_library}")
+    endif()
+endforeach()
+if (NOT JSONV_BOOST_LIBRARIES)
+    list(APPEND JSONV_BOOST_LIBRARIES ${Boost_LIBRARIES})
+endif()
 
 add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
 
@@ -175,16 +204,12 @@ set_target_properties(jsonv
                         SOVERSION ${JSONV_SO_VERSION}
                         VERSION   ${JSONV_SO_VERSION}
                      )
-if (Boost_LIBRARIES)
-    target_link_libraries(jsonv ${Boost_LIBRARIES})
-endif()
-
 if (JSONV_BUILD_TESTS)
     file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
     add_executable(jsonv-tests ${jsonv_tests_cpps})
     target_link_libraries(jsonv-tests
             "jsonv"
-            ${Boost_LIBRARIES}
+            ${JSONV_BOOST_LIBRARIES}
         )
     
     add_custom_target(check
@@ -253,7 +278,7 @@ if (BENCHMARK)
     add_executable(json-benchmark ${BENCHMARK_CPPS})
     target_link_libraries(json-benchmark
         ${BENCHMARK_LIBS}
-        ${Boost_LIBRARIES}
+        ${JSONV_BOOST_LIBRARIES}
     )
 endif(BENCHMARK)
 
