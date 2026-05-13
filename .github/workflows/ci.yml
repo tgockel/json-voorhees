@@ -63,6 +63,146 @@ jobs:
       - name: Build and test
         run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
 
+  packages:
+    name: Packages (${{ matrix.format }})
+    runs-on: ubuntu-24.04
+    needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - format: deb
+            container: ubuntu:24.04
+            cpack-generator: DEB
+            package-glob: "*.deb"
+          - format: rpm
+            container: rockylinux:9
+            cpack-generator: RPM
+            package-glob: "*.rpm"
+
+    container:
+      image: ${{ matrix.container }}
+
+    steps:
+      - name: Install dependencies (DEB)
+        if: matrix.format == 'deb'
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install --yes \
+            build-essential \
+            ca-certificates \
+            cmake \
+            dpkg-dev \
+            file \
+            git \
+            ninja-build \
+            pkg-config
+
+      - name: Install dependencies (RPM)
+        if: matrix.format == 'rpm'
+        shell: bash
+        run: |
+          dnf install --yes \
+            ca-certificates \
+            cmake \
+            file \
+            findutils \
+            gcc-c++ \
+            git \
+            ninja-build \
+            pkgconf-pkg-config \
+            rpm-build
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Configure package build
+        shell: bash
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DCPACK_GENERATOR=${{ matrix.cpack-generator }}
+
+      - name: Build packages
+        shell: bash
+        run: cmake --build build --target package --parallel
+
+      - name: Inspect DEB packages
+        if: matrix.format == 'deb'
+        shell: bash
+        run: |
+          packages=(build/*.deb)
+          test "${#packages[@]}" -ge 2
+
+          dpkg-deb --field "${packages[@]}"
+          dpkg-deb --contents "${packages[@]}"
+
+          runtime_package=$(find build -maxdepth 1 -name 'libjsonv[0-9]*.deb' -print -quit)
+          development_package=$(find build -maxdepth 1 -name 'libjsonv-dev_*.deb' -print -quit)
+          test -n "${runtime_package}"
+          test -n "${development_package}"
+
+          dpkg-deb --contents "${runtime_package}" | grep 'libjsonv\.so\.'
+          dpkg-deb --contents "${development_package}" | grep 'include/jsonv/all.hpp'
+          dpkg-deb --contents "${development_package}" | grep 'pkgconfig/libjsonv.pc'
+          dpkg-deb --contents "${development_package}" | grep 'cmake/jsonv/jsonv-export.cmake'
+
+      - name: Inspect RPM packages
+        if: matrix.format == 'rpm'
+        shell: bash
+        run: |
+          packages=(build/*.rpm)
+          test "${#packages[@]}" -ge 2
+
+          rpm -qpi "${packages[@]}"
+          rpm -qlp "${packages[@]}"
+
+          runtime_package=$(find build -maxdepth 1 -name 'jsonv-[0-9]*.rpm' -print -quit)
+          development_package=$(find build -maxdepth 1 -name 'jsonv-devel-*.rpm' -print -quit)
+          test -n "${runtime_package}"
+          test -n "${development_package}"
+
+          rpm -qlp "${runtime_package}" | grep 'libjsonv\.so\.'
+          rpm -qlp "${development_package}" | grep 'include/jsonv/all.hpp'
+          rpm -qlp "${development_package}" | grep 'pkgconfig/libjsonv.pc'
+          rpm -qlp "${development_package}" | grep 'cmake/jsonv/jsonv-export.cmake'
+
+      - name: Install DEB packages
+        if: matrix.format == 'deb'
+        shell: bash
+        run: apt-get install --yes ./build/*.deb
+
+      - name: Install RPM packages
+        if: matrix.format == 'rpm'
+        shell: bash
+        run: dnf install --yes ./build/*.rpm
+
+      - name: Compile and run installed-package smoke test
+        shell: bash
+        run: |
+          cat >/tmp/jsonv-smoke.cpp <<'EOF'
+          #include <jsonv/all.hpp>
+
+          int main()
+          {
+              jsonv::value value = jsonv::parse(R"({"answer":42})");
+              return value.at("answer").as_integer() == 42 ? 0 : 1;
+          }
+          EOF
+
+          c++ -std=c++17 /tmp/jsonv-smoke.cpp $(pkg-config --cflags --libs libjsonv) -o /tmp/jsonv-smoke
+          /tmp/jsonv-smoke
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsonv-${{ matrix.format }}-packages
+          path: build/${{ matrix.package-glob }}
+
   docs:
     name: Build documentation
     runs-on: ubuntu-24.04

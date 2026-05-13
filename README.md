@@ -42,11 +42,11 @@ Compile and Install
 -------------------
 
 JSON Voorhees uses [CMake](http://www.cmake.org/) as the automatic configuration software.
-On Linux or Mac OSX, if you have `boost`, `cmake`, `g++` and `make` installed, simply:
+On Linux or Mac OSX, if you have `cmake`, a C++ compiler, and a build tool installed:
 
-    $> cmake .
-    $> make
-    $> sudo make install
+    $> cmake -S . -B build -DJSONV_BUILD_TESTS=ON
+    $> cmake --build build --target check --parallel
+    $> sudo cmake --install build
 
 If you want to customize your compilation or installation, see the options in `CMakeLists.txt` for easy-to-use
  configuration options.
@@ -55,6 +55,16 @@ On Windows, use CMake with Visual Studio:
 
     $> cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DJSONV_BUILD_TESTS=ON
     $> cmake --build build --config Release --target check --parallel
+
+### Packages
+
+On Linux, CPack can create native binary packages from the CMake install rules:
+
+    $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+    $> cmake --build build-package --target package --parallel
+
+This builds `.deb` and `.rpm` packages when the corresponding platform tools are installed. To build only one format,
+configure with `-DCPACK_GENERATOR=DEB` or `-DCPACK_GENERATOR=RPM`.
 
 ### Arch Linux
 
