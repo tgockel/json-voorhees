@@ -236,7 +236,7 @@ endif()
 # Packaging                                                                    #
 ################################################################################
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32 OR APPLE)
     include(CPackComponent)
 
     set(CPACK_COMPONENTS_ALL runtime development)
@@ -316,6 +316,16 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32)
         set(CPACK_NUGET_PACKAGE_LICENSE_EXPRESSION "Apache-2.0")
         set(CPACK_NUGET_PACKAGE_TAGS "native C++ JSON jsonv")
         set(CPACK_NUGET_PACKAGE_TFMS "native")
+    elseif(APPLE)
+        set(CPACK_GENERATOR "productbuild"
+            CACHE STRING "CPack generators to use for binary packages."
+           )
+        set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+        set(CPACK_PRODUCTBUILD_IDENTIFIER "com.tgockel.jsonv")
+        set(CPACK_PRODUCTBUILD_DOMAINS ON)
+        set(CPACK_PRODUCTBUILD_DOMAINS_ANYWHERE OFF)
+        set(CPACK_PRODUCTBUILD_DOMAINS_USER OFF)
+        set(CPACK_PRODUCTBUILD_DOMAINS_ROOT ON)
     endif()
 
     include(CPack)

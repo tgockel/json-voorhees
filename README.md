@@ -42,7 +42,7 @@ Compile and Install
 -------------------
 
 JSON Voorhees uses [CMake](http://www.cmake.org/) as the automatic configuration software.
-On Linux or Mac OSX, if you have `cmake`, a C++ compiler, and a build tool installed:
+On Linux or macOS, if you have `cmake`, a C++ compiler, and a build tool installed:
 
     $> cmake -S . -B build -DJSONV_BUILD_TESTS=ON
     $> cmake --build build --target check --parallel
@@ -71,6 +71,11 @@ On Windows, CPack builds a native NuGet package:
 
     $> cmake -S . -B build-package -G "Visual Studio 17 2022" -A x64 -DCPACK_GENERATOR=NuGet
     $> cmake --build build-package --config Release --target package --parallel
+
+On macOS, CPack builds a native installer package:
+
+    $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
+    $> cmake --build build-package --target package --parallel
 
 Future
 ------

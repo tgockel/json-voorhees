@@ -308,6 +308,85 @@ jobs:
           name: jsonv-nuget-package
           path: build/*.nupkg
 
+  macos-packages:
+    name: Packages (macOS pkg)
+    runs-on: macos-15
+    needs: build
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: brew install ninja
+
+      - name: Configure package build
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=/usr/local
+          -DCPACK_GENERATOR=productbuild
+
+      - name: Build macOS package
+        run: cmake --build build --target package --parallel
+
+      - name: Inspect macOS package
+        shell: bash
+        run: |
+          packages=(build/*.pkg)
+          if [ ! -e "${packages[0]}" ]; then
+            echo "Expected a macOS package in build/" >&2
+            exit 1
+          fi
+
+          package="${packages[0]}"
+          pkgutil --payload-files "${package}" | tee package-files.txt
+
+          grep 'usr/local/include/jsonv/all.hpp' package-files.txt
+          grep 'usr/local/lib/libjsonv' package-files.txt
+          grep 'usr/local/lib/pkgconfig/libjsonv.pc' package-files.txt
+          grep 'usr/local/lib/cmake/jsonv/jsonv-export.cmake' \
+            package-files.txt
+
+      - name: Install macOS package
+        shell: bash
+        run: |
+          packages=(build/*.pkg)
+          if [ ! -e "${packages[0]}" ]; then
+            echo "Expected a macOS package in build/" >&2
+            exit 1
+          fi
+
+          sudo installer -pkg "${packages[0]}" -target /
+
+      - name: Compile and run installed-package smoke test
+        shell: bash
+        run: |
+          cat >/tmp/jsonv-smoke.cpp <<'EOF'
+          #include <jsonv/all.hpp>
+
+          int main()
+          {
+              jsonv::value value = jsonv::parse(R"({"answer":42})");
+              return value.at("answer").as_integer() == 42 ? 0 : 1;
+          }
+          EOF
+
+          c++ -std=c++17 /tmp/jsonv-smoke.cpp \
+            -I/usr/local/include \
+            -L/usr/local/lib \
+            -Wl,-rpath,/usr/local/lib \
+            -ljsonv \
+            -o /tmp/jsonv-smoke
+          /tmp/jsonv-smoke
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsonv-macos-package
+          path: build/*.pkg
+
   docs:
     name: Build documentation
     runs-on: ubuntu-24.04

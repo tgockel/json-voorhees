@@ -30,6 +30,11 @@ Windows NuGet packages use the Visual Studio generator::
     $> cmake -S . -B build-package -G "Visual Studio 17 2022" -A x64 -DCPACK_GENERATOR=NuGet
     $> cmake --build build-package --config Release --target package --parallel
 
+macOS installer packages use CPack's ProductBuild generator::
+
+    $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
+    $> cmake --build build-package --target package --parallel
+
 The CI package jobs install the generated packages and compile a small downstream program against the installed headers,
 package metadata, and library.
 
