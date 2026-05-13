@@ -2,8 +2,8 @@ JSON Voorhees
 =============
 
 Yet another [JSON][JSON] library for C++.
-This one touts new C++11 features for developer-friendliness, an extremely slow-speed parser and no dependencies beyond
- a compliant compiler.
+This one targets C++23 for developer-friendliness, an extremely slow-speed parser, and no dependencies beyond a
+compliant compiler and standard library.
 If you love Doxygen, check out the [documentation](http://tgockel.github.io/json-voorhees/).
 
 Features include (but are not necessarily limited to):
@@ -100,11 +100,11 @@ Miscellaneous
 Compiler Support
 ----------------
 
- - Supported
-     - GCC 4.8+
-     - Clang 3.3+
- - Experimental
-     - MSVC 14.0 CTP5+ (Visual C++ 2015)
+JSON Voorhees 2.0 requires a C++23-capable compiler and standard library.
+
+The support contract is the C++23 language mode, not a fixed compiler-version matrix. As examples, modern GCC and Clang
+toolchains should be built with `-std=c++23`; for MSVC, use stable `/std:c++23` support when it is available for your
+toolset. MSVC `/std:c++23preview` is treated as experimental.
 
 Versioning
 ----------

@@ -10,7 +10,7 @@
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
-cmake_minimum_required(VERSION 3.12...3.29)
+cmake_minimum_required(VERSION 3.20...3.29)
 project(json-voorhees)
 
 set(PACKAGE_NAME "jsonv"
@@ -38,10 +38,9 @@ set(JSONV_VERSION    "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}.${JSONV_VERS
 set(JSONV_SO_VERSION "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}")
 message(STATUS "JSONV version: ${JSONV_VERSION} (${JSONV_SO_VERSION})")
 
-set(CXX_STANDARD_DEFAULT "c++17")
-set(CXX_STANDARD ${CXX_STANDARD_DEFAULT}
-    CACHE STRING "The version of the language to use (only applies to GCC and Clang)."
-   )
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(JSONV_BUILD_TESTS
        "Should the unit test library get built?"
@@ -82,7 +81,7 @@ option(BENCHMARK
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD} -pedantic -Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
     set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -ggdb -DJSONV_DEBUG=1")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ggdb")
 endif(WIN32)
@@ -108,7 +107,7 @@ file(GLOB_RECURSE jsonv_cpps RELATIVE_PATH "." "src/jsonv/*.cpp")
 add_library(jsonv ${LIBRARY_TYPE} ${jsonv_cpps})
 target_compile_features(jsonv
                         PUBLIC
-                          cxx_std_17
+                          cxx_std_23
                        )
 target_include_directories(jsonv
                            PUBLIC

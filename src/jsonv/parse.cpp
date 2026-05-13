@@ -160,7 +160,7 @@ value parse(const char* begin, const char* end, const parse_options& parse_opts,
 
 JSONV_PARSE_IMPL_OVERLOADS((const char* begin, const char* end), (begin, end))
 
-value operator"" _json(const char* str, std::size_t len)
+value operator""_json(const char* str, std::size_t len)
 {
     return parse(string_view(str, len));
 }

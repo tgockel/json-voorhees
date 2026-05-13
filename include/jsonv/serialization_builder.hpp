@@ -235,7 +235,7 @@ namespace jsonv
 ///
 /// \paragraph serialization_builder_dsl_ref_formats_level_register_containers register_containers
 ///
-///  - <tt>register_containers&lt;T, template &lt;T, ...&gt;... TTContainer&gt;</tt>
+///  - <tt>register_containers&lt;T, template &lt;class...&gt; class... TTContainer&gt;</tt>
 ///
 /// Convenience function for calling \c register_container for multiple containers with the same \c value_type.
 /// Unfortunately, it only supports varying the first template parameter of the \c TTContainer types, so if you wish to
@@ -246,9 +246,6 @@ namespace jsonv
 ///   .register_containers<int, std::list, std::deque>()
 ///   .register_containers<double, std::vector, std::set>()
 /// \endcode
-///
-/// \note
-/// Not supported in MSVC 14 (CTP 5).
 ///
 /// \paragraph serialization_builder_dsl_ref_formats_level_register_wrapper register_wrapper
 ///
@@ -602,10 +599,8 @@ public:
     template <typename TContainer>
     formats_builder& register_container();
 
-    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
     template <typename T, template <class...> class... TTContainers>
     formats_builder& register_containers();
-    #endif
 
     template <typename TWrapper>
     formats_builder& register_wrapper();
@@ -1334,7 +1329,6 @@ public:
         return *this;
     }
 
-    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
     template <typename T>
     formats_builder& register_containers()
     {
@@ -1347,7 +1341,6 @@ public:
         register_container<TTContainer<T>>();
         return register_containers<T, TTRest...>();
     }
-    #endif
 
     operator formats() const
     {
@@ -1456,13 +1449,11 @@ formats_builder& formats_builder_dsl::register_container()
     return owner->register_container<TContainer>();
 }
 
-#if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
 template <typename T, template <class...> class... TTContainers>
 formats_builder& formats_builder_dsl::register_containers()
 {
     return owner->register_containers<T, TTContainers...>();
 }
-#endif
 
 template <typename TWrapper>
 formats_builder& formats_builder_dsl::register_wrapper()

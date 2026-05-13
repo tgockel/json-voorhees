@@ -17,17 +17,7 @@ namespace jsonv
 /// \def JSONV_FALLTHROUGH
 /// Used in \c case statements that are intentionally meant to fall through to the next.
 #ifndef JSONV_FALLTHROUGH
-#   if defined __has_cpp_attribute
-#       if __has_cpp_attribute(fallthrough)
-#           define JSONV_FALLTHROUGH() [[fallthrough]]
-#       elif __has_cpp_attribute(clang::fallthrough)
-#           define JSONV_FALLTHROUGH() [[clang::fallthrough]]
-#       else
-#           define JSONV_FALLTHROUGH()
-#       endif
-#   else
-#       define JSONV_FALLTHROUGH()
-#   endif
+#   define JSONV_FALLTHROUGH() [[fallthrough]]
 #endif
 
 }

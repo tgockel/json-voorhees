@@ -16,6 +16,7 @@
 #include <jsonv/value.hpp>
 #include <jsonv/version.hpp>
 
+#include <exception>
 #include <memory>
 #include <new>
 #include <typeinfo>
@@ -629,10 +630,10 @@ public:
     template <typename T>
     T extract(const value& from) const
     {
-        typename std::aligned_storage<sizeof(T), alignof(T)>::type place[1];
-        T* ptr = reinterpret_cast<T*>(place);
-        extract(typeid(T), from, static_cast<void*>(ptr));
-        auto destroy = detail::on_scope_exit([ptr] { ptr->~T(); });
+        alignas(T) unsigned char place[sizeof(T)];
+        extract(typeid(T), from, static_cast<void*>(place));
+        T* ptr = std::launder(reinterpret_cast<T*>(place));
+        auto destroy = detail::on_scope_exit([ptr] { std::destroy_at(ptr); });
         return std::move(*ptr);
     }
 
@@ -650,10 +651,10 @@ public:
     template <typename T>
     T extract_sub(const value& from, jsonv::path subpath) const
     {
-        typename std::aligned_storage<sizeof(T), alignof(T)>::type place[1];
-        T* ptr = reinterpret_cast<T*>(place);
-        extract_sub(typeid(T), from, std::move(subpath), static_cast<void*>(ptr));
-        auto destroy = detail::on_scope_exit([ptr] { ptr->~T(); });
+        alignas(T) unsigned char place[sizeof(T)];
+        extract_sub(typeid(T), from, std::move(subpath), static_cast<void*>(place));
+        T* ptr = std::launder(reinterpret_cast<T*>(place));
+        auto destroy = detail::on_scope_exit([ptr] { std::destroy_at(ptr); });
         return std::move(*ptr);
     }
 

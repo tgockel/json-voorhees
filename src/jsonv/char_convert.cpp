@@ -25,13 +25,9 @@
 #include "detail/fixed_map.hpp"
 #include "detail/is_print.hpp"
 
-#if __cplusplus >= 201703L || defined __has_include
-#   if __has_include(<alloca.h>)
-#       define JSONV_HAS_ALLOCA 1
-#       include <alloca.h>
-#   else
-#       define JSONV_HAS_ALLOCA 0
-#   endif
+#if __has_include(<alloca.h>)
+#   define JSONV_HAS_ALLOCA 1
+#   include <alloca.h>
 #else
 #   define JSONV_HAS_ALLOCA 0
 #endif

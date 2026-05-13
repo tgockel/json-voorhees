@@ -139,12 +139,7 @@ TEST(serialization_builder_container_members)
                         .member("age",              &person::age)
                         .member("favorite_numbers", &person::favorite_numbers)
                         .member("winning_numbers",  &person::winning_numbers)
-                    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
                     .register_containers<long, std::set, std::vector>()
-                    #else
-                    .register_container<std::set<long>>()
-                    .register_container<std::vector<long>>()
-                    #endif
                     .compose_checked(formats::defaults())
                 ;
 
@@ -262,12 +257,7 @@ TEST(serialization_builder_defaults)
                                            }
                                           )
                             .default_on_null()
-                    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
                     .register_containers<long, std::set, std::vector>()
-                    #else
-                    .register_container<std::set<long>>()
-                    .register_container<std::vector<long>>()
-                    #endif
                     .compose_checked(formats::defaults())
                 ;
 
@@ -295,12 +285,7 @@ TEST(serialization_builder_encode_checks)
                             .encode_if([] (const serialization_context&, const std::set<long>& nums) { return nums.size(); })
                         .member("winning_numbers",  &person::winning_numbers)
                             .encode_if([] (const serialization_context&, const std::vector<long>& nums) { return nums.size(); })
-                    #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
                     .register_containers<long, std::set, std::vector>()
-                    #else
-                    .register_container<std::set<long>>()
-                    .register_container<std::vector<long>>()
-                    #endif
                     .compose_checked(formats::list { formats::defaults() })
                 ;
 
@@ -512,11 +497,7 @@ TEST(serialization_builder_enum_strings)
                                { ring::heart, "heart" },
                              }
                             )
-            #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
             .register_containers<ring, std::vector>()
-            #else
-            .register_container<std::vector<ring>>()
-            #endif
             .check_references();
 
     ensure(ring::fire  == jsonv::extract<ring>("fire",  formats));
@@ -552,11 +533,7 @@ TEST(serialization_builder_enum_strings_icase)
                                { ring::heart, "heart" },
                              }
                             )
-            #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
             .register_containers<ring, std::vector>()
-            #else
-            .register_container<std::vector<ring>>()
-            #endif
             .check_references(jsonv::formats::defaults());
 
     ensure(ring::fire  == jsonv::extract<ring>("fiRe",  formats));
@@ -594,11 +571,7 @@ TEST(serialization_builder_enum_strings_icase_multimapping)
                                { ring::heart, "useless" },
                              }
                             )
-             #if JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
-             .register_containers<ring, std::vector>()
-             #else
-             .register_container<std::vector<ring>>()
-             #endif
+            .register_containers<ring, std::vector>()
             .check_references(jsonv::formats::defaults());
 
     ensure(ring::fire  == jsonv::extract<ring>("fiRe",  formats));

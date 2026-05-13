@@ -22,7 +22,8 @@ TEST(move_to_self)
     const jsonv::value orig = jsonv::object({ {"a", 5} });
     jsonv::value x(orig);
     ensure_eq(orig, x);
-    x = std::move(x);
+    jsonv::value& same = x;
+    x = std::move(same);
     ensure_eq(orig, x);
 }
 

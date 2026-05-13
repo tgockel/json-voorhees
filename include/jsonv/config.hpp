@@ -106,26 +106,14 @@
 /// \def JSONV_UNUSED
 /// \brief Note that you know the variable is unused, but make the compiler stop complaining about it.
 #ifndef JSONV_UNUSED
-#   if __has_cpp_attribute(maybe_unused)
-#       define JSONV_UNUSED [[maybe_unused]]
-#   elif defined(__GNUC__)
-#       define JSONV_UNUSED __attribute__((unused))
-#   else
-#       define JSONV_UNUSED
-#   endif
+#   define JSONV_UNUSED [[maybe_unused]]
 #endif
 
 /// \def JSONV_NO_RETURN
 /// \brief Mark that a given function will never return control to the caller, either by exiting or throwing an
 /// exception.
 #ifndef JSONV_NO_RETURN
-#   if __has_cpp_attribute(noreturn)
-#       define JSONV_NO_RETURN [[noreturn]]
-#   elif defined(__GNUC__)
-#       define JSONV_NO_RETURN __attribute__((noreturn))
-#   else
-#       define JSONV_NO_RETURN
-#   endif
+#   define JSONV_NO_RETURN [[noreturn]]
 #endif
 
 /// \def JSONV_ALWAYS_INLINE
@@ -150,26 +138,12 @@
         item(unsigned long long)
 #endif
 
-/// \def JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
-/// Does the compiler properly support template templates? Most compilers do, MSVC does not.
-#ifndef JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES
-#   ifdef _MSC_VER
-#       define JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES 0
-#   else
-#       define JSONV_COMPILER_SUPPORTS_TEMPLATE_TEMPLATES 1
-#   endif
-#endif
-
 /// \def JSONV_LIKELY
 /// Mark that a section of code is likely to be reached.
 ///
 /// \see JSONV_UNLIKELY
 #ifndef JSONV_LIKELY
-#   if __has_cpp_attribute(likely)
-#       define JSONV_LIKELY [[likely]]
-#   else
-#       define JSONV_LIKELY
-#   endif
+#   define JSONV_LIKELY [[likely]]
 #endif
 
 /// \def JSONV_UNLIKELY
@@ -177,11 +151,7 @@
 ///
 /// \see JSONV_LIKELY
 #ifndef JSONV_UNLIKELY
-#   if __has_cpp_attribute(unlikely)
-#       define JSONV_UNLIKELY [[unlikely]]
-#   else
-#       define JSONV_UNLIKELY
-#   endif
+#   define JSONV_UNLIKELY [[unlikely]]
 #endif
 
 /// \}
