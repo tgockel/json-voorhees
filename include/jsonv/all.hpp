@@ -685,11 +685,11 @@ namespace jsonv
 ///
 /// Imagine the possibilities!
 ///
-/// All of the \e really powerful functions can be found in \c util.hpp. My personal favorite is \c jsonv::merge. The
-/// idea is simple: it merges two (or more) JSON values into one.
+/// All of the \e really powerful functions can be found in \c algorithm.hpp. My personal favorite is \c jsonv::merge.
+/// The idea is simple: it merges two (or more) JSON values into one.
 ///
 /// \code
-/// #include <jsonv/util.hpp>
+/// #include <jsonv/algorithm.hpp>
 /// #include <jsonv/value.hpp>
 ///
 /// #include <iostream>
@@ -737,6 +737,5 @@ namespace jsonv
 #include "serialization_builder.hpp"
 #include "serialization/all.hpp"
 #include "string_view.hpp"
-#include "util.hpp"
 #include "value.hpp"
 #include "version.hpp"

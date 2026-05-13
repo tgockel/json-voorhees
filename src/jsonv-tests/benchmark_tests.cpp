@@ -13,8 +13,8 @@
 #include "filesystem_util.hpp"
 #include "stopwatch.hpp"
 
+#include <jsonv/algorithm.hpp>
 #include <jsonv/parse.hpp>
-#include <jsonv/util.hpp>
 #include <jsonv/value.hpp>
 
 #include <fstream>

@@ -9,9 +9,9 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/coerce.hpp>
+#include <jsonv/algorithm.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
-#include <jsonv/util.hpp>
 
 #include <limits>
 
