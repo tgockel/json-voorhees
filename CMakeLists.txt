@@ -131,6 +131,9 @@ endif()
 set(LIBRARY_TYPE ${DEFAULT_LIBRARY_TYPE}
     CACHE STRING "The type of library to build (SHARED or STATIC)"
    )
+if (LIBRARY_TYPE STREQUAL "STATIC")
+    add_definitions("-DJSONV_SO=0")
+endif()
 
 option(BENCHMARK
        "Enable compilation of the json-benchmark program."

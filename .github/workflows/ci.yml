@@ -41,14 +41,29 @@ jobs:
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
-        run: '& "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install boost-filesystem boost-system --triplet x64-windows'
+        run: >
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install
+          boost-filesystem
+          boost-lexical-cast
+          boost-system
+          --triplet x64-windows
 
       - name: Configure (Unix)
         if: runner.os != 'Windows'
-        run: >
-          cmake -S . -B build -G Ninja
-          -DJSONV_BUILD_TESTS=ON
-          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+        run: |
+          cmake_args=(
+            -S .
+            -B build
+            -G Ninja
+            -DJSONV_BUILD_TESTS=ON
+            -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          )
+
+          if [[ "${RUNNER_OS}" == "macOS" ]]; then
+            cmake_args+=(-DUSE_BOOST_OPTIONAL=ON)
+          fi
+
+          cmake "${cmake_args[@]}"
 
       - name: Configure (Windows)
         if: runner.os == 'Windows'
@@ -58,6 +73,7 @@ jobs:
           -G "Visual Studio 17 2022"
           -A x64
           -DJSONV_BUILD_TESTS=ON
+          -DUSE_BOOST_OPTIONAL=ON
           -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-windows
 

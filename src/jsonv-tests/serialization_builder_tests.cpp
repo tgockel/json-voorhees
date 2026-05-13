@@ -629,6 +629,8 @@ namespace
 
 struct base
 {
+    virtual ~base() = default;
+
     virtual std::string get() const = 0;
 };
 

@@ -86,6 +86,7 @@ class unit_test
 {
 public:
     explicit unit_test(const std::string& name);
+    virtual ~unit_test();
     
     bool run();
     
