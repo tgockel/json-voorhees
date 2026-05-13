@@ -581,7 +581,7 @@ std::string string_decode(string_view source)
         throw decode_error(utf8_sequence_start, os.str());
     }
 
-    output.append(last_pushed_src, source.end());
+    output.append(last_pushed_src, source.data() + source.size());
     return output;
 }
 

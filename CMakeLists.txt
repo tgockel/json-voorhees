@@ -106,6 +106,10 @@ endif()
 
 file(GLOB_RECURSE jsonv_cpps RELATIVE_PATH "." "src/jsonv/*.cpp")
 add_library(jsonv ${LIBRARY_TYPE} ${jsonv_cpps})
+target_compile_features(jsonv
+                        PUBLIC
+                          cxx_std_17
+                       )
 target_include_directories(jsonv
                            PUBLIC
                              "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -315,12 +319,22 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32 OR APPLE)
         set(CPACK_NUGET_PACKAGE_HOMEPAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
         set(CPACK_NUGET_PACKAGE_LICENSE_EXPRESSION "Apache-2.0")
         set(CPACK_NUGET_PACKAGE_TAGS "native C++ JSON jsonv")
-        set(CPACK_NUGET_PACKAGE_TFMS "native")
+        set(CPACK_NUGET_PACKAGE_REPOSITORY_URL
+            "https://github.com/tgockel/json-voorhees.git"
+           )
+        set(CPACK_NUGET_PACKAGE_REPOSITORY_TYPE git)
     elseif(APPLE)
         set(CPACK_GENERATOR "productbuild"
             CACHE STRING "CPack generators to use for binary packages."
            )
         set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
+                       "${CMAKE_CURRENT_BINARY_DIR}/CPackLicense.txt"
+                       COPYONLY
+                      )
+        set(CPACK_RESOURCE_FILE_LICENSE
+            "${CMAKE_CURRENT_BINARY_DIR}/CPackLicense.txt"
+           )
         set(CPACK_PRODUCTBUILD_IDENTIFIER "com.tgockel.jsonv")
         set(CPACK_PRODUCTBUILD_DOMAINS ON)
         set(CPACK_PRODUCTBUILD_DOMAINS_ANYWHERE OFF)

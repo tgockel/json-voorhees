@@ -1563,7 +1563,7 @@ adapter_builder<T>& adapter_builder_dsl<T>::on_extract_extra_keys(typename adapt
  *
  *  \throws extraction_error always.
 **/
-JSONV_PUBLIC JSONV_NO_RETURN
+JSONV_NO_RETURN JSONV_PUBLIC
 void throw_extra_keys_extraction_error(const extraction_context&    context,
                                        const value&                 from,
                                        const std::set<std::string>& extra_keys

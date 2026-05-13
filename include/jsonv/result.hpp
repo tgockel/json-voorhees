@@ -225,8 +225,8 @@ struct result_map_flat_result<result<TInputValue, TInputError>&&,
     };
 };
 
-template <typename TInputValue, typename TInputError, typename FUnary>
-struct result_map_flat_result<result<TInputValue, TInputError>&&, FUnary, std::void_t<std::invoke_result_t<FUnary>>>
+template <typename TInputError, typename FUnary>
+struct result_map_flat_result<result<void, TInputError>&&, FUnary, std::void_t<std::invoke_result_t<FUnary>>>
 {
     struct info
     {
@@ -342,7 +342,7 @@ struct result_recover_result<const result<TInputValue, TInputError>&,
     {
         using function_result_type = std::invoke_result_t<FUnary, const TInputError&>;
 
-        static_assert(is_template_of_v<optional, function_result_type>,
+        static_assert(is_template_of_v<std::optional, function_result_type>,
                       "Function provided to `recover` must return a `jsonv::optional`"
                      );
 
@@ -369,7 +369,7 @@ struct result_recover_result<const result<TInputValue, void>&,
     {
         using function_result_type = std::invoke_result_t<FUnary>;
 
-        static_assert(is_template_of_v<optional, function_result_type>,
+        static_assert(is_template_of_v<std::optional, function_result_type>,
                       "Function provided to `recover` must return a `jsonv::optional`"
                      );
 
@@ -751,14 +751,14 @@ private:
     {
         const auto& self = static_cast<const self_type&>(*this);
         self.ensure_state(op_name, result_state::ok);
-        return std::get<self.ok_index>(self._storage).get();
+        return std::get<self_type::ok_index>(self._storage).get();
     }
 
     inline constexpr value_type& get_raw(const char* op_name)
     {
         auto& self = static_cast<self_type&>(*this);
         self.ensure_state(op_name, result_state::ok);
-        return std::get<self.ok_index>(self._storage).get();
+        return std::get<self_type::ok_index>(self._storage).get();
     }
 };
 
@@ -797,21 +797,21 @@ public:
     {
         const auto& self = static_cast<const self_type&>(*this);
         self.ensure_state("error", result_state::error);
-        return std::get<self.error_index>(self._storage).get();
+        return std::get<self_type::error_index>(self._storage).get();
     }
 
     error_type& error() &
     {
         auto& self = static_cast<self_type&>(*this);
         self.ensure_state("error", result_state::error);
-        return std::get<self.error_index>(self._storage).get();
+        return std::get<self_type::error_index>(self._storage).get();
     }
 
     error_type&& error() &&
     {
         auto& self = static_cast<self_type&>(*this);
         self.ensure_state("error", result_state::error);
-        return std::get<self.error_index>(std::move(self._storage)).get();
+        return std::get<self_type::error_index>(std::move(self._storage)).get();
     }
     /// \}
 };

@@ -28,23 +28,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Install dependencies (Ubuntu)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes ninja-build
-
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: brew install ninja
-
       - name: Configure (Unix)
         if: runner.os != 'Windows'
         run: |
           cmake_args=(
             -S .
             -B build
-            -G Ninja
             -DJSONV_BUILD_TESTS=ON
             -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           )
@@ -97,21 +86,20 @@ jobs:
             dpkg-dev \
             file \
             git \
-            ninja-build \
             pkg-config
 
       - name: Install dependencies (RPM)
         if: matrix.format == 'rpm'
         shell: bash
         run: |
-          dnf install --yes \
+          dnf install -y \
             ca-certificates \
             cmake \
             file \
             findutils \
             gcc-c++ \
             git \
-            ninja-build \
+            make \
             pkgconf-pkg-config \
             rpm-build
 
@@ -122,7 +110,6 @@ jobs:
         shell: bash
         run: >
           cmake -S . -B build
-          -G Ninja
           -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_INSTALL_PREFIX=/usr
           -DCPACK_GENERATOR=${{ matrix.cpack-generator }}
@@ -139,7 +126,9 @@ jobs:
           test "${#packages[@]}" -ge 2
 
           dpkg-deb --field "${packages[@]}"
-          dpkg-deb --contents "${packages[@]}"
+          for package in "${packages[@]}"; do
+            dpkg-deb --contents "${package}"
+          done
 
           runtime_package=$(find build -maxdepth 1 -name 'libjsonv[0-9]*.deb' -print -quit)
           development_package=$(find build -maxdepth 1 -name 'libjsonv-dev_*.deb' -print -quit)
@@ -179,7 +168,7 @@ jobs:
       - name: Install RPM packages
         if: matrix.format == 'rpm'
         shell: bash
-        run: dnf install --yes ./build/*.rpm
+        run: dnf install -y ./build/*.rpm
 
       - name: Compile and run installed-package smoke test
         shell: bash

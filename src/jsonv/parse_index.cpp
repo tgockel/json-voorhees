@@ -12,8 +12,8 @@
 #include <jsonv/serialization.hpp>
 
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
-#include <malloc.h>
 #include <new>
 #include <sstream>
 #include <utility>
@@ -44,13 +44,16 @@ static inline std::uint64_t encode(ast_node_type token, const char* src_location
 }
 
 static constexpr std::uintptr_t ast_node_prefix_add =
-    sizeof(std::uintptr_t) == sizeof(std::uint64_t) ? std::uintptr_t(1UL << 56) : 0;
+    sizeof(std::uintptr_t) == sizeof(std::uint64_t)
+        ? static_cast<std::uintptr_t>(std::uint64_t{1} << 56)
+        : std::uintptr_t{0};
 
-static constexpr std::uintptr_t ast_node_prefix_from_ptr(const char* src_begin)
+static inline std::uintptr_t ast_node_prefix_from_ptr(const char* src_begin)
 {
     if constexpr (sizeof(std::uintptr_t) == sizeof(std::uint64_t))
     {
-        constexpr std::uintptr_t mask = std::uintptr_t(0xffUL << 56);
+        constexpr std::uintptr_t mask =
+            static_cast<std::uintptr_t>(std::uint64_t{0xff} << 56);
         return reinterpret_cast<std::uintptr_t>(src_begin) & mask;
     }
     else
@@ -124,7 +127,7 @@ struct JSONV_LOCAL parse_index::impl final
             capacity = 16U;
 
         auto alloc_sz = sizeof(impl) + capacity * sizeof(std::uint64_t);
-        if (void* p = std::aligned_alloc(alignof(impl), alloc_sz))
+        if (void* p = std::malloc(alloc_sz))
         {
             auto out = reinterpret_cast<impl*>(p);
             out->src_begin         = nullptr;
