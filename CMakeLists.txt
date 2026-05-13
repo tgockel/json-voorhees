@@ -96,6 +96,9 @@ add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/dat
 include(GNUInstallDirs)
 
 configure_file(libjsonv.pc.in libjsonv.pc @ONLY)
+if(WIN32)
+    configure_file(packaging/nuget/jsonv.targets.in nuget/jsonv.targets @ONLY)
+endif()
 
 ################################################################################
 # Building                                                                     #
@@ -222,20 +225,22 @@ install(EXPORT exported
         FILE "${PACKAGE_NAME}-export.cmake"
         COMPONENT development
        )
+if(WIN32)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/nuget/jsonv.targets"
+            DESTINATION "build/native"
+            COMPONENT development
+           )
+endif()
 
 ################################################################################
 # Packaging                                                                    #
 ################################################################################
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32)
     include(CPackComponent)
 
-    set(CPACK_GENERATOR "DEB;RPM"
-        CACHE STRING "CPack generators to use for binary packages."
-       )
     set(CPACK_COMPONENTS_ALL runtime development)
     set(CPACK_COMPONENTS_GROUPING IGNORE)
-    set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
     set(CPACK_PACKAGE_NAME "${PACKAGE_NAME}")
     set(CPACK_PACKAGE_VENDOR "Travis Gockel")
     set(CPACK_PACKAGE_CONTACT "Travis Gockel <travis@gockelhut.com>")
@@ -259,38 +264,59 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
                         DEPENDS runtime
                        )
 
-    set(CPACK_DEB_COMPONENT_INSTALL ON)
-    set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
-    set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
-    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_CONTACT}")
-    set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
-    set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
-    set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS_POLICY ">=")
-    set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "libjsonv${JSONV_SO_VERSION}")
-    set(CPACK_DEBIAN_RUNTIME_PACKAGE_SECTION libs)
-    set(CPACK_DEBIAN_RUNTIME_PACKAGE_SHLIBDEPS ON)
-    set(CPACK_DEBIAN_RUNTIME_DESCRIPTION "Killer modern C++ library for interacting with JSON.")
-    set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_NAME "libjsonv-dev")
-    set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_SECTION libdevel)
-    set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_DEPENDS
-        "libjsonv${JSONV_SO_VERSION} (= ${JSONV_VERSION}-${CPACK_DEBIAN_PACKAGE_RELEASE})"
-       )
-    set(CPACK_DEBIAN_DEVELOPMENT_DESCRIPTION "Development files for JSON Voorhees.")
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(CPACK_GENERATOR "DEB;RPM"
+            CACHE STRING "CPack generators to use for binary packages."
+           )
+        set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
-    set(CPACK_RPM_COMPONENT_INSTALL ON)
-    set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
-    set(CPACK_RPM_PACKAGE_RELEASE 1)
-    set(CPACK_RPM_PACKAGE_LICENSE "Apache-2.0")
-    set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
-    set(CPACK_RPM_PACKAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
-    set(CPACK_RPM_MAIN_COMPONENT runtime)
-    set(CPACK_RPM_RUNTIME_PACKAGE_NAME "${PACKAGE_NAME}")
-    set(CPACK_RPM_RUNTIME_PACKAGE_SUMMARY "Killer JSON for C++")
-    set(CPACK_RPM_RUNTIME_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
-    set(CPACK_RPM_DEVELOPMENT_PACKAGE_NAME "${PACKAGE_NAME}-devel")
-    set(CPACK_RPM_DEVELOPMENT_PACKAGE_SUMMARY "Development files for JSON Voorhees")
-    set(CPACK_RPM_DEVELOPMENT_PACKAGE_DESCRIPTION "Headers and build metadata for compiling against JSON Voorhees.")
-    set(CPACK_RPM_DEVELOPMENT_PACKAGE_REQUIRES "${PACKAGE_NAME} = ${JSONV_VERSION}-${CPACK_RPM_PACKAGE_RELEASE}")
+        set(CPACK_DEB_COMPONENT_INSTALL ON)
+        set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+        set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
+        set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_CONTACT}")
+        set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
+        set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
+        set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS_POLICY ">=")
+        set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "libjsonv${JSONV_SO_VERSION}")
+        set(CPACK_DEBIAN_RUNTIME_PACKAGE_SECTION libs)
+        set(CPACK_DEBIAN_RUNTIME_PACKAGE_SHLIBDEPS ON)
+        set(CPACK_DEBIAN_RUNTIME_DESCRIPTION "Killer modern C++ library for interacting with JSON.")
+        set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_NAME "libjsonv-dev")
+        set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_SECTION libdevel)
+        set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_DEPENDS
+            "libjsonv${JSONV_SO_VERSION} (= ${JSONV_VERSION}-${CPACK_DEBIAN_PACKAGE_RELEASE})"
+           )
+        set(CPACK_DEBIAN_DEVELOPMENT_DESCRIPTION "Development files for JSON Voorhees.")
+
+        set(CPACK_RPM_COMPONENT_INSTALL ON)
+        set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
+        set(CPACK_RPM_PACKAGE_RELEASE 1)
+        set(CPACK_RPM_PACKAGE_LICENSE "Apache-2.0")
+        set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
+        set(CPACK_RPM_PACKAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
+        set(CPACK_RPM_MAIN_COMPONENT runtime)
+        set(CPACK_RPM_RUNTIME_PACKAGE_NAME "${PACKAGE_NAME}")
+        set(CPACK_RPM_RUNTIME_PACKAGE_SUMMARY "Killer JSON for C++")
+        set(CPACK_RPM_RUNTIME_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_NAME "${PACKAGE_NAME}-devel")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_SUMMARY "Development files for JSON Voorhees")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_DESCRIPTION "Headers and build metadata for compiling against JSON Voorhees.")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_REQUIRES "${PACKAGE_NAME} = ${JSONV_VERSION}-${CPACK_RPM_PACKAGE_RELEASE}")
+    elseif(WIN32)
+        set(CPACK_GENERATOR "NuGet"
+            CACHE STRING "CPack generators to use for binary packages."
+           )
+        set(CPACK_PACKAGING_INSTALL_PREFIX "")
+        set(CPACK_NUGET_PACKAGE_NAME "${PACKAGE_NAME}")
+        set(CPACK_NUGET_PACKAGE_VERSION "${JSONV_VERSION}")
+        set(CPACK_NUGET_PACKAGE_TITLE "JSON Voorhees")
+        set(CPACK_NUGET_PACKAGE_AUTHORS "Travis Gockel")
+        set(CPACK_NUGET_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
+        set(CPACK_NUGET_PACKAGE_HOMEPAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
+        set(CPACK_NUGET_PACKAGE_LICENSE_EXPRESSION "Apache-2.0")
+        set(CPACK_NUGET_PACKAGE_TAGS "native C++ JSON jsonv")
+        set(CPACK_NUGET_PACKAGE_TFMS "native")
+    endif()
 
     include(CPack)
 endif()

@@ -203,6 +203,111 @@ jobs:
           name: jsonv-${{ matrix.format }}-packages
           path: build/${{ matrix.package-glob }}
 
+  windows-packages:
+    name: Packages (nuget)
+    runs-on: windows-2025
+    needs: build
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Configure package build
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "Visual Studio 17 2022"
+          -A x64
+          -DCMAKE_INSTALL_PREFIX=install-root
+          -DCPACK_GENERATOR=NuGet
+
+      - name: Build NuGet package
+        shell: pwsh
+        run: cmake --build build --config Release --target package --parallel
+
+      - name: Install and inspect NuGet package
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem build -Filter '*.nupkg' |
+            Select-Object -First 1
+          if ($null -eq $package) {
+            throw 'Expected a NuGet package in build/'
+          }
+
+          $source = (Resolve-Path build).Path
+          nuget install jsonv `
+            -Source $source `
+            -OutputDirectory nuget-install `
+            -NonInteractive `
+            -Verbosity normal
+
+          $packageRoot = Get-ChildItem nuget-install -Directory |
+            Where-Object { $_.Name -like 'jsonv.*' } |
+            Select-Object -First 1
+          if ($null -eq $packageRoot) {
+            throw 'Expected NuGet install root under nuget-install/'
+          }
+
+          $expected = @(
+            'include\jsonv\all.hpp',
+            'lib\jsonv.lib',
+            'lib\cmake\jsonv\jsonv-export.cmake',
+            'build\native\jsonv.targets'
+          )
+          foreach ($path in $expected) {
+            $fullPath = Join-Path $packageRoot.FullName $path
+            if (-not (Test-Path $fullPath)) {
+              throw "Missing expected NuGet package path: $path"
+            }
+          }
+
+      - name: Compile and run installed-package smoke test
+        shell: pwsh
+        run: |
+          $packageRoot = Get-ChildItem nuget-install -Directory |
+            Where-Object { $_.Name -like 'jsonv.*' } |
+            Select-Object -First 1
+          $includeDir = Join-Path $packageRoot.FullName 'include'
+          $libDir = Join-Path $packageRoot.FullName 'lib'
+          $library = Join-Path $libDir 'jsonv.lib'
+
+          New-Item -ItemType Directory -Path smoke | Out-Null
+          @'
+          cmake_minimum_required(VERSION 3.12)
+          project(jsonv-smoke CXX)
+          add_executable(jsonv-smoke main.cpp)
+          target_compile_features(jsonv-smoke PRIVATE cxx_std_17)
+          target_include_directories(jsonv-smoke PRIVATE "${JSONV_INCLUDE_DIR}")
+          target_link_libraries(jsonv-smoke PRIVATE "${JSONV_LIBRARY}")
+          '@ | Set-Content -Path smoke\CMakeLists.txt -Encoding ascii
+
+          @'
+          #include <jsonv/all.hpp>
+
+          int main()
+          {
+              jsonv::value value = jsonv::parse(R"({"answer":42})");
+              return value.at("answer").as_integer() == 42 ? 0 : 1;
+          }
+          '@ | Set-Content -Path smoke\main.cpp -Encoding ascii
+
+          cmake -S smoke -B smoke-build `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            "-DJSONV_INCLUDE_DIR=$includeDir" `
+            "-DJSONV_LIBRARY=$library"
+          cmake --build smoke-build --config Release --parallel
+          .\smoke-build\Release\jsonv-smoke.exe
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsonv-nuget-package
+          path: build/*.nupkg
+
   docs:
     name: Build documentation
     runs-on: ubuntu-24.04

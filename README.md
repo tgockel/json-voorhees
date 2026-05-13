@@ -58,7 +58,8 @@ On Windows, use CMake with Visual Studio:
 
 ### Packages
 
-On Linux, CPack can create native binary packages from the CMake install rules:
+CPack can create native binary packages from the CMake install rules.
+On Linux:
 
     $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
     $> cmake --build build-package --target package --parallel
@@ -66,12 +67,10 @@ On Linux, CPack can create native binary packages from the CMake install rules:
 This builds `.deb` and `.rpm` packages when the corresponding platform tools are installed. To build only one format,
 configure with `-DCPACK_GENERATOR=DEB` or `-DCPACK_GENERATOR=RPM`.
 
-### Arch Linux
+On Windows, CPack builds a native NuGet package:
 
-If you use [Arch Linux](https://www.archlinux.org/), JSON Voorhees is easily installable via AUR.
-The "latest stable" is called [json-voorhees](https://aur.archlinux.org/packages/json-voorhees), while there is a "close
- to tip" package called [json-voorhees-git](https://aur.archlinux.org/packages/json-voorhees-git).
-With Arch, installation is as easy as `yaourt json-voorhees`!
+    $> cmake -S . -B build-package -G "Visual Studio 17 2022" -A x64 -DCPACK_GENERATOR=NuGet
+    $> cmake --build build-package --config Release --target package --parallel
 
 Future
 ------
@@ -226,10 +225,6 @@ This is because it is unclear what should happen when the library detects someth
 The library could `assert`, but that seems overbearing when there is a reasonable option to fall back to.
 Alternatively, the library could throw in these cases, but that leads to innocuous-looking operations like `x == y`
  being able to throw, which is somewhat disconcerning.
-
-### This is really helpful! Can I give you money?
-
-I would be [Flattr-ed](https://flattr.com/submit/auto?user_id=tgockel&url=https://github.com/tgockel/json-voorhees&title=json-voorhees&language=c++&tags=github&category=software)!
 
 ### With such a cool name, do you have an equally cool logo?
 
