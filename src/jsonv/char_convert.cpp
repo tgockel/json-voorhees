@@ -23,6 +23,7 @@
 #include <stdexcept>
 
 #include "detail/fixed_map.hpp"
+#include "detail/is_print.hpp"
 
 #if __cplusplus >= 201703L || defined __has_include
 #   if __has_include(<alloca.h>)
@@ -106,7 +107,7 @@ static const char* find_decoding(char char_after_backslash)
 static bool needs_unicode_escaping(char c)
 {
     return bool(c & '\x80')
-        || !std::isprint(c);
+        || !is_print(c);
 }
 
 static constexpr bool char_bitmatch(char c, char pos, char neg)
@@ -395,18 +396,18 @@ static void utf8_append_code(std::string& str, char32_t val)
     utf8_sequence_info(val, &length, &c);
 
     char buffer[8];
-    char* bufferOut = buffer;
-    *bufferOut++ = c;
+    char* buffer_out = buffer;
+    *buffer_out++ = c;
 
     std::size_t shift = (length - 2) * 6;
     for (std::size_t idx = 1; idx < length; ++idx)
     {
         c = char('\x80' | ('\x3f' & (val >> shift)));
-        *bufferOut++ = c;
+        *buffer_out++ = c;
         shift -= 6;
     }
 
-    str.append(buffer, bufferOut);
+    str.append(buffer, buffer_out);
 }
 
 static bool utf16_combine_surrogates(uint16_t high, uint16_t low, char32_t* out)
@@ -440,6 +441,7 @@ std::string string_decode(string_view source)
     typedef std::string::size_type size_type;
 
     std::string output;
+    output.reserve(source.size()); // OPTIMIZATION: Reserve a more appropriate size
     const char* last_pushed_src = source.data();
     size_type utf8_sequence_start = 0;
     unsigned remaining_utf8_sequence = 0;
@@ -465,7 +467,7 @@ std::string string_decode(string_view source)
                         throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
                     uint16_t hexval = from_hex(&source[idx + 2], idx + 2);
 
-                    if (encoding == parse_options::encoding::cesu8 || hexval < 0xd800U || hexval > 0xdfffU)
+                    if (hexval < 0xd800U || hexval > 0xdfffU)
                     {
                         utf8_append_code(output, hexval);
 
@@ -522,7 +524,7 @@ std::string string_decode(string_view source)
                     remaining_utf8_sequence = utf8_length - 1;
                     ++idx;
                 }
-                else if (require_printable && !std::isprint(current))
+                else if (require_printable && !is_print(current)) JSONV_UNLIKELY
                 {
                     std::ostringstream os;
                     os << "Unprintable character found in input: ";
@@ -552,7 +554,7 @@ std::string string_decode(string_view source)
                 --remaining_utf8_sequence;
             }
             // not on a UTF8 continuation, even though we should be...
-            else
+            else JSONV_UNLIKELY
             {
                 std::ostringstream os;
                 os << "Invalid UTF-8 multi-byte sequence in source: \"";
@@ -566,7 +568,7 @@ std::string string_decode(string_view source)
         }
     }
 
-    if (encoding != parse_options::encoding::cesu8 && remaining_utf8_sequence > 0)
+    if (remaining_utf8_sequence > 0) JSONV_UNLIKELY
     {
         std::ostringstream os;
         os << "unterminated UTF-8 sequence at end of string: \"";
@@ -579,7 +581,7 @@ std::string string_decode(string_view source)
         throw decode_error(utf8_sequence_start, os.str());
     }
 
-    output.append(last_pushed_src, source.end());
+    output.append(last_pushed_src, source.data() + source.size());
     return output;
 }
 
@@ -587,8 +589,6 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
 {
     switch (encoding)
     {
-    case parse_options::encoding::cesu8:
-        return string_decode<parse_options::encoding::cesu8, false>;
     case parse_options::encoding::utf8_strict:
         return string_decode<parse_options::encoding::utf8, true>;
     case parse_options::encoding::utf8:

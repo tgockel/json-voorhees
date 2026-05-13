@@ -1,20 +1,18 @@
-/** \file
- *
- *  Copyright (c) 2015-2019 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
-
-
+/// \file
+///
+/// Copyright (c) 2015-2019 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
+#include <jsonv/optional.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization_builder.hpp>
-#include <jsonv/serialization_optional.hpp>
+#include <jsonv/serialization/function_adapter.hpp>
 
 #include <set>
 #include <sstream>
@@ -85,10 +83,10 @@ TEST(serialization_builder_members)
 {
     formats fmt = formats_builder()
                     .type<person>()
-                        .member("firstname", &person::firstname)
+                        .member("firstname",   &person::firstname)
                         .member("middle_name", &person::middle_name)
-                        .member("lastname",  &person::lastname)
-                        .member("age",       &person::age)
+                        .member("lastname",    &person::lastname)
+                        .member("age",         &person::age)
                         .register_optional<optional<std::string>>()
                     .compose_checked(formats::defaults())
                 ;

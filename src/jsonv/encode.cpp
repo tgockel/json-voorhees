@@ -1,6 +1,6 @@
 /** \file
  *  Classes and functions for encoding JSON values to various representations.
- *  
+ *
  *  Copyright (c) 2014 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -67,7 +67,7 @@ void encoder::encode(const value& source)
                     first = false;
                 else
                     write_object_delimiter();
-                
+
                 write_object_key(entry.first);
                 encode(entry.second);
             }

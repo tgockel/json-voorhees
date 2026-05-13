@@ -1,6 +1,6 @@
 /** \file jsonv/algorithm.hpp
  *  A collection of algorithms a la `&lt;algorithm&gt;`.
- *  
+ *
  *  Copyright (c) 2014-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -32,7 +32,7 @@ class path;
 
 /** Traits describing how to perform various aspects of comparison. This implementation for comparison is strict and is
  *  ultimately the one used by \c value::compare.
- *  
+ *
  *  \see compare
 **/
 struct JSONV_PUBLIC compare_traits
@@ -47,7 +47,7 @@ struct JSONV_PUBLIC compare_traits
         int vb = kindval(b);
         return va == vb ? 0 : va < vb ? -1 : 1;
     }
-    
+
     /** Compare two boolean values. **/
     static int compare_booleans(bool a, bool b)
     {
@@ -55,7 +55,7 @@ struct JSONV_PUBLIC compare_traits
              : a      ?  1
              :          -1;
     }
-    
+
     /** Compare two integer values. **/
     static int compare_integers(std::int64_t a, std::int64_t b)
     {
@@ -71,19 +71,19 @@ struct JSONV_PUBLIC compare_traits
              : (a < b)                                                                ? -1
              :                                                                           1;
     }
-    
+
     /** Compare two string values. **/
     static int compare_strings(const std::string& a, const std::string& b)
     {
         return a.compare(b);
     }
-    
+
     /** Compare two strings used for the keys of objects. **/
     static int compare_object_keys(const std::string& a, const std::string& b)
     {
         return a.compare(b);
     }
-    
+
     /** Compare two objects \e before comparing the values. The \c compare function will only check the contents of an
      *  object if this function returns 0.
     **/
@@ -91,7 +91,7 @@ struct JSONV_PUBLIC compare_traits
     {
         return 0;
     }
-    
+
 private:
     static int kindval(kind k)
     {
@@ -117,7 +117,7 @@ private:
 };
 
 /** Compare the values \a a and \a b using the comparison \a traits.
- *  
+ *
  *  \tparam TCompareTraits A type which should be compatible with the public signatures on the \c compare_traits class.
 **/
 template <typename TCompareTraits>
@@ -125,10 +125,10 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
 {
     if (&a == &b)
         return 0;
-    
+
     if (int kindcmp = traits.compare_kinds(a.kind(), b.kind()))
         return kindcmp;
-    
+
     switch (a.kind())
     {
     case jsonv::kind::null:
@@ -158,7 +158,7 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
     {
         if (int objmetacmp = traits.compare_objects_meta(a, b))
             return objmetacmp;
-        
+
         auto aiter = a.begin_object();
         auto biter = b.begin_object();
         for ( ; aiter != a.end_object() && biter != b.end_object(); ++aiter, ++biter)
@@ -176,30 +176,28 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
     }
 }
 
-/** Compare the values \a a and \a b with strict comparison traits.
- *  
- *  \see value::compare
- *  \see compare_icase
-**/
+/// Compare the values \a a and \a b with strict comparison traits.
+///
+/// \see value::compare
+/// \see compare_icase
 JSONV_PUBLIC int compare(const value& a, const value& b);
 
-/** Compare the values \a a and \a b, but use case-insensitive matching on \c kind::string values. This does \e not use
- *  case-insensitive matching on the keys of objects!
- *  
- *  \see compare
-**/
+/// Compare the values \a a and \a b, but use case-insensitive matching on \c kind::string values. This does \e not use
+/// case-insensitive matching on the keys of objects!
+///
+/// \see compare
 JSONV_PUBLIC int compare_icase(const value& a, const value& b);
 
-/** The results of the \c diff operation. **/
+/// The results of the \c diff operation.
 struct JSONV_PUBLIC diff_result
 {
-    /** Elements that were the same between the two halves of the diff. **/
+    /// Elements that were the same between the two halves of the diff.
     value same;
 
-    /** Elements that were unique to the left hand side of the diff. **/
+    /// Elements that were unique to the left hand side of the diff.
     value left;
 
-    /** Elements that were unique to the right hand side of the diff. **/
+    /// Elements that were unique to the right hand side of the diff.
     value right;
 };
 
@@ -217,7 +215,7 @@ JSONV_PUBLIC diff_result diff(value left, value right);
  *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
  *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
  *  transformed by \a func.
- *  
+ *
  *  \param func The function to apply to the element or elements of \a input.
  *  \param input The value to transform.
 **/
@@ -230,10 +228,10 @@ JSONV_PUBLIC value map(const std::function<value (const value&)>& func,
  *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
  *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
  *  transformed by \a func.
- *  
+ *
  *  \param func The function to apply to the element or elements of \a input.
  *  \param input The value to transform.
- *  
+ *
  *  \note
  *  This version of \c map provides only a basic exception-safety guarantee. If an exception is thrown while
  *  transforming a non-scalar \c kind, there is no rollback action, so \a input is left in a usable, but
@@ -245,7 +243,7 @@ JSONV_PUBLIC value map(const std::function<value (value)>& func,
                       );
 
 /** Recursively walk the provided \a tree and call \a func for each item in the tree.
- *  
+ *
  *  \param tree The JSON value to traverse.
  *  \param func The function to call for each element in the tree.
  *  \param base_path The path to prepend to each output path to \a func. This can be useful if beginning traversal from
@@ -261,7 +259,7 @@ JSONV_PUBLIC void traverse(const value&                                         
                           );
 
 /** Recursively walk the provided \a tree and call \a func for each item in the tree.
- *  
+ *
  *  \param tree The JSON value to traverse.
  *  \param func The function to call for each element in the tree.
  *  \param leafs_only If true, call \a func only when the current path is a "leaf" value (\c string, \c integer,
@@ -298,7 +296,7 @@ public:
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const = 0;
 };
 
-/** An implementation of \c merge_rules that allows you to bind whatever functions you want to resolve conflicts. **/
+/// An implementation of \c merge_rules that allows you to bind whatever functions you want to resolve conflicts.
 class JSONV_PUBLIC dynamic_merge_rules :
         public merge_rules
 {
@@ -325,51 +323,51 @@ public:
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
-/** These rules throw an exception on all conflicts. **/
+/// These rules throw an exception on all conflicts.
 class JSONV_PUBLIC throwing_merge_rules :
         public merge_rules
 {
 public:
-    /** \throws std::logic_error **/
+    /// \throws std::logic_error
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const override;
 
-    /** \throws kind_error **/
+    /// \throws kind_error
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
-/** These rules will recursively merge everything they can and coerce all values. **/
+/// These rules will recursively merge everything they can and coerce all values.
 class JSONV_PUBLIC recursive_merge_rules :
         public merge_rules
 {
 public:
-    /** Recursively calls \c merge_explicit with the two values. **/
+    /// Recursively calls \c merge_explicit with the two values.
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const override;
 
-    /** Calls \c coerce_merge to combine the values. **/
+    /// Calls \c coerce_merge to combine the values.
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
-/** Merges two \c values, \a a and \a b into a single \c value.
- *
- *  The merging follows a few simple rules:
- *
- *   - If \a a.kind() != \a b.kind() and they are not \c kind::integer and \c kind::decimal, call \a on_type_conflict
- *     and return the result.
- *   - Otherwise, branch based on the (shared) type:
- *     - \c kind::object - Return a new object with all the values from \a a and \a b for the keys which are unique per
- *       object. For the keys which are shared, the value is the result of \a on_same_key.
- *     - \c kind::array - Return a new array with the values of \a b appended to \a a.
- *     - \c kind::string - Return a new string with \a b appended to \a a.
- *     - \c kind::boolean - Return `a.as_boolean() || b.as_boolean()`
- *     - \c kind::integer - If \b is \c kind::integer, return `a + b` as an integer; otherwise, return it as a decimal.
- *     - \c kind::decimal - Return `a + b` as a decimal.
- *
- *  \param rules are the rules to merge with (see \c merge_rules).
- *  \param current_path The current \c path into the \c value that we are merging. This can be used to give more useful
- *                      error information if we are merging recursively.
- *  \param a is a \c value to merge.
- *  \param b is a \c value to merge.
-**/
+/// Merges two \c values, \a a and \a b into a single \c value.
+///
+/// The merging follows a few simple rules:
+///
+///  - If \a a.kind() != \a b.kind() and they are not \c kind::integer and \c kind::decimal, call \a on_type_conflict
+///    and return the result.
+///  - Otherwise, branch based on the (shared) type:
+///    - \c kind::object - Return a new object with all the values from \a a and \a b for the keys which are unique per
+///      object. For the keys which are shared, the value is the result of \a on_same_key.
+///    - \c kind::array - Return a new array with the values of \a b appended to \a a.
+///    - \c kind::string - Return a new string with \a b appended to \a a.
+///    - \c kind::boolean - Return `a.as_boolean() || b.as_boolean()`
+///    - \c kind::integer - If \a b is \c kind::integer, return `a + b` as an integer; otherwise, return it as a
+///      decimal.
+///    - \c kind::decimal - Return `a + b` as a decimal.
+///
+/// \param rules are the rules to merge with (see \c merge_rules).
+/// \param current_path The current \c path into the \c value that we are merging. This can be used to give more useful
+///                     error information if we are merging recursively.
+/// \param a is a \c value to merge.
+/// \param b is a \c value to merge.
 JSONV_PUBLIC value merge_explicit(const merge_rules& rules,
                                   path               current_path,
                                   value              a,

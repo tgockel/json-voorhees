@@ -1,14 +1,14 @@
 digraph jsonv {
   label="Conversions"
   labelloc="t"
-  
-  str     [label="std::string"]
+
+  str     [label="std::string\nstd::string_view"]
   istream [label="std::istream"]
   ostream [label="std::ostream"]
   value   [label="value", URL="\ref jsonv::value"]
   class   [label="C++ class"]
   dsl     [label="C++ DSL"]
-  
+
   value   -> str     [label="to_string", URL="\ref jsonv::to_string(jsonv::value)"]
   value   -> ostream [label="operator<<"]
   str     -> value   [label="parse", URL="\ref jsonv::parse"]

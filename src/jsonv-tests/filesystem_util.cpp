@@ -1,6 +1,6 @@
 /** \file
  *  Utility functions for interacting with the filesystem.
- *  
+ *
  *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
@@ -27,7 +27,40 @@ std::string test_path(const std::string& path)
 
 }
 
-#ifdef _MSC_VER
+// TODO: libstdc++ requires explicit linking to libstdc++fs, but CMake does not have great cross-platform support for
+// linking when it is needed. Since a POSIX fallback exists anyway, we will always just use it on non-Windows platforms.
+// The `0` should be taken out when `<filesystem>` support actually becomes universal.
+#if 0 && __has_include(<filesystem>)
+
+#include <filesystem>
+
+namespace jsonv_test
+{
+
+namespace fs = std::filesystem;
+
+std::string filename(std::string path)
+{
+    return fs::path(path).filename().string();
+}
+
+void recursive_directory_for_each(const std::string&                             root_path_name,
+                                  const std::string&                             extension_filter,
+                                  const std::function<void (const std::string&)> action
+                                 )
+{
+    fs::path rootpath(root_path_name);
+    for (fs::directory_iterator iter(rootpath); iter != fs::directory_iterator(); ++iter)
+    {
+        fs::path p = *iter;
+        if (extension_filter.empty() || p.extension() == extension_filter)
+            action(p.string());
+    }
+}
+
+}
+
+#elif defined _MSC_VER
 
 #include <Windows.h>
 
@@ -49,7 +82,7 @@ void recursive_directory_for_each(const std::string&                            
     HANDLE search_handle = NULL;
 
     std::string filter = root_path_name + "\\*" + extension_filter;
-    
+
     if ((search_handle = FindFirstFileA(filter.c_str(), &found_file)) == INVALID_HANDLE_VALUE)
         return;
 
@@ -78,18 +111,21 @@ void recursive_directory_for_each(const std::string&                            
 
 }
 
-#else
+#else /* No <filesystem> and not Windows, so assume POSIX API...remove when <filesystem> is everywhere */
 
-#include <boost/filesystem.hpp>
+#include <cstring>
+
+#include <dirent.h>
+#include <ftw.h>
+#include <unistd.h>
 
 namespace jsonv_test
 {
 
-namespace fs = boost::filesystem;
-
 std::string filename(std::string path)
 {
-    return fs::path(path).filename().string();
+    auto pos = path.find_last_of('/');
+    return path.substr(pos + 1);
 }
 
 void recursive_directory_for_each(const std::string&                             root_path_name,
@@ -97,12 +133,32 @@ void recursive_directory_for_each(const std::string&                            
                                   const std::function<void (const std::string&)> action
                                  )
 {
-    fs::path rootpath(root_path_name);
-    for (fs::directory_iterator iter(rootpath); iter != fs::directory_iterator(); ++iter)
+    if (auto dirp = ::opendir(root_path_name.c_str()))
     {
-        fs::path p = *iter;
-        if (extension_filter.empty() || p.extension() == extension_filter)
-            action(p.string());
+        auto close_dirp = jsonv::detail::on_scope_exit([&] { ::closedir(dirp); });
+
+        while (auto entp = ::readdir(dirp))
+        {
+            // skip "." and ".."
+            if (std::strcmp(entp->d_name, ".") == 0
+                || std::strcmp(entp->d_name, "..") == 0
+                )
+            {
+                continue;
+            }
+
+            std::string sub = root_path_name + "/" + entp->d_name;
+
+            if ((entp->d_type & DT_DIR) == DT_DIR)
+            {
+                recursive_directory_for_each(sub, extension_filter, action);
+            }
+            else
+            {
+                if (extension_filter.empty() || sub.rfind(extension_filter) != std::string::npos)
+                    action(sub);
+            }
+        }
     }
 }
 

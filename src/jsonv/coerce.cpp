@@ -1,5 +1,5 @@
 /** \file
- *  
+ *
  *  Copyright (c) 2014-2018 by Travis Gockel. All rights reserved.
  *
  *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License

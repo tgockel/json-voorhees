@@ -1,6 +1,6 @@
 # File: CMakeLists used for generating a Makefile (or whatever your build system is).
 #
-# Copyright 2015-2018 by Travis Gockel
+# Copyright 2015-2020 by Travis Gockel
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
@@ -10,8 +10,7 @@
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
-# Keep CMP0167 out of the global policy set; Boost config/module lookup is handled below.
-cmake_minimum_required(VERSION 3.5...3.29)
+cmake_minimum_required(VERSION 3.12...3.29)
 project(json-voorhees)
 
 set(PACKAGE_NAME "jsonv"
@@ -39,13 +38,7 @@ set(JSONV_VERSION    "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}.${JSONV_VERS
 set(JSONV_SO_VERSION "${JSONV_VERSION_MAJOR}.${JSONV_VERSION_MINOR}")
 message(STATUS "JSONV version: ${JSONV_VERSION} (${JSONV_SO_VERSION})")
 
-set(CXX_STANDARD_DEFAULT "c++14")
-if (CMAKE_COMPILER_IS_GNUCC)
-  if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-    set(CXX_STANDARD_DEFAULT "c++1y")
-  endif()
-endif()
-
+set(CXX_STANDARD_DEFAULT "c++17")
 set(CXX_STANDARD ${CXX_STANDARD_DEFAULT}
     CACHE STRING "The version of the language to use (only applies to GCC and Clang)."
    )
@@ -54,60 +47,6 @@ option(JSONV_BUILD_TESTS
        "Should the unit test library get built?"
        OFF
       )
-
-set(REQUIRED_BOOST_LIBRARIES)
-
-if (JSONV_BUILD_TESTS)
-    list(APPEND REQUIRED_BOOST_LIBRARIES "filesystem" "system")
-endif()
-
-#############################
-# String View Configuration #
-#############################
-
-option(USE_BOOST_STRING_VIEW
-       "Controls the variable JSONV_STRING_VIEW_USE_BOOST (see C++ documentation)."
-       OFF
-      )
-if (USE_BOOST_STRING_VIEW)
-    add_definitions("-DJSONV_STRING_VIEW_USE_BOOST=1")
-endif(USE_BOOST_STRING_VIEW)
-
-option(USE_STD_STRING_VIEW
-       "Controls the variable JSONV_STRING_VIEW_USE_STD (see C++ documentation)."
-       OFF
-      )
-if (USE_STD_STRING_VIEW)
-    add_definitions("-DJSONV_STRING_VIEW_USE_STD=1")
-endif(USE_STD_STRING_VIEW)
-
-##########################
-# Optional Configuration #
-##########################
-
-option(USE_STD_OPTIONAL
-       "Controls the variable JSONV_OPTIONAL_USE_STD (see C++ documentation)."
-       OFF
-      )
-if (USE_STD_OPTIONAL)
-    add_definitions("-DJSONV_OPTIONAL_USE_STD=1")
-endif()
-
-option(USE_STD_EXPERIMENTAL_OPTIONAL
-       "Controls the variable JSONV_OPTIONAL_USE_STD_EXPERIMENTAL (see C++ documentation)."
-       OFF
-      )
-if (USE_STD_EXPERIMENTAL_OPTIONAL)
-    add_definitions("-DJSONV_OPTIONAL_USE_STD_EXPERIMENTAL=1")
-endif()
-
-option(USE_BOOST_OPTIONAL
-       "Controls the variable JSONV_OPTIONAL_USE_BOOST (see C++ documentation)."
-       OFF
-      )
-if (USE_BOOST_OPTIONAL)
-    add_definitions("-DJSONV_OPTIONAL_USE_BOOST=1")
-endif()
 
 ##########################
 # Coverage Configuration #
@@ -152,49 +91,14 @@ include_directories("${PROJECT_SOURCE_DIR}/include"
                     "${PROJECT_SOURCE_DIR}/src"
                    )
 
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost CONFIG QUIET
-             COMPONENTS ${REQUIRED_BOOST_LIBRARIES}
-            )
-if (NOT Boost_FOUND)
-    if (POLICY CMP0167)
-        cmake_policy(PUSH)
-        cmake_policy(SET CMP0167 OLD)
-    endif()
-    find_package(Boost
-                 MODULE
-                 COMPONENTS ${REQUIRED_BOOST_LIBRARIES}
-                 REQUIRED
-                )
-    if (POLICY CMP0167)
-        cmake_policy(POP)
-    endif()
-endif()
-include_directories(${Boost_INCLUDE_DIRS})
-
-foreach(boost_headers_target Boost::headers Boost::boost)
-    if (NOT Boost_INCLUDE_DIRS AND TARGET "${boost_headers_target}")
-        get_target_property(JSONV_BOOST_INCLUDE_DIRS "${boost_headers_target}" INTERFACE_INCLUDE_DIRECTORIES)
-        if (JSONV_BOOST_INCLUDE_DIRS)
-            set(Boost_INCLUDE_DIRS ${JSONV_BOOST_INCLUDE_DIRS})
-            include_directories(${Boost_INCLUDE_DIRS})
-        endif()
-    endif()
-endforeach()
-
-set(JSONV_BOOST_LIBRARIES)
-foreach(boost_library ${REQUIRED_BOOST_LIBRARIES})
-    if (TARGET "Boost::${boost_library}")
-        list(APPEND JSONV_BOOST_LIBRARIES "Boost::${boost_library}")
-    endif()
-endforeach()
-if (NOT JSONV_BOOST_LIBRARIES)
-    list(APPEND JSONV_BOOST_LIBRARIES ${Boost_LIBRARIES})
-endif()
-
 add_definitions("-DJSONV_TEST_DATA_DIR=\"${CMAKE_SOURCE_DIR}/src/jsonv-tests/data\"")
 
-configure_file(libjsonv.pc.in libjsonv.pc)
+include(GNUInstallDirs)
+
+configure_file(libjsonv.pc.in libjsonv.pc @ONLY)
+if(WIN32)
+    configure_file(packaging/nuget/jsonv.targets.in nuget/jsonv.targets @ONLY)
+endif()
 
 ################################################################################
 # Building                                                                     #
@@ -202,6 +106,17 @@ configure_file(libjsonv.pc.in libjsonv.pc)
 
 file(GLOB_RECURSE jsonv_cpps RELATIVE_PATH "." "src/jsonv/*.cpp")
 add_library(jsonv ${LIBRARY_TYPE} ${jsonv_cpps})
+target_compile_features(jsonv
+                        PUBLIC
+                          cxx_std_17
+                       )
+target_include_directories(jsonv
+                           PUBLIC
+                             "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+                             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+                           PRIVATE
+                             "${PROJECT_SOURCE_DIR}/src"
+                          )
 set_target_properties(jsonv
                       PROPERTIES
                         SOVERSION ${JSONV_SO_VERSION}
@@ -212,9 +127,8 @@ if (JSONV_BUILD_TESTS)
     add_executable(jsonv-tests ${jsonv_tests_cpps})
     target_link_libraries(jsonv-tests
             "jsonv"
-            ${JSONV_BOOST_LIBRARIES}
         )
-    
+
     add_custom_target(check
                       COMMAND $<TARGET_FILE:jsonv-tests>
                       DEPENDS jsonv-tests
@@ -281,7 +195,6 @@ if (BENCHMARK)
     add_executable(json-benchmark ${BENCHMARK_CPPS})
     target_link_libraries(json-benchmark
         ${BENCHMARK_LIBS}
-        ${JSONV_BOOST_LIBRARIES}
     )
 endif(BENCHMARK)
 
@@ -289,156 +202,145 @@ endif(BENCHMARK)
 # Installation                                                                 #
 ################################################################################
 
-# directories
-if (OS_WINDOWS)
-    set(RUNTIME_INSTALL_DIR Bin)
-    set(INCLUDE_INSTALL_DIR Include)
-    set(LIBRARY_INSTALL_DIR Lib)
-    set(CONFIG_INSTALL_DIR  CMake)
-else()
-    set(RUNTIME_INSTALL_DIR bin)
-    set(INCLUDE_INSTALL_DIR include)
-    set(LIBRARY_INSTALL_DIR_DEFAULT lib)
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(LIBRARY_INSTALL_DIR_DEFAULT lib64)
-    endif ()
-    set(LIBRARY_INSTALL_DIR ${LIBRARY_INSTALL_DIR_DEFAULT}
-        CACHE STRING "Directory of installed libraries, e.g., \"lib64\""
-       )
-    mark_as_advanced(LIBRARY_INSTALL_DIR)
-    set(CONFIG_INSTALL_DIR  "${LIBRARY_INSTALL_DIR}/cmake/${PACKAGE_NAME}")
-endif ()
-
-foreach(area RUNTIME LIBRARY INCLUDE CONFIG)
-    if (NOT IS_ABSOLUTE "${${area}_INSTALL_DIR}")
-        set(${area}_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${${area}_INSTALL_DIR}")
-    endif()
-    message(STATUS "${area}_INSTALL_DIR == ${${area}_INSTALL_DIR}")
-endforeach()
+message(STATUS "CMAKE_INSTALL_BINDIR == ${CMAKE_INSTALL_BINDIR}")
+message(STATUS "CMAKE_INSTALL_LIBDIR == ${CMAKE_INSTALL_LIBDIR}")
+message(STATUS "CMAKE_INSTALL_INCLUDEDIR == ${CMAKE_INSTALL_INCLUDEDIR}")
 
 install(TARGETS jsonv
         EXPORT  exported
-        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+                COMPONENT runtime
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+                COMPONENT runtime
+                NAMELINK_COMPONENT development
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+                COMPONENT development
        )
 install(DIRECTORY   "include/jsonv"
-        DESTINATION "${INCLUDE_INSTALL_DIR}"
+        DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        COMPONENT   development
        )
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc DESTINATION "${LIBRARY_INSTALL_DIR}/pkgconfig")
-install(EXPORT exported DESTINATION "${CONFIG_INSTALL_DIR}" FILE "${PACKAGE_NAME}-export.cmake")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libjsonv.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        COMPONENT development
+       )
+install(EXPORT exported
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PACKAGE_NAME}"
+        FILE "${PACKAGE_NAME}-export.cmake"
+        COMPONENT development
+       )
+if(WIN32)
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/nuget/jsonv.targets"
+            DESTINATION "build/native"
+            COMPONENT development
+           )
+endif()
 
 ################################################################################
 # Packaging                                                                    #
 ################################################################################
 
-set(JSONV_PACKAGE_SYSTEM ""
-    CACHE STRING "The packaging system to generate a package build file for (leave blank to not build a package)"
-   )
-if (JSONV_PACKAGE_SYSTEM)
-  message(STATUS "Creating packaging for ${JSONV_PACKAGE_SYSTEM}...")
-  set(PROJECT_PACKAGE_VERSION "${JSONV_VERSION}-1") # TODO: Allow arbitrary tags here
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR WIN32 OR APPLE)
+    include(CPackComponent)
 
-  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-    set(PROJECT_BUILD_ARCHITECTURE "amd64")
-  elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
-    set(PROJECT_BUILD_ARCHITECTURE "i386")
-  else()
-    message(WARNING "  Unknown architecture \"${CMAKE_SYSTEM_PROCESSOR}\" -- assuming packaging is okay with that")
-    set(PROJECT_BUILD_ARCHITECTURE "${CMAKE_SYSTEM_PROCESSOR}")
-  endif()
-
-  set(all_packages)
-  if(JSONV_PACKAGE_SYSTEM STREQUAL "DEB")
-    set(pkg_basename "libjsonv")
-    set(pkg_fullname "libjsonv${JSONV_SO_VERSION}")
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
-      message(WARNING "Could not find packager \"${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}\"")
-    else()
-      message(STATUS "  + ${pkg_fullname}.deb")
-
-      set(library_pkg_base  "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
-      set(library_pkg_stage "${CMAKE_CURRENT_BINARY_DIR}/intermediate/deb/${pkg_fullname}")
-      set(library_pkg_dest  "${CMAKE_CURRENT_BINARY_DIR}/installer/${pkg_fullname}")
-      configure_file("${library_pkg_base}/control.in"
-                     "${library_pkg_dest}/DEBIAN/control"
-                     @ONLY IMMEDIATE
-                    )
-      if(EXISTS "${library_pkg_base}/postinst.in")
-        configure_file("${library_pkg_base}/postinst.in"
-                       "${library_pkg_stage}/DEBIAN/postinst"
-                       @ONLY IMMEDIATE
-                      )
-        file(COPY        "${library_pkg_stage}/DEBIAN/postinst"
-             DESTINATION "${library_pkg_dest}/DEBIAN"
-             FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-            )
-      endif()
-
-      add_custom_target("${pkg_fullname}.deb"
-                        COMMAND rm -rf   "installer/${pkg_fullname}/usr/local"
-                        COMMAND mkdir -p "installer/${pkg_fullname}/usr/local/lib"
-                        COMMAND cp "$<TARGET_FILE:jsonv>" "installer/${pkg_fullname}/usr/local/lib"
-                        COMMAND dpkg --build "installer/${pkg_fullname}"
-                        COMMAND mv "installer/${pkg_fullname}.deb" "."
-                        DEPENDS
-                          "${library_pkg_dest}/DEBIAN/control"
-                          jsonv
-                       )
-      list(APPEND all_packages "${pkg_fullname}.deb")
-    endif()
-
-    set(pkg_basename "libjsonv-dev")
-    set(pkg_fullname "libjsonv${JSONV_SO_VERSION}-dev")
-    if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
-      message(WARNING "Could not find packager \"${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}\"")
-    else()
-      message(STATUS "  + ${pkg_fullname}.deb")
-
-      set(library_pkg_base  "${CMAKE_CURRENT_SOURCE_DIR}/installer/deb/${pkg_basename}")
-      set(library_pkg_stage "${CMAKE_CURRENT_BINARY_DIR}/intermediate/deb/${pkg_fullname}")
-      set(library_pkg_dest  "${CMAKE_CURRENT_BINARY_DIR}/installer/${pkg_fullname}")
-
-      configure_file("${library_pkg_base}/control.in"
-                     "${library_pkg_dest}/DEBIAN/control"
-                     @ONLY IMMEDIATE
-                    )
-      file(GLOB_RECURSE jsonv_headers RELATIVE_PATH "." "include/jsonv/*")
-      add_custom_target("${pkg_fullname}.deb"
-                        COMMAND rm -rf   "installer/${pkg_fullname}/usr/local"
-                        COMMAND mkdir -p "installer/${pkg_fullname}/usr/local/include"
-                        COMMAND cp -r "${PROJECT_SOURCE_DIR}/include/jsonv" "installer/${pkg_fullname}/usr/local/include"
-                        COMMAND dpkg --build "installer/${pkg_fullname}"
-                        COMMAND mv "installer/${pkg_fullname}.deb" "."
-                        DEPENDS
-                          "${library_pkg_dest}/DEBIAN/control"
-                          ${jsonv_headers}
-                       )
-      list(APPEND all_packages "${pkg_fullname}.deb")
-    endif()
-
-    if(all_packages)
-      add_custom_target(package
-                        DEPENDS ${all_packages}
-                        COMMENT "Built all packages"
-                       )
-    else()
-      message(SEND_ERROR "Packaging specified as \"${JSONV_PACKAGE_SYSTEM}\", but did not find any actual packages.")
-    endif()
-  elseif(JSONV_PACKAGE_SYSTEM STREQUAL "RPM")
-    set(CPACK_PACKAGE_VERSION "${JSONV_SO_VERSION}")
-    set(CPACK_GENERATOR "${JSONV_PACKAGE_SYSTEM}")
+    set(CPACK_COMPONENTS_ALL runtime development)
+    set(CPACK_COMPONENTS_GROUPING IGNORE)
     set(CPACK_PACKAGE_NAME "${PACKAGE_NAME}")
-    set(CPACK_PACKAGE_RELEASE 1)
-    set(CPACK_PACKAGE_CONTACT "Travis Gockel")
-    set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
-    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/installer/rpm/jsonv.spec.in"
-                   "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec"
-                   @ONLY IMMEDIATE
-                  )
-    set(CPACK_RPM_USER_BINARY_SPECFILE "${CMAKE_CURRENT_BINARY_DIR}/installer/rpm/jsonv.spec")
+    set(CPACK_PACKAGE_VENDOR "Travis Gockel")
+    set(CPACK_PACKAGE_CONTACT "Travis Gockel <travis@gockelhut.com>")
+    set(CPACK_PACKAGE_VERSION "${JSONV_VERSION}")
+    set(CPACK_PACKAGE_VERSION_MAJOR "${JSONV_VERSION_MAJOR}")
+    set(CPACK_PACKAGE_VERSION_MINOR "${JSONV_VERSION_MINOR}")
+    set(CPACK_PACKAGE_VERSION_PATCH "${JSONV_VERSION_PATCH}")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Killer JSON for C++")
+    set(CPACK_PACKAGE_DESCRIPTION "JSON Voorhees is a modern C++ library for interacting with JSON.")
+    set(CPACK_PACKAGE_HOMEPAGE_URL "https://tgockel.github.io/json-voorhees/")
+    set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+    set(CPACK_VERBATIM_VARIABLES YES)
+
+    cpack_add_component(runtime
+                        DISPLAY_NAME "JSON Voorhees runtime"
+                        DESCRIPTION "Shared library for JSON Voorhees."
+                       )
+    cpack_add_component(development
+                        DISPLAY_NAME "JSON Voorhees development files"
+                        DESCRIPTION "Headers and build metadata for compiling against JSON Voorhees."
+                        DEPENDS runtime
+                       )
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(CPACK_GENERATOR "DEB;RPM"
+            CACHE STRING "CPack generators to use for binary packages."
+           )
+        set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+
+        set(CPACK_DEB_COMPONENT_INSTALL ON)
+        set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+        set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
+        set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_CONTACT}")
+        set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "${CPACK_PACKAGE_HOMEPAGE_URL}")
+        set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS ON)
+        set(CPACK_DEBIAN_PACKAGE_GENERATE_SHLIBS_POLICY ">=")
+        set(CPACK_DEBIAN_RUNTIME_PACKAGE_NAME "libjsonv${JSONV_SO_VERSION}")
+        set(CPACK_DEBIAN_RUNTIME_PACKAGE_SECTION libs)
+        set(CPACK_DEBIAN_RUNTIME_PACKAGE_SHLIBDEPS ON)
+        set(CPACK_DEBIAN_RUNTIME_DESCRIPTION "Killer modern C++ library for interacting with JSON.")
+        set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_NAME "libjsonv-dev")
+        set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_SECTION libdevel)
+        set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_DEPENDS
+            "libjsonv${JSONV_SO_VERSION} (= ${JSONV_VERSION}-${CPACK_DEBIAN_PACKAGE_RELEASE})"
+           )
+        set(CPACK_DEBIAN_DEVELOPMENT_DESCRIPTION "Development files for JSON Voorhees.")
+
+        set(CPACK_RPM_COMPONENT_INSTALL ON)
+        set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
+        set(CPACK_RPM_PACKAGE_RELEASE 1)
+        set(CPACK_RPM_PACKAGE_LICENSE "Apache-2.0")
+        set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
+        set(CPACK_RPM_PACKAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
+        set(CPACK_RPM_MAIN_COMPONENT runtime)
+        set(CPACK_RPM_RUNTIME_PACKAGE_NAME "${PACKAGE_NAME}")
+        set(CPACK_RPM_RUNTIME_PACKAGE_SUMMARY "Killer JSON for C++")
+        set(CPACK_RPM_RUNTIME_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_NAME "${PACKAGE_NAME}-devel")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_SUMMARY "Development files for JSON Voorhees")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_DESCRIPTION "Headers and build metadata for compiling against JSON Voorhees.")
+        set(CPACK_RPM_DEVELOPMENT_PACKAGE_REQUIRES "${PACKAGE_NAME} = ${JSONV_VERSION}-${CPACK_RPM_PACKAGE_RELEASE}")
+    elseif(WIN32)
+        set(CPACK_GENERATOR "NuGet"
+            CACHE STRING "CPack generators to use for binary packages."
+           )
+        set(CPACK_PACKAGING_INSTALL_PREFIX "")
+        set(CPACK_NUGET_PACKAGE_NAME "${PACKAGE_NAME}")
+        set(CPACK_NUGET_PACKAGE_VERSION "${JSONV_VERSION}")
+        set(CPACK_NUGET_PACKAGE_TITLE "JSON Voorhees")
+        set(CPACK_NUGET_PACKAGE_AUTHORS "Travis Gockel")
+        set(CPACK_NUGET_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")
+        set(CPACK_NUGET_PACKAGE_HOMEPAGE_URL "${CPACK_PACKAGE_HOMEPAGE_URL}")
+        set(CPACK_NUGET_PACKAGE_LICENSE_EXPRESSION "Apache-2.0")
+        set(CPACK_NUGET_PACKAGE_TAGS "native C++ JSON jsonv")
+        set(CPACK_NUGET_PACKAGE_REPOSITORY_URL
+            "https://github.com/tgockel/json-voorhees.git"
+           )
+        set(CPACK_NUGET_PACKAGE_REPOSITORY_TYPE git)
+    elseif(APPLE)
+        set(CPACK_GENERATOR "productbuild"
+            CACHE STRING "CPack generators to use for binary packages."
+           )
+        set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
+        configure_file("${CMAKE_CURRENT_SOURCE_DIR}/LICENSE"
+                       "${CMAKE_CURRENT_BINARY_DIR}/CPackLicense.txt"
+                       COPYONLY
+                      )
+        set(CPACK_RESOURCE_FILE_LICENSE
+            "${CMAKE_CURRENT_BINARY_DIR}/CPackLicense.txt"
+           )
+        set(CPACK_PRODUCTBUILD_IDENTIFIER "com.tgockel.jsonv")
+        set(CPACK_PRODUCTBUILD_DOMAINS ON)
+        set(CPACK_PRODUCTBUILD_DOMAINS_ANYWHERE OFF)
+        set(CPACK_PRODUCTBUILD_DOMAINS_USER OFF)
+        set(CPACK_PRODUCTBUILD_DOMAINS_ROOT ON)
+    endif()
+
     include(CPack)
-  else()
-    message(SEND_ERROR "Unknown JSONV_PACKAGE_SYSTEM=${JSONV_PACKAGE_SYSTEM}")
-  endif()
 endif()

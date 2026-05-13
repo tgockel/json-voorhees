@@ -57,4 +57,5 @@ TEST(parse_naughty_strings)
         ensure(sub.is_string());
     }
 }
+
 }

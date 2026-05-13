@@ -1,19 +1,20 @@
-/** \file
- *  
- *  Copyright (c) 2015 by Travis Gockel. All rights reserved.
- *
- *  This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
- *  as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
- *  version.
- *
- *  \author Travis Gockel (travis@gockelhut.com)
-**/
+/// \file
+///
+/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+///
+/// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
+/// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
+/// version.
+///
+/// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
 #include <jsonv/demangle.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization.hpp>
-#include <jsonv/serialization_util.hpp>
+#include <jsonv/serialization/extractor_construction.hpp>
+#include <jsonv/serialization/function_extractor.hpp>
+#include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 
@@ -39,25 +40,25 @@ struct my_thing
     int a;
     int b;
     std::string c;
-    
+
     my_thing(const value& from, const extraction_context& cxt) :
             a(cxt.extract_sub<int>(from, "a")),
             b(cxt.extract_sub<int>(from, "b")),
             c(cxt.extract_sub<std::string>(from, "c"))
     { }
-    
+
     my_thing(int a, int b, std::string c) :
             a(a),
             b(b),
             c(std::move(c))
     { }
-    
+
     static const extractor* get_extractor()
     {
         static extractor_construction<my_thing> instance;
         return &instance;
     }
-    
+
     static const serializer* get_serializer()
     {
         static auto instance = make_serializer<my_thing>([] (const serialization_context& context, const my_thing& self)
@@ -71,17 +72,17 @@ struct my_thing
             });
         return &instance;
     }
-    
+
     bool operator==(const my_thing& other) const
     {
         return std::tie(a, b, c) == std::tie(other.a, other.b, other.c);
     }
-    
+
     friend std::ostream& operator<<(std::ostream& os, const my_thing& self)
     {
         return os << "{ a=" << self.a << ", b=" << self.b << ", c=" << self.c << " }";
     }
-    
+
     friend std::string to_string(const my_thing& self)
     {
         std::ostringstream os;
@@ -97,7 +98,7 @@ TEST(formats_equality)
     formats a;
     formats b = a;
     formats c = formats::compose({ a, b });
-    
+
     ensure(a == b);
     ensure(a != c);
     ensure(b == a);
@@ -152,7 +153,7 @@ TEST(extract_basics)
     {
         ensure_eq(path::create(".o"), extract_err.path());
         ensure(extract_err.nested_ptr());
-        
+
         try
         {
             std::rethrow_exception(extract_err.nested_ptr());
@@ -163,7 +164,7 @@ TEST(extract_basics)
             ensure(noex.type_index() == std::type_index(typeid(unassociated)));
         }
     }
-    
+
     try
     {
         cxt.extract_sub<int>(val, path::create(".a[3]"));
@@ -178,7 +179,7 @@ TEST(extract_object)
 {
     formats fmts = formats::compose({ formats::defaults() });
     fmts.register_extractor(my_thing::get_extractor());
-    
+
     my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
     to_string(res);
     ensure_eq(my_thing(1, 2, "thing"), res);
@@ -188,7 +189,7 @@ TEST(extract_object_with_unique_extractor)
 {
     formats fmts = formats::compose({ formats::defaults() });
     fmts.register_extractor(std::unique_ptr<extractor>(new extractor_construction<my_thing>()));
-    
+
     my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
@@ -198,7 +199,7 @@ TEST(extract_object_search)
     formats base_fmts;
     base_fmts.register_extractor(my_thing::get_extractor());
     formats fmts = formats::compose({ formats::defaults(), base_fmts });
-    
+
     my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
@@ -211,7 +212,7 @@ TEST(extract_object_with_globals)
         formats::set_global(formats::compose({ formats::defaults(), base_fmts }));
     }
     auto reset_global_on_exit = jsonv::detail::on_scope_exit([] { formats::reset_global(); });
-    
+
     my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"));
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
@@ -226,7 +227,7 @@ TEST(extract_coerce)
                         "o": { "i": 5, "d": 4.5 }
                       })");
     extraction_context cxt(formats::coerce());
-    
+
     // regular
     ensure_eq(val, cxt.extract<value>(val));
     ensure_eq(5, cxt.extract_sub<std::int8_t>(val, "i"));
@@ -240,7 +241,7 @@ TEST(extract_coerce)
     ensure_eq(4.5f, cxt.extract_sub<float>(val, "d"));
     ensure_eq(4.5, cxt.extract_sub<double>(val, "d"));
     ensure_eq("10", cxt.extract_sub<std::string>(val, "s"));
-    
+
     // some coercing...
     ensure_eq("5", cxt.extract_sub<std::string>(val, "i"));
     ensure_eq(10, cxt.extract_sub<int>(val, "s"));
@@ -252,9 +253,9 @@ TEST(extractor_throws_random_thing)
     static auto instance = make_extractor([] (const value& from) -> unassociated { throw from; });
     formats locals;
     locals.register_extractor(&instance);
-    
+
     value val = object({ { "a", 1 } });
-    
+
     extraction_context cxt(locals);
     ensure_throws(extraction_error, cxt.extract<unassociated>(val));
     ensure_throws(extraction_error, cxt.extract_sub<unassociated>(val, "a"));
@@ -275,7 +276,7 @@ TEST(serialize_basics)
     ensure_eq(value(4.5), cxt.to_json(4.5));
     ensure_eq(value(4.5), cxt.to_json(4.5f));
     ensure_eq(value("thing"), cxt.to_json(std::string("thing")));
-    
+
     try
     {
         cxt.to_json(unassociated{});

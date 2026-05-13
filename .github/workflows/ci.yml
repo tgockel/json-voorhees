@@ -28,40 +28,15 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Install dependencies (Ubuntu)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes libboost-filesystem-dev libboost-system-dev ninja-build
-
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: brew install boost ninja
-
-      - name: Install dependencies (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: >
-          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install
-          boost-filesystem
-          boost-lexical-cast
-          boost-system
-          --triplet x64-windows
-
       - name: Configure (Unix)
         if: runner.os != 'Windows'
         run: |
           cmake_args=(
             -S .
             -B build
-            -G Ninja
             -DJSONV_BUILD_TESTS=ON
             -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
           )
-
-          if [[ "${RUNNER_OS}" == "macOS" ]]; then
-            cmake_args+=(-DUSE_BOOST_OPTIONAL=ON)
-          fi
 
           cmake "${cmake_args[@]}"
 
@@ -73,12 +48,333 @@ jobs:
           -G "Visual Studio 17 2022"
           -A x64
           -DJSONV_BUILD_TESTS=ON
-          -DUSE_BOOST_OPTIONAL=ON
-          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
-          -DVCPKG_TARGET_TRIPLET=x64-windows
 
       - name: Build and test
         run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
+
+  packages:
+    name: Packages (${{ matrix.format }})
+    runs-on: ubuntu-24.04
+    needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - format: deb
+            container: ubuntu:24.04
+            cpack-generator: DEB
+            package-glob: "*.deb"
+          - format: rpm
+            container: rockylinux:9
+            cpack-generator: RPM
+            package-glob: "*.rpm"
+
+    container:
+      image: ${{ matrix.container }}
+
+    steps:
+      - name: Install dependencies (DEB)
+        if: matrix.format == 'deb'
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install --yes \
+            build-essential \
+            ca-certificates \
+            cmake \
+            dpkg-dev \
+            file \
+            git \
+            pkg-config
+
+      - name: Install dependencies (RPM)
+        if: matrix.format == 'rpm'
+        shell: bash
+        run: |
+          dnf install -y \
+            ca-certificates \
+            cmake \
+            file \
+            findutils \
+            gcc-c++ \
+            git \
+            make \
+            pkgconf-pkg-config \
+            rpm-build
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Configure package build
+        shell: bash
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DCPACK_GENERATOR=${{ matrix.cpack-generator }}
+
+      - name: Build packages
+        shell: bash
+        run: cmake --build build --target package --parallel
+
+      - name: Inspect DEB packages
+        if: matrix.format == 'deb'
+        shell: bash
+        run: |
+          packages=(build/*.deb)
+          test "${#packages[@]}" -ge 2
+
+          dpkg-deb --field "${packages[@]}"
+          for package in "${packages[@]}"; do
+            dpkg-deb --contents "${package}"
+          done
+
+          runtime_package=$(find build -maxdepth 1 -name 'libjsonv[0-9]*.deb' -print -quit)
+          development_package=$(find build -maxdepth 1 -name 'libjsonv-dev_*.deb' -print -quit)
+          test -n "${runtime_package}"
+          test -n "${development_package}"
+
+          dpkg-deb --contents "${runtime_package}" | grep 'libjsonv\.so\.'
+          dpkg-deb --contents "${development_package}" | grep 'include/jsonv/all.hpp'
+          dpkg-deb --contents "${development_package}" | grep 'pkgconfig/libjsonv.pc'
+          dpkg-deb --contents "${development_package}" | grep 'cmake/jsonv/jsonv-export.cmake'
+
+      - name: Inspect RPM packages
+        if: matrix.format == 'rpm'
+        shell: bash
+        run: |
+          packages=(build/*.rpm)
+          test "${#packages[@]}" -ge 2
+
+          rpm -qpi "${packages[@]}"
+          rpm -qlp "${packages[@]}"
+
+          runtime_package=$(find build -maxdepth 1 -name 'jsonv-[0-9]*.rpm' -print -quit)
+          development_package=$(find build -maxdepth 1 -name 'jsonv-devel-*.rpm' -print -quit)
+          test -n "${runtime_package}"
+          test -n "${development_package}"
+
+          rpm -qlp "${runtime_package}" | grep 'libjsonv\.so\.'
+          rpm -qlp "${development_package}" | grep 'include/jsonv/all.hpp'
+          rpm -qlp "${development_package}" | grep 'pkgconfig/libjsonv.pc'
+          rpm -qlp "${development_package}" | grep 'cmake/jsonv/jsonv-export.cmake'
+
+      - name: Install DEB packages
+        if: matrix.format == 'deb'
+        shell: bash
+        run: apt-get install --yes ./build/*.deb
+
+      - name: Install RPM packages
+        if: matrix.format == 'rpm'
+        shell: bash
+        run: dnf install -y ./build/*.rpm
+
+      - name: Compile and run installed-package smoke test
+        shell: bash
+        run: |
+          cat >/tmp/jsonv-smoke.cpp <<'EOF'
+          #include <jsonv/all.hpp>
+
+          int main()
+          {
+              jsonv::value value = jsonv::parse(R"({"answer":42})");
+              return value.at("answer").as_integer() == 42 ? 0 : 1;
+          }
+          EOF
+
+          c++ -std=c++17 /tmp/jsonv-smoke.cpp $(pkg-config --cflags --libs libjsonv) -o /tmp/jsonv-smoke
+          /tmp/jsonv-smoke
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsonv-${{ matrix.format }}-packages
+          path: build/${{ matrix.package-glob }}
+
+  windows-packages:
+    name: Packages (nuget)
+    runs-on: windows-2025
+    needs: build
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Configure package build
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "Visual Studio 17 2022"
+          -A x64
+          -DCMAKE_INSTALL_PREFIX=install-root
+          -DCPACK_GENERATOR=NuGet
+
+      - name: Build NuGet package
+        shell: pwsh
+        run: cmake --build build --config Release --target package --parallel
+
+      - name: Install and inspect NuGet package
+        shell: pwsh
+        run: |
+          $package = Get-ChildItem build -Filter '*.nupkg' |
+            Select-Object -First 1
+          if ($null -eq $package) {
+            throw 'Expected a NuGet package in build/'
+          }
+
+          $source = (Resolve-Path build).Path
+          nuget install jsonv `
+            -Source $source `
+            -OutputDirectory nuget-install `
+            -NonInteractive `
+            -Verbosity normal
+
+          $packageRoot = Get-ChildItem nuget-install -Directory |
+            Where-Object { $_.Name -like 'jsonv.*' } |
+            Select-Object -First 1
+          if ($null -eq $packageRoot) {
+            throw 'Expected NuGet install root under nuget-install/'
+          }
+
+          $expected = @(
+            'include\jsonv\all.hpp',
+            'lib\jsonv.lib',
+            'lib\cmake\jsonv\jsonv-export.cmake',
+            'build\native\jsonv.targets'
+          )
+          foreach ($path in $expected) {
+            $fullPath = Join-Path $packageRoot.FullName $path
+            if (-not (Test-Path $fullPath)) {
+              throw "Missing expected NuGet package path: $path"
+            }
+          }
+
+      - name: Compile and run installed-package smoke test
+        shell: pwsh
+        run: |
+          $packageRoot = Get-ChildItem nuget-install -Directory |
+            Where-Object { $_.Name -like 'jsonv.*' } |
+            Select-Object -First 1
+          $includeDir = Join-Path $packageRoot.FullName 'include'
+          $libDir = Join-Path $packageRoot.FullName 'lib'
+          $library = Join-Path $libDir 'jsonv.lib'
+
+          New-Item -ItemType Directory -Path smoke | Out-Null
+          @'
+          cmake_minimum_required(VERSION 3.12)
+          project(jsonv-smoke CXX)
+          add_executable(jsonv-smoke main.cpp)
+          target_compile_features(jsonv-smoke PRIVATE cxx_std_17)
+          target_include_directories(jsonv-smoke PRIVATE "${JSONV_INCLUDE_DIR}")
+          target_link_libraries(jsonv-smoke PRIVATE "${JSONV_LIBRARY}")
+          '@ | Set-Content -Path smoke\CMakeLists.txt -Encoding ascii
+
+          @'
+          #include <jsonv/all.hpp>
+
+          int main()
+          {
+              jsonv::value value = jsonv::parse(R"({"answer":42})");
+              return value.at("answer").as_integer() == 42 ? 0 : 1;
+          }
+          '@ | Set-Content -Path smoke\main.cpp -Encoding ascii
+
+          cmake -S smoke -B smoke-build `
+            -G "Visual Studio 17 2022" `
+            -A x64 `
+            "-DJSONV_INCLUDE_DIR=$includeDir" `
+            "-DJSONV_LIBRARY=$library"
+          cmake --build smoke-build --config Release --parallel
+          .\smoke-build\Release\jsonv-smoke.exe
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsonv-nuget-package
+          path: build/*.nupkg
+
+  macos-packages:
+    name: Packages (macOS pkg)
+    runs-on: macos-15
+    needs: build
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install dependencies
+        run: brew install ninja
+
+      - name: Configure package build
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX=/usr/local
+          -DCPACK_GENERATOR=productbuild
+
+      - name: Build macOS package
+        run: cmake --build build --target package --parallel
+
+      - name: Inspect macOS package
+        shell: bash
+        run: |
+          packages=(build/*.pkg)
+          if [ ! -e "${packages[0]}" ]; then
+            echo "Expected a macOS package in build/" >&2
+            exit 1
+          fi
+
+          package="${packages[0]}"
+          pkgutil --payload-files "${package}" | tee package-files.txt
+
+          grep 'usr/local/include/jsonv/all.hpp' package-files.txt
+          grep 'usr/local/lib/libjsonv' package-files.txt
+          grep 'usr/local/lib/pkgconfig/libjsonv.pc' package-files.txt
+          grep 'usr/local/lib/cmake/jsonv/jsonv-export.cmake' \
+            package-files.txt
+
+      - name: Install macOS package
+        shell: bash
+        run: |
+          packages=(build/*.pkg)
+          if [ ! -e "${packages[0]}" ]; then
+            echo "Expected a macOS package in build/" >&2
+            exit 1
+          fi
+
+          sudo installer -pkg "${packages[0]}" -target /
+
+      - name: Compile and run installed-package smoke test
+        shell: bash
+        run: |
+          cat >/tmp/jsonv-smoke.cpp <<'EOF'
+          #include <jsonv/all.hpp>
+
+          int main()
+          {
+              jsonv::value value = jsonv::parse(R"({"answer":42})");
+              return value.at("answer").as_integer() == 42 ? 0 : 1;
+          }
+          EOF
+
+          c++ -std=c++17 /tmp/jsonv-smoke.cpp \
+            -I/usr/local/include \
+            -L/usr/local/lib \
+            -Wl,-rpath,/usr/local/lib \
+            -ljsonv \
+            -o /tmp/jsonv-smoke
+          /tmp/jsonv-smoke
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jsonv-macos-package
+          path: build/*.pkg
 
   docs:
     name: Build documentation

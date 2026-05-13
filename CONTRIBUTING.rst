@@ -10,32 +10,33 @@ Building
 
 Building the system only requires `CMake <https://cmake.org/>`_ and the standard-issue C++ compilation tools.
 
-Docker
-^^^^^^
+Local Builds
+^^^^^^^^^^^^
 
-Docker is available for local validation across multiple Linux distributions. The authoritative CI build runs in
-`GitHub Actions <https://github.com/tgockel/json-voorhees/actions>`_.
-If you would like to do this at home, simply use the ``dev-env`` script::
+The authoritative build runs in `GitHub Actions <https://github.com/tgockel/json-voorhees/actions>`_.
+To run the same core build locally::
 
     $> cd /path/to/json-voorhees
-    $> ./config/dev-env ubuntu-18.04
+    $> cmake -S . -B build -G Ninja -DJSONV_BUILD_TESTS=ON
+    $> cmake --build build --target check --parallel
 
-This will create a Docker image named something like ``dev/jsonv/ubuntu-18.04`` and run that image with the
-project's working directory mapped to ``~/jsonv`` with you in control of a shell.
-Inside Docker, you can now build::
+Linux packages are built from the CMake install rules with CPack::
 
-    root@0ae2f54b152b:~/jsonv# mkdir build-debug
-    root@0ae2f54b152b:~/jsonv# cd build-debug
-    root@0ae2f54b152b:~/jsonv/build-debug# cmake -GNinja ..
-    ... output ...
-    root@0ae2f54b152b:~/jsonv/build-debug# ninja check
-    ... output ...
+    $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+    $> cmake --build build-package --target package --parallel
 
-This experience is pretty decent.
-The biggest annoyance is editing within the Docker image makes files you touch owned by *root* (I suspect there is a way
-to prevent this, but I am far from competent at Docker).
-If you use `KDevelop <https://www.kdevelop.org/>`_, you can use the IDE to build and debug inside of these images with
-`KDevelop Runtimes <http://www.proli.net/2017/05/23/kdevelop-runtimes-docker-and-flatpak-integration/>`_.
+Windows NuGet packages use the Visual Studio generator::
+
+    $> cmake -S . -B build-package -G "Visual Studio 17 2022" -A x64 -DCPACK_GENERATOR=NuGet
+    $> cmake --build build-package --config Release --target package --parallel
+
+macOS installer packages use CPack's ProductBuild generator::
+
+    $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
+    $> cmake --build build-package --target package --parallel
+
+The CI package jobs install the generated packages and compile a small downstream program against the installed headers,
+package metadata, and library.
 
 Process
 -------

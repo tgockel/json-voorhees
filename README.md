@@ -30,8 +30,8 @@ Features include (but are not necessarily limited to):
    - Consumable by human beings
    - Answers questions you might actually ask
  - Compiler support
-     - GCC (4.8+)
-     - Clang++ (3.3+)
+     - GCC (5+)
+     - Clang++ (4+)
 
 [![CI](https://github.com/tgockel/json-voorhees/actions/workflows/ci.yml/badge.svg?branch=trunk)](https://github.com/tgockel/json-voorhees/actions/workflows/ci.yml)
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=tgockel&url=https://github.com/tgockel/json-voorhees&title=json-voorhees&language=c++&tags=github&category=software)
@@ -42,25 +42,40 @@ Compile and Install
 -------------------
 
 JSON Voorhees uses [CMake](http://www.cmake.org/) as the automatic configuration software.
-On Linux or Mac OSX, if you have `boost`, `cmake`, `g++` and `make` installed, simply:
+On Linux or macOS, if you have `cmake`, a C++ compiler, and a build tool installed:
 
-    $> cmake .
-    $> make
-    $> sudo make install
+    $> cmake -S . -B build -DJSONV_BUILD_TESTS=ON
+    $> cmake --build build --target check --parallel
+    $> sudo cmake --install build
 
 If you want to customize your compilation or installation, see the options in `CMakeLists.txt` for easy-to-use
  configuration options.
 
-If you are on Windows, you can also use CMake if you want.
-However, it is probably easier to use the provided Visual Studio project files in `msvc/vs2015` to get going.
-Hitting F5 should perform a NuGet restore, then compile and run all the unit tests.
+On Windows, use CMake with Visual Studio:
 
-### Arch Linux
+    $> cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DJSONV_BUILD_TESTS=ON
+    $> cmake --build build --config Release --target check --parallel
 
-If you use [Arch Linux](https://www.archlinux.org/), JSON Voorhees is easily installable via AUR.
-The "latest stable" is called [json-voorhees](https://aur.archlinux.org/packages/json-voorhees), while there is a "close
- to tip" package called [json-voorhees-git](https://aur.archlinux.org/packages/json-voorhees-git).
-With Arch, installation is as easy as `yaourt json-voorhees`!
+### Packages
+
+CPack can create native binary packages from the CMake install rules.
+On Linux:
+
+    $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+    $> cmake --build build-package --target package --parallel
+
+This builds `.deb` and `.rpm` packages when the corresponding platform tools are installed. To build only one format,
+configure with `-DCPACK_GENERATOR=DEB` or `-DCPACK_GENERATOR=RPM`.
+
+On Windows, CPack builds a native NuGet package:
+
+    $> cmake -S . -B build-package -G "Visual Studio 17 2022" -A x64 -DCPACK_GENERATOR=NuGet
+    $> cmake --build build-package --config Release --target package --parallel
+
+On macOS, CPack builds a native installer package:
+
+    $> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
+    $> cmake --build build-package --target package --parallel
 
 Future
 ------
@@ -215,10 +230,6 @@ This is because it is unclear what should happen when the library detects someth
 The library could `assert`, but that seems overbearing when there is a reasonable option to fall back to.
 Alternatively, the library could throw in these cases, but that leads to innocuous-looking operations like `x == y`
  being able to throw, which is somewhat disconcerning.
-
-### This is really helpful! Can I give you money?
-
-I would be [Flattr-ed](https://flattr.com/submit/auto?user_id=tgockel&url=https://github.com/tgockel/json-voorhees&title=json-voorhees&language=c++&tags=github&category=software)!
 
 ### With such a cool name, do you have an equally cool logo?
 
