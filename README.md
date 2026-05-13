@@ -51,9 +51,10 @@ On Linux or Mac OSX, if you have `boost`, `cmake`, `g++` and `make` installed, s
 If you want to customize your compilation or installation, see the options in `CMakeLists.txt` for easy-to-use
  configuration options.
 
-If you are on Windows, you can also use CMake if you want.
-However, it is probably easier to use the provided Visual Studio project files in `msvc/vs2015` to get going.
-Hitting F5 should perform a NuGet restore, then compile and run all the unit tests.
+On Windows, use CMake with Visual Studio:
+
+    $> cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DJSONV_BUILD_TESTS=ON
+    $> cmake --build build --config Release --target check --parallel
 
 ### Arch Linux
 
