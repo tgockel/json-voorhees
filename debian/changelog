@@ -1,3 +1,9 @@
+libjsonv (1.4.0-1) unstable; urgency=low
+
+  * New upstream.
+
+ -- Daniel Noland <daniel@stateless.net>  Sat, 10 Jul 2021 18:21:30 +0600
+
 libjsonv (1.0.0-pre0-1) unstable; urgency=low
 
   * Initial Release.

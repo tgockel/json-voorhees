@@ -111,10 +111,14 @@ public:
 
     /** The base type for iterating over array values. **/
     template <typename T, typename TArrayView>
-    struct basic_array_iterator :
-            public std::iterator<std::random_access_iterator_tag, T>
+    struct basic_array_iterator
     {
     public:
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
         basic_array_iterator() :
                 _owner(0),
                 _index(0)
@@ -264,10 +268,15 @@ public:
      *  \c std::map<std::string, jsonv::value>.
     **/
     template <typename T, typename TIterator>
-    struct basic_object_iterator :
-            public std::iterator<std::bidirectional_iterator_tag, T>
+    struct basic_object_iterator
     {
     public:
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
+
         basic_object_iterator() :
                 _impl()
         { }

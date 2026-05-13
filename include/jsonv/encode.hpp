@@ -16,6 +16,7 @@
 #include <jsonv/forward.hpp>
 #include <jsonv/string_view.hpp>
 
+#include <cstdint>
 #include <iosfwd>
 
 namespace jsonv

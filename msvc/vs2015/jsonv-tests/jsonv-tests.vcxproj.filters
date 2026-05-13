@@ -92,15 +92,6 @@
     <ClCompile Include="..\..\..\src\jsonv-tests\unicode_tests.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\jsonv-tests\util_diff_tests.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\jsonv-tests\util_merge_tests.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\src\jsonv-tests\util_validate_tests.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\src\jsonv-tests\value_tests.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -111,6 +102,21 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\src\jsonv-tests\functional_tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_diff_tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_merge_tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_validate_tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv-tests\optional_tests.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\jsonv-tests\parse_blns.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

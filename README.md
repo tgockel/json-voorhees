@@ -33,11 +33,10 @@ Features include (but are not necessarily limited to):
      - GCC (5+)
      - Clang++ (4+)
 
-[![Build Status](https://travis-ci.org/tgockel/json-voorhees.svg?branch=master)](https://travis-ci.org/tgockel/json-voorhees)
-[![Coverage Status](https://coveralls.io/repos/tgockel/json-voorhees/badge.svg?branch=master&service=github)](https://coveralls.io/github/tgockel/json-voorhees?branch=master)
+[![CI](https://github.com/tgockel/json-voorhees/actions/workflows/ci.yml/badge.svg?branch=trunk)](https://github.com/tgockel/json-voorhees/actions/workflows/ci.yml)
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=tgockel&url=https://github.com/tgockel/json-voorhees&title=json-voorhees&language=c++&tags=github&category=software)
 
-![JSON Conversions](https://raw.githubusercontent.com/tgockel/json-voorhees/master/doc/conversions.png)
+![JSON Conversions](https://raw.githubusercontent.com/tgockel/json-voorhees/trunk/doc/conversions.png)
 
 Compile and Install
 -------------------
@@ -162,7 +161,7 @@ Sure, but this library is *not* meant to be a gallery of them -- a good API shou
 
 Another thing JSON Voorhees does not attempt to do is be a lightweight library; in fact, it wants to be the kitchen sink
  for anything you want to do in JSON in your C++ application.
-This means it is [*configurable*](https://github.com/tgockel/json-voorhees/blob/master/include/jsonv/config.hpp) for your
+This means it is [*configurable*](https://github.com/tgockel/json-voorhees/blob/trunk/include/jsonv/config.hpp) for your
  needs.
 That said, the library does not depend on strange environment settings, so you can still drop the `.cpp` and `.hpp` files
  into your own project if you want.
@@ -225,7 +224,7 @@ I would be [Flattr-ed](https://flattr.com/submit/auto?user_id=tgockel&url=https:
 
 Not really...
 
-![JSON: Serialized Killer](https://raw.githubusercontent.com/tgockel/json-voorhees/master/doc/meme.jpg)
+![JSON: Serialized Killer](https://raw.githubusercontent.com/tgockel/json-voorhees/trunk/doc/meme.jpg)
 
 
  [decode-non-utf8]: https://github.com/tgockel/json-voorhees/issues/10

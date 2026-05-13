@@ -13,8 +13,8 @@ Building the system only requires `CMake <https://cmake.org/>`_ and the standard
 Docker
 ^^^^^^
 
-Docker is the official mechanism for supporting multiple Linux distributions (see the
-`TravisCI <https://travis-ci.org/tgockel/json-voorhees>`_ build).
+Docker is available for local validation across multiple Linux distributions. The authoritative CI build runs in
+`GitHub Actions <https://github.com/tgockel/json-voorhees/actions>`_.
 If you would like to do this at home, simply use the ``dev-env`` script::
 
     $> cd /path/to/json-voorhees
@@ -28,7 +28,7 @@ Inside Docker, you can now build::
     root@0ae2f54b152b:~/jsonv# cd build-debug
     root@0ae2f54b152b:~/jsonv/build-debug# cmake -GNinja ..
     ... output ...
-    root@0ae2f54b152b:~/jsonv/build-debug# ninja test
+    root@0ae2f54b152b:~/jsonv/build-debug# ninja check
     ... output ...
 
 This experience is pretty decent.
@@ -84,8 +84,8 @@ Developing
 4. If this is your first contribution, add yourself to ``AUTHORS`` (alphabetically).
 5. Commit your code (somewhere in the commit message, be sure to mention "Issue #NN", where "NN" is the issue number you
    were working on).
-6. Watch your tests pass for all environments in TravisCI.
-7. Issue a pull request from your branch to the master branch of the main repository.
+6. Watch your tests pass in GitHub Actions.
+7. Issue a pull request from your branch to the ``trunk`` branch of the main repository.
 8. Close the branch in your repository (not actually required, but clean repos are nice).
 
 Sign Your Commits

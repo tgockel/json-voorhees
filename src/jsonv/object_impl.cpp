@@ -247,7 +247,7 @@ void value::insert(std::initializer_list<std::pair<std::wstring, value>> items)
 {
     check_type(jsonv::kind::object, kind());
     for (auto& pair : items)
-         insert(std::move(pair));
+         insert(pair);
 }
 
 value::object_insert_return_type value::insert(object_node_handle&& handle)

@@ -10,7 +10,7 @@
 # Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 # an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.5...3.29)
 project(json-voorhees)
 
 set(PACKAGE_NAME "jsonv"
@@ -20,11 +20,6 @@ set(PACKAGE_NAME "jsonv"
 ################################################################################
 # Configuration                                                                #
 ################################################################################
-
-if (CMAKE_VERSION VERSION_GREATER "3.0")
-  cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
-  cmake_policy(SET CMP0037 OLD) # Allow use of reserved names
-endif()
 
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
@@ -75,6 +70,9 @@ endif()
 set(LIBRARY_TYPE ${DEFAULT_LIBRARY_TYPE}
     CACHE STRING "The type of library to build (SHARED or STATIC)"
    )
+if (LIBRARY_TYPE STREQUAL "STATIC")
+    add_definitions("-DJSONV_SO=0")
+endif()
 
 option(BENCHMARK
        "Enable compilation of the json-benchmark program."
@@ -108,7 +106,6 @@ set_target_properties(jsonv
                         SOVERSION ${JSONV_SO_VERSION}
                         VERSION   ${JSONV_SO_VERSION}
                      )
-
 if (JSONV_BUILD_TESTS)
     file(GLOB_RECURSE jsonv_tests_cpps RELATIVE_PATH "." "src/jsonv-tests/*.cpp")
     add_executable(jsonv-tests ${jsonv_tests_cpps})

@@ -5,7 +5,7 @@ BUILD_DIR=${PROJECT_ROOT}/build-ci
 echo "${DISTRO} ${PROJECT_ROOT}"
 c++ --version
 
-# Configuration options are loaded from env.sh and then defaulted here (for running on TravisCI)
+# Configuration options are loaded from env.sh and then defaulted here for CI.
 if [[ -e "${PROJECT_ROOT}/env.sh" ]]; then
     echo "Found custom env.sh -- sourcing it"
     source "${PROJECT_ROOT}/env.sh"

@@ -20,7 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_compare_tests.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_diff_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_map_tests.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_merge_tests.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv-tests\algorithm_validate_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\array_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\benchmark_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\char_convert_tests.cpp" />
@@ -35,6 +38,8 @@
     <ClCompile Include="..\..\..\src\jsonv-tests\kind_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\main.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\object_tests.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv-tests\optional_tests.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv-tests\parse_blns.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\parse_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\path_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\serialization_builder_tests.cpp" />
@@ -44,9 +49,6 @@
     <ClCompile Include="..\..\..\src\jsonv-tests\test.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\tokenizer_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\unicode_tests.cpp" />
-    <ClCompile Include="..\..\..\src\jsonv-tests\util_diff_tests.cpp" />
-    <ClCompile Include="..\..\..\src\jsonv-tests\util_merge_tests.cpp" />
-    <ClCompile Include="..\..\..\src\jsonv-tests\util_validate_tests.cpp" />
     <ClCompile Include="..\..\..\src\jsonv-tests\value_tests.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -195,7 +197,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;JSONV_OPTIONAL_USE_BOOST=1;JSONV_SO=0;JSONV_TEST_DATA_DIR="src/jsonv-tests/data";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;JSONV_OPTIONAL_USE_BOOST=1;JSONV_SO=0;JSONV_TEST_DATA_DIR="src/jsonv-tests/data";JSONV_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -210,7 +212,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;JSONV_OPTIONAL_USE_BOOST=1;JSONV_SO=0;JSONV_TEST_DATA_DIR="src/jsonv-tests/data";_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;JSONV_OPTIONAL_USE_BOOST=1;JSONV_SO=0;JSONV_TEST_DATA_DIR="src/jsonv-tests/data";JSONV_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\include;$(ProjectDir)..\..\..\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

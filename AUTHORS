@@ -6,4 +6,5 @@ Travis Gockel      <travis@gockelhut.com>
 
 Contributions by:
 Remy Chibois       <remy.chibois@expandium.com>            - Debian packaging, bugfixes
+Peter Ellis        <peter.ellis@platypustech.co.uk>        - C++ 17 warning fixes
 sth                <https://github.com/sth>                - bugfixes

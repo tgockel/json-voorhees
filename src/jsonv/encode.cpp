@@ -228,7 +228,7 @@ void ostream_pretty_encoder::write_decimal(double value)
     ostream_encoder::write_decimal(value);
 }
 
-void ostream_pretty_encoder::write_integer(int64_t value)
+void ostream_pretty_encoder::write_integer(std::int64_t value)
 {
     write_prefix();
     ostream_encoder::write_integer(value);

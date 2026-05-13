@@ -32,6 +32,8 @@ unit_test::unit_test(const std::string& name) :
     get_unit_tests().push_back(this);
 }
 
+unit_test::~unit_test() = default;
+
 bool unit_test::run()
 {
     std::cout << "TEST: " << name() << " ...";

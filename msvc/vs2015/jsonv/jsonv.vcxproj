@@ -159,14 +159,18 @@
     <ClInclude Include="..\..\..\src\jsonv\array.hpp" />
     <ClInclude Include="..\..\..\src\jsonv\char_convert.hpp" />
     <ClInclude Include="..\..\..\src\jsonv\detail.hpp" />
+    <ClInclude Include="..\..\..\src\jsonv\detail\fallthrough.hpp" />
     <ClInclude Include="..\..\..\src\jsonv\detail\fixed_map.hpp" />
     <ClInclude Include="..\..\..\src\jsonv\detail\token_patterns.hpp" />
     <ClInclude Include="..\..\..\src\jsonv\object.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\jsonv\algorithm_compare.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_diff.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\algorithm_map.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_merge.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\algorithm_traverse.cpp" />
+    <ClCompile Include="..\..\..\src\jsonv\algorithm_validate.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\array.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\char_convert.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\coerce.cpp" />
@@ -181,7 +185,6 @@
     <ClCompile Include="..\..\..\src\jsonv\serialization.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\serialization_builder.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\tokenizer.cpp" />
-    <ClCompile Include="..\..\..\src\jsonv\util.cpp" />
     <ClCompile Include="..\..\..\src\jsonv\value.cpp" />
   </ItemGroup>
   <ItemGroup>
