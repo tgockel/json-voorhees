@@ -39,12 +39,12 @@ bool reader::impl_parse_index::good() const
     return _current != _index.end();
 }
 
-optional<ast_node> reader::impl_parse_index::load_current() const
+std::optional<ast_node> reader::impl_parse_index::load_current() const
 {
     if (good())
         return *_current;
     else
-        return nullopt;
+        return std::nullopt;
 }
 
 static path build_current_path(parse_index::const_iterator begin, parse_index::const_iterator current)
@@ -99,12 +99,12 @@ static path build_current_path(parse_index::const_iterator begin, parse_index::c
     return path(std::move(elements));
 }
 
-optional<path> reader::impl_parse_index::load_current_path() const
+std::optional<path> reader::impl_parse_index::load_current_path() const
 {
     if (good())
         return build_current_path(_index.begin(), _current);
     else
-        return nullopt;
+        return std::nullopt;
 }
 
 bool reader::impl_parse_index::next_token_impl() noexcept

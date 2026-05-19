@@ -12,7 +12,6 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/kind.hpp>
-#include <jsonv/optional.hpp>
 #include <jsonv/string_view.hpp>
 
 #include <cstdint>

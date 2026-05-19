@@ -9,11 +9,11 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
-#include <jsonv/optional.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
 
+#include <optional>
 #include <set>
 #include <sstream>
 #include <tuple>
@@ -36,7 +36,7 @@ struct person
            int               a,
            std::set<long>    favorite_numbers = std::set<long>{},
            std::vector<long> winning_numbers  = std::vector<long>{},
-           optional<std::string>  m = nullopt
+           std::optional<std::string> m = std::nullopt
           ) :
             firstname(std::move(f)),
             middle_name(m),
@@ -47,7 +47,7 @@ struct person
     { }
 
     std::string           firstname;
-    optional<std::string> middle_name;
+    std::optional<std::string> middle_name;
     std::string           lastname;
     int                   age;
     std::set<long>        favorite_numbers;
@@ -87,7 +87,7 @@ TEST(serialization_builder_members)
                         .member("middle_name", &person::middle_name)
                         .member("lastname",    &person::lastname)
                         .member("age",         &person::age)
-                        .register_optional<optional<std::string>>()
+                        .register_optional<std::optional<std::string>>()
                     .compose_checked(formats::defaults())
                 ;
 

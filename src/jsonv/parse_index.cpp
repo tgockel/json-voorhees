@@ -680,9 +680,9 @@ parse_index::iterator parse_index::end() const
     }
 }
 
-parse_index parse_index::parse(string_view           src,
-                               const parse_options&  options,
-                               optional<std::size_t> initial_buffer_capacity
+parse_index parse_index::parse(string_view                src,
+                               const parse_options&       options,
+                               std::optional<std::size_t> initial_buffer_capacity
                               )
 {
     // Initial capacity in tape slots (8 bytes each). The right ratio depends on input shape:
@@ -709,19 +709,19 @@ parse_index parse_index::parse(string_view           src,
     }
 }
 
-parse_index parse_index::parse(string_view src, optional<std::size_t> initial_buffer_capacity)
+parse_index parse_index::parse(string_view src, std::optional<std::size_t> initial_buffer_capacity)
 {
     return parse(src, parse_options::create_default(), initial_buffer_capacity);
 }
 
 parse_index parse_index::parse(string_view src, const parse_options& options)
 {
-    return parse(src, options, nullopt);
+    return parse(src, options, std::nullopt);
 }
 
 parse_index parse_index::parse(string_view src)
 {
-    return parse(src, parse_options::create_default(), nullopt);
+    return parse(src, parse_options::create_default(), std::nullopt);
 }
 
 std::ostream& operator<<(std::ostream& os, const parse_index& self)

@@ -10,9 +10,10 @@
 #pragma once
 
 #include <jsonv/ast.hpp>
-#include <jsonv/optional.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
+
+#include <optional>
 
 namespace jsonv
 {
@@ -38,9 +39,9 @@ public:
 
 protected:
     /// Attempt to load the current token. If there is no token to load, return \c nullopt.
-    virtual optional<ast_node> load_current() const = 0;
+    virtual std::optional<ast_node> load_current() const = 0;
 
-    virtual optional<path> load_current_path() const = 0;
+    virtual std::optional<path> load_current_path() const = 0;
 
     virtual bool next_token_impl() noexcept = 0;
 
@@ -53,10 +54,10 @@ protected:
     void mark_dirty();
 
 private:
-    mutable bool               _current_dirty;
-    mutable optional<ast_node> _current;
-    mutable bool               _current_path_dirty;
-    mutable optional<path>     _current_path;
+    mutable bool                    _current_dirty;
+    mutable std::optional<ast_node> _current;
+    mutable bool                    _current_path_dirty;
+    mutable std::optional<path>     _current_path;
 };
 
 }

@@ -57,9 +57,9 @@ const path& reader::impl::current_path() const
 void reader::impl::mark_dirty()
 {
     _current_dirty      = true;
-    _current            = nullopt;
+    _current            = std::nullopt;
     _current_path_dirty = true;
-    _current_path       = nullopt;
+    _current_path       = std::nullopt;
 }
 
 bool reader::impl::next_token()

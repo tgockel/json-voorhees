@@ -25,7 +25,7 @@ namespace jsonv
 // parse_error                                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string parse_error_what(const char* message, optional<std::size_t> character)
+static std::string parse_error_what(const char* message, std::optional<std::size_t> character)
 {
     std::ostringstream os;
 
@@ -36,7 +36,7 @@ static std::string parse_error_what(const char* message, optional<std::size_t> c
     return std::move(os).str();
 }
 
-parse_error::parse_error(const char* message, optional<std::size_t> character) noexcept :
+parse_error::parse_error(const char* message, std::optional<std::size_t> character) noexcept :
         std::runtime_error(parse_error_what(message, character)),
         _character(character)
 { }
@@ -90,7 +90,7 @@ parse_options& parse_options::string_encoding(encoding encoding_)
     return *this;
 }
 
-parse_options& parse_options::max_structure_depth(optional<size_type> depth)
+parse_options& parse_options::max_structure_depth(std::optional<size_type> depth)
 {
     _max_struct_depth = depth;
     return *this;

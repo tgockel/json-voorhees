@@ -14,9 +14,9 @@
 #include <jsonv/detail/match/number.hpp>
 #include <jsonv/detail/match/string.hpp>
 #include <jsonv/char_convert.hpp>
-#include <jsonv/optional.hpp>
 
 #include <algorithm>
+#include <optional>
 #include <cassert>
 #include <cctype>
 #include <ostream>
@@ -254,7 +254,7 @@ enum class path_match_result : char
     invalid       = '\x00',
 };
 
-static optional<string_view> match_simple_string(const char* begin, const char* end)
+static std::optional<string_view> match_simple_string(const char* begin, const char* end)
 {
     auto length     = std::size_t(0U);
     auto max_length = std::size_t(end - begin);
@@ -272,7 +272,7 @@ static optional<string_view> match_simple_string(const char* begin, const char* 
     if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$'))
         ++length;
     else
-        return nullopt;
+        return std::nullopt;
 
     while (true)
     {

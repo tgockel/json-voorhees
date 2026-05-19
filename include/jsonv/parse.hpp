@@ -10,7 +10,7 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/optional.hpp>
+#include <optional>
 #include <jsonv/string_view.hpp>
 #include <jsonv/value.hpp>
 
@@ -38,17 +38,17 @@ class JSONV_PUBLIC parse_error :
 public:
     /// \{
     /// Create an error with the given \a message and optional \a character location.
-    explicit parse_error(const char* message, optional<std::size_t> character) noexcept;
+    explicit parse_error(const char* message, std::optional<std::size_t> character) noexcept;
     explicit parse_error(const char* message) noexcept;
     /// \}
 
     virtual ~parse_error() noexcept;
 
     /// Get the character location of the encountered error.
-    const optional<std::size_t>& character() const { return _character; }
+    const std::optional<std::size_t>& character() const { return _character; }
 
 private:
-    optional<std::size_t> _character;
+    std::optional<std::size_t> _character;
 };
 
 /// Get a string representation of a \c parse_error.
@@ -117,8 +117,8 @@ public:
     /// this value. By default, the value is \c nullopt, which means implementations should limit structure depth to
     /// \c k::max_structure_depth. Setting \a depth to a value above \c k::max_structure_depth is will cause
     /// \c std::invalid_argument to be thrown from \c parse functions.
-    optional<size_type> max_structure_depth() const { return _max_struct_depth; }
-    parse_options&      max_structure_depth(optional<size_type> depth);
+    std::optional<size_type> max_structure_depth() const { return _max_struct_depth; }
+    parse_options&           max_structure_depth(std::optional<size_type> depth);
     /// \}
 
     /// \{
@@ -149,7 +149,7 @@ private:
     // For the purposes of ABI compliance, most modifications to the variables in this class should bump the minor
     // version number.
     encoding            _string_encoding  = encoding::utf8;
-    optional<size_type> _max_struct_depth = nullopt;
+    std::optional<size_type> _max_struct_depth = std::nullopt;
     bool                _require_document = false;
     bool                _complete_parse   = true;
     bool                _comments         = true;

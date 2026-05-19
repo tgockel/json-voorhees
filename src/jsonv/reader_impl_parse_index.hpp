@@ -30,9 +30,9 @@ public:
 
     virtual bool good() const override;
 
-    virtual optional<ast_node> load_current() const override;
+    virtual std::optional<ast_node> load_current() const override;
 
-    virtual optional<path> load_current_path() const override;
+    virtual std::optional<path> load_current_path() const override;
 
     virtual bool next_token_impl() noexcept override;
 
