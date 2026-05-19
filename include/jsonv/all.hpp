@@ -732,7 +732,6 @@ namespace jsonv
 #include "parse_index.hpp"
 #include "path.hpp"
 #include "reader.hpp"
-#include "result.hpp"
 #include "serialization.hpp"
 #include "serialization_builder.hpp"
 #include "serialization/all.hpp"
