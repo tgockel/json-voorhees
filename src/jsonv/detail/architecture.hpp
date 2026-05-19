@@ -17,3 +17,16 @@
 #       define JSONV_SSE2 0
 #   endif
 #endif
+
+// AVX2 is gated at runtime via __builtin_cpu_supports + __attribute__((target("avx2"))).
+// It does not require -mavx2 at the TU level; it only requires that the compiler
+// supports the target attribute and that <immintrin.h> is reachable -- both true on
+// GCC/Clang for x86. We piggy-back on JSONV_SSE2 since every AVX2-capable CPU also
+// has SSE2.
+#ifndef JSONV_AVX2
+#   if JSONV_SSE2 && (defined(__GNUC__) || defined(__clang__))
+#       define JSONV_AVX2 1
+#   else
+#       define JSONV_AVX2 0
+#   endif
+#endif
