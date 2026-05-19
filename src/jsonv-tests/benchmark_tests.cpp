@@ -15,6 +15,7 @@
 
 #include <jsonv/algorithm.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/parse_index.hpp>
 #include <jsonv/value.hpp>
 
 #include <fstream>
@@ -38,6 +39,27 @@ static void run_test(FLoader load, const std::string& from)
             JSONV_TEST_TIME(timer);
             parse(src_data);
         }
+    }
+    std::cout << timer.get();
+}
+
+// Times stage-1 only: parse_index::parse on a string source. Skips the extract phase
+// (jsonv::value materialization), so the number reflects the parse_index hot path alone.
+static void run_parse_index_test(const std::string& path)
+{
+    std::ifstream inputfile(path.c_str());
+    std::string src;
+    inputfile.seekg(0, std::ios::end);
+    src.reserve(inputfile.tellg());
+    inputfile.seekg(0, std::ios::beg);
+    src.assign(std::istreambuf_iterator<char>(inputfile), std::istreambuf_iterator<char>());
+
+    stopwatch timer;
+    for (unsigned cnt = 0; cnt < iterations; ++cnt)
+    {
+        JSONV_TEST_TIME(timer);
+        auto idx = parse_index::parse(src);
+        (void)idx;
     }
     std::cout << timer.get();
 }
@@ -66,6 +88,24 @@ private:
     std::string path;
 };
 
+class parse_index_benchmark_test :
+        public unit_test
+{
+public:
+    explicit parse_index_benchmark_test(std::string path) :
+            unit_test(std::string("benchmark/parse_index/") + filename(path)),
+            path(std::move(path))
+    { }
+
+    virtual void run_impl() override
+    {
+        run_parse_index_test(path);
+    }
+
+private:
+    std::string path;
+};
+
 class benchmark_test_initializer
 {
 public:
@@ -81,6 +121,7 @@ public:
                                                                      )
                                    );
                 _tests.emplace_back(new benchmark_test<std::string>(load_from_file, "string", path));
+                _tests.emplace_back(new parse_index_benchmark_test(path));
             }
         });
     }

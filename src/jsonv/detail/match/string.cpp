@@ -156,6 +156,7 @@ match_string_result match_string(const char* iter, const char* end, const parse_
         }
         else if (!(*iter & '\x80'))
         {
+            JSONV_LIKELY
             if (check_printability && !is_print(*iter))
             {
                 JSONV_UNLIKELY

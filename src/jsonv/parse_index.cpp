@@ -1,6 +1,6 @@
 /// \file
 ///
-/// Copyright (c) 2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2020-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -12,16 +12,22 @@
 #include <jsonv/serialization.hpp>
 
 #include <cassert>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <new>
 #include <sstream>
 #include <utility>
 
+#include "detail/architecture.hpp"
 #include "detail/fallthrough.hpp"
 #include "detail/match/number.hpp"
 #include "detail/match/string.hpp"
 #include "detail/overload.hpp"
+
+#if JSONV_SSE2
+#   include <emmintrin.h>
+#endif
 
 namespace jsonv
 {
@@ -159,13 +165,12 @@ struct JSONV_LOCAL parse_index::impl final
         // NOTE: Doubling the data capacity will always grow enough to hold a complete code size, as the minimum size
         // can hold the largest code size.
         auto new_capacity = self->data_capacity * 2;
+        auto new_alloc_sz = sizeof(impl) + new_capacity * sizeof(std::uint64_t);
 
-        // OPTIMIZATION: It's possible that `realloc` would be better here, but there is not an aligned version of that.
-        auto new_self = allocate(new_capacity);
-        std::memcpy(new_self, self, sizeof *new_self + self->data_size * sizeof self->data(0));
+        auto new_self = static_cast<impl*>(std::realloc(self, new_alloc_sz));
+        if (!new_self)
+            throw std::bad_alloc();
         new_self->data_capacity = new_capacity;
-
-        destroy(self);
         self = new_self;
     }
 
@@ -211,17 +216,44 @@ struct JSONV_LOCAL parse_index::impl final
                              );
 };
 
-// OPTIMIZATION(SIMD-SSE4.2): Skip over chunks with cmpistri
+static inline bool is_json_whitespace(char c)
+{
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
 static void fastforward_whitespace(const char*& iter, const char* end)
 {
-    while (iter < end)
+#if JSONV_SSE2
+    // 16-byte chunk scan: build a mask of whitespace bytes and find the first non-whitespace.
+    // Skip the SIMD path for very short remaining inputs; the tail loop is cheaper.
+    const __m128i ws_space = _mm_set1_epi8(' ');
+    const __m128i ws_tab   = _mm_set1_epi8('\t');
+    const __m128i ws_lf    = _mm_set1_epi8('\n');
+    const __m128i ws_cr    = _mm_set1_epi8('\r');
+
+    while (iter + 16 <= end)
     {
-        char c = *iter;
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-            ++iter;
+        __m128i chunk = _mm_loadu_si128(reinterpret_cast<const __m128i*>(iter));
+        __m128i is_ws = _mm_or_si128(
+            _mm_or_si128(_mm_cmpeq_epi8(chunk, ws_space), _mm_cmpeq_epi8(chunk, ws_tab)),
+            _mm_or_si128(_mm_cmpeq_epi8(chunk, ws_lf),    _mm_cmpeq_epi8(chunk, ws_cr))
+        );
+        unsigned ws_mask = static_cast<unsigned>(_mm_movemask_epi8(is_ws));
+        unsigned non_ws  = (~ws_mask) & 0xFFFFu;
+        if (non_ws == 0u)
+        {
+            iter += 16;
+        }
         else
-            break;
+        {
+            iter += __builtin_ctz(non_ws);
+            return;
+        }
     }
+#endif
+
+    while (iter < end && is_json_whitespace(*iter))
+        ++iter;
 }
 
 static bool fastforward_comment(const char*& ext_iter, const char* end)
@@ -248,7 +280,6 @@ static bool fastforward_comment(const char*& ext_iter, const char* end)
     return false;
 }
 
-// OPTIMIZATION(SIMD): Tokens can be checked as a single `uint32_t`, including "false", as 'f' has already been checked.
 template <std::size_t NPlusOne>
 void parse_index::impl::parse_literal(impl*&        self,
                                       const char*   begin,
@@ -259,17 +290,27 @@ void parse_index::impl::parse_literal(impl*&        self,
                                      )
 {
     static constexpr std::size_t N = NPlusOne - 1;
+    static_assert(N == 4 || N == 5, "parse_literal is specialized for true/false/null only");
 
     if (iter + N <= end)
     {
-        // start at `idx` 1 because `parse` checks the first value
-        for (std::size_t idx = 1; idx < N; ++idx)
+        // Compare the literal as a single 4-byte word (covers "true"/"null" entirely, and the
+        // first four bytes of "false"). The dispatching switch in parse() has already verified
+        // the first byte, but including it costs nothing and lets the compiler emit a single
+        // 32-bit compare with a constant.
+        std::uint32_t observed;
+        std::uint32_t expected;
+        std::memcpy(&observed, iter, 4);
+        std::memcpy(&expected, expected_token, 4);
+
+        bool ok = (observed == expected);
+        if constexpr (N == 5)
+            ok = ok && (iter[4] == expected_token[4]);
+
+        if (!ok)
         {
-            if (iter[idx] != expected_token[idx])
-            {
-                JSONV_UNLIKELY
-                throw push_error(*&self, ast_error::invalid_literal, begin, iter);
-            }
+            JSONV_UNLIKELY
+            throw push_error(*&self, ast_error::invalid_literal, begin, iter);
         }
 
         push_back(self, success_value, iter);
@@ -601,8 +642,12 @@ parse_index parse_index::parse(string_view           src,
                                optional<std::size_t> initial_buffer_capacity
                               )
 {
-    // OPTIMIZATION: Better heuristics on initial buffer capacity.
-    auto p       = impl::allocate(initial_buffer_capacity.value_or(src.size() / 16));
+    // Initial capacity in tape slots (8 bytes each). The right ratio depends on input shape:
+    // a pure-strings document needs near-zero slots/byte; a boolean-array worst-case needs ~0.6.
+    // Empirical density on canada.json is ~0.4 slots/byte, so `/ 3` covers most realistic inputs
+    // with at most one realloc. Over-allocation cost is mostly RAM commit; under-allocation cost
+    // (since grow_data_buffer now uses realloc) is one move-only realloc per doubling.
+    auto p       = impl::allocate(initial_buffer_capacity.value_or(src.size() / 3));
     p->src_begin = src.data();
 
     try
