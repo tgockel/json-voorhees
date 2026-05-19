@@ -9,13 +9,71 @@
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/config.hpp>
+#include <jsonv/detail/architecture.hpp>
 
 #include <cassert>
+#include <cstddef>
 
 #include "number.hpp"
 
+#if JSONV_SSE2
+#   include <emmintrin.h>
+#endif
+
 namespace jsonv::detail
 {
+
+// Chunked scan over a digit run: advance past consecutive '0'..'9' bytes
+// and return the offset of the first non-digit. Zero means the byte at
+// `iter` is already a non-digit; the state machine's switch handles it.
+//
+// SSE2-only: numbers in typical JSON are short enough (typically 10-15 byte
+// runs) that an AVX2 32-byte path measured slower on canada.json -- the
+// wider lanes don't help and the per-call overhead (256-bit broadcast,
+// VZEROUPPER on exit) loses to the 16-byte path. JSONV_AVX2 stays available
+// in architecture.hpp for callers where it pays off (see match_string).
+#if JSONV_SSE2
+
+__attribute__((noinline))
+static std::size_t
+fastforward_digits(const char* iter, const char* end) noexcept
+{
+    const char* const start = iter;
+    const __m128i zero_v = _mm_set1_epi8('0');
+    const __m128i nine_v = _mm_set1_epi8('9');
+
+    while (iter + 16 <= end)
+    {
+        __m128i chunk = _mm_loadu_si128(reinterpret_cast<const __m128i*>(iter));
+        // Signed compares: cmplt against '0' also catches high-bit (negative)
+        // bytes, which are non-digits and correct to terminate on.
+        __m128i lo     = _mm_cmplt_epi8(chunk, zero_v);
+        __m128i hi     = _mm_cmpgt_epi8(chunk, nine_v);
+        __m128i nondig = _mm_or_si128(lo, hi);
+        unsigned mask  = static_cast<unsigned>(_mm_movemask_epi8(nondig)) & 0xFFFFu;
+
+        if (mask == 0u)
+        {
+            iter += 16;
+        }
+        else
+        {
+            iter += __builtin_ctz(mask);
+            return static_cast<std::size_t>(iter - start);
+        }
+    }
+    return static_cast<std::size_t>(iter - start);
+}
+
+#else // !JSONV_SSE2
+
+static inline std::size_t
+fastforward_digits(const char*, const char*) noexcept
+{
+    return 0u;
+}
+
+#endif // JSONV_SSE2
 
 namespace
 {
@@ -138,6 +196,7 @@ match_number_result match_number(const char* begin, const char* end)
     // Have only seen integer values
     while (state == match_number_state::integer)
     {
+        length += fastforward_digits(begin + length, end);
         switch (current())
         {
         case '0':
@@ -192,6 +251,7 @@ match_number_result match_number(const char* begin, const char* end)
 
         while (state == match_number_state::decimal)
         {
+            length += fastforward_digits(begin + length, end);
             switch (current())
             {
             case '0':
@@ -271,6 +331,7 @@ match_number_result match_number(const char* begin, const char* end)
 
     while (state == match_number_state::exponent)
     {
+        length += fastforward_digits(begin + length, end);
         switch (current())
         {
         case '0':
