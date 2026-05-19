@@ -225,9 +225,9 @@ static void utf16_create_surrogates(char32_t codepoint, uint16_t* high, uint16_t
     *low  = uint16_t(val & 0x03ff) | 0xdc00;
 }
 
-std::ostream& string_encode(std::ostream& stream, string_view source, bool ensure_ascii)
+std::ostream& string_encode(std::ostream& stream, std::string_view source, bool ensure_ascii)
 {
-    typedef string_view::size_type size_type;
+    typedef std::string_view::size_type size_type;
 
     for (size_type idx = 0, source_size = source.size(); idx < source_size; /* incremented inline */)
     {
@@ -432,7 +432,7 @@ static bool utf16_combine_surrogates(uint16_t high, uint16_t low, char32_t* out)
  *                            them). This will probably eventually eventually transform into a "strict mode."
 **/
 template <parse_options::encoding encoding, bool require_printable>
-std::string string_decode(string_view source)
+std::string string_decode(std::string_view source)
 {
     typedef std::string::size_type size_type;
 
@@ -593,7 +593,7 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
     };
 }
 
-std::wstring convert_to_wide(string_view source)
+std::wstring convert_to_wide(std::string_view source)
 {
     // Step 1: Determine the codepoints from the source
     JSONV_TEMP_BUFFER(char32_t, unicode_buff, source.size());

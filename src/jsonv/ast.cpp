@@ -51,7 +51,7 @@ static inline std::invalid_argument make_failed_numeric_extract(const ast_node& 
 namespace detail
 {
 
-std::string string_from_token(string_view token, std::true_type is_escaped JSONV_UNUSED)
+std::string string_from_token(std::string_view token, std::true_type is_escaped JSONV_UNUSED)
 {
     // TODO(#150): This logic should be in a dedicated extractor
     static const string_decode_fn decoder = get_string_decoder(parse_options::encoding::utf8);

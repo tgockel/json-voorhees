@@ -12,7 +12,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/ast.hpp>
-#include <jsonv/string_view.hpp>
+#include <string_view>
 
 #include <cstdint>
 #include <initializer_list>
@@ -34,7 +34,7 @@ class value;
 /// sequence.
 ///
 /// Readers normalize access to JSON source for conversion to some other format. They can be provided with pre-parsed
-/// JSON through a \c parse_index or \c value. They can be provided with a \c std::string or \c string_view directly.
+/// JSON through a \c parse_index or \c value. They can be provided with a \c std::string or \c std::string_view directly.
 /// This allows \c extractor implementations to operate on all forms of JSON without worrying about the implementation.
 class JSONV_PUBLIC reader final
 {
@@ -55,8 +55,8 @@ public:
     ///               reader's implementation to keep alive.
     /// \param parse_options If specified, use these options to parse \a source. If unspecified, use the default values
     ///                      of \a parse_options for \c parse_index::parse.
-    explicit reader(string_view source);
-    explicit reader(string_view source, const parse_options& parse_options);
+    explicit reader(std::string_view source);
+    explicit reader(std::string_view source, const parse_options& parse_options);
     explicit reader(const char* source);
     explicit reader(const char* source, const parse_options& parse_options);
 

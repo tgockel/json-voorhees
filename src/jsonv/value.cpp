@@ -51,7 +51,7 @@ value::value(const std::string& val) :
     _data.string->_string = val;
 }
 
-value::value(const string_view& val) :
+value::value(const std::string_view& val) :
         value(std::string(val))
 { }
 
@@ -237,7 +237,7 @@ value& value::at_path(const jsonv::path& p)
                     );
 }
 
-value& value::at_path(string_view path_description)
+value& value::at_path(std::string_view path_description)
 {
     return at_path(jsonv::path::create(path_description));
 }
@@ -261,7 +261,7 @@ const value& value::at_path(const jsonv::path& p) const
                     );
 }
 
-const value& value::at_path(string_view path_description) const
+const value& value::at_path(std::string_view path_description) const
 {
     return at_path(jsonv::path::create(path_description));
 }
@@ -295,7 +295,7 @@ value& value::path(const jsonv::path& p)
                     );
 }
 
-value& value::path(string_view path_description)
+value& value::path(std::string_view path_description)
 {
     return path(jsonv::path::create(path_description));
 }
@@ -323,7 +323,7 @@ value::size_type value::count_path(const jsonv::path& p) const
     }
 }
 
-value::size_type value::count_path(string_view p) const
+value::size_type value::count_path(std::string_view p) const
 {
     return count_path(jsonv::path::create(p));
 }
@@ -373,10 +373,10 @@ const std::string& value::as_string() const
     return _data.string->_string;
 }
 
-string_view value::as_string_view() const &
+std::string_view value::as_string_view() const &
 {
     check_type(jsonv::kind::string, _kind);
-    return string_view(_data.string->_string);
+    return std::string_view(_data.string->_string);
 }
 
 std::wstring value::as_wstring() const

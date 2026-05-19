@@ -24,11 +24,11 @@ reader::impl_parse_index::impl_parse_index(parse_index source) :
         _current(_index.begin())
 { }
 
-reader::impl_parse_index::impl_parse_index(string_view source, const parse_options& options) :
+reader::impl_parse_index::impl_parse_index(std::string_view source, const parse_options& options) :
         impl_parse_index(parse_index::parse(source, options))
 { }
 
-reader::impl_parse_index::impl_parse_index(string_view source) :
+reader::impl_parse_index::impl_parse_index(std::string_view source) :
         impl_parse_index(parse_index::parse(source))
 { }
 

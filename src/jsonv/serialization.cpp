@@ -221,7 +221,7 @@ std::type_index no_extractor::type_index() const
     return _type_index;
 }
 
-string_view no_extractor::type_name() const
+std::string_view no_extractor::type_name() const
 {
     return _type_name;
 }
@@ -248,7 +248,7 @@ std::type_index no_serializer::type_index() const
     return _type_index;
 }
 
-string_view no_serializer::type_name() const
+std::string_view no_serializer::type_name() const
 {
     return _type_name;
 }
@@ -575,7 +575,7 @@ static formats create_default_formats()
     fmt.register_adapter(&string_extractor);
 
     static auto string_view_adapter = make_adapter([] (const value& from) { return from.as_string_view(); },
-                                                   [] (const string_view& from) { return value(from); }
+                                                   [] (const std::string_view& from) { return value(from); }
                                                   );
     fmt.register_adapter(&string_view_adapter);
 

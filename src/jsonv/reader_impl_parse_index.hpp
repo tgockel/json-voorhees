@@ -21,8 +21,8 @@ class JSONV_LOCAL reader::impl_parse_index :
         public reader::impl
 {
 public:
-    explicit impl_parse_index(string_view source);
-    explicit impl_parse_index(string_view source, const parse_options& options);
+    explicit impl_parse_index(std::string_view source);
+    explicit impl_parse_index(std::string_view source, const parse_options& options);
 
     explicit impl_parse_index(parse_index source);
 

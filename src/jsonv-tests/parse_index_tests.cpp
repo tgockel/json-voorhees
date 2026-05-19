@@ -15,7 +15,7 @@
 #include <stdexcept>
 
 template <typename TNode>
-TNode parse_single(jsonv::string_view src, jsonv::string_view expected)
+TNode parse_single(std::string_view src, std::string_view expected)
 {
     auto ast = jsonv::parse_index::parse(src);
     ensure_eq(to_string(ast), expected);

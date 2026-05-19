@@ -100,13 +100,13 @@ public:
     /// \param initial_buffer_capacity
     ///     The initial capacity of the underlying buffer. By default (\c nullopt), this will size the buffer according
     ///     to the length of the \a src string.
-    static parse_index parse(string_view           src,
+    static parse_index parse(std::string_view           src,
                              const parse_options&       options,
                              std::optional<std::size_t> initial_buffer_capacity
                             );
-    static parse_index parse(string_view src, std::optional<std::size_t> initial_buffer_capacity);
-    static parse_index parse(string_view src, const parse_options& options);
-    static parse_index parse(string_view src);
+    static parse_index parse(std::string_view src, std::optional<std::size_t> initial_buffer_capacity);
+    static parse_index parse(std::string_view src, const parse_options& options);
+    static parse_index parse(std::string_view src);
     /// \}
 
     /// Clear the contents of this instance.

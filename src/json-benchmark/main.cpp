@@ -22,7 +22,7 @@
 
 using namespace jsonv;
 
-static int extract_int(string_view src)
+static int extract_int(std::string_view src)
 {
     auto  src_end  = src.data() + src.size();
     char* scan_end = nullptr;

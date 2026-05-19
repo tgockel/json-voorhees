@@ -14,7 +14,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/forward.hpp>
-#include <jsonv/string_view.hpp>
+#include <string_view>
 
 #include <cstdint>
 #include <iosfwd>
@@ -62,7 +62,7 @@ protected:
      *  "key":
      *  \endcode
     **/
-    virtual void write_object_key(string_view key) = 0;
+    virtual void write_object_key(std::string_view key) = 0;
     
     /** Write the delimiter between two entries in an object.
      *  
@@ -106,7 +106,7 @@ protected:
      *  "value"
      *  \endcode
     **/
-    virtual void write_string(string_view value) = 0;
+    virtual void write_string(std::string_view value) = 0;
     
     /** Write an integer value.
      *  
@@ -166,7 +166,7 @@ protected:
     
     virtual void write_object_end() override;
     
-    virtual void write_object_key(string_view key) override;
+    virtual void write_object_key(std::string_view key) override;
     
     virtual void write_object_delimiter() override;
     
@@ -176,7 +176,7 @@ protected:
     
     virtual void write_array_delimiter() override;
     
-    virtual void write_string(string_view value) override;
+    virtual void write_string(std::string_view value) override;
     
     virtual void write_integer(std::int64_t value) override;
     
@@ -218,7 +218,7 @@ protected:
     
     virtual void write_object_end() override;
     
-    virtual void write_object_key(string_view key) override;
+    virtual void write_object_key(std::string_view key) override;
     
     virtual void write_object_delimiter() override;
     
@@ -228,7 +228,7 @@ protected:
     
     virtual void write_array_delimiter() override;
     
-    virtual void write_string(string_view value) override;
+    virtual void write_string(std::string_view value) override;
     
     virtual void write_integer(std::int64_t value) override;
     

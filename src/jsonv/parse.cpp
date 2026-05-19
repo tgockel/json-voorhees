@@ -136,14 +136,14 @@ parse_options& parse_options::comments(bool val)
         return parse(JSONV_IDENTITY args, parse_options::create_default(), extract_opts);                              \
     }                                                                                                                  \
 
-value parse(string_view input, const parse_options& parse_opts, const extract_options& extract_opts)
+value parse(std::string_view input, const parse_options& parse_opts, const extract_options& extract_opts)
 {
     auto ast = parse_index::parse(input, parse_opts);
     ast.validate();
     return ast.extract_tree(extract_opts);
 }
 
-JSONV_PARSE_IMPL_OVERLOADS((string_view input), (input))
+JSONV_PARSE_IMPL_OVERLOADS((std::string_view input), (input))
 
 value parse(std::istream& input, const parse_options& parse_opts, const extract_options& extract_opts)
 {
@@ -155,14 +155,14 @@ JSONV_PARSE_IMPL_OVERLOADS((std::istream& input), (input))
 
 value parse(const char* begin, const char* end, const parse_options& parse_opts, const extract_options& extract_opts)
 {
-    return parse(string_view(begin, std::distance(begin, end)), parse_opts, extract_opts);
+    return parse(std::string_view(begin, std::distance(begin, end)), parse_opts, extract_opts);
 }
 
 JSONV_PARSE_IMPL_OVERLOADS((const char* begin, const char* end), (begin, end))
 
 value operator""_json(const char* str, std::size_t len)
 {
-    return parse(string_view(str, len));
+    return parse(std::string_view(str, len));
 }
 
 }

@@ -12,7 +12,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/kind.hpp>
-#include <jsonv/string_view.hpp>
+#include <string_view>
 
 #include <cstdint>
 #include <iosfwd>
@@ -27,12 +27,12 @@ class value;
 namespace detail
 {
 
-inline string_view string_from_token(string_view token, std::false_type is_escaped JSONV_UNUSED)
+inline std::string_view string_from_token(std::string_view token, std::false_type is_escaped JSONV_UNUSED)
 {
-    return string_view(token.data() + 1, token.size() - 2U);
+    return std::string_view(token.data() + 1, token.size() - 2U);
 }
 
-std::string string_from_token(string_view token, std::true_type is_escaped);
+std::string string_from_token(std::string_view token, std::true_type is_escaped);
 
 }
 
@@ -169,9 +169,9 @@ public:
         }
 
         /// \see ast_node::token_raw
-        string_view token_raw() const
+        std::string_view token_raw() const
         {
-            return string_view(_token_begin, static_cast<const TSelf&>(*this).token_size());
+            return std::string_view(_token_begin, static_cast<const TSelf&>(*this).token_size());
         }
 
         /// Allow implicit conversion to the more generic \c ast_node.
@@ -289,8 +289,8 @@ public:
     {
     public:
         /// The return type of \c value is based on if the string is \c canonical or \c escaped. Strings in canonical
-        /// representation can be returned directly from the text through a \c string_view.
-        using value_type = std::conditional_t<KEscaped, std::string, string_view>;
+        /// representation can be returned directly from the text through a \c std::string_view.
+        using value_type = std::conditional_t<KEscaped, std::string, std::string_view>;
 
     public:
         explicit constexpr basic_string_token(const char* token_begin, std::size_t token_size) :
@@ -472,7 +472,7 @@ public:
 
     /// Get a view of the raw token. For example, \c "true", \c "{", or \c "1234". Note that this includes the complete
     /// source, so string types such as \c ast_node_type::string_canonical include the opening and closing quotations.
-    string_view token_raw() const
+    std::string_view token_raw() const
     {
         return visit([](const auto& x) { return x.token_raw(); });
     }

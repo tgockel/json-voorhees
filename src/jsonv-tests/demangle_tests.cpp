@@ -21,7 +21,7 @@ namespace jsonv_test
 
 TEST(demangle_types)
 {
-    std::cout << jsonv::demangle(typeid(jsonv::string_view).name());
+    std::cout << jsonv::demangle(typeid(std::string_view).name());
     jsonv::demangle("_ZN20garbage");
 }
 

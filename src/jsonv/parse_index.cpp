@@ -243,7 +243,7 @@ struct JSONV_LOCAL parse_index::impl final
         return ast_exception(error_code, self->first_error_index);
     }
 
-    static void parse(impl*& self, string_view src, const parse_options& options);
+    static void parse(impl*& self, std::string_view src, const parse_options& options);
 
     template <std::size_t N>
     static void parse_literal(impl*&        self,
@@ -362,7 +362,7 @@ void parse_index::impl::parse_literal(impl*&        self,
     }
 }
 
-void parse_index::impl::parse(impl*& self, string_view src, const parse_options& options)
+void parse_index::impl::parse(impl*& self, std::string_view src, const parse_options& options)
 {
     if (options.max_structure_depth() && *options.max_structure_depth() > parse_options::k::max_structure_depth)
         throw std::invalid_argument("parse_options::max_structure_depth too large");
@@ -680,7 +680,7 @@ parse_index::iterator parse_index::end() const
     }
 }
 
-parse_index parse_index::parse(string_view                src,
+parse_index parse_index::parse(std::string_view                src,
                                const parse_options&       options,
                                std::optional<std::size_t> initial_buffer_capacity
                               )
@@ -709,17 +709,17 @@ parse_index parse_index::parse(string_view                src,
     }
 }
 
-parse_index parse_index::parse(string_view src, std::optional<std::size_t> initial_buffer_capacity)
+parse_index parse_index::parse(std::string_view src, std::optional<std::size_t> initial_buffer_capacity)
 {
     return parse(src, parse_options::create_default(), initial_buffer_capacity);
 }
 
-parse_index parse_index::parse(string_view src, const parse_options& options)
+parse_index parse_index::parse(std::string_view src, const parse_options& options)
 {
     return parse(src, options, std::nullopt);
 }
 
-parse_index parse_index::parse(string_view src)
+parse_index parse_index::parse(std::string_view src)
 {
     return parse(src, parse_options::create_default(), std::nullopt);
 }

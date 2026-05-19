@@ -33,20 +33,20 @@ reader::reader(parse_index index) :
         reader(std::in_place_type<impl_parse_index>, std::move(index))
 { }
 
-reader::reader(string_view source) :
+reader::reader(std::string_view source) :
         reader(std::in_place_type<impl_parse_index>, source)
 { }
 
-reader::reader(string_view source, const parse_options& options) :
+reader::reader(std::string_view source, const parse_options& options) :
         reader(std::in_place_type<impl_parse_index>, source, options)
 { }
 
 reader::reader(const char* source) :
-        reader(string_view(source))
+        reader(std::string_view(source))
 { }
 
 reader::reader(const char* source, const parse_options& options) :
-        reader(string_view(source), options)
+        reader(std::string_view(source), options)
 { }
 
 reader::reader(std::string&& source) :

@@ -41,7 +41,7 @@ struct walk_info
     std::size_t          next_struct_idx;
 
     walk_info(jsonv::ast_node_type type,
-              jsonv::string_view   path,
+              std::string_view   path,
               std::size_t          next_key_idx,
               std::size_t          next_struct_idx) :
             type(type),
@@ -53,8 +53,8 @@ struct walk_info
 
 struct example_data_type
 {
-    jsonv::string_view     name;
-    jsonv::string_view     source;
+    std::string_view     name;
+    std::string_view     source;
     std::vector<walk_info> expected;
 };
 
@@ -249,7 +249,7 @@ private:
     example_data_type _data;
 };
 
-static void walk_expecting_next_struct_at_index(jsonv::string_view            src,
+static void walk_expecting_next_struct_at_index(std::string_view            src,
                                                 const std::vector<walk_info>& expected,
                                                 std::size_t                   jump_from_idx
                                                )
@@ -294,7 +294,7 @@ private:
     std::size_t       _next_struct_at_idx;
 };
 
-static void walk_expecting_next_key_at_index(jsonv::string_view            src,
+static void walk_expecting_next_key_at_index(std::string_view            src,
                                              const std::vector<walk_info>& expected,
                                              std::size_t                   jump_from_idx
                                             )
@@ -345,7 +345,7 @@ private:
 /// Walk through \a source, randomly calling \c next_key with \a next_key_probability (when current position is a key
 /// type) and \c next_struct with \a next_struct_probability. The random number generator is seeded with \a rng_seed so
 /// behavior is deterministic.
-static void walk_random_expecting(jsonv::string_view            source,
+static void walk_random_expecting(std::string_view            source,
                                   const std::vector<walk_info>& expected,
                                   double                        next_key_probability    = 0.0,
                                   double                        next_struct_probability = 0.0,

@@ -12,7 +12,7 @@
 #define __JSONV_DEMANGLE_HPP_INCLUDED__
 
 #include <jsonv/config.hpp>
-#include <jsonv/string_view.hpp>
+#include <string_view>
 
 #include <functional>
 #include <string>
@@ -30,14 +30,14 @@ namespace jsonv
  *  \see demangle_function
  *  \see set_demangle_function
 **/
-JSONV_PUBLIC std::string demangle(string_view source);
+JSONV_PUBLIC std::string demangle(std::string_view source);
 
 /** Type of function used in setting a custom demangler.
  *
  *  \see demangle
  *  \see set_demangle_function
 **/
-using demangle_function = std::function<std::string (string_view source)>;
+using demangle_function = std::function<std::string (std::string_view source)>;
 
 /** Sets the global demangle function. This controls the behavior of \c demangle -- the provided \a func will be called
  *  by \c demangle.

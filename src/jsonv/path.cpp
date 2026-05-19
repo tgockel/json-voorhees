@@ -74,7 +74,7 @@ path_element::path_element(std::string key) :
         _data(std::move(key))
 { }
 
-path_element::path_element(string_view key) :
+path_element::path_element(std::string_view key) :
         path_element(std::string(key))
 { }
 
@@ -254,7 +254,7 @@ enum class path_match_result : char
     invalid       = '\x00',
 };
 
-static std::optional<string_view> match_simple_string(const char* begin, const char* end)
+static std::optional<std::string_view> match_simple_string(const char* begin, const char* end)
 {
     auto length     = std::size_t(0U);
     auto max_length = std::size_t(end - begin);
@@ -278,11 +278,11 @@ static std::optional<string_view> match_simple_string(const char* begin, const c
     {
         c = current();
         if (c == '\0')
-            return string_view(begin, length);
+            return std::string_view(begin, length);
         else if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$') || ('0' <= c && c <= '9'))
             ++length;
         else
-            return string_view(begin, length);
+            return std::string_view(begin, length);
     }
 }
 
@@ -290,7 +290,7 @@ static std::optional<string_view> match_simple_string(const char* begin, const c
 ///
 /// \param input The input to match
 /// \param[out] match_contents The full contents of a match
-static path_match_result path_match(string_view input, string_view& match_contents)
+static path_match_result path_match(std::string_view input, std::string_view& match_contents)
 {
     if (input.length() < 2U)
         return path_match_result::invalid;
@@ -380,7 +380,7 @@ path& path::operator=(path&& src) noexcept
 }
 path::~path() noexcept = default;
 
-static std::size_t extract_size_t(string_view src)
+static std::size_t extract_size_t(std::string_view src)
 {
     auto  src_end  = src.data() + src.size();
     char* scan_end = nullptr;
@@ -392,16 +392,16 @@ static std::size_t extract_size_t(string_view src)
         throw std::invalid_argument(std::string("Could not extract integer from \"") + std::string(src) + "\"");
 }
 
-path path::create(string_view specification)
+path path::create(std::string_view specification)
 {
     if (specification.size() == 1U && specification[0] == '.')
         return path();
 
     path out;
-    string_view remaining = specification;
+    std::string_view remaining = specification;
     while (!remaining.empty())
     {
-        string_view match;
+        std::string_view match;
         switch (detail::path_match(remaining, match))
         {
         case detail::path_match_result::simple_object:
@@ -411,7 +411,7 @@ path path::create(string_view specification)
             if (match.at(1) == '\"')
                 out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
             else
-                out += extract_size_t(string_view(match.data() + 1, match.size() - 2));
+                out += extract_size_t(std::string_view(match.data() + 1, match.size() - 2));
             break;
         default:
             throw std::invalid_argument(std::string("Invalid specification \"") + std::string(specification) + "\". "

@@ -11,7 +11,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/parse.hpp>
-#include <jsonv/string_view.hpp>
+#include <string_view>
 
 #include <string>
 #include <stdexcept>
@@ -39,16 +39,16 @@ private:
 };
 
 /// Encodes C++ string \a source into a fully-escaped JSON string into \a stream ready for sending over the wire.
-std::ostream& string_encode(std::ostream& stream, string_view source, bool ensure_ascii = true);
+std::ostream& string_encode(std::ostream& stream, std::string_view source, bool ensure_ascii = true);
 
 /// A function that decodes an over the wire character sequence \c source into a C++ string.
-using string_decode_fn = std::string (*)(string_view source);
+using string_decode_fn = std::string (*)(std::string_view source);
 
 /// Get a string decoding function for the given output \a encoding.
 string_decode_fn get_string_decoder(parse_options::encoding encoding);
 
 /** Convert the UTF-8 encoded \a source into a UTF-16 encoded \c std::wstring. **/
-std::wstring convert_to_wide(string_view source);
+std::wstring convert_to_wide(std::string_view source);
 
 /// \{
 /// Convert the UTF-16 encoded \a source into a UTF-8 encoded \c std::string.

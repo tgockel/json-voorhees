@@ -27,7 +27,7 @@
 namespace jsonv
 {
 
-static std::string demangle_impl(string_view source)
+static std::string demangle_impl(std::string_view source)
 {
     #if JSONV_HAS_CXXABI
     namespace cxxabi = __cxxabiv1;
@@ -63,7 +63,7 @@ void reset_demangle_function()
     demangle_function_ref() = demangle_impl;
 }
 
-std::string demangle(string_view source)
+std::string demangle(std::string_view source)
 {
     const demangle_function& func = demangle_function_ref();
     if (func)

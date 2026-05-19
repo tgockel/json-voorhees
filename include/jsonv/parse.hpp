@@ -11,7 +11,7 @@
 
 #include <jsonv/config.hpp>
 #include <optional>
-#include <jsonv/string_view.hpp>
+#include <string_view>
 #include <jsonv/value.hpp>
 
 #include <cstddef>
@@ -158,7 +158,7 @@ private:
 /// \{
 /// Construct a JSON value from the given \a input.
 ///
-/// \example "parse(string_view)"
+/// \example "parse(std::string_view)"
 /// \code
 /// jsonv::value out = jsonv::parse(R"( { "a": 1, "b": [ 2, 3, 4 ] } )");
 /// \endcode
@@ -173,14 +173,14 @@ private:
 /// \throws extract_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
 ///  object with duplicate keys (note that the default \c jsonv::formats does not throw for this case).
 JSONV_PUBLIC
-value parse(string_view            input,
+value parse(std::string_view            input,
             const parse_options&   parse_options,
             const extract_options& extract_options
            );
 
-JSONV_PUBLIC value parse(string_view input);
-JSONV_PUBLIC value parse(string_view input, const parse_options& parse_options);
-JSONV_PUBLIC value parse(string_view input, const extract_options& extract_options);
+JSONV_PUBLIC value parse(std::string_view input);
+JSONV_PUBLIC value parse(std::string_view input, const parse_options& parse_options);
+JSONV_PUBLIC value parse(std::string_view input, const extract_options& extract_options);
 /// \}
 
 /// \{

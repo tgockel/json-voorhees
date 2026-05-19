@@ -682,7 +682,7 @@ public:
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
 
-    virtual bool has_extract_key(string_view key) const = 0;
+    virtual bool has_extract_key(std::string_view key) const = 0;
 };
 
 template <typename T, typename TMember>
@@ -738,7 +738,7 @@ public:
             out.insert({ _names.at(0), context.to_json(_get_value(from)) });
     }
 
-    virtual bool has_extract_key(string_view key) const override
+    virtual bool has_extract_key(std::string_view key) const override
     {
         return std::any_of(begin(_names), end(_names), [key] (const std::string& name) { return name == key; });
     }
@@ -1087,7 +1087,7 @@ public:
         adapter_impl* adapter = _adapter;
         return pre_extract([adapter, handler] (const extraction_context& context, const value& from)
         {
-            auto is_key = [adapter] (string_view key) -> bool
+            auto is_key = [adapter] (std::string_view key) -> bool
                           {
                               return std::any_of(begin(adapter->_members), end(adapter->_members),
                                                  [key] (const std::unique_ptr<detail::member_adapter<T>>& mem)

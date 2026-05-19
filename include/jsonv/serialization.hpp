@@ -165,7 +165,7 @@ public:
     virtual ~no_extractor() noexcept;
 
     /// The name of the type.
-    string_view type_name() const;
+    std::string_view type_name() const;
 
     /// Get an ID for the type of \c extractor that \c formats::extract could not locate.
     std::type_index type_index() const;
@@ -187,7 +187,7 @@ public:
     virtual ~no_serializer() noexcept;
 
     /** The name of the type. **/
-    string_view type_name() const;
+    std::string_view type_name() const;
 
     /** Get an ID for the type of \c serializer that \c formats::to_json could not locate. **/
     std::type_index type_index() const;

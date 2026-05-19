@@ -145,13 +145,13 @@ void ostream_encoder::write_object_delimiter()
     _output << ',';
 }
 
-void ostream_encoder::write_object_key(string_view key)
+void ostream_encoder::write_object_key(std::string_view key)
 {
     write_string(key);
     _output << ':';
 }
 
-void ostream_encoder::write_string(string_view value)
+void ostream_encoder::write_string(std::string_view value)
 {
     stream_escaped_string(_output, value, _ensure_ascii);
 }
@@ -265,14 +265,14 @@ void ostream_pretty_encoder::write_object_delimiter()
     _defer_indent = true;
 }
 
-void ostream_pretty_encoder::write_object_key(string_view key)
+void ostream_pretty_encoder::write_object_key(std::string_view key)
 {
     write_prefix();
     ostream_encoder::write_object_key(key);
     output() << ' ';
 }
 
-void ostream_pretty_encoder::write_string(string_view value)
+void ostream_pretty_encoder::write_string(std::string_view value)
 {
     write_prefix();
     ostream_encoder::write_string(value);

@@ -11,7 +11,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/kind.hpp>
-#include <jsonv/string_view.hpp>
+#include <string_view>
 #include <jsonv/detail/basic_view.hpp>
 
 #include <cstddef>
@@ -427,7 +427,7 @@ public:
     value(const std::string& value);
 
     /** Create a \c kind::string with the given \a value. **/
-    value(const string_view& value);
+    value(const std::string_view& value);
 
     /// Create a \c kind::string with the given \a value.
     ///
@@ -488,11 +488,11 @@ public:
     /** Tests if this \c kind is \c kind::string. **/
     bool is_string() const;
 
-    /** Get this value as a \c string_view. It is your responsibility to ensure the \c value instance remains valid.
+    /** Get this value as a \c std::string_view. It is your responsibility to ensure the \c value instance remains valid.
      *
      *  \throws kind_error if this value does not represent a string.
     **/
-    string_view as_string_view() const &;
+    std::string_view as_string_view() const &;
 
     /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
      *  the \c char base \c std::string.
@@ -552,25 +552,25 @@ public:
      *  \throws std::out_of_range if any path along the chain did not exist.
      *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
      *                     index when the value is a string).
-     *  \throws parse_error if a \c string_view was specified that did not have a valid specification (see
+     *  \throws parse_error if a \c std::string_view was specified that did not have a valid specification (see
      *                      \c path::create).
     **/
     value&       at_path(const path& p);
-    value&       at_path(string_view p);
+    value&       at_path(std::string_view p);
     value&       at_path(size_type   p);
     const value& at_path(const path& p) const;
-    const value& at_path(string_view p) const;
+    const value& at_path(std::string_view p) const;
     const value& at_path(size_type   p) const;
 
     /** Similar to \c count, but walks the given path \a p to determine its presence.
      *
      *  \returns \c 1 if the path finds an element; \c 0 if there is no such path in the tree.
      *
-     *  \throws parse_error if a \c string_view was specified that did not have a valid specification (see
+     *  \throws parse_error if a \c std::string_view was specified that did not have a valid specification (see
      *                      \c path::create).
     **/
     size_type count_path(const path& p) const;
-    size_type count_path(string_view p) const;
+    size_type count_path(std::string_view p) const;
     size_type count_path(size_type   p) const;
 
     /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
@@ -581,13 +581,13 @@ public:
      *
      *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
      *                     index when the value is a string).
-     *  \throws parse_error if a \c string_view was specified that did not have a valid specification (see
+     *  \throws parse_error if a \c std::string_view was specified that did not have a valid specification (see
      *                      \c path::create).
      *
      *  \see at_path
     **/
     value& path(const path& p);
-    value& path(string_view p);
+    value& path(std::string_view p);
     value& path(size_type   p);
 
     /** Swap the value this instance represents with \a other. **/
