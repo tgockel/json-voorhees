@@ -19,8 +19,10 @@
 #include <sstream>
 
 #include <iostream>
+#include <system_error>
 
 #include "char_convert.hpp"
+#include "detail/fast_float/fast_float.h"
 
 namespace jsonv
 {
@@ -145,11 +147,16 @@ double ast_node::decimal::value() const
 {
     // TODO(#150): This logic should be moved to a dedicated extractor
     auto characters = token_raw();
-    auto end        = const_cast<char*>(characters.data() + characters.size());
-    auto scan_end   = end;
+    auto begin      = characters.data();
+    auto end        = characters.data() + characters.size();
 
-    auto val = std::strtod(characters.data(), &scan_end);
-    if (end == scan_end)
+    // fast_float implements the Eisel-Lemire fast-path with a correct slow-path
+    // fallback for ambiguous cases. The JSON grammar (validated upstream in
+    // match_number) is a strict subset of `chars_format::general`, so we don't
+    // need to enable hex / infinity / nan parsing.
+    double val{};
+    auto result = fast_float::from_chars(begin, end, val, fast_float::chars_format::general);
+    if (result.ec == std::errc{} && result.ptr == end)
         return val;
     else
         throw make_failed_numeric_extract(*this, "decimal");
