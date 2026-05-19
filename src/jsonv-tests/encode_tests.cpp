@@ -18,9 +18,20 @@
 #include <iostream>
 #include <locale>
 #include <sstream>
+#include <string_view>
 
 namespace jsonv_test
 {
+
+namespace
+{
+
+void ensure_encodes_as(std::string_view input, std::string_view expected)
+{
+    ensure_eq(std::string(expected), jsonv::to_string(jsonv::parse(input)));
+}
+
+}
 
 static const char k_some_json[] = R"({
   "a": [ 4, 5, 6, [7, 8, 9, {"something": 5, "else": 6}]],
@@ -53,6 +64,14 @@ TEST(encode_nan)
     // change val to have null in place of the NaN
     val.at_path(".a[2]") = jsonv::null;
     ensure_eq(val, decoded);
+}
+
+TEST(encode_decimal_shortest_roundtrip)
+{
+    ensure_encodes_as("[5e-324]", "[5e-324]");
+    ensure_encodes_as("[2.225073858507201e-308]", "[2.225073858507201e-308]");
+    ensure_encodes_as("[2.2250738585072014e-308]", "[2.2250738585072014e-308]");
+    ensure_encodes_as("[1.7976931348623157e308]", "[1.7976931348623157e+308]");
 }
 
 TEST(encode_invalid_utf8_uses_replacement_for_bogus_2_byte)

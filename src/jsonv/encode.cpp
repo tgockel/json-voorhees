@@ -14,8 +14,11 @@
 
 #include "detail.hpp"
 
+#include <array>
+#include <charconv>
 #include <cmath>
 #include <ostream>
+#include <system_error>
 
 namespace jsonv
 {
@@ -114,7 +117,17 @@ void ostream_encoder::write_boolean(bool value)
 void ostream_encoder::write_decimal(double value)
 {
     if (std::isfinite(value))
-        _output << value;
+    {
+        std::array<char, 64> buffer;
+        auto result = std::to_chars(buffer.data(),
+                                    buffer.data() + buffer.size(),
+                                    value,
+                                    std::chars_format::general);
+        if (result.ec == std::errc{})
+            _output.write(buffer.data(), result.ptr - buffer.data());
+        else
+            _output << value;
+    }
     else
         // non-finite values do not have valid JSON representations, so put it as null
         write_null();

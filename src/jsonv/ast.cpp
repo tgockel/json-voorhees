@@ -204,7 +204,11 @@ double ast_node::decimal::value() const
     // need to enable hex / infinity / nan parsing.
     double val{};
     auto result = fast_float::from_chars(begin, end, val, fast_float::chars_format::general);
-    if (result.ec == std::errc{} && result.ptr == end)
+    if (  result.ptr == end
+       && (  result.ec == std::errc{}
+          || (result.ec == std::errc::result_out_of_range && val == 0.0)
+          )
+       )
         return val;
     else
         throw make_failed_numeric_extract(*this, "decimal");

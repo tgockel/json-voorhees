@@ -11,7 +11,9 @@
 
 #include <jsonv/parse.hpp>
 
+#include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 using namespace jsonv;
 
@@ -42,6 +44,34 @@ TEST_PARSE(number_negative_double_zero)
 TEST_PARSE(number_leading_zero)
 {
     ensure_throws(parse_error, parse("013"));
+}
+
+TEST_PARSE(number_decimal_underflow)
+{
+    value result = parse("[1e-10000]");
+    auto parsed = result.at(0).as_decimal();
+    ensure_eq(0.0, parsed);
+    ensure(!std::signbit(parsed));
+}
+
+TEST_PARSE(number_decimal_underflow_large_exponents)
+{
+    value result = parse("[1e-214748363, 1e-214748364]");
+    ensure_eq(0.0, result.at(0).as_decimal());
+    ensure_eq(0.0, result.at(1).as_decimal());
+}
+
+TEST_PARSE(number_decimal_negative_underflow)
+{
+    value result = parse("[-1e-10000]");
+    auto parsed = result.at(0).as_decimal();
+    ensure_eq(0.0, parsed);
+    ensure(std::signbit(parsed));
+}
+
+TEST_PARSE(number_decimal_overflow_still_throws)
+{
+    ensure_throws(std::invalid_argument, parse("[1e10000]"));
 }
 
 static const value simple_obj = object({ { "foo", 4 },
