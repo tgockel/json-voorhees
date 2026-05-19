@@ -78,12 +78,41 @@ option(BENCHMARK
        OFF
       )
 
+# Link-time optimization gives the compiler a chance to inline across translation units, which
+# matters most for the parser hot path (parse_index.cpp + match/string.cpp + match/number.cpp).
+# Default ON for Release builds, OFF otherwise.
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    set(JSONV_LTO_DEFAULT ON)
+else()
+    set(JSONV_LTO_DEFAULT OFF)
+endif()
+option(JSONV_LTO
+       "Enable link-time / interprocedural optimization."
+       ${JSONV_LTO_DEFAULT}
+      )
+if(JSONV_LTO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT JSONV_LTO_SUPPORTED OUTPUT JSONV_LTO_CHECK_OUTPUT)
+    if(JSONV_LTO_SUPPORTED)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(WARNING "JSONV_LTO requested but the toolchain does not support it: ${JSONV_LTO_CHECK_OUTPUT}")
+    endif()
+endif()
+
+option(JSONV_RELEASE_WITH_DEBUG_SYMBOLS
+       "Include debug symbols (-ggdb) in Release builds."
+       OFF
+      )
+
 if(WIN32)
 else(WIN32)
     # Reasonable compilers...
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
     set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -ggdb -DJSONV_DEBUG=1")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ggdb")
+    if(JSONV_RELEASE_WITH_DEBUG_SYMBOLS)
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ggdb")
+    endif()
 endif(WIN32)
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
