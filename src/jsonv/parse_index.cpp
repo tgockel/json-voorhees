@@ -176,13 +176,18 @@ struct JSONV_LOCAL parse_index::impl final
 
     /// Add the \a token, \a src_location pair to the \a self \c data buffer.
     ///
+    /// \tparam N The slot count for this token's code. Every call site in `parse` knows this
+    ///  statically -- structural openers are 3, closers and literals are 1, strings/numbers/errors
+    ///  are 2 -- so passing it as a template parameter eliminates the runtime `code_size` lookup
+    ///  and lets the bounds check and `data_size` advance fold to immediates.
     /// \param self Like \c this, but will be updated in the case that \c data_capacity cannot store the inserted token.
     /// \returns The index that was inserted into (\c data_size before the insertion was performed). This is used for
     ///  adding extra data elements when \a token is something like \c ast_node_type::object_begin.
-    static inline std::size_t push_back(impl*& self, ast_node_type token, const char* src_location)
+    template <std::size_t N>
+    JSONV_ALWAYS_INLINE
+    static std::size_t push_back(impl*& self, ast_node_type token, const char* src_location)
     {
-        auto added_sz = code_size(token);
-        if (self->data_size + added_sz > self->data_capacity)
+        if (self->data_size + N > self->data_capacity)
         {
             JSONV_UNLIKELY;
             grow_data_buffer(self);
@@ -190,14 +195,48 @@ struct JSONV_LOCAL parse_index::impl final
 
         auto put_idx = self->data_size;
         self->data(put_idx) = encode(token, src_location);
-        self->data_size += added_sz;
+        self->data_size += N;
+        return put_idx;
+    }
+
+    /// Same as \c push_back<N>, but also writes \a extra1 into the second slot. The two adjacent
+    /// 8B writes go out as a single unaligned 16B SSE store -- the compiler was not fusing the
+    /// paired `mov`s on its own, so we force it. Used for tokens whose second slot is known at
+    /// push time (string length, number length, error code).
+    template <std::size_t N>
+    JSONV_ALWAYS_INLINE
+    static std::size_t push_back_with_extra(impl*& self,
+                                            ast_node_type token,
+                                            const char* src_location,
+                                            std::uint64_t extra1)
+    {
+        static_assert(N >= 2, "push_back_with_extra requires at least 2 slots");
+        if (self->data_size + N > self->data_capacity)
+        {
+            JSONV_UNLIKELY;
+            grow_data_buffer(self);
+        }
+
+        auto put_idx = self->data_size;
+#if JSONV_SSE2
+        // _mm_set_epi64x(hi, lo): element 0 (encoded) goes to the lower address.
+        _mm_storeu_si128(
+            reinterpret_cast<__m128i*>(&self->data(put_idx)),
+            _mm_set_epi64x(static_cast<std::int64_t>(extra1),
+                           static_cast<std::int64_t>(encode(token, src_location)))
+        );
+#else
+        self->data(put_idx)     = encode(token, src_location);
+        self->data(put_idx + 1) = extra1;
+#endif
+        self->data_size += N;
         return put_idx;
     }
 
     static ast_exception push_error(impl*& self, ast_error error_code, const char* begin, const char* src_location)
     {
-        auto idx = push_back(self, ast_node_type::error, src_location);
-        self->data(idx + 1) = static_cast<std::uint64_t>(error_code);
+        push_back_with_extra<2>(self, ast_node_type::error, src_location,
+                                static_cast<std::uint64_t>(error_code));
 
         self->first_error_code  = error_code;
         self->first_error_index = src_location - begin;
@@ -313,7 +352,7 @@ void parse_index::impl::parse_literal(impl*&        self,
             throw push_error(*&self, ast_error::invalid_literal, begin, iter);
         }
 
-        push_back(self, success_value, iter);
+        push_back<1>(self, success_value, iter);
         iter += N;
     }
     else
@@ -367,7 +406,7 @@ void parse_index::impl::parse(impl*& self, string_view src, const parse_options&
                 throw push_error(self, ast_error::depth_exceeded, begin, src_location);
             }
 
-            structure[depth] = structure_state::create(push_back(self, token, src_location), token);
+            structure[depth] = structure_state::create(push_back<3>(self, token, src_location), token);
             container        = token;
             ++depth;
         };
@@ -381,7 +420,7 @@ void parse_index::impl::parse(impl*& self, string_view src, const parse_options&
                 throw push_error(self, ast_error::extra_close, begin, src_location);
             }
 
-            auto this_idx = push_back(self, token, src_location);
+            auto this_idx = push_back<1>(self, token, src_location);
             --depth;
 
             // Since we add to `item_count` on ',' tokens, we will undercount by 1, since the last item did not have a
@@ -428,8 +467,10 @@ void parse_index::impl::parse(impl*& self, string_view src, const parse_options&
             if (!result)
                 throw push_error(self, ast_error::invalid_string, begin, iter + result.length);
 
-            auto idx = push_back(self, result.needs_conversion ? token_escaped : token_ascii, iter);
-            self->data(idx + 1) = result.length;
+            push_back_with_extra<2>(self,
+                                    result.needs_conversion ? token_escaped : token_ascii,
+                                    iter,
+                                    result.length);
 
             iter += result.length;
         };
@@ -533,10 +574,12 @@ void parse_index::impl::parse(impl*& self, string_view src, const parse_options&
         case '-':
             if (auto result = detail::match_number(iter, end))
             {
-                auto idx = push_back(self, result.decimal ? ast_node_type::decimal : ast_node_type::integer, iter);
-                self->data(idx + 1) = result.length;
-                iter               += result.length;
-                state               = container_state::item_finished;
+                push_back_with_extra<2>(self,
+                                        result.decimal ? ast_node_type::decimal : ast_node_type::integer,
+                                        iter,
+                                        result.length);
+                iter += result.length;
+                state = container_state::item_finished;
             }
             else
             {
