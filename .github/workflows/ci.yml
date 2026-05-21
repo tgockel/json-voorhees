@@ -376,6 +376,51 @@ jobs:
           name: jsonv-macos-package
           path: build/*.pkg
 
+  arduino-smoke:
+    name: Arduino smoke (${{ matrix.board.label }})
+    runs-on: ubuntu-24.04
+    needs: build
+    continue-on-error: true
+
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - label: ESP32
+            fqbn: esp32:esp32:esp32
+            platform-name: esp32:esp32
+            platform-source-url: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+          - label: Pi Pico
+            fqbn: rp2040:rp2040:rpipico
+            platform-name: rp2040:rp2040
+            platform-source-url: https://github.com/earlephilhower/arduino-pico/releases/download/global/package_rp2040_index.json
+          - label: Arduino GIGA
+            fqbn: arduino:mbed_giga:giga
+            platform-name: arduino:mbed_giga
+            platform-source-url: ""
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Assemble Arduino library layout
+        run: bash scripts/make-arduino-library.sh
+
+      - name: Compile smoke sketch
+        uses: arduino/compile-sketches@v1
+        with:
+          fqbn: ${{ matrix.board.fqbn }}
+          platforms: |
+            - name: ${{ matrix.board.platform-name }}
+              source-url: ${{ matrix.board.platform-source-url }}
+          libraries: |
+            - source-path: build/arduino-library/JsonVoorhees
+          sketch-paths: |
+            - build/arduino-library/JsonVoorhees/examples/SmokeTest
+          cli-compile-flags: |
+            - --build-property
+            - compiler.cpp.extra_flags=-std=gnu++23 -fexceptions -frtti
+
   docs:
     name: Build documentation
     runs-on: ubuntu-24.04
