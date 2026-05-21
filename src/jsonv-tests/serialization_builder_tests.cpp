@@ -253,7 +253,9 @@ TEST(serialization_builder_defaults)
                         .member("winning_numbers",  &person::winning_numbers)
                             .default_value([] (const extraction_context& cxt, const value& val)
                                            {
-                                               return cxt.extract_sub<std::vector<long>>(val, "favorite_numbers");
+                                               return extract<std::vector<long>>(val.at("favorite_numbers"),
+                                                                                 cxt.formats()
+                                                                                );
                                            }
                                           )
                             .default_on_null()
@@ -720,12 +722,20 @@ TEST(serialization_builder_duplicate_type_actions)
 {
     // Make one adapter that serializes and deserializes an int directly.
     static const auto adapter1 = make_adapter(
-        [](const extraction_context&, const value& v) { return sometype{v.as_integer()}; },
+        [](extraction_context& ctx, reader& from)
+        {
+            return ctx.current_as<ast_node::integer>(from)
+                      .transform([](const ast_node::integer& n) { return sometype{n.value()}; });
+        },
         [](const serialization_context&, const sometype& v) { return value(v.v); });
 
     // Make another adapter that adds one each time an int is serialized and deserialized.
     static const auto adapter2 = make_adapter(
-        [](const extraction_context&, const value& v) { return sometype{v.as_integer() + 1}; },
+        [](extraction_context& ctx, reader& from)
+        {
+            return ctx.current_as<ast_node::integer>(from)
+                      .transform([](const ast_node::integer& n) { return sometype{n.value() + 1}; });
+        },
         [](const serialization_context&, const sometype& v) { return value(v.v + 1); });
 
     // Helper that serializes then deserializes an integer and returns the result.

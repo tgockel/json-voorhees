@@ -97,11 +97,23 @@ jobs:
             cmake \
             file \
             findutils \
-            gcc-c++ \
+            gcc-toolset-13-gcc-c++ \
             git \
             make \
             pkgconf-pkg-config \
             rpm-build
+
+      - name: Activate GCC 13 toolset (RPM)
+        if: matrix.format == 'rpm'
+        shell: bash
+        run: |
+          source /opt/rh/gcc-toolset-13/enable
+          {
+            echo "PATH=$PATH"
+            echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH:-}"
+            echo "MANPATH=${MANPATH:-}"
+            echo "INFOPATH=${INFOPATH:-}"
+          } >> "$GITHUB_ENV"
 
       - name: Check out repository
         uses: actions/checkout@v6
