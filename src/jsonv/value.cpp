@@ -406,7 +406,11 @@ bool value::as_boolean() const
 
 bool value::operator==(const value& other) const
 {
-    if (this == &other && kind_valid(kind()))
+    // Reflexive even when `_kind` has been corrupted: `x == x` must hold so that `value` satisfies
+    // the EqualityComparable requirements that `std::hash<value>` and standard containers rely on.
+    // For distinct objects, `compare` already treats invalid kinds as a kind-sentinel and orders
+    // them, so they compare unequal to any well-formed value without asserting or throwing.
+    if (this == &other)
         return true;
     else
         return compare(other) == 0;
@@ -414,10 +418,7 @@ bool value::operator==(const value& other) const
 
 bool value::operator !=(const value& other) const
 {
-    // must be first: an invalid type is not equal to itself
-    if (!kind_valid(kind()))
-        return true;
-
+    // Mirror of `operator==` -- reflexivity is unconditional, even for corrupt `_kind`.
     if (this == &other)
         return false;
     else

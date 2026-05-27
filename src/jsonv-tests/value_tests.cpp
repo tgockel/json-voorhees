@@ -13,6 +13,7 @@
 #include <jsonv/all.hpp>
 
 #include <cstdint>
+#include <cstring>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -145,4 +146,44 @@ TEST(hash_set_operations)
     set.erase(str);
     ensure_eq(0U, set.count(str));
     ensure_eq(5U, set.size());
+}
+
+/// Regression for the equality-reflexivity bug: a `value` whose `kind` byte has been corrupted
+/// (e.g. via uninitialized memory or a wild write) must still satisfy `x == x`. Standard
+/// containers and the library's own `std::hash<value>` rely on `EqualityComparable`, so a
+/// non-reflexive `operator==` is a soundness hazard rather than a graceful degradation.
+TEST(equality_is_reflexive_for_corrupt_kind)
+{
+    // Start from a default-constructed (null) value, which owns no heap resources. Scribbling
+    // its `kind` byte therefore can't leak anything.
+    jsonv::value v;
+
+    unsigned char snapshot[sizeof(jsonv::value)];
+    std::memcpy(snapshot, &v, sizeof v);
+
+    unsigned char corrupted[sizeof(jsonv::value)];
+    std::memcpy(corrupted, snapshot, sizeof v);
+    // The 8-byte `_data` union sits at offset 0 (it's a default-constructed null, so all
+    // its bytes are zero); the `_kind` byte lives somewhere in the trailing padding region.
+    // Scribbling 0xFF over every byte past offset 8 forces `_kind` to an invalid value
+    // without disturbing the (already-null) storage union.
+    for (std::size_t i = 8; i < sizeof v; ++i)
+        corrupted[i] = 0xFF;
+    std::memcpy(&v, corrupted, sizeof v);
+
+    // The kind is now invalid -- but reflexivity must hold.
+    ensure(v == v);
+    ensure(!(v != v));
+    ensure_eq(0, v.compare(v));
+
+    // Two *distinct* values where one is corrupt still compare unequal, and we must not
+    // assert or throw doing so.
+    jsonv::value good = 42;
+    ensure(v != good);
+    ensure(good != v);
+    ensure(!(v == good));
+    ensure(!(good == v));
+
+    // Restore so the destructor sees a well-formed null.
+    std::memcpy(&v, snapshot, sizeof v);
 }

@@ -593,12 +593,13 @@ public:
     /** Swap the value this instance represents with \a other. **/
     void swap(value& other) noexcept;
 
-    /** Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions
-     *  apply:
+    /** Compares two JSON values for equality. Two JSON values are equal if and only if they refer
+     *  to the same object \e or all of the following conditions apply:
      *
      *   1. They have the same valid value for \c kind.
-     *      - If \c kind is invalid (memory corruption), then two JSON values are \e not equal, even if they have been
-     *        corrupted in the same way and even if they share \c this (a corrupt object is not equal to itself).
+     *      - If either side has an invalid \c kind (memory corruption), the two distinct values
+     *        compare unequal. A value always compares equal to itself, even if its \c kind has
+     *        been corrupted -- equality is reflexive.
      *   2. The kind comparison is also equal:
      *      - Two null values are always equivalent.
      *      - string, integer, decimal and boolean follow the classic rules for their type.
