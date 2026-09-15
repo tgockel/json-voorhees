@@ -29,7 +29,7 @@ $> cmake --build build-package --target package --parallel
 Windows NuGet packages use the Visual Studio generator:
 
 ```bash
-$> cmake -S . -B build-package -G "Visual Studio 17 2022" -A x64 -DCPACK_GENERATOR=NuGet
+$> cmake -S . -B build-package -G "Visual Studio 18 2026" -A x64 -DCPACK_GENERATOR=NuGet
 $> cmake --build build-package --config Release --target package --parallel
 ```
 

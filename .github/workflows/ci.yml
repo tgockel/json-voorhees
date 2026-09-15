@@ -45,7 +45,7 @@ jobs:
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "Visual Studio 17 2022"
+          -G "Visual Studio 18 2026"
           -A x64
           -DJSONV_BUILD_TESTS=ON
 
@@ -208,7 +208,7 @@ jobs:
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "Visual Studio 17 2022"
+          -G "Visual Studio 18 2026"
           -A x64
           -DCMAKE_INSTALL_PREFIX=install-root
           -DCPACK_GENERATOR=NuGet
@@ -284,7 +284,7 @@ jobs:
           '@ | Set-Content -Path smoke\main.cpp -Encoding ascii
 
           cmake -S smoke -B smoke-build `
-            -G "Visual Studio 17 2022" `
+            -G "Visual Studio 18 2026" `
             -A x64 `
             "-DJSONV_INCLUDE_DIR=$includeDir" `
             "-DJSONV_LIBRARY=$library"
