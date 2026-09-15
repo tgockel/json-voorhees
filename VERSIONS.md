@@ -6,6 +6,8 @@
 
  - [2.0.0](https://github.com/tgockel/json-voorhees/milestone/12): 2020 March 13
    - Core
+     - Fixed decimal comparison to use exact ordering instead of a non-transitive epsilon tolerance (#195).
+       Signed zeros compare equal; all NaNs compare equal and sort after every non-NaN number.
      - Changed the backing data type of `kind::array`s to an `std::vector<value>`
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated

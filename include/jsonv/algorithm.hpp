@@ -18,7 +18,6 @@
 
 #include <cmath>
 #include <functional>
-#include <limits>
 
 namespace jsonv
 {
@@ -64,12 +63,19 @@ struct JSONV_PUBLIC compare_traits
              :           1;
     }
 
-    /** Compare two decimal values. **/
+    /** Compare two decimal values exactly, without an epsilon tolerance. Signed zeros compare equal and
+     *  infinities follow numeric order. All NaNs compare equal to each other and greater than every non-NaN
+     *  number, regardless of sign or payload. This defines a strict weak ordering for decimals.
+    **/
     static int compare_decimals(double a, double b)
     {
-        return (std::abs(a - b) < (std::numeric_limits<double>::denorm_min() * 10.0)) ?  0
-             : (a < b)                                                                ? -1
-             :                                                                           1;
+        if (std::isnan(a))
+            return std::isnan(b) ? 0 : 1;
+        if (std::isnan(b))
+            return -1;
+        return a == b ?  0
+             : a <  b ? -1
+             :           1;
     }
 
     /** Compare two string values. **/
@@ -177,6 +183,8 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
 }
 
 /// Compare the values \a a and \a b with strict comparison traits.
+///
+/// Decimal comparison follows the exact ordering defined by \c compare_traits::compare_decimals.
 ///
 /// \see value::compare
 /// \see compare_icase

@@ -12,7 +12,9 @@
 
 #include <jsonv/all.hpp>
 
+#include <cmath>
 #include <cstdint>
+#include <limits>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -83,15 +85,14 @@ TEST(value_store_unordered_map)
 
 TEST(value_decimal_denorm_min_compares)
 {
-    // kind of a hack...we'll use 0.0 and *almost* 0.0
-    union { std::uint64_t ival; double dval; } val;
-    val.ival = 0x1;
-    jsonv::value x = 0.0;
-    jsonv::value y = val.dval;
-    
+    const jsonv::value x = 0.0;
+    const jsonv::value y = std::numeric_limits<double>::denorm_min();
+
     ensure_ne(x.as_decimal(), y.as_decimal());
-    ensure_eq(x, y);
-    ensure_eq(0, x.compare(y));
+    ensure_ne(x, y);
+    ensure_lt(x, y);
+    ensure_eq(-1, x.compare(y));
+    ensure_eq(1, y.compare(x));
 }
 
 TEST(swap)
@@ -145,4 +146,48 @@ TEST(hash_set_operations)
     set.erase(str);
     ensure_eq(0U, set.count(str));
     ensure_eq(5U, set.size());
+}
+
+TEST(value_decimal_nan_hashes_equal)
+{
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    const jsonv::value variants[] = { nan, -nan, std::nan("1"), std::nan("2") };
+    const std::size_t expected = std::hash<jsonv::value>()(variants[0]);
+    for (const jsonv::value& v : variants)
+        ensure_eq(expected, std::hash<jsonv::value>()(v));
+}
+
+TEST(value_decimal_nan_unordered_set_lookup)
+{
+    std::unordered_set<jsonv::value> set;
+    set.insert(jsonv::value(std::nan("1")));
+
+    ensure_eq(1U, set.count(jsonv::value(std::nan("2"))));
+    ensure_eq(1U, set.count(jsonv::value(-std::numeric_limits<double>::quiet_NaN())));
+}
+
+TEST(value_decimal_nan_unordered_set_dedup)
+{
+    const double nan = std::numeric_limits<double>::quiet_NaN();
+    std::unordered_set<jsonv::value> set = { nan, -nan, std::nan("1"), std::nan("2") };
+
+    ensure_eq(1U, set.size());
+}
+
+TEST(value_decimal_nan_nested_containers)
+{
+    const jsonv::value arr_a = jsonv::array({ 1, std::nan("1") });
+    const jsonv::value arr_b = jsonv::array({ 1, std::nan("2") });
+    ensure_eq(std::hash<jsonv::value>()(arr_a), std::hash<jsonv::value>()(arr_b));
+
+    std::unordered_set<jsonv::value> arr_set = { arr_a, arr_b };
+    ensure_eq(1U, arr_set.size());
+
+    const jsonv::value obj_a = jsonv::object({ { "x", std::nan("1") } });
+    const jsonv::value obj_b = jsonv::object({ { "x", std::nan("2") } });
+    ensure_eq(std::hash<jsonv::value>()(obj_a), std::hash<jsonv::value>()(obj_b));
+
+    std::unordered_map<jsonv::value, int> obj_map;
+    obj_map.insert({ obj_a, 1 });
+    ensure_eq(1U, obj_map.count(obj_b));
 }

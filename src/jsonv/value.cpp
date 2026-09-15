@@ -562,7 +562,12 @@ size_t hash<jsonv::value>::operator()(const jsonv::value& val) const noexcept
     case jsonv::kind::integer:
         return std::hash<std::int64_t>()(val.as_integer());
     case jsonv::kind::decimal:
-        return std::hash<double>()(val.as_decimal());
+        {
+            // All NaNs compare equal regardless of sign or payload (see compare_traits::compare_decimals), so they
+            // must hash to the same value -- otherwise equal keys could land in different unordered_map buckets.
+            const double d = val.as_decimal();
+            return std::isnan(d) ? 0x7ff8000000000000ULL : std::hash<double>()(d);
+        }
     case jsonv::kind::boolean:
         return std::hash<bool>()(val.as_boolean());
     case jsonv::kind::null:

@@ -601,7 +601,8 @@ public:
      *        corrupted in the same way and even if they share \c this (a corrupt object is not equal to itself).
      *   2. The kind comparison is also equal:
      *      - Two null values are always equivalent.
-     *      - string, integer, decimal and boolean follow the classic rules for their type.
+     *      - string, integer and boolean follow the classic rules for their type.
+     *      - decimals compare exactly, with signed zeros equal and all NaNs equal (see \c compare).
      *      - objects are equal if they have the same keys and values corresponding with the same key are also equal.
      *      - arrays are equal if they have the same length and the values at each index are also equal.
      *
@@ -621,13 +622,15 @@ public:
      *   - null: less than everything but null, which it is equal to.
      *   - boolean: false is less than true.
      *   - integer, decimal: compared by their numeric value. Comparisons between two integers do not cast, but comparison
-     *     between an integer and a decimal will coerce to decimal.
+     *     between an integer and a decimal will coerce to decimal. Decimal comparison is exact, without an epsilon
+     *     tolerance. Signed zeros compare equal; infinities follow numeric order. All NaNs compare equal to each
+     *     other and greater than every non-NaN number, regardless of sign or payload.
      *   - string: compared lexicographically by character code (with basic char strings and non-ASCII encoding, this
      *     might lead to surprising results)
      *   - array: compared lexicographically by elements (recursively following this same technique)
      *   - object: entries in the object are sorted and compared lexicographically, first by key then by value
      *
-     *  \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; -1 if otherwise.
+     *  \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; 1 if otherwise.
     **/
     int compare(const value& other) const;
 
