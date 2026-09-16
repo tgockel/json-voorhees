@@ -52,6 +52,35 @@ jobs:
       - name: Build and test
         run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
 
+  build-linux-clang:
+    name: Build (ubuntu-24.04, clang, ${{ matrix.build-type }})
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type:
+          - Debug
+          - Release
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Report Clang version
+        run: clang++ --version
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DJSONV_BUILD_TESTS=ON
+          -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+
+      - name: Build and test
+        run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
+
   packages:
     name: Packages (${{ matrix.format }})
     runs-on: ubuntu-24.04
