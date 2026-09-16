@@ -20,6 +20,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <string>
+#include <vector>
 
 namespace jsonv_test
 {
@@ -141,5 +143,61 @@ public:
 private:
     std::deque<std::unique_ptr<unit_test>> _tests;
 } benchmark_test_initializer_instance(test_path(""));
+
+// Times the two ways of putting a value into an object against each other. Issue #152 was that `insert` deep-copied
+// the pair it was handed, which made it arbitrarily slower than `operator[]` as the inserted value grew; the two
+// should now cost about the same.
+static void run_object_insert_test(bool use_insert)
+{
+    constexpr std::size_t entries = 200;
+
+    // Nested, so that a deep copy of it is much more expensive than moving the handle.
+    value payload = object();
+    for (int idx = 0; idx < 64; ++idx)
+        payload[std::to_string(idx)] = array({ idx, "string payload", double(idx) * 1.5 });
+
+    std::vector<std::string> keys;
+    for (std::size_t idx = 0; idx < entries; ++idx)
+        keys.emplace_back("key-" + std::to_string(idx));
+
+    stopwatch timer;
+    for (unsigned cnt = 0; cnt < iterations; ++cnt)
+    {
+        std::vector<value> sources(entries, payload);
+        value              dst = object();
+        {
+            JSONV_TEST_TIME(timer);
+            for (std::size_t idx = 0; idx < entries; ++idx)
+            {
+                if (use_insert)
+                    dst.insert({ keys[idx], std::move(sources[idx]) });
+                else
+                    dst[keys[idx]] = std::move(sources[idx]);
+            }
+        }
+    }
+    std::cout << timer.get();
+}
+
+class object_insert_benchmark_test :
+        public unit_test
+{
+public:
+    object_insert_benchmark_test(const std::string& name, bool use_insert) :
+            unit_test("benchmark/object_insert/" + name),
+            use_insert(use_insert)
+    { }
+
+    virtual void run_impl() override
+    {
+        run_object_insert_test(use_insert);
+    }
+
+private:
+    bool use_insert;
+};
+
+object_insert_benchmark_test object_insert_benchmark_insert_instance("insert", true);
+object_insert_benchmark_test object_insert_benchmark_subscript_instance("subscript", false);
 
 }

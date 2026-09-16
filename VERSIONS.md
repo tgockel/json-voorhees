@@ -8,6 +8,16 @@
    - Core
      - Fixed decimal comparison to use exact ordering instead of a non-transitive epsilon tolerance (#195).
        Signed zeros compare equal; all NaNs compare equal and sort after every non-NaN number.
+     - Fixed `value::insert` deep-copying the pair it was handed instead of moving it, which made inserting into an
+       object arbitrarily slower than assigning through `operator[]` as the inserted value grew (#152).
+     - Fixed `value::insert(hint, node_handle)` ignoring its hint and walking the tree twice.
+     - `value::insert(first, last)` now hints at the end of the object. An ascending source of unique keys which all
+       sort after the object's existing contents -- most importantly an empty object, as in
+       `jsonv::object(first, last)` -- now costs amortized constant time per element. Anything else misses the hint
+       and keeps the usual logarithmic lookup, including a repeated key: the hint is only taken for a key which sorts
+       strictly after the greatest one present, and a repeat does not. As a side effect, it now throws `kind_error`
+       on a non-object even when the range is empty, matching `value::insert(std::initializer_list)`.
+     - Added `value::emplace`, `value::try_emplace`, and `value::insert_or_assign` for `kind::object`.
      - Changed the backing data type of `kind::array`s to an `std::vector<value>`
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated

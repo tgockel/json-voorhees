@@ -12,6 +12,8 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization.hpp>
 
+#include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -125,6 +127,189 @@ TEST(object_extract_move)
 
     ensure_eq(obj1, jsonv::object({ { "a", 5 } }));
     ensure_eq(obj2, jsonv::object({ { "b", "taco" } }));
+}
+
+// A jsonv::value is a handle -- a kind::object value holds a pointer to a heap-allocated map. Moving the value
+// transfers that pointer, so every sub-value inside keeps its address; copying allocates a fresh map whose sub-values
+// live at different addresses. Address identity is therefore an exact probe for whether insert moved the pair into the
+// object or deep-copied it, which is the defect behind issue #152. The addresses cannot coincide by accident in the
+// copying case: the by-value `pair` parameter outlives the map insertion, so the original allocation is still live
+// while the copy is made and the allocator cannot hand back the same address.
+TEST(object_insert_moves_the_inserted_value)
+{
+    jsonv::value nested         = jsonv::object({ { "deep", "payload" } });
+    const void*  address_before = &nested.at("deep");
+
+    jsonv::value obj = jsonv::object();
+    obj.insert({ "key", std::move(nested) });
+
+    ensure_eq(address_before, static_cast<const void*>(&obj.at("key").at("deep")));
+}
+
+TEST(object_try_emplace)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 } });
+
+    auto fresh = obj.try_emplace("b", "taco");
+    ensure(fresh.second);
+    ensure_eq(fresh.first->first, "b");
+    ensure_eq(fresh.first->second, jsonv::value("taco"));
+
+    // An existing key is left exactly as it was -- try_emplace never overwrites.
+    auto dupe = obj.try_emplace("a", 9);
+    ensure(!dupe.second);
+    ensure_eq(dupe.first->second, jsonv::value(5));
+
+    ensure_eq(obj, jsonv::object({ { "a", 5 }, { "b", "taco" } }));
+    ensure_throws(jsonv::kind_error, jsonv::array().try_emplace("a", 1));
+}
+
+// try_emplace takes its key by const reference specifically so that a collision leaves the caller's key alone, which
+// is the guarantee that distinguishes it from emplace.
+TEST(object_try_emplace_does_not_consume_key_on_collision)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 } });
+    std::string  key = "a";
+
+    ensure(!obj.try_emplace(key, 9).second);
+
+    ensure_eq(key, "a");
+}
+
+TEST(object_try_emplace_wide_key)
+{
+    jsonv::value obj = jsonv::object();
+
+    ensure(obj.try_emplace(L"a", 1).second);
+    ensure(!obj.try_emplace(L"a", 2).second);
+
+    ensure_eq(obj, jsonv::object({ { "a", 1 } }));
+}
+
+TEST(object_insert_or_assign)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 } });
+
+    auto fresh = obj.insert_or_assign("b", "taco");
+    ensure(fresh.second);
+    ensure_eq(fresh.first->second, jsonv::value("taco"));
+
+    // A false `second` means "assigned", not "failed" -- the element must have been overwritten.
+    auto assigned = obj.insert_or_assign("a", 9);
+    ensure(!assigned.second);
+    ensure_eq(assigned.first->second, jsonv::value(9));
+
+    ensure_eq(obj, jsonv::object({ { "a", 9 }, { "b", "taco" } }));
+    ensure_throws(jsonv::kind_error, jsonv::array().insert_or_assign("a", 1));
+}
+
+TEST(object_insert_or_assign_wide_key)
+{
+    jsonv::value obj = jsonv::object({ { "a", 1 } });
+
+    ensure(!obj.insert_or_assign(L"a", 2).second);
+    ensure(obj.insert_or_assign(L"b", 3).second);
+
+    ensure_eq(obj, jsonv::object({ { "a", 2 }, { "b", 3 } }));
+}
+
+TEST(object_emplace)
+{
+    jsonv::value obj = jsonv::object();
+
+    ensure(obj.emplace("a", 1).second);
+    ensure(obj.emplace("b", 2).second);
+
+    // Like std::map::emplace, an existing key is not overwritten.
+    ensure(!obj.emplace("a", 99).second);
+
+    ensure_eq(obj, jsonv::object({ { "a", 1 }, { "b", 2 } }));
+    ensure_throws(jsonv::kind_error, jsonv::array().emplace("a", 1));
+}
+
+// A jsonv::value is a handle, so emplace must hand the mapped value to the object by move, exactly as insert does.
+// See the comment on object_insert_moves_the_inserted_value for why address identity proves this.
+TEST(object_emplace_moves_the_inserted_value)
+{
+    jsonv::value nested         = jsonv::object({ { "deep", "payload" } });
+    const void*  address_before = &nested.at("deep");
+
+    jsonv::value obj = jsonv::object();
+    obj.emplace("key", std::move(nested));
+
+    ensure_eq(address_before, static_cast<const void*>(&obj.at("key").at("deep")));
+}
+
+TEST(object_emplace_wide_key)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 } });
+
+    ensure(obj.emplace(L"b", 2).second);
+
+    // An existing key is preserved, exactly as for the narrow overload.
+    ensure(!obj.emplace(L"a", 9).second);
+
+    ensure_eq(obj, jsonv::object({ { "a", 5 }, { "b", 2 } }));
+}
+
+// The wide overloads must validate the kind of the receiver before converting the key. A key which cannot be encoded
+// makes convert_to_narrow throw std::range_error, which would otherwise pre-empt the documented kind_error.
+TEST(object_wide_key_on_non_object_reports_kind_error)
+{
+    const std::wstring lone_surrogate(1, wchar_t(0xd800));
+    jsonv::value       arr = jsonv::array();
+
+    ensure_throws(jsonv::kind_error, arr.emplace(lone_surrogate, 1));
+    ensure_throws(jsonv::kind_error, arr.try_emplace(lone_surrogate, 1));
+    ensure_throws(jsonv::kind_error, arr.insert_or_assign(lone_surrogate, 1));
+
+    // On an actual object the conversion is reached, and it is the one that fails.
+    ensure_throws(std::range_error, jsonv::object().try_emplace(lone_surrogate, 1));
+}
+
+// insert(hint, handle) documents that the handle keeps ownership of its element when the insertion does not happen.
+TEST(object_insert_hint_node_handle_collision_keeps_handle)
+{
+    jsonv::value src = jsonv::object({ { "a", 5 } });
+    jsonv::value dst = jsonv::object({ { "a", "taco" } });
+
+    auto handle = src.extract("a");
+    auto iter   = dst.insert(dst.end_object(), std::move(handle));
+
+    ensure_eq(iter->second, jsonv::value("taco"));
+    ensure(!handle.empty());
+    ensure_eq(handle.key(), "a");
+    ensure_eq(handle.mapped(), jsonv::value(5));
+}
+
+// The range insert hints at the end of the object, which is the right guess for an already-sorted source and a wrong
+// one otherwise. Both paths must produce the same contents.
+TEST(object_insert_range_from_sorted_map)
+{
+    std::map<std::string, jsonv::value> src{ { "a", 1 }, { "b", 2 }, { "c", 3 } };
+
+    ensure_eq(jsonv::object(src.begin(), src.end()), jsonv::object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }));
+}
+
+// The range insert reads end_object() to build its hint, so it now rejects a non-object even for an empty range. That
+// matches insert(std::initializer_list), which has always checked the kind unconditionally.
+TEST(object_insert_empty_range_on_non_object_throws)
+{
+    std::map<std::string, jsonv::value> src;
+    jsonv::value                        arr = jsonv::array();
+
+    ensure_throws(jsonv::kind_error, arr.insert(src.begin(), src.end()));
+}
+
+TEST(object_insert_range_interleaved_keys)
+{
+    jsonv::value                        obj = jsonv::object({ { "m", 0 }, { "c", 9 } });
+    std::map<std::string, jsonv::value> src{ { "a", 1 }, { "c", 2 }, { "z", 3 } };
+
+    obj.insert(src.begin(), src.end());
+
+    // "c" was already present, so the insert of the duplicate is a no-op.
+    ensure_eq(obj, jsonv::object({ { "a", 1 }, { "c", 9 }, { "m", 0 }, { "z", 3 } }));
 }
 
 TEST(object_view)

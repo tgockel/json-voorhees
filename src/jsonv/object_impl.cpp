@@ -225,7 +225,7 @@ value::object_iterator value::insert(value::const_object_iterator hint, std::pai
 std::pair<value::object_iterator, bool> value::insert(std::pair<std::string, value> pair)
 {
     check_type(jsonv::kind::object, kind());
-    auto ret = _data.object->_values.insert(pair);
+    auto ret = _data.object->_values.try_emplace(std::move(pair.first), std::move(pair.second));
     return { object_iterator(ret.first), ret.second };
 }
 
@@ -260,21 +260,55 @@ value::object_insert_return_type value::insert(object_node_handle&& handle)
     return { const_object_iterator(insert_rc.first), insert_rc.second };
 }
 
-value::object_iterator value::insert(const_object_iterator, object_node_handle&& handle)
+value::object_iterator value::insert(const_object_iterator hint, object_node_handle&& handle)
 {
     check_type(jsonv::kind::object, kind());
     if (handle.empty())
         return end_object();
 
-    auto place = _data.object->_values.find(handle.key());
-    if (place == _data.object->_values.end())
-    {
-        return insert({ std::move(handle.key()), std::move(handle.mapped()) }).first;
-    }
-    else
-    {
-        return object_iterator(place);
-    }
+    // try_emplace leaves its arguments alone when the key is already present, which is exactly the contract this
+    // overload documents -- the handle keeps ownership of the element if the insertion does not happen.
+    auto pos = _data.object->_values.try_emplace(hint._impl, std::move(handle.key()), std::move(handle.mapped()));
+    return object_iterator(pos);
+}
+
+std::pair<value::object_iterator, bool> value::emplace(std::string key, value val)
+{
+    check_type(jsonv::kind::object, kind());
+    auto ret = _data.object->_values.emplace(std::move(key), std::move(val));
+    return { object_iterator(ret.first), ret.second };
+}
+
+std::pair<value::object_iterator, bool> value::emplace(const std::wstring& key, value val)
+{
+    check_type(jsonv::kind::object, kind());
+    return emplace(detail::convert_to_narrow(key), std::move(val));
+}
+
+std::pair<value::object_iterator, bool> value::try_emplace(const std::string& key, value val)
+{
+    check_type(jsonv::kind::object, kind());
+    auto ret = _data.object->_values.try_emplace(key, std::move(val));
+    return { object_iterator(ret.first), ret.second };
+}
+
+std::pair<value::object_iterator, bool> value::try_emplace(const std::wstring& key, value val)
+{
+    check_type(jsonv::kind::object, kind());
+    return try_emplace(detail::convert_to_narrow(key), std::move(val));
+}
+
+std::pair<value::object_iterator, bool> value::insert_or_assign(const std::string& key, value val)
+{
+    check_type(jsonv::kind::object, kind());
+    auto ret = _data.object->_values.insert_or_assign(key, std::move(val));
+    return { object_iterator(ret.first), ret.second };
+}
+
+std::pair<value::object_iterator, bool> value::insert_or_assign(const std::wstring& key, value val)
+{
+    check_type(jsonv::kind::object, kind());
+    return insert_or_assign(detail::convert_to_narrow(key), std::move(val));
 }
 
 value::size_type value::erase(const std::string& key)

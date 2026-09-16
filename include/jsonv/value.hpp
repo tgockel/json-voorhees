@@ -842,8 +842,15 @@ public:
     template <typename TForwardIterator>
     void insert(TForwardIterator first, TForwardIterator last)
     {
+        // end_object() is not invalidated by insertion, so the hint can be hoisted out of the loop. It pays off for an
+        // ascending source of unique keys which all sort after what this object already holds -- most importantly when
+        // building a fresh object -- costing amortized constant time per element. Anything else just misses the hint
+        // and falls back to the usual logarithmic lookup: the hint is only taken for a key sorting strictly after the
+        // greatest one present, so a repeated key does not benefit.
+        const_object_iterator hint = end_object();
+
         for ( ; first != last; ++first)
-            insert(*first);
+            insert(hint, *first);
     }
 
     /// Insert the contents of \a handle. If \a handle is empty, this does nothing.
@@ -871,6 +878,57 @@ public:
     /// \throws kind_error if the kind is not an object.
     void insert(std::initializer_list<std::pair<std::string, value>>  items);
     void insert(std::initializer_list<std::pair<std::wstring, value>> items);
+    /// \}
+
+    /// \{
+    /// Construct an element from \a key and \a val and insert it into this object. If an element with an equivalent
+    /// key is already present, the insertion does not happen and the existing element is not overwritten.
+    ///
+    /// \note
+    /// As with \c std::map::emplace, the node is constructed before the key is looked up, so a call which does not
+    /// insert has still allocated and destroyed one. Prefer \ref try_emplace when collisions are expected.
+    ///
+    /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key) and
+    ///  whose \c second is \c true if the insertion took place.
+    /// \throws kind_error if the kind is not an object.
+    ///
+    /// \see insert
+    /// \see try_emplace
+    std::pair<object_iterator, bool> emplace(std::string         key, value val);
+    std::pair<object_iterator, bool> emplace(const std::wstring& key, value val);
+    /// \}
+
+    /// \{
+    /// Insert \a val with the given \a key into this object, but only if no element with an equivalent key is already
+    /// present. Unlike \ref emplace, \a key is left alone and no node is allocated when the key is already present.
+    ///
+    /// \note
+    /// \a val is taken by value, so a caller who passes `std::move(x)` has moved from \c x by the time this function
+    /// is entered whether or not the insertion happens. It is the key and the node which are spared, not \a val.
+    ///
+    /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key) and
+    ///  whose \c second is \c true if the insertion took place.
+    /// \throws kind_error if the kind is not an object.
+    ///
+    /// \see insert
+    /// \see insert_or_assign
+    std::pair<object_iterator, bool> try_emplace(const std::string&  key, value val);
+    std::pair<object_iterator, bool> try_emplace(const std::wstring& key, value val);
+    /// \}
+
+    /// \{
+    /// Insert \a val with the given \a key into this object if no element with an equivalent key is present;
+    /// otherwise, assign \a val to the existing element. Unlike \ref try_emplace, \a val is stored either way.
+    ///
+    /// \returns A pair whose \c first refers to the inserted or assigned element and whose \c second is \c true if an
+    ///  insertion took place and \c false if an assignment took place. Unlike \ref insert, a \c second of \c false
+    ///  does \e not mean the operation failed -- this function always modifies the object.
+    /// \throws kind_error if the kind is not an object.
+    ///
+    /// \see insert
+    /// \see try_emplace
+    std::pair<object_iterator, bool> insert_or_assign(const std::string&  key, value val);
+    std::pair<object_iterator, bool> insert_or_assign(const std::wstring& key, value val);
     /// \}
 
     /// \{
