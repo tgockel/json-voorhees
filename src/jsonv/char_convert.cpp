@@ -704,7 +704,9 @@ static std::string convert_to_narrow(const wchar_t* source_data, std::size_t sou
         // surrogate start
         else
         {
-            if (source_idx + 1 >= source_size)
+            // `next_source` has already stepped past the high surrogate, so `source_idx` is the index of the low
+            // one -- there is no further code unit to require.
+            if (source_idx >= source_size)
                 throw std::range_error("Invalid UTF-16: surrogate extends past end of string");
 
             auto c_lo = next_source();

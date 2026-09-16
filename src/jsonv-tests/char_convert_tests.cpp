@@ -11,6 +11,8 @@
 
 #include <jsonv/char_convert.hpp>
 
+#include <cstdint>
+#include <iomanip>
 #include <sstream>
 
 using jsonv::detail::decode_error;
@@ -214,4 +216,46 @@ TEST(string_decode_short_utf8_sequence)
 TEST(string_decode_invalid_utf8_start)
 {
     ensure_throws(decode_error, string_decode_static("\xfe is not a UTF-8 start"));
+}
+
+/// \c std::wstring cannot be streamed into the \c std::ostringstream that \c ensure_eq builds its failure message
+/// with, and raw code units are unreadable in a diagnostic anyway, so compare the hex spellings instead.
+static std::string wide_to_hex(const std::wstring& source)
+{
+    std::ostringstream os;
+    os << std::hex << std::setfill('0');
+    for (std::size_t idx = 0; idx < source.size(); ++idx)
+        os << (idx ? " " : "") << std::setw(4) << static_cast<std::uint32_t>(source[idx]);
+    return os.str();
+}
+
+#define ensure_wide_eq(expected_, actual_) ensure_eq(wide_to_hex(expected_), wide_to_hex(actual_))
+
+TEST(convert_to_narrow_trailing_surrogate_pair)
+{
+    // A surrogate pair at the very end of the input must convert instead of throwing. The bounds check on the low
+    // surrogate used to demand a spare code unit it never read, which made the failure positional rather than
+    // content-based -- the same pair followed by anything at all converted just fine.
+    const std::wstring emoji{ wchar_t(0xd83d), wchar_t(0xde00) };   // U+1F600
+
+    ensure_eq("\xf0\x9f\x98\x80",  jsonv::detail::convert_to_narrow(emoji));
+    ensure_eq("\xf0\x9f\x98\x80z", jsonv::detail::convert_to_narrow(emoji + L"z"));
+}
+
+TEST(convert_to_wide_trailing_surrogate_pair)
+{
+    const std::wstring emoji{ wchar_t(0xd83d), wchar_t(0xde00) };   // U+1F600
+
+    ensure_wide_eq(emoji, jsonv::detail::convert_to_wide("\xf0\x9f\x98\x80"));
+}
+
+TEST(convert_round_trip_surrogate_pairs)
+{
+    // Every entry of this list ends in a surrogate pair, which is precisely the shape which used to make
+    // convert_to_narrow throw.
+    #define JSONV_TEST_GEN_ROUND_TRIP(utf8encoding_, jsonencoding_)                      \
+        ensure_eq(utf8encoding_,                                                         \
+                  jsonv::detail::convert_to_narrow(jsonv::detail::convert_to_wide(utf8encoding_)));
+
+    JSONV_TEST_SURROGATE_PAIRS(JSONV_TEST_GEN_ROUND_TRIP)
 }
