@@ -498,6 +498,7 @@ public:
      *  the \c char base \c std::string.
      *
      *  \throws kind_error if this value does not represent a string.
+     *  \throws std::range_error if the stored string is not valid UTF-8.
     **/
     std::wstring as_wstring() const;
 

@@ -25,22 +25,6 @@
 #include "detail/fixed_map.hpp"
 #include "detail/is_print.hpp"
 
-#if __has_include(<alloca.h>)
-#   define JSONV_HAS_ALLOCA 1
-#   include <alloca.h>
-#else
-#   define JSONV_HAS_ALLOCA 0
-#endif
-
-#if JSONV_HAS_ALLOCA
-#   define JSONV_TEMP_BUFFER(type_, name_, elem_count_)                                                                \
-        type_* name_ = reinterpret_cast<type_*>(::alloca(sizeof(type_) * (elem_count_)))
-#else
-#   include <memory>
-#   define JSONV_TEMP_BUFFER(type_, name_, elem_count_)                                                                \
-        std::unique_ptr<type_[]> name_ = std::make_unique<type_[]>((elem_count_))
-#endif
-
 namespace jsonv
 {
 namespace detail
@@ -593,16 +577,50 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
     };
 }
 
+/// The number of UTF-16 code units the UTF-8 \a source decodes into. This does not validate \a source -- the
+/// conversion loop below remains the only validator, and it rejects everything this over-counts.
+static std::size_t utf16_length_of_utf8(std::string_view source) noexcept
+{
+    std::size_t units = 0;
+
+    for (std::size_t idx = 0; idx < source.size(); ++idx)
+    {
+        // NOTE(tgockel): `char` is signed here, so these comparisons must be made on an `unsigned char`. See the
+        // note on `char_bitmatch` above for what signed `char` bit tests have cost us before.
+        auto b = static_cast<unsigned char>(source[idx]);
+
+        // Every byte which is not a sequence continuation starts a code point...
+        if ((b & 0xc0U) != 0x80U)
+            ++units;
+
+        // ...and a code point outside the BMP needs a surrogate pair. Lead bytes 0xf1-0xf7 always decode outside
+        // it, but 0xf0 only does so when its continuation is 0x90 or greater -- below that the sequence is an
+        // overlong encoding of a BMP code point, which the conversion loop accepts.
+        if (b > 0xf0U)
+            ++units;
+        else if (b == 0xf0U && idx + 1U < source.size() && static_cast<unsigned char>(source[idx + 1U]) >= 0x90U)
+            ++units;
+    }
+
+    return units;
+}
+
 std::wstring convert_to_wide(std::string_view source)
 {
-    // Step 1: Determine the codepoints from the source
-    JSONV_TEMP_BUFFER(char32_t, unicode_buff, source.size());
-    std::size_t unicode_idx = 0;
-    std::size_t large_codes = 0;
+    auto expected_size = utf16_length_of_utf8(source);
+
+    std::wstring out;
+    out.reserve(expected_size);
 
     for (std::size_t source_idx = 0; source_idx < source.size(); /* inline */)
     {
-        auto next_source = [&] () -> char32_t { return static_cast<unsigned char>(source.at(source_idx++)); };
+        // The loop condition covers the first read and the `source_idx + steps` check below covers the rest, so an
+        // unchecked subscript is always in range here.
+        auto next_source = [&] () -> char32_t
+                           {
+                               assert(source_idx < source.size());
+                               return static_cast<unsigned char>(source[source_idx++]);
+                           };
 
         char32_t    codepoint;
         std::size_t steps;
@@ -655,39 +673,59 @@ std::wstring convert_to_wide(std::string_view source)
         if (codepoint > 0x10ffffU)
             throw std::range_error("Invalid UTF-8: code point is too large");
 
-        unicode_buff[unicode_idx++] = codepoint;
-        if (codepoint > 0xffffU)
-            ++large_codes;
-    }
-
-    // Step 2: Fill the string from codepoints
-    std::wstring out;
-    out.reserve(unicode_idx + large_codes);
-
-    for (std::size_t idx = 0; idx < unicode_idx; ++idx)
-    {
-        char32_t code_point = unicode_buff[idx];
-        if (code_point <= 0xffffU)
+        if (codepoint <= 0xffffU)
         {
-            out += wchar_t(code_point);
+            out += wchar_t(codepoint);
         }
         else
         {
             uint16_t high, low;
-            utf16_create_surrogates(code_point, &high, &low);
+            utf16_create_surrogates(codepoint, &high, &low);
             out += wchar_t(high);
             out += wchar_t(low);
         }
     }
+
+    assert(out.size() == expected_size);
     return out;
+}
+
+/// The number of UTF-8 bytes the UTF-16 source encodes into. Like \c utf16_length_of_utf8, this is not a validator.
+static std::size_t utf8_length_of_utf16(const wchar_t* source_data, std::size_t source_size) noexcept
+{
+    // NOTE(tgockel): `wchar_t` is signed here, so read through `std::uint16_t` exactly as the conversion loop does.
+    auto unit_at = [&] (std::size_t idx) { return static_cast<std::uint16_t>(source_data[idx]); };
+
+    std::size_t bytes = 0;
+
+    for (std::size_t idx = 0; idx < source_size; /* inline */)
+    {
+        auto c = unit_at(idx++);
+
+        // A high surrogate followed by a low one is a single code point needing 4 bytes. Everything else stands on
+        // its own -- a lone low surrogate included, since the conversion loop takes those as ordinary code points.
+        if ((c & 0xfc00U) == 0xd800U && idx < source_size && (unit_at(idx) & 0xfc00U) == 0xdc00U)
+        {
+            bytes += 4U;
+            ++idx;
+        }
+        else
+        {
+            bytes += (c <= 0x007fU) ? 1U
+                   : (c <= 0x07ffU) ? 2U
+                   :                  3U;
+        }
+    }
+
+    return bytes;
 }
 
 static std::string convert_to_narrow(const wchar_t* source_data, std::size_t source_size)
 {
-    // Step 1: Extract codepoints from the source
-    JSONV_TEMP_BUFFER(char32_t, unicode_buff, source_size);
-    std::size_t unicode_idx = 0;
-    std::size_t out_chars   = 0;
+    auto expected_size = utf8_length_of_utf16(source_data, source_size);
+
+    std::string out;
+    out.reserve(expected_size);
 
     for (std::size_t source_idx = 0; source_idx < source_size; /* inline */)
     {
@@ -714,22 +752,10 @@ static std::string convert_to_narrow(const wchar_t* source_data, std::size_t sou
                 throw std::range_error("Invalid UTF-16: invalid surrogate pair");
         }
 
-        unicode_buff[unicode_idx++] = codepoint;
-        out_chars += (codepoint <= 0x007fU) ? 1U
-                   : (codepoint <= 0x07ffU) ? 2U
-                   : (codepoint <= 0xffffU) ? 3U
-                   :                          4U;
+        utf8_append_code(out, codepoint);
     }
 
-    // Step 2: Fill the string from codepoints
-    std::string out;
-    out.reserve(out_chars);
-
-    for (std::size_t idx = 0U; idx < unicode_idx; ++idx)
-    {
-        utf8_append_code(out, unicode_buff[idx]);
-    }
-
+    assert(out.size() == expected_size);
     return out;
 }
 

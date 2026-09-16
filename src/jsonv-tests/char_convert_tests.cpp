@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 using jsonv::detail::decode_error;
 
@@ -258,4 +259,85 @@ TEST(convert_round_trip_surrogate_pairs)
                   jsonv::detail::convert_to_narrow(jsonv::detail::convert_to_wide(utf8encoding_)));
 
     JSONV_TEST_SURROGATE_PAIRS(JSONV_TEST_GEN_ROUND_TRIP)
+}
+
+TEST(convert_round_trip_sequence_lengths)
+{
+    // One case per UTF-8 sequence length. The wide sizes are checked explicitly because they are what the
+    // reservation counters compute -- a miscount shows up here before it shows up as a reallocation.
+    struct { const char* utf8; std::size_t wide_size; } cases[] =
+        {
+            { "",                 0 },
+            { "abc",              3 },   // 1 byte  each
+            { "\xc3\xa9",         1 },   // 2 bytes: U+00E9
+            { "\xe2\x98\xa2",     1 },   // 3 bytes: U+2622
+            { "\xf0\x9f\x98\x80", 2 },   // 4 bytes: U+1F600, a surrogate pair
+            { "a\xc3\xa9\xe2\x98\xa2\xf0\x9f\x98\x80", 5 },
+        };
+
+    for (const auto& c : cases)
+    {
+        auto wide = jsonv::detail::convert_to_wide(c.utf8);
+        ensure_eq(c.wide_size, wide.size());
+        ensure_eq(std::string(c.utf8), jsonv::detail::convert_to_narrow(wide));
+    }
+}
+
+TEST(convert_to_wide_invalid)
+{
+    #define JSONV_TEST_ENSURE_WIDE_THROWS(src_) \
+        ensure_throws(std::range_error, jsonv::detail::convert_to_wide(src_))
+
+    JSONV_TEST_ENSURE_WIDE_THROWS("\x80");                   // continuation byte with no lead
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xf8\x80\x80\x80\x80");   // 5 byte sequence
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xe2\x98");               // sequence runs off the end
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xe2\x28\xa1");           // sequence is not continued
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xed\xa0\x80");           // surrogate encoded directly as UTF-8
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xf7\xbf\xbf\xbf");       // U+1FFFFF, past U+10FFFF
+}
+
+TEST(convert_to_narrow_invalid)
+{
+    ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xd800) }));
+    ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xd800), L'A' }));
+}
+
+TEST(convert_to_wide_reports_the_leftmost_error)
+{
+    // Output is now built as validation proceeds instead of after it completes, so pin that an input carrying two
+    // distinct errors still reports the first one.
+    try
+    {
+        jsonv::detail::convert_to_wide("\xed\xa0\x80\xff");
+        ensure(false);
+    }
+    catch (const std::range_error& ex)
+    {
+        ensure_eq(std::string("Invalid UTF-8: surrogate code point is not a Unicode character"),
+                  std::string(ex.what())
+                 );
+    }
+}
+
+TEST(convert_malformed_but_accepted_input_is_unchanged)
+{
+    // Neither of these is well-formed, but both are accepted today and both are inputs the reservation counters
+    // have to special-case. Pin the behaviour so the counters cannot quietly start rejecting or mis-sizing them.
+
+    // An overlong 4 byte encoding of U+0000 -- one code unit, not the surrogate pair the lead byte suggests.
+    ensure_wide_eq(std::wstring(1, wchar_t(0)), jsonv::detail::convert_to_wide("\xf0\x80\x80\x80"));
+
+    // A lone *low* surrogate passes the high-surrogate test and is encoded as an ordinary code point.
+    ensure_eq("\xed\xb0\x80", jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xdc00) }));
+}
+
+TEST(convert_large_input_does_not_exhaust_the_stack)
+{
+    // These conversions used to size an `alloca` off the input, so this would take out the whole test binary
+    // rather than fail a test. 4 MiB of input meant a 16 MiB stack allocation.
+    const std::string large(4U * 1024U * 1024U, 'x');
+
+    auto wide = jsonv::detail::convert_to_wide(large);
+    ensure_eq(large.size(), wide.size());
+    ensure_eq(large, jsonv::detail::convert_to_narrow(wide));
 }

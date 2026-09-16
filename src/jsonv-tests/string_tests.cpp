@@ -97,6 +97,17 @@ TEST(wide_strings)
     ensure(narrow.as_wstring() == wide.as_wstring());
 }
 
+TEST(wide_strings_astral)
+{
+    using namespace jsonv;
+
+    // U+1F600. Round-tripping an astral code point out through as_wstring and back used to throw, because the
+    // surrogate pair landed at the end of the wide string.
+    value emoji = "\xf0\x9f\x98\x80";
+
+    ensure_eq(emoji, value(emoji.as_wstring()));
+}
+
 TEST(string_view_construction)
 {
     using namespace jsonv;
