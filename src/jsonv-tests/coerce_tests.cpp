@@ -12,6 +12,7 @@
 
 #include <jsonv/coerce.hpp>
 
+#include <cmath>
 #include <limits>
 
 namespace jsonv_test
@@ -101,6 +102,38 @@ TEST(coerce_integer_decimal_clamp_max)
 TEST(coerce_integer_decimal_clamp_min)
 {
     ensure_eq(std::numeric_limits<std::int64_t>::min(), coerce_integer(-18446744074709551600.0));
+}
+
+// double(int64_t max) rounds up to 2^63, which is one past the largest representable int64_t, so
+// this value has to clamp rather than convert.
+TEST(coerce_integer_decimal_clamp_max_boundary)
+{
+    ensure_eq(std::numeric_limits<std::int64_t>::max(),
+              coerce_integer(double(std::numeric_limits<std::int64_t>::max()))
+             );
+}
+
+// double(int64_t min) is -2^63 exactly, so this one is representable and must convert unchanged.
+TEST(coerce_integer_decimal_min_boundary)
+{
+    ensure_eq(std::numeric_limits<std::int64_t>::min(),
+              coerce_integer(double(std::numeric_limits<std::int64_t>::min()))
+             );
+}
+
+TEST(coerce_integer_decimal_infinity)
+{
+    ensure_eq(std::numeric_limits<std::int64_t>::max(),
+              coerce_integer(std::numeric_limits<double>::infinity())
+             );
+    ensure_eq(std::numeric_limits<std::int64_t>::min(),
+              coerce_integer(-std::numeric_limits<double>::infinity())
+             );
+}
+
+TEST(coerce_integer_decimal_nan)
+{
+    ensure_eq(0, coerce_integer(std::numeric_limits<double>::quiet_NaN()));
 }
 
 TEST(coerce_integer_string_null)

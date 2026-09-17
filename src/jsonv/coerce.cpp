@@ -13,6 +13,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
 
+#include <cmath>
 #include <limits>
 
 #include "detail/fallthrough.hpp"
@@ -112,10 +113,22 @@ std::int64_t coerce_integer(const value& from)
     case kind::integer:
         return from.as_integer();
     case kind::decimal:
-        if (from.as_decimal() > double(std::numeric_limits<std::int64_t>::max()))
+    {
+        // Converting a double that does not fit the destination type is undefined behavior rather
+        // than a saturating conversion, so the value has to be range-checked first. The upper test
+        // is `>=` because `double(int64_t max)` rounds up to 2^63, one past the largest
+        // representable int64_t; the lower bound is -2^63 exactly, so `<=` there is only belt and
+        // braces. NaN compares false against everything and has no meaningful clamp, so it gets 0.
+        const double src = from.as_decimal();
+        if (std::isnan(src))
+            return 0;
+        else if (src >= double(std::numeric_limits<std::int64_t>::max()))
             return std::numeric_limits<std::int64_t>::max();
+        else if (src <= double(std::numeric_limits<std::int64_t>::min()))
+            return std::numeric_limits<std::int64_t>::min();
         else
-            return std::int64_t(from.as_decimal());
+            return std::int64_t(src);
+    }
     case kind::string:
         try
         {
