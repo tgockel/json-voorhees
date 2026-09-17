@@ -12,7 +12,9 @@
 #include <jsonv/ast.hpp>
 #include <jsonv/parse_index.hpp>
 
+#include <cstddef>
 #include <stdexcept>
+#include <string_view>
 
 template <typename TNode>
 TNode parse_single(std::string_view src, std::string_view expected)
@@ -121,6 +123,25 @@ TEST(ast_array_elems)
     ++iter;
     auto array_node = (*iter).as<jsonv::ast_node::array_begin>();
     ensure_eq(4U, array_node.element_count());
+}
+
+// `end()` is `&data(data_size)` and `operator++` decodes the entry it lands on, so that slot has to be readable.
+// Sweeping the requested capacity guarantees one run ends with `data_size == data_capacity`, which is where the slot
+// used to sit one past the allocation.
+TEST(ast_iterate_to_end_across_buffer_capacities)
+{
+    const std::string_view src = "[ 1, 2,\t 3, \"Bob\\n\"]";
+
+    for (std::size_t capacity = 0U; capacity <= 64U; ++capacity)
+    {
+        auto ast   = jsonv::parse_index::parse(src, capacity);
+        auto count = 0U;
+
+        for (auto iter = ast.begin(); iter != ast.end(); ++iter)
+            ++count;
+
+        ensure_eq(8U, count);
+    }
 }
 
 TEST(ast_object_empty)

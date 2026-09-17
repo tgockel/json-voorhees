@@ -132,7 +132,10 @@ struct JSONV_LOCAL parse_index::impl final
         if (capacity < 16U)
             capacity = 16U;
 
-        auto alloc_sz = sizeof(impl) + capacity * sizeof(std::uint64_t);
+        // One slot past `capacity` is reserved as a sentinel so that `&data(data_size)` -- the address
+        // `end()` reports -- is always inside the allocation, even when the tape fills exactly.
+        // `data_capacity` deliberately excludes it, so nothing can push into it.
+        auto alloc_sz = sizeof(impl) + (capacity + 1) * sizeof(std::uint64_t);
         if (void* p = std::malloc(alloc_sz))
         {
             auto out = reinterpret_cast<impl*>(p);
@@ -165,7 +168,7 @@ struct JSONV_LOCAL parse_index::impl final
         // NOTE: Doubling the data capacity will always grow enough to hold a complete code size, as the minimum size
         // can hold the largest code size.
         auto new_capacity = self->data_capacity * 2;
-        auto new_alloc_sz = sizeof(impl) + new_capacity * sizeof(std::uint64_t);
+        auto new_alloc_sz = sizeof(impl) + (new_capacity + 1) * sizeof(std::uint64_t);
 
         auto new_self = static_cast<impl*>(std::realloc(self, new_alloc_sz));
         if (!new_self)
@@ -696,17 +699,23 @@ parse_index parse_index::parse(std::string_view                src,
     try
     {
         impl::parse(p, src, options);
-        return parse_index(p);
     }
     catch (const ast_exception&)
     {
-        return parse_index(p);
+        // Still a usable index -- it ends with an `error` node describing the failure.
     }
     catch (...)
     {
         impl::destroy(p);
         throw;
     }
+
+    // Initialize the sentinel. `iterator::operator++` decodes the entry it lands on unconditionally,
+    // so the slot at `end()` has to hold a determinate value; which value does not matter, because
+    // `_prefix` is dead once the iterator gets there and `operator*` is never called on `end()`.
+    p->data(p->data_size) = 0U;
+
+    return parse_index(p);
 }
 
 parse_index parse_index::parse(std::string_view src, std::optional<std::size_t> initial_buffer_capacity)
