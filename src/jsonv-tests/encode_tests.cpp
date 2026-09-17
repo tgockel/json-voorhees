@@ -18,6 +18,7 @@
 #include <iostream>
 #include <locale>
 #include <sstream>
+#include <string>
 #include <string_view>
 
 namespace jsonv_test
@@ -72,6 +73,72 @@ TEST(encode_decimal_shortest_roundtrip)
     ensure_encodes_as("[2.225073858507201e-308]", "[2.225073858507201e-308]");
     ensure_encodes_as("[2.2250738585072014e-308]", "[2.2250738585072014e-308]");
     ensure_encodes_as("[1.7976931348623157e308]", "[1.7976931348623157e+308]");
+}
+
+TEST(encode_decimal_keeps_decimal_kind)
+{
+    // `std::to_chars` with `chars_format::general` emits the shortest round-trip form, which for an integral value has
+    // no decimal point or exponent. Left alone, those tokens re-parse as `kind::integer`. See issue #208.
+    ensure_encodes_as("[2.0]",  "[2.0]");
+    ensure_encodes_as("[0.0]",  "[0.0]");
+    ensure_encodes_as("[-0.0]", "[-0.0]");
+    ensure_encodes_as("[-2.0]", "[-2.0]");
+    ensure_encodes_as("[1e2]",  "[100.0]");
+
+    // Values that already carry a point or an exponent are untouched.
+    ensure_encodes_as("[1.5]",                   "[1.5]");
+    ensure_encodes_as("[1.7976931348623157e308]", "[1.7976931348623157e+308]");
+    ensure_encodes_as("[5e-324]",                 "[5e-324]");
+
+    // Integers stay integers.
+    ensure_encodes_as("[2]",  "[2]");
+    ensure_encodes_as("[-0]", "[0]");
+}
+
+namespace
+{
+
+void ensure_decimal_round_trips(std::string_view source, bool expect_negative_zero)
+{
+    jsonv::value      original = jsonv::parse(source);
+    const std::string encoded  = jsonv::to_string(original);
+    jsonv::value      reparsed = jsonv::parse(encoded);
+
+    ensure(reparsed.at(0).kind() == jsonv::kind::decimal);
+
+    const double decimal = reparsed.at(0).as_decimal();
+    ensure_eq(original.at(0).as_decimal(), decimal);
+    ensure_eq(expect_negative_zero, std::signbit(decimal) && decimal == 0.0);
+
+    // Encoding must be a fixed point.
+    ensure_eq(encoded, jsonv::to_string(reparsed));
+
+    // The pretty encoder delegates decimal formatting to `ostream_encoder`, so it has to agree.
+    std::ostringstream pretty;
+    jsonv::ostream_pretty_encoder(pretty).encode(original);
+    ensure(jsonv::parse(pretty.str()).at(0).kind() == jsonv::kind::decimal);
+}
+
+}
+
+TEST(encode_decimal_negative_zero_round_trip)
+{
+    ensure_decimal_round_trips("[-0.0]", true);
+}
+
+TEST(encode_decimal_negative_underflow_round_trip)
+{
+    // `-1e-10000` underflows to negative zero; `parse_number_decimal_negative_underflow` pins the parse side of this,
+    // and the sign has to survive the encode side too.
+    ensure_decimal_round_trips("[-1e-10000]", true);
+}
+
+TEST(encode_decimal_integral_round_trip)
+{
+    ensure_decimal_round_trips("[0.0]", false);
+    ensure_decimal_round_trips("[2.0]", false);
+    ensure_decimal_round_trips("[-2.0]", false);
+    ensure_decimal_round_trips("[1.5]", false);
 }
 
 TEST(encode_invalid_utf8_uses_replacement_for_bogus_2_byte)
