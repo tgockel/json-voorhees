@@ -59,6 +59,35 @@ if (COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
 endif(COVERAGE)
 
+############################
+# Sanitizer Configuration  #
+############################
+
+# Shared with the fuzz targets below so the two instrumented builds cannot drift apart.
+# `-fno-sanitize-recover=all` is what turns a UBSan report into a non-zero exit instead of a printed
+# warning the run would sail past.
+set(JSONV_SANITIZER_FLAGS
+    -g
+    -fno-omit-frame-pointer
+    -fsanitize=address,undefined
+    -fno-sanitize-recover=all
+   )
+
+option(JSONV_SANITIZE
+       "Build with AddressSanitizer and UndefinedBehaviorSanitizer."
+       OFF
+      )
+if (JSONV_SANITIZE)
+    if (MSVC)
+        message(FATAL_ERROR "JSONV_SANITIZE requires a GCC- or Clang-style driver.")
+    endif()
+
+    # Directory-scoped rather than `target_compile_options(jsonv PUBLIC ...)`, which would put the
+    # flags in the installed target's export set and force them on everyone who links jsonv.
+    add_compile_options(${JSONV_SANITIZER_FLAGS})
+    add_link_options(${JSONV_SANITIZER_FLAGS})
+endif()
+
 if (WIN32)
     # DLLs in Windows appear to have not been fully thought through
     set(DEFAULT_LIBRARY_TYPE "STATIC")
@@ -80,8 +109,12 @@ option(BENCHMARK
 
 # Link-time optimization gives the compiler a chance to inline across translation units, which
 # matters most for the parser hot path (parse_index.cpp + match/string.cpp + match/number.cpp).
-# Default ON for Release builds, OFF otherwise.
-if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+# Default ON for Release builds, OFF otherwise -- and OFF for a sanitizer build regardless, because
+# interprocedural optimization interacts badly with the instrumentation. The fuzz targets turn it off
+# for the same reason.
+if(JSONV_SANITIZE)
+    set(JSONV_LTO_DEFAULT OFF)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     set(JSONV_LTO_DEFAULT ON)
 else()
     set(JSONV_LTO_DEFAULT OFF)
@@ -243,13 +276,6 @@ if (JSONV_BUILD_FUZZERS)
                )
     endif()
 
-    set(JSONV_FUZZ_SANITIZERS
-        -g
-        -fno-omit-frame-pointer
-        -fsanitize=address,undefined
-        -fno-sanitize-recover=all
-       )
-
     # The fuzzers link a second, instrumented copy of the library rather than `jsonv` itself. Linking the normal target
     # would leave the code under test uninstrumented: libFuzzer would get no coverage feedback to guide mutation, and
     # AddressSanitizer would only see allocations, not the loads and stores inside the parser. Building separately also
@@ -265,12 +291,12 @@ if (JSONV_BUILD_FUZZERS)
     target_compile_definitions(jsonv-fuzz-lib PUBLIC JSONV_SO=0)
     target_compile_options(jsonv-fuzz-lib
                            PUBLIC
-                             ${JSONV_FUZZ_SANITIZERS}
+                             ${JSONV_SANITIZER_FLAGS}
                            PRIVATE
                              # Coverage instrumentation without libFuzzer's `main`, which belongs to the executables.
                              -fsanitize=fuzzer-no-link
                           )
-    target_link_options(jsonv-fuzz-lib PUBLIC ${JSONV_FUZZ_SANITIZERS})
+    target_link_options(jsonv-fuzz-lib PUBLIC ${JSONV_SANITIZER_FLAGS})
 
     foreach(fuzzer parse roundtrip)
         add_executable(jsonv-fuzz-${fuzzer} "src/jsonv-fuzz/${fuzzer}_fuzz.cpp")

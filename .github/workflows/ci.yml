@@ -81,6 +81,47 @@ jobs:
       - name: Build and test
         run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
 
+  sanitizers:
+    name: Sanitizers (ubuntu-24.04, clang, ASan+UBSan)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Report Clang version
+        run: clang++ --version
+
+      # The sanitizer runtimes live in libclang-rt-*-dev, which the clang package does not depend
+      # on. The unversioned metapackage follows whichever Clang the runner defaults to, which keeps
+      # this tracking the runner toolchain rather than pinning a version that goes stale. The
+      # symbolizer is in `llvm`, and without it every frame of a report comes back as `??:0`.
+      - name: Install sanitizer runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libclang-rt-dev llvm
+
+      # Debug rather than an optimized build: `JSONV_DEBUG=1` drops the benchmark tests to a single
+      # iteration, so the run spends its time on assertions instead of timing loops over the
+      # multi-megabyte test data. The fuzz workflow already carries the optimized sanitizer build.
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DJSONV_BUILD_TESTS=ON
+          -DJSONV_SANITIZE=ON
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+
+      - name: Build and test
+        env:
+          # `detect_stack_use_after_return` is instrumented by default but only armed at runtime, so
+          # it has to be asked for here. `halt_on_error` is already implied by
+          # `-fno-sanitize-recover=all`; it is set anyway so the intent survives a flag edit.
+          ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: cmake --build build --target check --parallel
+
   packages:
     name: Packages (${{ matrix.format }})
     runs-on: ubuntu-24.04

@@ -19,6 +19,38 @@ $> cmake -S . -B build -G Ninja -DJSONV_BUILD_TESTS=ON
 $> cmake --build build --target check --parallel
 ```
 
+### Sanitizers
+
+`JSONV_SANITIZE` builds everything with AddressSanitizer and UndefinedBehaviorSanitizer. CI runs the
+unit test suite this way on every push and pull request:
+
+```bash
+$> cmake -S . -B build-asan -G Ninja \
+       -DJSONV_BUILD_TESTS=ON \
+       -DJSONV_SANITIZE=ON \
+       -DCMAKE_BUILD_TYPE=Debug \
+       -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+$> ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=print_stacktrace=1 \
+       cmake --build build-asan --target check --parallel
+```
+
+The build uses `-fno-sanitize-recover=all`, so the first finding aborts instead of printing and
+carrying on. `jsonv-tests` takes a substring filter as its only argument, so narrow a failure down
+with `./build-asan/jsonv-tests parse_index` rather than re-running everything.
+
+Debug is deliberate: `JSONV_DEBUG=1` drops the benchmark tests to one iteration, so the run is
+assertions rather than timing loops over the multi-megabyte data files.
+
+On Debian and Ubuntu the sanitizer runtimes are packaged separately from the compiler, so you may
+need `apt install libclang-rt-dev`. Reports are only symbolized if `llvm-symbolizer` is on `PATH`,
+which comes from the `llvm` package.
+
+A green run here does not mean the parser's chunked scans are covered. Most parse tests use short
+string literals, which live in the `std::string`'s small-string buffer; ASan's redzones surround the
+whole object, not that buffer, so a read past the end of a short source lands inside the string
+object and goes unreported. The fuzzers are what check those guards, because libFuzzer hands over an
+allocation sized to the input exactly.
+
 ### Fuzzing
 
 The parser is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html), which ships with Clang.
@@ -32,8 +64,7 @@ $> cmake -S . -B build-fuzz -G Ninja \
 $> cmake --build build-fuzz --target jsonv-fuzz-parse jsonv-fuzz-roundtrip --parallel
 ```
 
-On Debian and Ubuntu the sanitizer runtimes are packaged separately from the compiler, so you may
-need `apt install libclang-rt-dev`.
+libFuzzer ships with Clang, but the sanitizer runtimes need `libclang-rt-dev` as above.
 
 There are two targets:
 
