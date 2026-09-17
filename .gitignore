@@ -68,6 +68,14 @@ composer.lock
 *.code-workspace
 .vscode
 
+# libFuzzer reproducers
+artifact-*
+crash-*
+leak-*
+timeout-*
+oom-*
+slow-unit-*
+
 #Cmake
 CMakeCache.txt
 CMakeFiles

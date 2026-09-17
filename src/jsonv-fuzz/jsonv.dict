@@ -1,0 +1,80 @@
+# libFuzzer dictionary for the JSON Voorhees parser targets.
+#
+# Gives the mutator whole tokens to splice in, so it reaches deep structures and unusual literals
+# far sooner than it would by flipping bytes. Pass with -dict=src/jsonv-fuzz/jsonv.dict
+
+# Structure
+obj_open="{"
+obj_close="}"
+arr_open="["
+arr_close="]"
+colon=":"
+comma=","
+quote="\""
+
+# Literals
+lit_true="true"
+lit_false="false"
+lit_null="null"
+
+# Comments -- accepted by default (parse_options::comments)
+comment_open="/*"
+comment_close="*/"
+comment_empty="/**/"
+
+# Numbers
+exp_lower="e"
+exp_upper="E"
+exp_plus="e+"
+exp_minus="e-"
+minus="-"
+dot="."
+zero="0"
+int64_max="9223372036854775807"
+int64_min="-9223372036854775808"
+uint64_max="18446744073709551615"
+overflow="12345678901234567890123"
+dbl_max="1.7976931348623157e308"
+dbl_denorm="5e-324"
+exp_overflow="1e309"
+exp_underflow="1e-999"
+
+# String escapes
+esc_quote="\\\""
+esc_backslash="\\\\"
+esc_slash="\\/"
+esc_backspace="\\b"
+esc_formfeed="\\f"
+esc_newline="\\n"
+esc_return="\\r"
+esc_tab="\\t"
+esc_unicode="\\u"
+esc_nul="\\u0000"
+esc_high_surrogate="\\ud83d"
+esc_low_surrogate="\\ude00"
+esc_surrogate_pair="\\ud83d\\ude00"
+esc_bad_surrogate="\\ud800"
+esc_max_bmp="\\uffff"
+
+# Multi-byte UTF-8 lead bytes, including the forms that should not be legal (issue #207)
+utf8_two="\xc3\xa9"
+utf8_three="\xe2\x82\xac"
+utf8_four="\xf0\x9f\x98\x80"
+utf8_overlong="\xc0\x80"
+utf8_surrogate="\xed\xa0\x80"
+utf8_above_max="\xf5\x80\x80\x80"
+utf8_five_byte="\xf8\x80\x80\x80\x80"
+utf8_six_byte="\xfc\x80\x80\x80\x80\x80"
+
+# Whitespace, which drives fastforward_whitespace
+ws_space=" "
+ws_tab="\x09"
+ws_newline="\x0a"
+ws_return="\x0d"
+
+# Common fragments
+empty_obj="{}"
+empty_arr="[]"
+empty_str="\"\""
+kv="\"a\":1"
+nested="[[[["
