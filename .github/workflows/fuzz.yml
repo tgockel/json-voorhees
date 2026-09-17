@@ -1,0 +1,112 @@
+name: Fuzz
+
+on:
+  push:
+  pull_request:
+  schedule:
+    # Nightly, at an arbitrary off-peak minute to avoid the top-of-hour rush.
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    name: Fuzz (${{ matrix.target }})
+    runs-on: ubuntu-24.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - parse
+          - roundtrip
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Report Clang version
+        run: clang++ --version
+
+      # libFuzzer and the sanitizer runtimes live in libclang-rt-*-dev, which the clang package does
+      # not depend on. The unversioned metapackage follows whichever Clang the runner defaults to,
+      # which keeps this tracking the runner toolchain rather than pinning a version that goes stale.
+      - name: Install sanitizer runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libclang-rt-dev
+
+      # The committed seeds are generated output. Nothing else would notice them drifting from the generator.
+      # `git status` rather than `git diff`, because a seed added to make_seeds.py but never committed shows up as an
+      # untracked file, which `git diff` does not see at all.
+      - name: Check committed seeds match the generator
+        run: |
+          python3 src/jsonv-fuzz/make_seeds.py > /dev/null
+          drift=$(git status --porcelain --untracked-files=all --ignored -- src/jsonv-fuzz/corpus)
+          if [ -n "${drift}" ]; then
+            echo "Committed seeds do not match src/jsonv-fuzz/make_seeds.py:" >&2
+            echo "${drift}" >&2
+            exit 1
+          fi
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DJSONV_BUILD_FUZZERS=ON
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+
+      - name: Build
+        run: >
+          cmake --build build
+          --target jsonv-fuzz-${{ matrix.target }}
+          --parallel
+
+      - name: Restore accumulated corpus
+        uses: actions/cache/restore@v4
+        with:
+          path: build/fuzz-corpus-accumulated
+          key: fuzz-corpus-${{ matrix.target }}-${{ github.run_id }}
+          restore-keys: |
+            fuzz-corpus-${{ matrix.target }}-
+
+      - name: Fuzz
+        env:
+          # A short smoke run on every push; the nightly schedule gets ten minutes per target.
+          MAX_TOTAL_TIME: ${{ github.event_name == 'schedule' && '600' || '60' }}
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: |
+          mkdir -p build/fuzz-corpus-accumulated
+
+          # The accumulated corpus comes first: libFuzzer writes newly discovered inputs into the
+          # first directory, so growth lands in the one that gets cached.
+          ./build/jsonv-fuzz-${{ matrix.target }} \
+            -max_total_time="${MAX_TOTAL_TIME}" \
+            -timeout=10 \
+            -rss_limit_mb=2048 \
+            -max_len=16384 \
+            -print_final_stats=1 \
+            -artifact_prefix=./artifact- \
+            -dict=src/jsonv-fuzz/jsonv.dict \
+            build/fuzz-corpus-accumulated \
+            build/fuzz-corpus
+
+      - name: Save accumulated corpus
+        # Only the scheduled run writes the cache, so a short per-push run cannot displace the
+        # corpus built up overnight.
+        if: github.event_name == 'schedule' && success()
+        uses: actions/cache/save@v4
+        with:
+          path: build/fuzz-corpus-accumulated
+          key: fuzz-corpus-${{ matrix.target }}-${{ github.run_id }}
+
+      - name: Upload reproducer
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-reproducer-${{ matrix.target }}
+          path: artifact-*
+          if-no-files-found: ignore
