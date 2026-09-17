@@ -12,8 +12,11 @@
 #include <jsonv/parse.hpp>
 
 #include <cmath>
+#include <cstdint>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
+#include <string_view>
 
 using namespace jsonv;
 
@@ -72,6 +75,50 @@ TEST_PARSE(number_decimal_negative_underflow)
 TEST_PARSE(number_decimal_overflow_still_throws)
 {
     ensure_throws(std::invalid_argument, parse("[1e10000]"));
+}
+
+// Integer extraction takes a slow path for magnitudes too large for the SWAR parser. That path used
+// to call `strtoll`/`strtoull`, which scan until they reach a non-digit -- but the token points into
+// the source text, which is a `string_view` and not NUL-terminated. Parsing a view whose end is
+// immediately followed by more digits therefore read past it and produced the wrong value. The
+// digits beyond `length` below must be ignored entirely.
+static value parse_prefix(std::string_view source, std::size_t length)
+{
+    return parse(source.substr(0, length));
+}
+
+TEST_PARSE(number_integer_slow_path_stops_at_view_end)
+{
+    // 20 digits: too large for int64, but representable in uint64, so it wraps (see the note in
+    // `ast_node::integer::value`). The trailing "12345" must not be consumed.
+    ensure_eq(static_cast<std::int64_t>(12345678901234567890ULL),
+              parse_prefix("1234567890123456789012345", 20).as_integer()
+             );
+}
+
+TEST_PARSE(number_integer_slow_path_stops_at_view_end_negative)
+{
+    // 19 magnitude digits exceeds the negative SWAR limit of 18, so this takes the slow path too.
+    ensure_eq(std::int64_t(-1234567890123456789),
+              parse_prefix("-123456789012345678901234", 20).as_integer()
+             );
+}
+
+TEST_PARSE(number_integer_at_end_of_input)
+{
+    // The same tokens with nothing after them at all -- the case that read past the allocation.
+    ensure_eq(static_cast<std::int64_t>(12345678901234567890ULL), parse("12345678901234567890").as_integer());
+    ensure_eq(std::int64_t(-1234567890123456789),                 parse("-1234567890123456789").as_integer());
+}
+
+TEST_PARSE(number_integer_boundaries)
+{
+    ensure_eq(std::numeric_limits<std::int64_t>::max(), parse("9223372036854775807").as_integer());
+    ensure_eq(std::numeric_limits<std::int64_t>::min(), parse("-9223372036854775808").as_integer());
+
+    // 2^63 fits in a uint64 and is stored with its bits intact, which reads back as INT64_MIN.
+    ensure_eq(std::numeric_limits<std::int64_t>::min(), parse("9223372036854775808").as_integer());
+    ensure_eq(std::int64_t(-1),                         parse("18446744073709551615").as_integer());
 }
 
 static const value simple_obj = object({ { "foo", 4 },

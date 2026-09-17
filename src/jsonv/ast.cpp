@@ -13,8 +13,10 @@
 #include <jsonv/value.hpp>
 
 #include <cassert>
+#include <charconv>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <ostream>
 #include <sstream>
 
@@ -167,22 +169,40 @@ std::int64_t ast_node::integer::value() const
              :  static_cast<std::int64_t>(magnitude);
     }
 
-    auto scan_end = const_cast<char*>(end);
+    // `token_raw` points into the source text, which is a `string_view` and therefore not
+    // NUL-terminated. The `strto*` functions scan until they hit a non-digit, so for a token at the
+    // very end of the input they read past the end of the buffer. `from_chars` takes an explicit
+    // end pointer instead.
+    //
+    // The out-of-range results below reproduce what `strto*` saturation used to yield, since
+    // neither `errno` nor the clamped return value was ever inspected. See issue #206.
     if (negative)
     {
-        auto val = std::strtoll(begin, &scan_end, 10);
-        if (scan_end == end)
-            return val;
+        std::int64_t val{};
+        auto result = std::from_chars(begin, end, val);
+        if (result.ptr == end)
+        {
+            if (result.ec == std::errc{})
+                return val;
+            else if (result.ec == std::errc::result_out_of_range)
+                return std::numeric_limits<std::int64_t>::min();
+        }
     }
     else
     {
-        // For non-negative integer types, use lexical_cast of a uint64_t then static_cast to an
-        // int64_t. This is done to deal with the values 2^63..2^64-1 -- do not consider it an
-        // exception, as we can store the bits properly, but the onus is on the user to know the
-        // particular key was in the overflow range.
-        auto val = std::strtoull(begin, &scan_end, 10);
-        if (scan_end == end)
-            return static_cast<std::int64_t>(val);
+        // For non-negative integer types, parse as a uint64_t then static_cast to an int64_t. This
+        // is done to deal with the values 2^63..2^64-1 -- do not consider it an exception, as we can
+        // store the bits properly, but the onus is on the user to know the particular key was in the
+        // overflow range.
+        std::uint64_t val{};
+        auto result = std::from_chars(begin, end, val);
+        if (result.ptr == end)
+        {
+            if (result.ec == std::errc{})
+                return static_cast<std::int64_t>(val);
+            else if (result.ec == std::errc::result_out_of_range)
+                return static_cast<std::int64_t>(std::numeric_limits<std::uint64_t>::max());
+        }
     }
     throw make_failed_numeric_extract(*this, "integer");
 }
