@@ -282,6 +282,136 @@ TEST(object_insert_hint_node_handle_collision_keeps_handle)
     ensure_eq(handle.mapped(), jsonv::value(5));
 }
 
+// The move constructor gives up the source's ownership of the element, and the move assignment operator is specified
+// to match it. Issue #203 was the two disagreeing.
+TEST(object_node_handle_move_construct_empties_source)
+{
+    jsonv::value src = jsonv::object({ { "key", "payload" } });
+
+    auto from = src.extract("key");
+    auto to   = std::move(from);
+
+    ensure(!to.empty());
+    ensure_eq(to.key(), "key");
+    ensure_eq(to.mapped(), jsonv::value("payload"));
+
+    ensure(from.empty());
+    ensure(!static_cast<bool>(from));
+}
+
+TEST(object_node_handle_move_assign_empties_source)
+{
+    jsonv::value src = jsonv::object({ { "key", "payload" } });
+
+    auto                      from = src.extract("key");
+    jsonv::object_node_handle to;
+
+    to = std::move(from);
+
+    ensure(!to.empty());
+    ensure_eq(to.key(), "key");
+    ensure_eq(to.mapped(), jsonv::value("payload"));
+
+    ensure(from.empty());
+    ensure(!static_cast<bool>(from));
+}
+
+TEST(object_node_handle_move_assign_over_populated_destination)
+{
+    jsonv::value src = jsonv::object({ { "a", 5 }, { "b", "taco" } });
+
+    auto from = src.extract("a");
+    auto to   = src.extract("b");
+
+    to = std::move(from);
+
+    ensure(!to.empty());
+    ensure_eq(to.key(), "a");
+    ensure_eq(to.mapped(), jsonv::value(5));
+
+    ensure(from.empty());
+}
+
+TEST(object_node_handle_move_assign_from_empty)
+{
+    jsonv::value src = jsonv::object({ { "key", "payload" } });
+
+    auto to = src.extract("key");
+
+    to = jsonv::object_node_handle();
+
+    ensure(to.empty());
+    ensure(!static_cast<bool>(to));
+    ensure_throws(std::invalid_argument, to.key());
+    ensure_throws(std::invalid_argument, to.mapped());
+}
+
+// Self-move must leave the handle owning what it already owned. The reference is what keeps the compiler from seeing
+// the self-assignment and warning about it -- the same trick as move_to_self in value_tests.cpp.
+TEST(object_node_handle_move_assign_to_self)
+{
+    jsonv::value src = jsonv::object({ { "key", "payload" } });
+
+    auto                       handle = src.extract("key");
+    jsonv::object_node_handle& same   = handle;
+
+    handle = std::move(same);
+
+    ensure(!handle.empty());
+    ensure_eq(handle.key(), "key");
+    ensure_eq(handle.mapped(), jsonv::value("payload"));
+}
+
+// A successful insert takes the element out of the handle, so the handle must stop claiming to own one.
+TEST(object_insert_node_handle_empties_handle_on_success)
+{
+    jsonv::value src = jsonv::object({ { "a", 5 } });
+    jsonv::value dst = jsonv::object();
+
+    auto handle = src.extract("a");
+    auto rc     = dst.insert(std::move(handle));
+
+    ensure(rc.inserted);
+    ensure_eq(dst, jsonv::object({ { "a", 5 } }));
+
+    ensure(handle.empty());
+    ensure(!static_cast<bool>(handle));
+}
+
+// The hint overload follows the same ownership rule as the one without a hint.
+TEST(object_insert_hint_node_handle_empties_handle_on_success)
+{
+    jsonv::value src = jsonv::object({ { "a", 5 } });
+    jsonv::value dst = jsonv::object();
+
+    auto handle = src.extract("a");
+    auto iter   = dst.insert(dst.end_object(), std::move(handle));
+
+    ensure_eq(iter->second, jsonv::value(5));
+    ensure_eq(dst, jsonv::object({ { "a", 5 } }));
+
+    ensure(handle.empty());
+}
+
+// The mirror of object_insert_hint_node_handle_collision_keeps_handle. A key collision leaves the element where it is,
+// so the handle keeps it and the returned position refers to the element which was already there.
+TEST(object_insert_node_handle_collision_keeps_handle)
+{
+    jsonv::value src = jsonv::object({ { "a", 5 } });
+    jsonv::value dst = jsonv::object({ { "a", "taco" } });
+
+    auto handle = src.extract("a");
+    auto rc     = dst.insert(std::move(handle));
+
+    ensure(!rc.inserted);
+    ensure_eq(rc.position->second, jsonv::value("taco"));
+    ensure_eq(dst, jsonv::object({ { "a", "taco" } }));
+
+    ensure(!handle.empty());
+    ensure_eq(handle.key(), "a");
+    ensure_eq(handle.mapped(), jsonv::value(5));
+}
+
 // The range insert hints at the end of the object, which is the right guess for an already-sorted source and a wrong
 // one otherwise. Both paths must produce the same contents.
 TEST(object_insert_range_from_sorted_map)

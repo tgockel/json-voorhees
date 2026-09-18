@@ -928,7 +928,8 @@ public:
             insert(hint, *first);
     }
 
-    /// Insert the contents of \a handle. If \a handle is empty, this does nothing.
+    /// Insert the contents of \a handle. If \a handle is empty, this does nothing. If the insertion succeeds, \a handle
+    /// is moved from and left empty; otherwise it retains ownership of the element.
     ///
     /// \returns If \a handle is empty, \c inserted is \c false and \c position is `end_object()`. If the insertion took
     ///  place, \c inserted is \c true and \c position points to the inserted element. If the insertion was attempted
@@ -1174,9 +1175,12 @@ public:
             _has_value(false)
     { }
 
-    object_node_handle(object_node_handle&&) noexcept;
+    /// Take over the element owned by \a src, if any. \a src is left \ref empty.
+    object_node_handle(object_node_handle&& src) noexcept;
 
-    object_node_handle& operator=(object_node_handle&&) noexcept;
+    /// Release the element this handle owns, if any, and take over the one owned by \a src, if any. \a src is left
+    /// \ref empty. Self-assignment has no effect.
+    object_node_handle& operator=(object_node_handle&& src) noexcept;
 
     ~object_node_handle() noexcept;
 

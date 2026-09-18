@@ -16,6 +16,12 @@
      - Fixed `value::insert` deep-copying the pair it was handed instead of moving it, which made inserting into an
        object arbitrarily slower than assigning through `operator[]` as the inserted value grew (#152).
      - Fixed `value::insert(hint, node_handle)` ignoring its hint and walking the tree twice.
+     - Fixed `object_node_handle` move assignment leaving the source reporting non-empty, so a handle which had
+       already given its element away still converted to `true` and returned moved-from contents from `key()` and
+       `mapped()`. Self-move assignment is now a no-op instead of dropping the key (#203).
+     - Fixed `value::insert(node_handle)` never emptying the handle it consumed, and the overload without a hint
+       moving the key and mapped value out even when the key collided -- the handle was left claiming ownership of
+       an element it no longer held (#203).
      - `value::insert(first, last)` now hints at the end of the object. An ascending source of unique keys which all
        sort after the object's existing contents -- most importantly an empty object, as in
        `jsonv::object(first, last)` -- now costs amortized constant time per element. Anything else misses the hint

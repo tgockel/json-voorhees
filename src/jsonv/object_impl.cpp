@@ -40,9 +40,15 @@ object_node_handle::object_node_handle(object_node_handle&& src) noexcept :
 
 object_node_handle& object_node_handle::operator=(object_node_handle&& src) noexcept
 {
-    _has_value = src._has_value;
-    _key       = std::move(src._key);
-    _value     = std::move(src._value);
+    // The self-assignment guard is not just an optimization: self-move of an std::string leaves it valid but with an
+    // unspecified value, so without the check `handle = std::move(handle)` could silently discard the key.
+    if (this != &src)
+    {
+        _has_value     = src._has_value;
+        _key           = std::move(src._key);
+        _value         = std::move(src._value);
+        src._has_value = false;
+    }
     return *this;
 }
 
@@ -256,7 +262,13 @@ value::object_insert_return_type value::insert(object_node_handle&& handle)
     if (handle.empty())
         return { end_object(), false };
 
-    auto insert_rc = _data.object->_values.insert({ std::move(handle.key()), std::move(handle.mapped()) });
+    // try_emplace leaves its arguments alone when the key is already present, so the handle keeps ownership of its
+    // element when the insertion does not happen -- which is what makes the returned position's key comparable to
+    // handle.key(). map::insert would have moved the contents out before it ever looked the key up.
+    auto insert_rc = _data.object->_values.try_emplace(std::move(handle.key()), std::move(handle.mapped()));
+    if (insert_rc.second)
+        handle._has_value = false;
+
     return { const_object_iterator(insert_rc.first), insert_rc.second };
 }
 
@@ -267,8 +279,14 @@ value::object_iterator value::insert(const_object_iterator hint, object_node_han
         return end_object();
 
     // try_emplace leaves its arguments alone when the key is already present, which is exactly the contract this
-    // overload documents -- the handle keeps ownership of the element if the insertion does not happen.
-    auto pos = _data.object->_values.try_emplace(hint._impl, std::move(handle.key()), std::move(handle.mapped()));
+    // overload documents -- the handle keeps ownership of the element if the insertion does not happen. The hinted
+    // overload returns a bare iterator, so the size is what says whether the insertion happened.
+    auto& values      = _data.object->_values;
+    auto  size_before = values.size();
+    auto  pos         = values.try_emplace(hint._impl, std::move(handle.key()), std::move(handle.mapped()));
+    if (values.size() != size_before)
+        handle._has_value = false;
+
     return object_iterator(pos);
 }
 
