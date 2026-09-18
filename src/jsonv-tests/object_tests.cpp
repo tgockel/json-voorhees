@@ -129,6 +129,30 @@ TEST(object_extract_move)
     ensure_eq(obj2, jsonv::object({ { "b", "taco" } }));
 }
 
+// Every other extract test goes through the by-key overloads, which look the position up and delegate here.
+TEST(object_extract_iterator)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 }, { "b", "taco" } });
+
+    auto handle = obj.extract(obj.find("b"));
+
+    ensure(!handle.empty());
+    ensure_eq(handle.key(), "b");
+    ensure_eq(handle.mapped(), jsonv::value("taco"));
+
+    ensure_eq(obj, jsonv::object({ { "a", 5 } }));
+}
+
+TEST(object_extract_missing_key_is_empty)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 } });
+
+    ensure(obj.extract("nope").empty());
+    ensure(obj.extract(L"nope").empty());
+
+    ensure_eq(obj, jsonv::object({ { "a", 5 } }));
+}
+
 // A jsonv::value is a handle -- a kind::object value holds a pointer to a heap-allocated map. Moving the value
 // transfers that pointer, so every sub-value inside keeps its address; copying allocates a fresh map whose sub-values
 // live at different addresses. Address identity is therefore an exact probe for whether insert moved the pair into the

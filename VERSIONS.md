@@ -22,6 +22,11 @@
      - Fixed `value::insert(node_handle)` never emptying the handle it consumed, and the overload without a hint
        moving the key and mapped value out even when the key collided -- the handle was left claiming ownership of
        an element it no longer held (#203).
+     - Fixed `value::extract` never using `std::map::extract`. The feature probe guarding it asked for a nested
+       `node_handle` type, which `std::map` does not have -- it names that type `node_type` -- so the probe was
+       always false and every extraction took a fallback which looked the key up a second time despite already
+       holding an iterator and copied the key rather than moving it. The probe is gone and `extract` now splices the
+       node out directly (#215).
      - `value::insert(first, last)` now hints at the end of the object. An ascending source of unique keys which all
        sort after the object's existing contents -- most importantly an empty object, as in
        `jsonv::object(first, last)` -- now costs amortized constant time per element. Anything else misses the hint

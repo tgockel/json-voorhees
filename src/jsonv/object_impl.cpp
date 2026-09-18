@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <cstring>
 #include <stdexcept>
-#include <type_traits>
 
 namespace jsonv
 {
@@ -353,62 +352,17 @@ value::object_iterator value::erase(const_object_iterator first, const_object_it
     return object_iterator(_data.object->_values.erase(first._impl, last._impl));
 }
 
-template <typename TMap>
-class has_extract
-{
-private:
-    template <typename U, U>
-    class check
-    { };
-
-    template <typename UMap>
-    static char f(check<typename UMap::node_handle (UMap::*)(typename UMap::const_iterator), &UMap::extract>*);
-
-    template <typename UMap>
-    static long f(...);
-
-public:
-    static const bool value = (sizeof(f<TMap>(0)) == sizeof(char));
-};
-
-template <typename TMap>
-using has_extract_t = std::integral_constant<bool, has_extract<TMap>::value>;
-
-template <typename TMapImpl, typename TIterator, typename FCreate>
-object_node_handle extract_impl(TMapImpl& impl, TIterator position, FCreate&& create, std::true_type)
-{
-    auto handle = impl.extract(position);
-    return create(std::move(handle.key()), std::move(handle.mapped()));
-}
-
-template <typename TMapImpl, typename TIterator, typename FCreate>
-object_node_handle extract_impl(TMapImpl& impl, TIterator position, FCreate&& create, std::false_type)
-{
-    auto iter = impl.find(position->first);
-    auto out  = create(iter->first, std::move(iter->second));
-    impl.erase(iter);
-    return out;
-}
-
-template <typename TMapImpl, typename TIterator, typename FCreate>
-object_node_handle extract_impl(TMapImpl& impl, TIterator position, FCreate&& create)
-{
-    return extract_impl(impl, position, std::forward<FCreate>(create), has_extract_t<TMapImpl>());
-}
-
 object_node_handle value::extract(const_object_iterator position)
 {
     check_type(jsonv::kind::object, kind());
-    return extract_impl(_data.object->_values,
-                        position._impl,
-                        [] (std::string key, value x)
-                        {
-                            return object_node_handle(object_node_handle::purposeful_construction(),
-                                                      std::move(key),
-                                                      std::move(x)
-                                                     );
-                        }
-                       );
+
+    // node_type::key() hands back a non-const reference -- being able to rewrite the key of an extracted element is
+    // the whole point of a node handle -- so the key moves out of the node instead of being copied.
+    auto node = _data.object->_values.extract(position._impl);
+    return object_node_handle(object_node_handle::purposeful_construction(),
+                              std::move(node.key()),
+                              std::move(node.mapped())
+                             );
 }
 
 object_node_handle value::extract(const std::string& key)
