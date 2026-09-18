@@ -62,36 +62,54 @@ public:
     generic_container& operator=(generic_container&&) = default;
     
     /** Get the number of elements. **/
+    JSONV_NODISCARD
     size_type size() const { return _data.size(); }
     
+    JSONV_NODISCARD
     bool empty() const { return _data.empty(); }
     
+    JSONV_NODISCARD
     iterator       begin()        { return _data.begin(); }
+    JSONV_NODISCARD
     const_iterator begin() const  { return _data.begin(); }
+    JSONV_NODISCARD
     const_iterator cbegin() const { return _data.begin(); }
     
+    JSONV_NODISCARD
     iterator       end()        { return _data.end(); }
+    JSONV_NODISCARD
     const_iterator end() const  { return _data.end(); }
+    JSONV_NODISCARD
     const_iterator cend() const { return _data.end(); }
     
+    JSONV_NODISCARD
     reverse_iterator       rbegin()        { return _data.rbegin(); }
+    JSONV_NODISCARD
     const_reverse_iterator rbegin() const  { return _data.rbegin(); }
+    JSONV_NODISCARD
     const_reverse_iterator crbegin() const { return _data.rbegin(); }
     
+    JSONV_NODISCARD
     reverse_iterator       rend()        { return _data.rend(); }
+    JSONV_NODISCARD
     const_reverse_iterator rend() const  { return _data.rend(); }
+    JSONV_NODISCARD
     const_reverse_iterator crend() const { return _data.rend(); }
     
     reference       operator[](size_type idx)       { return _data[idx]; }
+    JSONV_NODISCARD
     const_reference operator[](size_type idx) const { return _data[idx]; }
     
     reference       at(size_type idx)       { return _data.at(idx); }
+    JSONV_NODISCARD
     const_reference at(size_type idx) const { return _data.at(idx); }
     
     reference       front()       { return _data.front(); }
+    JSONV_NODISCARD
     const_reference front() const { return _data.front(); }
     
     reference       back()       { return _data.back(); }
+    JSONV_NODISCARD
     const_reference back() const { return _data.back(); }
     
     void clear() { return _data.clear(); }
@@ -135,6 +153,7 @@ protected:
 };
 
 template <typename TStorage>
+JSONV_NODISCARD
 bool operator==(const generic_container<TStorage>& a, const generic_container<TStorage>& b)
 {
     if (&a == &b)
@@ -146,6 +165,7 @@ bool operator==(const generic_container<TStorage>& a, const generic_container<TS
 }
 
 template <typename TStorage>
+JSONV_NODISCARD
 bool operator!=(const generic_container<TStorage>& a, const generic_container<TStorage>& b)
 {
     return !(a == b);

@@ -23,11 +23,13 @@ class serializer_for :
         public serializer
 {
 public:
+    JSONV_NODISCARD
     virtual const std::type_info& get_type() const override
     {
         return typeid(T);
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context,
                           const void*                  from
                          ) const override
@@ -36,6 +38,7 @@ public:
     }
 
 protected:
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context,
                           const T&                     from
                          ) const = 0;

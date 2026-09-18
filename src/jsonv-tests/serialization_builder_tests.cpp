@@ -392,7 +392,7 @@ TEST(serialization_builder_extra_unchecked_key_throws)
                              );
     try
     {
-        jsonv::extract<bar>(val, format);
+        (void) jsonv::extract<bar>(val, format);
         throw std::runtime_error("Should have thrown an extraction_error");
     }
     catch (const extraction_error& err)

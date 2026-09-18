@@ -28,7 +28,7 @@ TEST(path_kind_encoding)
     ensure_eq(to_string(path_element_kind::array_index), "array_index");
     ensure_eq(to_string(path_element_kind::object_key),  "object_key");
     
-    to_string(static_cast<path_element_kind>(~0));
+    (void) to_string(static_cast<path_element_kind>(~0));
 }
 
 TEST(path_element_copy_compares)
@@ -214,7 +214,7 @@ TEST(path_element_access)
 
 TEST(path_element_kind_to_string_invalid)
 {
-    to_string(static_cast<path_element_kind>(~0));
+    (void) to_string(static_cast<path_element_kind>(~0));
 }
 
 TEST(path_parse_invalid)

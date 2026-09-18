@@ -33,6 +33,7 @@ public:
     { }
 
     /// Check if this version is an "empty" value -- meaning \c major and \c minor are both \c 0.
+    JSONV_NODISCARD
     constexpr bool empty() const noexcept
     {
         return major == 0 && minor == 0;
@@ -40,6 +41,7 @@ public:
 
     /// Convert this instance into a \c uint64_t. The \c major version will be in the higher-order bits, while \c minor
     /// will be in the lower-order bits.
+    JSONV_NODISCARD
     explicit constexpr operator std::uint64_t() const
     {
         return static_cast<std::uint64_t>(major) << 32
@@ -47,36 +49,42 @@ public:
     }
 
     /// Test for equality with \a other.
+    JSONV_NODISCARD
     constexpr bool operator==(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) == static_cast<std::uint64_t>(other);
     }
 
     /// Test for inequality with \a other.
+    JSONV_NODISCARD
     constexpr bool operator!=(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) != static_cast<std::uint64_t>(other);
     }
 
     /// Check that this version is less than \a other. The comparison is done lexicographically.
+    JSONV_NODISCARD
     constexpr bool operator<(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) < static_cast<std::uint64_t>(other);
     }
 
     /// Check that this version is less than or equal to \a other. The comparison is done lexicographically.
+    JSONV_NODISCARD
     constexpr bool operator<=(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) <= static_cast<std::uint64_t>(other);
     }
 
     /// Check that this version is greater than \a other. The comparison is done lexicographically.
+    JSONV_NODISCARD
     constexpr bool operator>(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) > static_cast<std::uint64_t>(other);
     }
 
     /// Check that this version is greater than or equal to \a other. The comparison is done lexicographically.
+    JSONV_NODISCARD
     constexpr bool operator>=(const version& other) const
     {
         return static_cast<std::uint64_t>(*this) >= static_cast<std::uint64_t>(other);

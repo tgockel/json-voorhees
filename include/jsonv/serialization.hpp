@@ -59,6 +59,7 @@ public:
 
     virtual ~duplicate_type_error() noexcept override;
 
+    JSONV_NODISCARD
     const std::type_index& type_index() const { return _type_index; }
 
 private:
@@ -88,12 +89,14 @@ public:
         explicit problem(jsonv::path path, std::exception_ptr cause) noexcept;
 
         /// The path this problem was encountered at.
+        JSONV_NODISCARD
         const jsonv::path& path() const noexcept
         {
             return _path;
         }
 
         /// Human-readable details about the encountered problem.
+        JSONV_NODISCARD
         const std::string& message() const noexcept
         {
             return _message;
@@ -101,6 +104,7 @@ public:
 
         /// If there was an exception that caused this problem, extra details can be found in the nested exception. This
         /// can be \c nullptr if there was no underlying cause.
+        JSONV_NODISCARD
         const std::exception_ptr& nested_ptr() const noexcept
         {
             return _cause;
@@ -133,14 +137,17 @@ public:
     virtual ~extraction_error() noexcept;
 
     /// Get the path the first extraction error came from.
+    JSONV_NODISCARD
     const jsonv::path& path() const noexcept;
 
     /// Get the first \c problem::cause. This can be \c nullptr if the first \c problem does not have an underlying
     /// cause.
+    JSONV_NODISCARD
     const std::exception_ptr& nested_ptr() const noexcept;
 
     /// Get the list of problems which caused this \c extraction_error. There will always be at least one \c problem in
     /// this list.
+    JSONV_NODISCARD
     const problem_list& problems() const noexcept { return _problems; }
 
 private:
@@ -165,9 +172,11 @@ public:
     virtual ~no_extractor() noexcept;
 
     /// The name of the type.
+    JSONV_NODISCARD
     std::string_view type_name() const;
 
     /// Get an ID for the type of \c extractor that \c formats::extract could not locate.
+    JSONV_NODISCARD
     std::type_index type_index() const;
 
 private:
@@ -187,9 +196,11 @@ public:
     virtual ~no_serializer() noexcept;
 
     /** The name of the type. **/
+    JSONV_NODISCARD
     std::string_view type_name() const;
 
     /** Get an ID for the type of \c serializer that \c formats::to_json could not locate. **/
+    JSONV_NODISCARD
     std::type_index type_index() const;
 
 private:
@@ -235,10 +246,12 @@ public:
     ~extract_options() noexcept;
 
     /// Create a default set of options.
+    JSONV_NODISCARD
     static extract_options create_default();
 
     /// \{
     /// See \c on_error. The default failure mode is \c fail_immediately.
+    JSONV_NODISCARD
     on_error         failure_mode() const noexcept { return _failure_mode; };
     extract_options& failure_mode(on_error mode);
     /// \}
@@ -249,12 +262,14 @@ public:
     ///
     /// You should probably not set this value to an unreasonably high number, as each error encountered must be stored
     /// in memory for some period of time.
+    JSONV_NODISCARD
     size_type        max_failures() const { return _max_failures; }
     extract_options& max_failures(size_type limit);
     /// \}
 
     /// \{
     /// See \c duplicate_key_action. The default action is \c replace.
+    JSONV_NODISCARD
     duplicate_key_action on_duplicate_key() const { return _on_duplicate_key; }
     extract_options&     on_duplicate_key(duplicate_key_action action);
     /// \}
@@ -275,6 +290,7 @@ public:
 
     /// Get the run-time type this \c extractor knows how to extract. Once this \c extractor is registered with a
     /// \c formats, it is not allowed to change.
+    JSONV_NODISCARD
     virtual const std::type_info& get_type() const = 0;
 
     /// Extract a the type \a from a \c value \a into a region of memory.
@@ -301,6 +317,7 @@ public:
     /** Get the run-time type this \c serialize knows how to encode. Once this \c serializer is registered with a
      *  \c formats, it is not allowed to change.
     **/
+    JSONV_NODISCARD
     virtual const std::type_info& get_type() const = 0;
 
     /** Create a \c value \a from the value in the given region of memory.
@@ -312,6 +329,7 @@ public:
      *              result of a <tt>static_cast&lt;void*&gt;</tt>, so performing a \c static_cast back to your type is
      *              okay.
     **/
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context,
                           const void*                  from
                          ) const = 0;
@@ -391,6 +409,7 @@ public:
      *  This function actually returns a \e copy of the default \c formats, so modifications do not affect the actual
      *  instance.
     **/
+    JSONV_NODISCARD
     static formats defaults();
 
     /** Get the global \c formats instance. By default, this is the same as \c defaults, but you can override it with
@@ -401,6 +420,7 @@ public:
      *  This function actually returns a \e copy of the global \c formats, so modifications do not affect the actual
      *  instance. If you wish to alter the global formats, use \c set_global.
     **/
+    JSONV_NODISCARD
     static formats global();
 
     /** Set the \c global \c formats instance.
@@ -422,6 +442,7 @@ public:
      *  This function actually returns a \e copy of the default \c formats, so modifications do not affect the actual
      *  instance.
     **/
+    JSONV_NODISCARD
     static formats coerce();
 
     /** Create a new, empty \c formats instance. By default, this does not know how to extract anything -- not even the
@@ -445,6 +466,7 @@ public:
      *  \f$ k+1 \f$, there is no way to create a link from \f$ k \f$ into \f$ k+1 \f$ and so there is no way to create a
      *  circuit.
     **/
+    JSONV_NODISCARD
     static formats compose(const list& bases);
 
     /** Extract the provided \a type \a from a \c value \a into an area of memory. The \a context is passed to the
@@ -463,12 +485,14 @@ public:
      *
      *  \throws no_extractor if an \c extractor for \a type could not be found.
     **/
+    JSONV_NODISCARD
     const extractor& get_extractor(std::type_index type) const;
 
     /** Get the \c extractor for the given \a type.
      *
      *  \throws no_extractor if an \c extractor for \a type could not be found.
     **/
+    JSONV_NODISCARD
     const extractor& get_extractor(const std::type_info& type) const;
 
     /** Encode the provided value \a from into a JSON \c value. The \a context is passed to the \c serializer which
@@ -477,6 +501,7 @@ public:
      *
      *  \throws no_serializer if a \c serializer for \a type could not be found.
     **/
+    JSONV_NODISCARD
     value to_json(const std::type_info&        type,
                   const void*                  from,
                   const serialization_context& context
@@ -486,12 +511,14 @@ public:
      *
      *  \throws no_serializer if a \c serializer for \a type could not be found.
     **/
+    JSONV_NODISCARD
     const serializer& get_serializer(std::type_index type) const;
 
     /** Gets the \c serializer for the given \a type.
      *
      *  \throws no_serializer if a \c serializer for \a type could not be found.
     **/
+    JSONV_NODISCARD
     const serializer& get_serializer(const std::type_info& type) const;
 
     /** Register an \c extractor that lives in some unmanaged space.
@@ -544,9 +571,11 @@ public:
     /** Test for equality between this instance and \a other. If two \c formats are equal, they are the \e exact same
      *  node in the graph. Even if one \c formats has the exact same types for the exact same <tt>extractor</tt>s.
     **/
+    JSONV_NODISCARD
     bool operator==(const formats& other) const;
 
     /** Test for inequality between this instance and \a other. The opposite of \c operator==. **/
+    JSONV_NODISCARD
     bool operator!=(const formats& other) const;
 
 private:
@@ -575,18 +604,21 @@ public:
     virtual ~context_base() noexcept = 0;
 
     /** Get the \c formats object backing extraction and encoding. **/
+    JSONV_NODISCARD
     const jsonv::formats& formats() const
     {
         return _formats;
     }
 
     /** Get the version this \c extraction_context was created with. **/
+    JSONV_NODISCARD
     const jsonv::version version() const
     {
         return _version;
     }
 
     /** Get a pointer to arbitrary user data. **/
+    JSONV_NODISCARD
     const void* user_data() const
     {
         return _user_data;
@@ -616,6 +648,7 @@ public:
 
     /// Get the current \c path this \c extraction_context is extracting for. This is useful when debugging and
     /// generating error messages.
+    JSONV_NODISCARD
     const jsonv::path& path() const
     {
         return _path;
@@ -628,6 +661,7 @@ public:
      *  \throws extraction_error if anything goes wrong when attempting to extract a value.
     **/
     template <typename T>
+    JSONV_NODISCARD
     T extract(const value& from) const
     {
         alignas(T) unsigned char place[sizeof(T)];
@@ -649,6 +683,7 @@ public:
      *  \throws extraction_error if anything goes wrong when attempting to extract a value.
     **/
     template <typename T>
+    JSONV_NODISCARD
     T extract_sub(const value& from, jsonv::path subpath) const
     {
         alignas(T) unsigned char place[sizeof(T)];
@@ -667,6 +702,7 @@ public:
      *  \throws extraction_error if anything goes wrong when attempting to extract a value.
     **/
     template <typename T>
+    JSONV_NODISCARD
     T extract_sub(const value& from, path_element elem) const
     {
         return extract_sub<T>(from, jsonv::path({ elem }));
@@ -678,6 +714,7 @@ private:
 
 /// Extract a C++ value from \a from using the provided \a fmts.
 template <typename T>
+JSONV_NODISCARD
 T extract(const value& from, const formats& fmts)
 {
     extraction_context context(fmts);
@@ -686,6 +723,7 @@ T extract(const value& from, const formats& fmts)
 
 /// Extract a C++ value from \a from using \c jsonv::formats::global().
 template <typename T>
+JSONV_NODISCARD
 T extract(const value& from)
 {
     extraction_context context;
@@ -711,6 +749,7 @@ public:
     ///
     /// \see formats::to_json
     template <typename T>
+    JSONV_NODISCARD
     value to_json(const T& from) const
     {
         return to_json(typeid(T), static_cast<const void*>(&from));
@@ -719,11 +758,13 @@ public:
     /// Dynamically convert a type into a JSON value.
     ///
     ///  \see formats::to_json
+    JSONV_NODISCARD
     value to_json(const std::type_info& type, const void* from) const;
 };
 
 /** Encode a JSON \c value from \a from using the provided \a fmts. **/
 template <typename T>
+JSONV_NODISCARD
 value to_json(const T& from, const formats& fmts)
 {
     serialization_context context(fmts);
@@ -732,6 +773,7 @@ value to_json(const T& from, const formats& fmts)
 
 /** Encode a JSON \c value from \a from using \c jsonv::formats::global(). **/
 template <typename T>
+JSONV_NODISCARD
 value to_json(const T& from)
 {
     serialization_context context;

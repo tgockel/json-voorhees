@@ -147,7 +147,7 @@ TEST(extract_basics)
     ensure_eq("thing", cxt.extract_sub<std::string>(val, "s"));
     try
     {
-        cxt.extract_sub<unassociated>(val, "o");
+        (void) cxt.extract_sub<unassociated>(val, "o");
     }
     catch (const extraction_error& extract_err)
     {
@@ -167,7 +167,7 @@ TEST(extract_basics)
 
     try
     {
-        cxt.extract_sub<int>(val, path::create(".a[3]"));
+        (void) cxt.extract_sub<int>(val, path::create(".a[3]"));
     }
     catch (const extraction_error& extract_err)
     {
@@ -279,7 +279,7 @@ TEST(serialize_basics)
 
     try
     {
-        cxt.to_json(unassociated{});
+        (void) cxt.to_json(unassociated{});
     }
     catch (const no_serializer& noser)
     {

@@ -611,9 +611,12 @@ public:
 
     formats_builder& on_duplicate_type(duplicate_type_action action) noexcept;
 
+    JSONV_NODISCARD
     formats compose_checked(formats other, const std::string& name = "");
+    JSONV_NODISCARD
     formats compose_checked(std::vector<formats> others, const std::string& name = "");
 
+    JSONV_NODISCARD
     operator formats() const;
 
 protected:
@@ -682,6 +685,7 @@ public:
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
 
+    JSONV_NODISCARD
     virtual bool has_extract_key(std::string_view key) const = 0;
 };
 
@@ -738,6 +742,7 @@ public:
             out.insert({ _names.at(0), context.to_json(_get_value(from)) });
     }
 
+    JSONV_NODISCARD
     virtual bool has_extract_key(std::string_view key) const override
     {
         return std::any_of(begin(_names), end(_names), [key] (const std::string& name) { return name == key; });
@@ -1342,6 +1347,7 @@ public:
         return register_containers<T, TTRest...>();
     }
 
+    JSONV_NODISCARD
     operator formats() const
     {
         return _formats;
@@ -1368,7 +1374,9 @@ public:
     /// \{
     /// Check the references of this builder (see \ref check_references) and compose a \ref formats instance if
     /// successful (see \ref formats::compose).
+    JSONV_NODISCARD
     formats compose_checked(formats              other,  const std::string& name = "");
+    JSONV_NODISCARD
     formats compose_checked(const formats::list& others, const std::string& name = "");
     /// \}
 

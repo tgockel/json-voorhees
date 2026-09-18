@@ -80,12 +80,14 @@ private:
 #define ensure_gt(a_, b_) ensure_op(a_, > , b_)
 #define ensure_ge(a_, b_) ensure_op(a_, >=, b_)
 
+/// The result of \a action_ is cast away: these actions are run for the throw, and most of the query API is
+/// \c JSONV_NODISCARD.
 #define ensure_throws(extype_, action_)                              \
     do                                                               \
     {                                                                \
         try                                                          \
         {                                                            \
-            action_;                                                 \
+            (void) (action_);                                        \
             ensure(! #extype_ " was not thrown");                    \
         }                                                            \
         catch (const extype_&)                                       \

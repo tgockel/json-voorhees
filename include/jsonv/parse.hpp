@@ -45,6 +45,7 @@ public:
     virtual ~parse_error() noexcept;
 
     /// Get the character location of the encountered error.
+    JSONV_NODISCARD
     const std::optional<std::size_t>& character() const { return _character; }
 
 private:
@@ -55,7 +56,7 @@ private:
 JSONV_PUBLIC std::ostream& operator<<(std::ostream& os, const parse_error& p);
 
 /// Get a string representation of a \c parse_error.
-JSONV_PUBLIC std::string to_string(const parse_error& p);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const parse_error& p);
 
 /// Configuration for various parsing options. All parse functions should take in a \c parse_options as a paramter and
 /// should respect your settings.
@@ -91,6 +92,7 @@ public:
 
     /// Create a parser with the default options -- this is the same result as the default constructor, but might be
     /// helpful if you like to be more explicit.
+    JSONV_NODISCARD
     static parse_options create_default();
 
     /// Create a strict parser. In general, these options are meant to fail on anything that is not a 100% valid JSON
@@ -103,10 +105,12 @@ public:
     /// complete_parse() == true
     /// comments() == false
     /// \endcode
+    JSONV_NODISCARD
     static parse_options create_strict();
 
     /// \{
     /// The output encoding for multi-byte characters in strings. The default value is \c encoding::utf8.
+    JSONV_NODISCARD
     encoding       string_encoding() const { return _string_encoding; }
     parse_options& string_encoding(encoding);
     /// \}
@@ -117,6 +121,7 @@ public:
     /// this value. By default, the value is \c nullopt, which means implementations should limit structure depth to
     /// \c k::max_structure_depth. Setting \a depth to a value above \c k::max_structure_depth is will cause
     /// \c std::invalid_argument to be thrown from \c parse functions.
+    JSONV_NODISCARD
     std::optional<size_type> max_structure_depth() const { return _max_struct_depth; }
     parse_options&           max_structure_depth(std::optional<size_type> depth);
     /// \}
@@ -125,6 +130,7 @@ public:
     /// If set to true, the result of a parse is required to have \c kind of \c kind::object or \c kind::array. By
     /// default, this is turned off, which will allow \c parse to return values with \c kind::string or
     /// \c kind::integer.
+    JSONV_NODISCARD
     bool           require_document() const { return _require_document; }
     parse_options& require_document(bool);
     /// \}
@@ -133,6 +139,7 @@ public:
     /// Should the input be completely parsed to consider the parsing a success? This is on by default. Disabling this
     /// option can be useful for situations where JSON input is coming from some stream and you wish to process distinct
     /// objects separately.
+    JSONV_NODISCARD
     bool           complete_parse() const { return _complete_parse; }
     parse_options& complete_parse(bool);
     /// \}
@@ -141,6 +148,7 @@ public:
     /// Are JSON comments allowed? While there is no official syntax for JSON comments, this uses the de-facto standard
     /// of ECMAScript-style block comments: `/* comment */`. If this is enabled, comments are treated exactly like
     /// whitespace.
+    JSONV_NODISCARD
     bool           comments() const { return _comments; }
     parse_options& comments(bool);
     /// \}
@@ -172,15 +180,15 @@ private:
 ///  or stray literals. Errors of this category are described as an offset into \a input.
 /// \throws extract_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
 ///  object with duplicate keys (note that the default \c jsonv::formats does not throw for this case).
-JSONV_PUBLIC
+JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::string_view            input,
             const parse_options&   parse_options,
             const extract_options& extract_options
            );
 
-JSONV_PUBLIC value parse(std::string_view input);
-JSONV_PUBLIC value parse(std::string_view input, const parse_options& parse_options);
-JSONV_PUBLIC value parse(std::string_view input, const extract_options& extract_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const parse_options& parse_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_options& extract_options);
 /// \}
 
 /// \{
@@ -202,28 +210,28 @@ JSONV_PUBLIC value parse(std::string_view input, const extract_options& extract_
 ///  or stray literals. Errors of this category are described as an offset into \a input.
 /// \throws extract_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
 ///  object with duplicate keys (note that the default \c jsonv::formats does not throw for this case).
-JSONV_PUBLIC
+JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::istream&          input,
             const parse_options&   parse_options,
             const extract_options& extract_options
            );
 
-JSONV_PUBLIC value parse(std::istream& input);
-JSONV_PUBLIC value parse(std::istream& input, const parse_options& parse_options);
-JSONV_PUBLIC value parse(std::istream& input, const extract_options& extract_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input, const parse_options& parse_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input, const extract_options& extract_options);
 /// \}
 
 /// \{
 /// Read a JSON value from the string bound by `[begin, end)`.
-JSONV_PUBLIC
+JSONV_NODISCARD JSONV_PUBLIC
 value parse(const char*            begin,
             const char*            end,
             const parse_options&   parse_options,
             const extract_options& extract_options
            );
-JSONV_PUBLIC value parse(const char* begin, const char* end, const parse_options& parse_options);
-JSONV_PUBLIC value parse(const char* begin, const char* end, const extract_options& extract_options);
-JSONV_PUBLIC value parse(const char* begin, const char* end);
+JSONV_NODISCARD JSONV_PUBLIC value parse(const char* begin, const char* end, const parse_options& parse_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(const char* begin, const char* end, const extract_options& extract_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(const char* begin, const char* end);
 /// \}
 
 }

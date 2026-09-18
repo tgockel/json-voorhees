@@ -22,14 +22,14 @@ namespace jsonv_test
 TEST(demangle_types)
 {
     std::cout << jsonv::demangle(typeid(std::string_view).name());
-    jsonv::demangle("_ZN20garbage");
+    (void) jsonv::demangle("_ZN20garbage");
 }
 
 TEST(demangle_set_reset)
 {
     jsonv::set_demangle_function(nullptr);
     auto cleanup = jsonv::detail::on_scope_exit(jsonv::reset_demangle_function);
-    jsonv::demangle(typeid(int).name());
+    (void) jsonv::demangle(typeid(int).name());
 }
 
 }

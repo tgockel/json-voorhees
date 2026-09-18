@@ -6,6 +6,11 @@
 
  - [2.0.0](https://github.com/tgockel/json-voorhees/milestone/12): 2020 March 13
    - Core
+     - The side-effect-free public API is now `[[nodiscard]]` (spelled `JSONV_NODISCARD`, which you can define away).
+       This covers the predicates and accessors, the constant lookups, `parse`, the `coerce_*` functions and the
+       `algorithm.hpp` producers like `merge`, `diff` and `map`. The accessors which create on demand (non-`const`
+       `value::path` and `value::operator[]` for an object key) and the mutators are not marked, since discarding those
+       is ordinary use. No ABI change (#190).
      - Fixed decimal comparison to use exact ordering instead of a non-transitive epsilon tolerance (#195).
        Signed zeros compare equal; all NaNs compare equal and sort after every non-NaN number.
      - Fixed `value::insert` deep-copying the pair it was handed instead of moving it, which made inserting into an

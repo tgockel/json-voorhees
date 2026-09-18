@@ -32,17 +32,19 @@ class container_adapter :
     using element_type = typename TContainer::value_type;
 
 protected:
+    JSONV_NODISCARD
     virtual TContainer create(const extraction_context& context, const value& from) const override
     {
         using std::end;
 
         TContainer out;
-        from.as_array(); // get nice error if input is not an array
+        (void) from.as_array(); // get nice error if input is not an array
         for (value::size_type idx = 0U; idx < from.size(); ++idx)
             out.insert(end(out), context.extract_sub<element_type>(from, idx));
         return out;
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const TContainer& from) const override
     {
         value out = array();

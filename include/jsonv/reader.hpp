@@ -75,11 +75,13 @@ public:
 
     /// Check if this reader is still good to read from. This will be \c true if this instance has not been moved-from
     /// and has not reached EOF. If this is \c false, \c current or \c current_path will throw an exception.
+    JSONV_NODISCARD
     bool good() const;
 
     /// Get the current AST node this reader is pointing at.
     ///
     /// \throws std::invalid_argument if this instance is not \c good.
+    JSONV_NODISCARD
     const ast_node& current() const;
 
     /// \{
@@ -97,6 +99,7 @@ public:
     /// \throws std::invalid_argument if this instance is not \c good.
     /// \throws extraction_error if the current node does not match `TAstNode::type()`.
     template <typename TAstNode>
+    JSONV_NODISCARD
     TAstNode current_as() const
     {
         expect(TAstNode::type());
@@ -127,6 +130,7 @@ public:
     /// \endcode
     ///
     /// \throws std::invalid_argument if this instance is not \c good.
+    JSONV_NODISCARD
     const path& current_path() const;
 
     /// Go to the next token.
@@ -150,7 +154,7 @@ public:
     /// \endcode
     ///
     /// \returns \c true if the reader is still \c good to read from \c current.
-    [[nodiscard]]
+    JSONV_NODISCARD
     bool next_token() noexcept;
 
     /// Go to one past the end of the current structure.
@@ -215,7 +219,7 @@ public:
     /// \endcode
     ///
     /// \returns \c true if the reader is still \c good to read from \c current.
-    [[nodiscard]]
+    JSONV_NODISCARD
     bool next_structure() noexcept;
 
     /// Go to the next object key or end-of-object.
@@ -240,7 +244,7 @@ public:
     ///
     /// \returns \c true if the reader is still \c good to read from \c current.
     /// \throws std::invalid_argument if the reader is not currently at the start of a key.
-    [[nodiscard]]
+    JSONV_NODISCARD
     bool next_key() noexcept;
 
 private:

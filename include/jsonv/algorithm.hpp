@@ -40,6 +40,7 @@ struct JSONV_PUBLIC compare_traits
      *  comparable (such as \c kind::integer and \c kind::decimal) -- if you return 0 for non-comparable types, you risk
      *  getting a \c kind_error thrown.
     **/
+    JSONV_NODISCARD
     static int compare_kinds(kind a, kind b)
     {
         int va = kindval(a);
@@ -48,6 +49,7 @@ struct JSONV_PUBLIC compare_traits
     }
 
     /** Compare two boolean values. **/
+    JSONV_NODISCARD
     static int compare_booleans(bool a, bool b)
     {
         return a == b ?  0
@@ -56,6 +58,7 @@ struct JSONV_PUBLIC compare_traits
     }
 
     /** Compare two integer values. **/
+    JSONV_NODISCARD
     static int compare_integers(std::int64_t a, std::int64_t b)
     {
         return a == b ?  0
@@ -67,6 +70,7 @@ struct JSONV_PUBLIC compare_traits
      *  infinities follow numeric order. All NaNs compare equal to each other and greater than every non-NaN
      *  number, regardless of sign or payload. This defines a strict weak ordering for decimals.
     **/
+    JSONV_NODISCARD
     static int compare_decimals(double a, double b)
     {
         if (std::isnan(a))
@@ -79,12 +83,14 @@ struct JSONV_PUBLIC compare_traits
     }
 
     /** Compare two string values. **/
+    JSONV_NODISCARD
     static int compare_strings(const std::string& a, const std::string& b)
     {
         return a.compare(b);
     }
 
     /** Compare two strings used for the keys of objects. **/
+    JSONV_NODISCARD
     static int compare_object_keys(const std::string& a, const std::string& b)
     {
         return a.compare(b);
@@ -93,12 +99,14 @@ struct JSONV_PUBLIC compare_traits
     /** Compare two objects \e before comparing the values. The \c compare function will only check the contents of an
      *  object if this function returns 0.
     **/
+    JSONV_NODISCARD
     static int compare_objects_meta(const value&, const value&)
     {
         return 0;
     }
 
 private:
+    JSONV_NODISCARD
     static int kindval(kind k)
     {
         switch (k)
@@ -127,6 +135,7 @@ private:
  *  \tparam TCompareTraits A type which should be compatible with the public signatures on the \c compare_traits class.
 **/
 template <typename TCompareTraits>
+JSONV_NODISCARD
 int compare(const value& a, const value& b, const TCompareTraits& traits)
 {
     if (&a == &b)
@@ -188,13 +197,13 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
 ///
 /// \see value::compare
 /// \see compare_icase
-JSONV_PUBLIC int compare(const value& a, const value& b);
+JSONV_NODISCARD JSONV_PUBLIC int compare(const value& a, const value& b);
 
 /// Compare the values \a a and \a b, but use case-insensitive matching on \c kind::string values. This does \e not use
 /// case-insensitive matching on the keys of objects!
 ///
 /// \see compare
-JSONV_PUBLIC int compare_icase(const value& a, const value& b);
+JSONV_NODISCARD JSONV_PUBLIC int compare_icase(const value& a, const value& b);
 
 /// The results of the \c diff operation.
 struct JSONV_PUBLIC diff_result
@@ -216,7 +225,7 @@ struct JSONV_PUBLIC diff_result
  *  \a right are moved to \c diff_result::left and \c diff_result::right, respectively. For \c kind::array and
  *  \c kind::object, the \c value elements are compared recursively.
 **/
-JSONV_PUBLIC diff_result diff(value left, value right);
+JSONV_NODISCARD JSONV_PUBLIC diff_result diff(value left, value right);
 
 /** Run a function over the values in the \a input. The behavior of this function is different, depending on the \c kind
  *  of \a input. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If
@@ -227,7 +236,7 @@ JSONV_PUBLIC diff_result diff(value left, value right);
  *  \param func The function to apply to the element or elements of \a input.
  *  \param input The value to transform.
 **/
-JSONV_PUBLIC value map(const std::function<value (const value&)>& func,
+JSONV_NODISCARD JSONV_PUBLIC value map(const std::function<value (const value&)>& func,
                        const value&                               input
                       );
 
@@ -246,7 +255,7 @@ JSONV_PUBLIC value map(const std::function<value (const value&)>& func,
  *  \e unpredictable state. If you need a strong exception guarantee, use the version of \c map that takes a constant
  *  reference to a \c value.
 **/
-JSONV_PUBLIC value map(const std::function<value (value)>& func,
+JSONV_NODISCARD JSONV_PUBLIC value map(const std::function<value (value)>& func,
                        value&&                             input
                       );
 
@@ -292,6 +301,7 @@ public:
      *  \param a is the left-hand \c value to merge.
      *  \param b is the right-hand \c value to merge.
     **/
+    JSONV_NODISCARD
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const = 0;
 
     /** Called when \a a and \a b have \c kind values which are incompatible for merging. The implementation can either
@@ -301,6 +311,7 @@ public:
      *  \param a is the left-hand \c value to merge.
      *  \param b is the right-hand \c value to merge.
     **/
+    JSONV_NODISCARD
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const = 0;
 };
 
@@ -325,9 +336,11 @@ public:
     type_conflict_function type_conflict;
 
     /// \see merge_rules::resolve_same_key
+    JSONV_NODISCARD
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const override;
 
     /// \see merge_rules::resolve_type_conflict
+    JSONV_NODISCARD
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
@@ -337,9 +350,11 @@ class JSONV_PUBLIC throwing_merge_rules :
 {
 public:
     /// \throws std::logic_error
+    JSONV_NODISCARD
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const override;
 
     /// \throws kind_error
+    JSONV_NODISCARD
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
@@ -349,9 +364,11 @@ class JSONV_PUBLIC recursive_merge_rules :
 {
 public:
     /// Recursively calls \c merge_explicit with the two values.
+    JSONV_NODISCARD
     virtual value resolve_same_key(path&& current_path, value&& a, value&& b) const override;
 
     /// Calls \c coerce_merge to combine the values.
+    JSONV_NODISCARD
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
@@ -376,17 +393,18 @@ public:
 ///                     error information if we are merging recursively.
 /// \param a is a \c value to merge.
 /// \param b is a \c value to merge.
-JSONV_PUBLIC value merge_explicit(const merge_rules& rules,
+JSONV_NODISCARD JSONV_PUBLIC value merge_explicit(const merge_rules& rules,
                                   path               current_path,
                                   value              a,
                                   value              b
                                  );
 
-JSONV_PUBLIC value merge_explicit(const merge_rules&, const path&, value a);
+JSONV_NODISCARD JSONV_PUBLIC value merge_explicit(const merge_rules&, const path&, value a);
 
-JSONV_PUBLIC value merge_explicit(const merge_rules&, const path&);
+JSONV_NODISCARD JSONV_PUBLIC value merge_explicit(const merge_rules&, const path&);
 
 template <typename... TValue>
+JSONV_NODISCARD
 value merge_explicit(const merge_rules& rules, path current_path, value a, value b, value c, TValue&&... rest)
 {
     value ab = merge_explicit(rules, current_path, std::move(a), std::move(b));
@@ -402,6 +420,7 @@ value merge_explicit(const merge_rules& rules, path current_path, value a, value
  *  be thrown.
 **/
 template <typename... TValue>
+JSONV_NODISCARD
 value merge(TValue&&... values)
 {
     return merge_explicit(throwing_merge_rules(),
@@ -414,6 +433,7 @@ value merge(TValue&&... values)
  *  also merged.
 **/
 template <typename... TValue>
+JSONV_NODISCARD
 value merge_recursive(TValue&&... values)
 {
     return merge_explicit(recursive_merge_rules(),
@@ -443,12 +463,15 @@ public:
     virtual ~validation_error() noexcept;
 
     /** Get the error code. **/
+    JSONV_NODISCARD
     code error_code() const;
 
     /** Get the path in the AST the error was found. **/
+    JSONV_NODISCARD
     const jsonv::path& path() const;
 
     /** Get the value that caused the error. **/
+    JSONV_NODISCARD
     const jsonv::value& value() const;
 
 private:

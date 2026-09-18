@@ -43,20 +43,32 @@ public:
             _end(end_)
     { }
 
+    JSONV_NODISCARD
     iterator       begin()       { return _begin; }
+    JSONV_NODISCARD
     const_iterator begin() const { return _begin; }
+    JSONV_NODISCARD
     iterator       end()         { return _end; }
+    JSONV_NODISCARD
     const_iterator end() const   { return _end; }
 
+    JSONV_NODISCARD
     const_iterator cbegin() const { return _begin; }
+    JSONV_NODISCARD
     const_iterator cend()   const { return _end; }
 
+    JSONV_NODISCARD
     reverse_iterator       rbegin()       { return reverse_iterator(end()); };
+    JSONV_NODISCARD
     const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+    JSONV_NODISCARD
     reverse_iterator       rend()         { return reverse_iterator(begin()); }
+    JSONV_NODISCARD
     const_reverse_iterator rend() const   { return reverse_iterator(begin()); }
 
+    JSONV_NODISCARD
     const_reverse_iterator crbegin() const { return const_reverse_iterator(end()); }
+    JSONV_NODISCARD
     const_reverse_iterator crend() const   { return reverse_iterator(begin()); }
 
 private:

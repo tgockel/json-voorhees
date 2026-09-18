@@ -27,11 +27,13 @@ class value;
 namespace detail
 {
 
+JSONV_NODISCARD
 inline std::string_view string_from_token(std::string_view token, std::false_type is_escaped JSONV_UNUSED)
 {
     return std::string_view(token.data() + 1, token.size() - 2U);
 }
 
+JSONV_NODISCARD
 std::string string_from_token(std::string_view token, std::true_type is_escaped);
 
 }
@@ -121,7 +123,7 @@ enum class ast_node_type : std::uint8_t
 /// | `error`            | `!`    |
 /// +--------------------+--------+
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const ast_node_type& type);
-JSONV_PUBLIC std::string to_string(const ast_node_type& type);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const ast_node_type& type);
 /// \}
 
 /// Error code encountered while building the AST.
@@ -149,7 +151,7 @@ enum class ast_error : std::uint64_t
 /// \{
 /// Get a description of the error \a code.
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const ast_error& code);
-JSONV_PUBLIC std::string to_string(const ast_error& code);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const ast_error& code);
 /// \}
 
 /// Represents an entry in a JSON AST.
@@ -163,18 +165,21 @@ public:
     {
     public:
         /// Get the \c ast_node_type type.
+        JSONV_NODISCARD
         static constexpr ast_node_type type()
         {
             return KIndexToken;
         }
 
         /// \see ast_node::token_raw
+        JSONV_NODISCARD
         std::string_view token_raw() const
         {
             return std::string_view(_token_begin, static_cast<const TSelf&>(*this).token_size());
         }
 
         /// Allow implicit conversion to the more generic \c ast_node.
+        JSONV_NODISCARD
         operator ast_node() const;
 
     protected:
@@ -194,6 +199,7 @@ public:
                 base<TSelf, KIndexToken>(token_begin)
         { }
 
+        JSONV_NODISCARD
         constexpr std::size_t token_size() const
         {
             return KTokenSize;
@@ -209,6 +215,7 @@ public:
                 _token_size(token_size)
         { }
 
+        JSONV_NODISCARD
         constexpr std::size_t token_size() const
         {
             return _token_size;
@@ -242,6 +249,7 @@ public:
         { }
 
         /// Get the number of elements in the object this token starts. This is useful for reserving memory.
+        JSONV_NODISCARD
         constexpr std::size_t element_count() const
         {
             return _element_count;
@@ -268,6 +276,7 @@ public:
         { }
 
         /// Get the number of elements in the array this token starts. This is useful for reserving memory.
+        JSONV_NODISCARD
         constexpr std::size_t element_count() const
         {
             return _element_count;
@@ -301,6 +310,7 @@ public:
         /// Was the source JSON for this string encoded in the canonical UTF-8 representation? If this is \c true, there
         /// is no need to translate JSON escape sequences to extract a \c std::string value. This is the opposite of
         /// \c escaped.
+        JSONV_NODISCARD
         constexpr bool canonical() const noexcept
         {
             return !KEscaped;
@@ -308,16 +318,19 @@ public:
 
         /// Did the source JSON for this string contain escape sequences? If this is \c true, JSON escape sequences must
         /// be translated into their canonical UTF-8 representation on extraction. This is the opposite of \c canonical.
+        JSONV_NODISCARD
         constexpr bool escaped() const noexcept
         {
             return KEscaped;
         }
 
+        JSONV_NODISCARD
         constexpr std::size_t token_size() const
         {
             return _token_size;
         }
 
+        JSONV_NODISCARD
         value_type value() const
         {
             return detail::string_from_token(this->token_raw(), std::integral_constant<bool, KEscaped>());
@@ -356,6 +369,7 @@ public:
     public:
         using basic_fixed_size_token<literal_true, ast_node_type::literal_true, 4U>::basic_fixed_size_token;
 
+        JSONV_NODISCARD
         bool value() const noexcept
         {
             return true;
@@ -367,6 +381,7 @@ public:
     public:
         using basic_fixed_size_token<literal_false, ast_node_type::literal_false, 5U>::basic_fixed_size_token;
 
+        JSONV_NODISCARD
         bool value() const noexcept
         {
             return false;
@@ -378,6 +393,7 @@ public:
     public:
         using basic_fixed_size_token<literal_null, ast_node_type::literal_null, 4U>::basic_fixed_size_token;
 
+        JSONV_NODISCARD
         jsonv::value value() const;
     };
 
@@ -386,6 +402,7 @@ public:
     public:
         using basic_dynamic_size_token<integer, ast_node_type::integer>::basic_dynamic_size_token;
 
+        JSONV_NODISCARD
         std::int64_t value() const;
     };
 
@@ -394,6 +411,7 @@ public:
     public:
         using basic_dynamic_size_token<decimal, ast_node_type::decimal>::basic_dynamic_size_token;
 
+        JSONV_NODISCARD
         double value() const;
     };
 
@@ -405,6 +423,7 @@ public:
                 _error_code(error_code)
         { }
 
+        JSONV_NODISCARD
         constexpr ast_error error_code() const
         {
             return _error_code;
@@ -445,6 +464,7 @@ public:
     /// Get the \c std::variant that backs this type.
     ///
     /// \see visit
+    JSONV_NODISCARD
     const storage_type& storage() const
     {
         return _impl;
@@ -465,6 +485,7 @@ public:
     }
 
     /// Get the \c ast_node_type that tells the underlying type of this instance.
+    JSONV_NODISCARD
     ast_node_type type() const
     {
         return visit([](const auto& x) { return x.type(); });
@@ -472,6 +493,7 @@ public:
 
     /// Get a view of the raw token. For example, \c "true", \c "{", or \c "1234". Note that this includes the complete
     /// source, so string types such as \c ast_node_type::string_canonical include the opening and closing quotations.
+    JSONV_NODISCARD
     std::string_view token_raw() const
     {
         return visit([](const auto& x) { return x.token_raw(); });
@@ -481,6 +503,7 @@ public:
     ///
     /// \throws std::bad_variant_access if the requested \c T is different from the \c type of this instance.
     template <typename T>
+    JSONV_NODISCARD
     const T& as() const
     {
         return std::get<T>(_impl);
@@ -489,6 +512,7 @@ public:
     /// Get the underlying data of this node as one of the key types: \c key_canonical or \c key_escaped.
     ///
     /// \throw std::bad_variant_access if the \c type of this instance is neither \c key_canonical nor \c key_escaped.
+    JSONV_NODISCARD
     std::variant<key_canonical, key_escaped> as_key() const
     {
         if (type() == ast_node_type::key_canonical)

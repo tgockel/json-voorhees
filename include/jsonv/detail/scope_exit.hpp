@@ -54,6 +54,7 @@ private:
 };
 
 template <typename Function>
+JSONV_NODISCARD
 scope_exit_invoker<Function> on_scope_exit(Function func)
 {
     return scope_exit_invoker<Function>(std::move(func));

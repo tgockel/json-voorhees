@@ -307,7 +307,7 @@ TEST_PARSE(depth)
 {
     std::string src = R"({"a": null, "b": [{}, 3, 4.5, false, [[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]})";
     // this isn't all that useful -- we just want to ensure that the normal src parses
-    parse(src);
+    (void) parse(src);
     ensure_throws(parse_error, parse(src, parse_options::create_strict()));
 }
 

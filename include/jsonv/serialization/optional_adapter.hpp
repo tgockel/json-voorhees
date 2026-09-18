@@ -35,6 +35,7 @@ class optional_adapter :
     using element_type = typename TOptional::value_type;
 
 protected:
+    JSONV_NODISCARD
     virtual TOptional create(const extraction_context& context, const value& from) const override
     {
         if (from.is_null())
@@ -43,6 +44,7 @@ protected:
             return TOptional(context.extract<element_type>(from));
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const TOptional& from) const override
     {
         if (from)

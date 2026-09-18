@@ -31,11 +31,13 @@ class wrapper_adapter :
     using element_type = typename TWrapper::value_type;
 
 protected:
+    JSONV_NODISCARD
     virtual TWrapper create(const extraction_context& context, const value& from) const override
     {
         return TWrapper(context.extract<element_type>(from));
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const TWrapper& from) const override
     {
         return context.to_json(element_type(from));

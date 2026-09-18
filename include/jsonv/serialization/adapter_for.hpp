@@ -27,6 +27,7 @@ class adapter_for :
         public adapter
 {
 public:
+    JSONV_NODISCARD
     virtual const std::type_info& get_type() const override
     {
         return typeid(T);
@@ -40,6 +41,7 @@ public:
         new(into) T(create(context, from));
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context,
                           const void*                  from
                          ) const override
@@ -48,8 +50,10 @@ public:
     }
 
 protected:
+    JSONV_NODISCARD
     virtual T create(const extraction_context& context, const value& from) const = 0;
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const T& from) const = 0;
 };
 

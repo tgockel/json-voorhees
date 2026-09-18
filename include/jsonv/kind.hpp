@@ -42,7 +42,7 @@ enum class kind : unsigned char
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const kind&);
 
 /** Get the name of the \c kind. **/
-JSONV_PUBLIC std::string to_string(const kind&);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const kind&);
 
 /** \} **/
 

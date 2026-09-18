@@ -38,6 +38,7 @@ namespace jsonv
 /// - Safe
 ///   - In the best case, illegal code should fail to compile
 ///   - An illegal action should throw an exception
+///   - The query API is `[[nodiscard]]`, so dropping the answer to a question you asked is a warning
 ///   - Almost all utility functions have a [strong exception guarantee](http://www.gotw.ca/gotw/082.htm)
 /// - Stable
 ///   - Worry less about upgrading -- the API and ABI will not change out from under you

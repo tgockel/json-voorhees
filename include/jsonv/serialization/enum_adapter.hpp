@@ -81,6 +81,7 @@ public:
     { }
 
 protected:
+    JSONV_NODISCARD
     virtual TEnum create(const extraction_context& context, const value& from) const override
     {
         using std::end;
@@ -94,6 +95,7 @@ protected:
                                   );
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context&, const TEnum& from) const override
     {
         using std::end;

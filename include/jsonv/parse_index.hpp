@@ -45,14 +45,21 @@ public:
             return temp;
         }
 
+        JSONV_NODISCARD
         value_type operator*() const;
 
         // Note the lack of comparison between `_prefix` -- valid `iterator`s will always have the same `_prefix`
+        JSONV_NODISCARD
         bool operator==(const iterator& other) const { return _iter == other._iter; }
+        JSONV_NODISCARD
         bool operator!=(const iterator& other) const { return _iter != other._iter; }
+        JSONV_NODISCARD
         bool operator< (const iterator& other) const { return _iter <  other._iter; }
+        JSONV_NODISCARD
         bool operator<=(const iterator& other) const { return _iter <= other._iter; }
+        JSONV_NODISCARD
         bool operator> (const iterator& other) const { return _iter >  other._iter; }
+        JSONV_NODISCARD
         bool operator>=(const iterator& other) const { return _iter >= other._iter; }
 
     private:
@@ -100,12 +107,16 @@ public:
     /// \param initial_buffer_capacity
     ///     The initial capacity of the underlying buffer. By default (\c nullopt), this will size the buffer according
     ///     to the length of the \a src string.
+    JSONV_NODISCARD
     static parse_index parse(std::string_view           src,
                              const parse_options&       options,
                              std::optional<std::size_t> initial_buffer_capacity
                             );
+    JSONV_NODISCARD
     static parse_index parse(std::string_view src, std::optional<std::size_t> initial_buffer_capacity);
+    JSONV_NODISCARD
     static parse_index parse(std::string_view src, const parse_options& options);
+    JSONV_NODISCARD
     static parse_index parse(std::string_view src);
     /// \}
 
@@ -119,9 +130,11 @@ public:
     /// Even if this returns true, it is possible that conversion to a \c jsonv::value will throw an exception. For
     /// example, if the value of a number exceeds the range of an \c int64_t. This is because JSON does not specify an
     /// acceptable range for numbers, but the storage of \c jsonv::value does.
+    JSONV_NODISCARD
     bool success() const noexcept;
 
     /// See \ref success.
+    JSONV_NODISCARD
     explicit operator bool() const noexcept;
 
     /// Validate that the parse was a \c success.
@@ -131,17 +144,23 @@ public:
     /// \throws std::invalid_argument if this instance was default-constructed or moved-from.
     void validate() const;
 
+    JSONV_NODISCARD
     iterator begin() const;
+    JSONV_NODISCARD
     iterator cbegin() const { return begin(); }
 
+    JSONV_NODISCARD
     iterator end() const;
+    JSONV_NODISCARD
     iterator cend() const { return end(); }
 
     /// \{
     /// \param options
     ///     The options used to control how values are extracted from this source. If unspecified, these will be
     ///     \c extract_options::create_default().
+    JSONV_NODISCARD
     value extract_tree(const extract_options& options) const;
+    JSONV_NODISCARD
     value extract_tree() const;
     /// \}
 

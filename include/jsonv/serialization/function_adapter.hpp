@@ -32,11 +32,13 @@ public:
     { }
 
 protected:
+    JSONV_NODISCARD
     virtual T create(const extraction_context& context, const value& from) const override
     {
         return create_impl(_extract, context, from);
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const T& from) const override
     {
         return to_json_impl(_to_json, context, from);
@@ -77,6 +79,7 @@ private:
 };
 
 template <typename FExtract, typename FToJson>
+JSONV_NODISCARD
 auto make_adapter(FExtract extract, FToJson to_json_)
     -> function_adapter<decltype(extract(std::declval<const extraction_context&>(), std::declval<const value&>())),
                         FExtract,
@@ -91,6 +94,7 @@ auto make_adapter(FExtract extract, FToJson to_json_)
 }
 
 template <typename FExtract, typename FToJson, typename = void>
+JSONV_NODISCARD
 auto make_adapter(FExtract extract, FToJson to_json_)
     -> function_adapter<decltype(extract(std::declval<const value&>())),
                         FExtract,

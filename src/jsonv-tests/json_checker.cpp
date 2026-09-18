@@ -54,7 +54,7 @@ private:
 
         // If we were successful, make sure we can extract a
         if (ast.success())
-            ast.extract_tree();
+            (void) ast.extract_tree();
     }
 
 private:

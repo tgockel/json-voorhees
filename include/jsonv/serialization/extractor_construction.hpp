@@ -25,6 +25,7 @@ class extractor_construction :
         public extractor
 {
 public:
+    JSONV_NODISCARD
     virtual const std::type_info& get_type() const override
     {
         return typeid(T);

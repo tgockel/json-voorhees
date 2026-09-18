@@ -32,6 +32,7 @@ public:
 
 protected:
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const T& from) const override
     {
         return to_json_impl(_to_json, context, from);
@@ -57,6 +58,7 @@ private:
 };
 
 template <typename T, typename FToJson>
+JSONV_NODISCARD
 function_serializer<T, FToJson> make_serializer(FToJson to_json_)
 {
     return function_serializer<T, FToJson>(std::move(to_json_));

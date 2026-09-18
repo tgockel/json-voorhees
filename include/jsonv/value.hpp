@@ -58,10 +58,16 @@ union value_storage
 
 /// \defgroup Value
 /// JSON \ref value instances.
+///
+/// The side-effect-free parts of this API -- the predicates, the accessors, the constant lookups and everything which
+/// returns a freshly built \ref value -- are \c JSONV_NODISCARD. Calling one and dropping the result does nothing at
+/// all, so the compiler says so. The accessors which create on demand (non-`const` \ref value::path and
+/// \ref value::operator[] for an object key) and the mutators are deliberately left alone, since discarding those is
+/// how they are normally used.
 /// \{
 
 /// Get a string representation of the given \c value.
-JSONV_PUBLIC std::string to_string(const value&);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const value&);
 
 /// Thrown from various \c value methods when attempting to perform an operation which is not valid for the \c kind of
 /// value.
@@ -164,22 +170,26 @@ public:
         }
 
         template <typename U, typename UArrayView>
+        JSONV_NODISCARD
         bool operator==(const basic_array_iterator<U, UArrayView>& other) const
         {
             return _owner == other._owner && _index == other._index;
         }
 
         template <typename U, typename UArrayView>
+        JSONV_NODISCARD
         bool operator!=(const basic_array_iterator<U, UArrayView>& other) const
         {
             return !operator==(other);
         }
 
+        JSONV_NODISCARD
         T& operator*() const
         {
             return _owner->operator[](_index);
         }
 
+        JSONV_NODISCARD
         T* operator->() const
         {
             return &_owner->operator[](_index);
@@ -191,6 +201,7 @@ public:
             return *this;
         }
 
+        JSONV_NODISCARD
         basic_array_iterator operator+(size_type n) const
         {
             basic_array_iterator clone = *this;
@@ -204,6 +215,7 @@ public:
             return *this;
         }
 
+        JSONV_NODISCARD
         basic_array_iterator operator-(size_type n) const
         {
             basic_array_iterator clone = *this;
@@ -211,31 +223,37 @@ public:
             return clone;
         }
 
+        JSONV_NODISCARD
         difference_type operator-(const basic_array_iterator& other) const
         {
             return difference_type(_index) - difference_type(other._index);
         }
 
+        JSONV_NODISCARD
         bool operator<(const basic_array_iterator& rhs) const
         {
             return _index < rhs._index;
         }
 
+        JSONV_NODISCARD
         bool operator<=(const basic_array_iterator& rhs) const
         {
             return _index <= rhs._index;
         }
 
+        JSONV_NODISCARD
         bool operator>(const basic_array_iterator& rhs) const
         {
             return _index > rhs._index;
         }
 
+        JSONV_NODISCARD
         bool operator>=(const basic_array_iterator& rhs) const
         {
             return _index >= rhs._index;
         }
 
+        JSONV_NODISCARD
         T& operator[](size_type n) const
         {
             return _owner->operator[](_index + n);
@@ -333,22 +351,26 @@ public:
         }
 
         template <typename U, typename UIterator>
+        JSONV_NODISCARD
         bool operator ==(const basic_object_iterator<U, UIterator>& other) const
         {
             return _impl == other._impl;
         }
 
         template <typename U, typename UIterator>
+        JSONV_NODISCARD
         bool operator !=(const basic_object_iterator<U, UIterator>& other) const
         {
             return _impl != other._impl;
         }
 
+        JSONV_NODISCARD
         T& operator *() const
         {
             return current();
         }
 
+        JSONV_NODISCARD
         T* operator ->() const
         {
             return &current();
@@ -483,15 +505,18 @@ public:
      *
      *  \throws kind_error if this value does not represent a string.
     **/
+    JSONV_NODISCARD
     const std::string& as_string() const;
 
     /** Tests if this \c kind is \c kind::string. **/
+    JSONV_NODISCARD
     bool is_string() const;
 
     /** Get this value as a \c std::string_view. It is your responsibility to ensure the \c value instance remains valid.
      *
      *  \throws kind_error if this value does not represent a string.
     **/
+    JSONV_NODISCARD
     std::string_view as_string_view() const &;
 
     /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
@@ -500,15 +525,18 @@ public:
      *  \throws kind_error if this value does not represent a string.
      *  \throws std::range_error if the stored string is not valid UTF-8.
     **/
+    JSONV_NODISCARD
     std::wstring as_wstring() const;
 
     /** Get this value as an integer.
      *
      *  \throws kind_error if this value does not represent an integer.
     **/
+    JSONV_NODISCARD
     int64_t as_integer() const;
 
     /** Tests if this \c kind is \c kind::integer. **/
+    JSONV_NODISCARD
     bool is_integer() const;
 
     /** Get this value as a decimal. If the value's underlying kind is actually an integer type, cast the integer to a
@@ -516,33 +544,41 @@ public:
      *
      *  \throws kind_error if this value does not represent a decimal or integer.
     **/
+    JSONV_NODISCARD
     double as_decimal() const;
 
     /** Tests if this \c kind is \c kind::integer or \c kind::decimal. **/
+    JSONV_NODISCARD
     bool is_decimal() const;
 
     /** Get this value as a boolean.
      *
      *  \throws kind_error if this value does not represent a boolean.
     **/
+    JSONV_NODISCARD
     bool as_boolean() const;
 
     /** Tests if this \c kind is \c kind::boolean. **/
+    JSONV_NODISCARD
     bool is_boolean() const;
 
     /** Tests if this \c kind is \c kind::array. **/
+    JSONV_NODISCARD
     bool is_array() const;
 
     /** Tests if this \c kind is \c kind::object. **/
+    JSONV_NODISCARD
     bool is_object() const;
 
     /** Tests if this \c kind is \c kind::null. **/
+    JSONV_NODISCARD
     bool is_null() const;
 
     /** Resets this value to null. **/
     void clear();
 
     /** Get this value's kind. **/
+    JSONV_NODISCARD
     inline jsonv::kind kind() const
     {
         return _kind;
@@ -559,8 +595,11 @@ public:
     value&       at_path(const path& p);
     value&       at_path(std::string_view p);
     value&       at_path(size_type   p);
+    JSONV_NODISCARD
     const value& at_path(const path& p) const;
+    JSONV_NODISCARD
     const value& at_path(std::string_view p) const;
+    JSONV_NODISCARD
     const value& at_path(size_type   p) const;
 
     /** Similar to \c count, but walks the given path \a p to determine its presence.
@@ -570,8 +609,11 @@ public:
      *  \throws parse_error if a \c std::string_view was specified that did not have a valid specification (see
      *                      \c path::create).
     **/
+    JSONV_NODISCARD
     size_type count_path(const path& p) const;
+    JSONV_NODISCARD
     size_type count_path(std::string_view p) const;
+    JSONV_NODISCARD
     size_type count_path(size_type   p) const;
 
     /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
@@ -610,10 +652,12 @@ public:
      *  \note
      *  The rules for equality are based on Python \c dict and \c list.
     **/
+    JSONV_NODISCARD
     bool operator==(const value& other) const;
 
     /** Compares two JSON values for inequality. The rules for inequality are the exact opposite of equality.
     **/
+    JSONV_NODISCARD
     bool operator!=(const value& other) const;
 
     /** Used to build a strict-ordering of JSON values. When comparing values of the same kind, the ordering should
@@ -633,11 +677,16 @@ public:
      *
      *  \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; 1 if otherwise.
     **/
+    JSONV_NODISCARD
     int compare(const value& other) const;
 
+    JSONV_NODISCARD
     bool operator< (const value& other) const;
+    JSONV_NODISCARD
     bool operator> (const value& other) const;
+    JSONV_NODISCARD
     bool operator<=(const value& other) const;
+    JSONV_NODISCARD
     bool operator>=(const value& other) const;
 
     /// Output this value to a stream.
@@ -650,7 +699,9 @@ public:
     /// Get an iterator to the beginning of this array.
     ///
     /// \throws kind_error if the kind is not an array.
+    JSONV_NODISCARD
     array_iterator       begin_array();
+    JSONV_NODISCARD
     const_array_iterator begin_array() const;
     /// \}
 
@@ -658,7 +709,9 @@ public:
     /// Get an iterator to the end of this array.
     ///
     /// \throws kind_error if the kind is not an array.
+    JSONV_NODISCARD
     array_iterator       end_array();
+    JSONV_NODISCARD
     const_array_iterator end_array() const;
     /// \}
 
@@ -666,8 +719,11 @@ public:
     /// View this instance as an array.
     ///
     /// \throws kind_error if the kind is not an array.
+    JSONV_NODISCARD
     array_view        as_array() &;
+    JSONV_NODISCARD
     const_array_view  as_array() const &;
+    JSONV_NODISCARD
     owning_array_view as_array() &&;
     /// \}
 
@@ -677,8 +733,10 @@ public:
     ///
     /// \throws kind_error if the kind is not an array.
     value&              operator[](size_type idx);
+    JSONV_NODISCARD
     const value&        operator[](size_type idx) const;
     inline value&       operator[](int       idx)       { return operator[](size_type(idx)); }
+    JSONV_NODISCARD
     inline const value& operator[](int       idx) const { return operator[](size_type(idx)); }
     /// \}
 
@@ -689,6 +747,7 @@ public:
     /// \throws std::out_of_range if the provided \a idx is above \c size.
     ///
     value&       at(size_type idx);
+    JSONV_NODISCARD
     const value& at(size_type idx) const;
     /// \}
 
@@ -775,22 +834,29 @@ public:
      *
      *  \throws kind_error if the kind is not an object.
     **/
+    JSONV_NODISCARD
     object_iterator       begin_object();
+    JSONV_NODISCARD
     const_object_iterator begin_object() const;
 
     /** Get an iterator to the one past the end of this object.
      *
      *  \throws kind_error if the kind is not an object.
     **/
+    JSONV_NODISCARD
     object_iterator       end_object();
+    JSONV_NODISCARD
     const_object_iterator end_object() const;
 
     /** View this instance as an object.
      *
      *  \throws kind_error if the kind is not an object.
     **/
+    JSONV_NODISCARD
     object_view        as_object() &;
+    JSONV_NODISCARD
     const_object_view  as_object() const &;
+    JSONV_NODISCARD
     owning_object_view as_object() &&;
 
     /** Get the value associated with the given \a key of this object. If the \a key does not exist, it will be created.
@@ -808,23 +874,31 @@ public:
     **/
     value& at(const std::string& key);
     value& at(const std::wstring& key);
+    JSONV_NODISCARD
     const value& at(const std::string& key) const;
+    JSONV_NODISCARD
     const value& at(const std::wstring& key) const;
 
     /** Check if the given \a key exists in this object.
      *
      *  \throws kind_error if the kind is not an object.
     **/
+    JSONV_NODISCARD
     size_type count(const std::string& key) const;
+    JSONV_NODISCARD
     size_type count(const std::wstring& key) const;
 
     /** Attempt to locate a key-value pair with the provided \a key in this object.
      *
      *  \throws kind_error if the kind is not an object.
     **/
+    JSONV_NODISCARD
     object_iterator       find(const std::string& key);
+    JSONV_NODISCARD
     object_iterator       find(const std::wstring& key);
+    JSONV_NODISCARD
     const_object_iterator find(const std::string& key)  const;
+    JSONV_NODISCARD
     const_object_iterator find(const std::wstring& key) const;
 
     /// \{
@@ -975,6 +1049,7 @@ public:
      *
      *  \throws nothing
     **/
+    JSONV_NODISCARD
     bool empty() const noexcept;
 
     /** Get the number of items in this value.
@@ -986,6 +1061,7 @@ public:
      *
      *  \throws kind_error if the kind is not an object, array or string.
     **/
+    JSONV_NODISCARD
     size_type size() const;
 
     /** \addtogroup Algorithm
@@ -1000,6 +1076,7 @@ public:
      *
      *  \param func The function to apply to the element or elements of this instance.
     **/
+    JSONV_NODISCARD
     value map(const std::function<value (const value&)>& func) const&;
 
     /** Run a function over the values of this instance. The behavior of this function is different, depending on the
@@ -1015,6 +1092,7 @@ public:
      *  transforming a non-scalar \c kind, there is no rollback action, so \c this is left in a usable, but
      *  \e unpredictable state. If you need a strong exception guarantee, use the constant reference version of \c map.
     **/
+    JSONV_NODISCARD
     value map(const std::function<value (value)>& func) &&;
 
     /** \} **/
@@ -1043,16 +1121,16 @@ JSONV_PUBLIC extern const value null;
  *  })"_json;
  *  \endcode
 **/
-JSONV_PUBLIC value operator""_json(const char* str, std::size_t len);
+JSONV_NODISCARD JSONV_PUBLIC value operator""_json(const char* str, std::size_t len);
 
 /** Swap the values \a a and \a b. **/
 JSONV_PUBLIC void swap(value& a, value& b) noexcept;
 
 /** Create an empty array value. **/
-JSONV_PUBLIC value array();
+JSONV_NODISCARD JSONV_PUBLIC value array();
 
 /** Create an array value from the given source. **/
-JSONV_PUBLIC value array(std::initializer_list<value> source);
+JSONV_NODISCARD JSONV_PUBLIC value array(std::initializer_list<value> source);
 
 /** Create an array with contents defined by range [\a first, \a last). **/
 template <typename TForwardIterator>
@@ -1064,11 +1142,11 @@ value array(TForwardIterator first, TForwardIterator last)
 }
 
 /** Create an empty object. **/
-JSONV_PUBLIC value object();
+JSONV_NODISCARD JSONV_PUBLIC value object();
 
 /** Create an object with key-value pairs from the given \a source. **/
-JSONV_PUBLIC value object(std::initializer_list<std::pair<std::string, value>>  source);
-JSONV_PUBLIC value object(std::initializer_list<std::pair<std::wstring, value>> source);
+JSONV_NODISCARD JSONV_PUBLIC value object(std::initializer_list<std::pair<std::string, value>>  source);
+JSONV_NODISCARD JSONV_PUBLIC value object(std::initializer_list<std::pair<std::wstring, value>> source);
 
 /** Create an object whose contents are defined by range [\a first, \a last). **/
 template <typename TForwardIterator>
@@ -1103,9 +1181,11 @@ public:
     ~object_node_handle() noexcept;
 
     /// \returns \c true if the node handle is empty; \c false if otherwise.
+    JSONV_NODISCARD
     bool empty() const noexcept { return !_has_value; }
 
     /// \returns \c false if the node handle is empty; \c true if otherwise.
+    JSONV_NODISCARD
     explicit operator bool() const noexcept { return _has_value; }
 
     /// Returns a non-const reference to the \ref key_type member of the element.
@@ -1148,6 +1228,7 @@ namespace std
 template <>
 struct JSONV_PUBLIC hash<jsonv::value>
 {
+    JSONV_NODISCARD
     std::size_t operator()(const jsonv::value& val) const noexcept;
 };
 

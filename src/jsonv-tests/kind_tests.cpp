@@ -29,7 +29,7 @@ TEST(kind_serialization)
     ensure_eq(to_string(kind::null),    "null");
     
     // all we care about here is that it doesn't assert
-    to_string(static_cast<kind>(~0));
+    (void) to_string(static_cast<kind>(~0));
 }
 
 TEST(kind_valid)

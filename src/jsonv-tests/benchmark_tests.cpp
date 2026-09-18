@@ -39,7 +39,7 @@ static void run_test(FLoader load, const std::string& from)
         THolster src_data{load(from)};
         {
             JSONV_TEST_TIME(timer);
-            parse(src_data);
+            (void) parse(src_data);
         }
     }
     std::cout << timer.get();

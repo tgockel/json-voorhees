@@ -31,7 +31,7 @@ enum class path_element_kind : unsigned char
 
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path_element_kind&);
 
-JSONV_PUBLIC std::string to_string(const path_element_kind&);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const path_element_kind&);
 
 class JSONV_PUBLIC path_element
 {
@@ -48,13 +48,18 @@ public:
 
     ~path_element() noexcept;
 
+    JSONV_NODISCARD
     path_element_kind kind() const;
 
+    JSONV_NODISCARD
     std::size_t index() const;
 
+    JSONV_NODISCARD
     const std::string& key() const;
 
+    JSONV_NODISCARD
     bool operator==(const path_element&) const;
+    JSONV_NODISCARD
     bool operator!=(const path_element&) const;
 
 private:
@@ -75,7 +80,7 @@ private:
 
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path_element&);
 
-JSONV_PUBLIC std::string to_string(const path_element&);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const path_element&);
 
 /// Represents an exact path in some JSON structure.
 class JSONV_PUBLIC path :
@@ -92,6 +97,7 @@ public:
     /// <tt>path::create(".foo.bar[1]")</tt> is equivalent to <tt>path({ "foo", "bar", 1 })</tt>.
     ///
     /// \throws std::invalid_argument if the \a specification is not valid.
+    JSONV_NODISCARD
     static path create(std::string_view specification);
 
     path(const path&);
@@ -101,17 +107,19 @@ public:
     ~path() noexcept;
 
     /// Return a new path with the given \a subpath appended to the back.
+    JSONV_NODISCARD
     path  operator+(const path& subpath) const;
     path& operator+=(const path& subpath);
 
     /// Return a new path with the given \a elem appended to the back.
+    JSONV_NODISCARD
     path  operator+(path_element elem) const;
     path& operator+=(path_element elem);
 };
 
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path&);
 
-JSONV_PUBLIC std::string to_string(const path&);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const path&);
 
 }
 

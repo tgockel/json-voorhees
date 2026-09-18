@@ -310,7 +310,8 @@ value::size_type value::count_path(const jsonv::path& p) const
     // TODO(#148): Performance of this function sucks!
     try
     {
-        at_path(p);
+        // Called for the throw -- presence is the answer, not the value found.
+        (void) at_path(p);
         return 1;
     }
     catch (const std::out_of_range&)

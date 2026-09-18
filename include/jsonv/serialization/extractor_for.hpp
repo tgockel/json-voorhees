@@ -24,6 +24,7 @@ class extractor_for :
         public extractor
 {
 public:
+    JSONV_NODISCARD
     virtual const std::type_info& get_type() const override
     {
         return typeid(T);
@@ -38,6 +39,7 @@ public:
     }
 
 protected:
+    JSONV_NODISCARD
     virtual T create(const extraction_context& context, const value& from) const = 0;
 };
 

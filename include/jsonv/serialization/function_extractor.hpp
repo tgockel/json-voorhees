@@ -32,6 +32,7 @@ public:
     { }
 
 protected:
+    JSONV_NODISCARD
     virtual T create(const extraction_context& context, const value& from) const override
     {
         return create_impl(_func, context, from);
@@ -57,6 +58,7 @@ private:
 };
 
 template <typename FExtract>
+JSONV_NODISCARD
 auto make_extractor(FExtract func)
     -> function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
                           FExtract
@@ -69,6 +71,7 @@ auto make_extractor(FExtract func)
 }
 
 template <typename FExtract, typename = void>
+JSONV_NODISCARD
 auto make_extractor(FExtract func)
     -> function_extractor<decltype(func(std::declval<const value&>())),
                           FExtract

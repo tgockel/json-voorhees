@@ -40,8 +40,8 @@ void formats_builder::check_references_impl(const formats& searching, const std:
     {
         const std::type_index& type = pair.first;
 
-        bool has_extractor  = [&] { try { searching.get_extractor(type);  return true; } catch (const no_extractor&)  { return false; } }();
-        bool has_serializer = [&] { try { searching.get_serializer(type); return true; } catch (const no_serializer&) { return false; } }();
+        bool has_extractor  = [&] { try { (void) searching.get_extractor(type);  return true; } catch (const no_extractor&)  { return false; } }();
+        bool has_serializer = [&] { try { (void) searching.get_serializer(type); return true; } catch (const no_serializer&) { return false; } }();
 
         if (!has_extractor || !has_serializer)
             failed_types.emplace_back(type, has_extractor, has_serializer);

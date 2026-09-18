@@ -109,6 +109,18 @@
 #   define JSONV_UNUSED [[maybe_unused]]
 #endif
 
+/// \def JSONV_NODISCARD
+/// \brief Warn if the caller discards the result of this function.
+/// This decorates the side-effect-free parts of the API, where dropping the result means the call did nothing at all.
+///
+/// The guard checks \c JSONV_DOXYGEN as well as the usual \c ifndef because \c config/Doxyfile predefines this macro
+/// as empty to keep it out of the rendered signatures. That also hides this \c define from Doxygen, which then warns
+/// about documentation for a macro it never saw; re-entering the block for Doxygen alone keeps the two consistent. No
+/// compiler defines \c JSONV_DOXYGEN, so everywhere else this is exactly the \c ifndef its siblings use.
+#if defined(JSONV_DOXYGEN) || !defined(JSONV_NODISCARD)
+#   define JSONV_NODISCARD [[nodiscard]]
+#endif
+
 /// \def JSONV_NO_RETURN
 /// \brief Mark that a given function will never return control to the caller, either by exiting or throwing an
 /// exception.

@@ -53,10 +53,11 @@ bool can_coerce(const value& from, const kind& to)
         // Actually attempt the conversion from string into the proper number. If it succeeds, we can coerce the string.
         try
         {
+            // Called for the throw -- the converted number itself is not interesting here.
             if (to == kind::decimal)
-                coerce_decimal(from);
+                (void) coerce_decimal(from);
             else
-                coerce_integer(from);
+                (void) coerce_integer(from);
             return true;
         }
         catch (const kind_error&)

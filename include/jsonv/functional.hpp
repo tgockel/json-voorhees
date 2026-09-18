@@ -32,6 +32,7 @@ struct value_compare
     using second_argument_type = value;
     using result_type          = int;
     
+    JSONV_NODISCARD
     int operator()(const value& a, const value& b) const;
 };
 
@@ -44,6 +45,7 @@ struct value_compare_icase
     using second_argument_type = value;
     using result_type          = int;
     
+    JSONV_NODISCARD
     int operator()(const value& a, const value& b) const;
 };
 
@@ -56,6 +58,7 @@ struct basic_value_binary_predicate :
     using second_argument_type = value;
     using result_type          = bool;
     
+    JSONV_NODISCARD
     bool operator()(const value& a, const value& b) const
     {
         return FResult::operator()(FCompare::operator()(a, b), 0);

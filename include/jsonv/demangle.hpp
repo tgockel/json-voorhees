@@ -30,7 +30,7 @@ namespace jsonv
  *  \see demangle_function
  *  \see set_demangle_function
 **/
-JSONV_PUBLIC std::string demangle(std::string_view source);
+JSONV_NODISCARD JSONV_PUBLIC std::string demangle(std::string_view source);
 
 /** Type of function used in setting a custom demangler.
  *
@@ -59,7 +59,7 @@ JSONV_PUBLIC void reset_demangle_function();
  *   discover is not an error -- this can happen if the exception is foreign to C++ (it does not have a
  *   \c std::type_info implementation) or if discovery is not known for this platform.
 **/
-JSONV_PUBLIC std::string current_exception_type_name();
+JSONV_NODISCARD JSONV_PUBLIC std::string current_exception_type_name();
 
 /** \} **/
 

@@ -109,6 +109,7 @@ public:
         _check_null_input = on;
     }
 
+    JSONV_NODISCARD
     bool check_null_input() const
     {
         return _check_null_input;
@@ -122,6 +123,7 @@ public:
         _check_null_output = on;
     }
 
+    JSONV_NODISCARD
     bool check_null_output() const
     {
         return _check_null_output;
@@ -129,6 +131,7 @@ public:
     /// \}
 
 protected:
+    JSONV_NODISCARD
     virtual TPointer create(const extraction_context& context, const value& from) const override
     {
         using std::begin;
@@ -151,6 +154,7 @@ protected:
                                   );
     }
 
+    JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const TPointer& from) const override
     {
         if (_check_null_output && !from)
