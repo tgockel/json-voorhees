@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <stdexcept>
 #include <string_view>
+#include <vector>
 
 template <typename TNode>
 TNode parse_single(std::string_view src, std::string_view expected)
@@ -167,6 +168,57 @@ TEST(ast_parse_object_with_numeric_keys)
     auto ast = jsonv::parse_index::parse("{ 3: \"Bob\", \"a\": \"A\" }");
     ensure(!ast.success());
     ensure_eq(to_string(ast), "^{!");
+}
+
+/// An opener reserves slots for its matching close token and its element count, but neither is known until that close
+/// token arrives. A failed parse must still leave them determinate, because `iterator::operator*` reads the element
+/// count unconditionally when it builds an `object_begin` or `array_begin`.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/150
+TEST(ast_parse_failed_parse_has_determinate_element_count)
+{
+    // Dirty the heap so a fresh allocation is unlikely to come back zeroed -- without this, reading an uninitialized
+    // slot would usually happen to return 0 and the test would pass either way.
+    {
+        std::vector<std::vector<std::uint64_t>> dirt;
+        for (std::size_t n = 0; n < 64U; ++n)
+            dirt.emplace_back(1024U, 0xdeadbeefcafef00dULL);
+    }
+
+    struct
+    {
+        std::string_view src;
+        std::size_t      expected_count;
+    }
+    const cases[] =
+    {
+        // Structures which never close at all.
+        { "{",          0U },
+        { R"({ "a": 1)", 1U },
+        { "[",          0U },
+        { "[ 1, 2",     2U },
+        // Structures which close correctly, but where trailing input is rejected from inside the close handling --
+        // before the opener's slots have been written.
+        { "[]x",        0U },
+        { "{}x",        0U },
+        { "[ 1, 2 ]x",  2U },
+        { R"({ "a": 1 }x)", 1U },
+    };
+
+    for (const auto& c : cases)
+    {
+        auto ast = jsonv::parse_index::parse(c.src);
+        ensure(!ast.success());
+
+        auto iter = ast.begin();
+        ++iter;     // document_start -> the opener
+
+        auto node  = *iter;
+        auto count = node.type() == jsonv::ast_node_type::object_begin
+                   ? node.as<jsonv::ast_node::object_begin>().element_count()
+                   : node.as<jsonv::ast_node::array_begin>().element_count();
+        ensure_eq(c.expected_count, count);
+    }
 }
 
 TEST(ast_parse_string_blns_94)

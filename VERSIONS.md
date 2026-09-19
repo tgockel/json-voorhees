@@ -44,6 +44,11 @@
        escaped a `noexcept` frame, so the documented error was unreachable and ordinary caller error aborted
        the process instead. `next_key` is no longer `noexcept` and the throw is now catchable, as documented.
        Note this changes the function's type, which since C++17 includes the exception specification (#213).
+     - Fixed a failed parse leaving a structure's recorded end and element count uninitialized. Those slots are
+       only written when the matching close token arrives, so both a structure which never closed (`{`,
+       `[ 1, 2`) and one which closed but was followed by trailing input (`[]x`) produced an
+       `object_begin`/`array_begin` whose `element_count()` read indeterminate memory. Passing that count to
+       `extract_tree` could reserve an arbitrary amount of memory.
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options

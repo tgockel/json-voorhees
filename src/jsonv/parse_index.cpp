@@ -76,6 +76,22 @@ static inline std::pair<ast_node_type, const char*> decode_ast_node_position(std
     return { ast_node_type_from_coded(src), reinterpret_cast<const char*>(ptr) };
 }
 
+/// Stored in an opener's end slot when its structure has no recorded end at all. Index 0 always holds the
+/// `document_start`, so it can never be a real close index.
+static constexpr std::uint64_t unclosed_structure_end_index = 0U;
+
+/// The opening token which \a close_token terminates.
+static constexpr ast_node_type matching_open_token(ast_node_type close_token)
+{
+    switch (close_token)
+    {
+    case ast_node_type::document_end: return ast_node_type::document_start;
+    case ast_node_type::object_end:   return ast_node_type::object_begin;
+    case ast_node_type::array_end:    return ast_node_type::array_begin;
+    default:                          return ast_node_type::error;
+    }
+}
+
 static inline std::size_t code_size(ast_node_type src /* UNSAFE */)
 {
     static const std::size_t jumps[] =
@@ -157,6 +173,9 @@ struct JSONV_LOCAL parse_index::impl final
         auto data_ptr = reinterpret_cast<std::uint64_t*>(this + 1);
         return data_ptr[idx];
     }
+
+    /// Repair the end index and element count of every structure on a tape whose parse failed.
+    void close_unclosed_structures() noexcept;
 
     static void destroy(impl* p)
     {
@@ -683,6 +702,126 @@ parse_index::iterator parse_index::end() const
     }
 }
 
+/// Repair the two slots every structure reserves -- where its matching close token is, and how many elements it holds
+/// -- for a tape whose parse failed.
+///
+/// Those slots are written by `push_back_out` when a close token arrives, so a failed parse can leave them holding
+/// whatever the allocator last put there, and `iterator::operator*` reads the element count unconditionally when it
+/// builds an `object_begin`/`array_begin`. There are two separate ways to get there:
+///
+///  - A structure which never closed at all, as in `{` or `[ 1, 2`.
+///  - A structure which *did* close, but where `push_back_out` threw before reaching the writes. Trailing input is the
+///    one that bites: parsing `[]x` emits `]`, then rejects the `x` from inside `push_back_out`. That array is
+///    properly matched, so looking only for unmatched openers never notices it was left unwritten.
+///
+/// So rather than trying to work out which structures were written, recompute all of them from the tape. That is only
+/// affordable because this runs exclusively on the failure path, where an extra pass costs nothing. Doing the same
+/// work from the parser's own structure stack would mean holding a reference to that stack across the parse loop,
+/// which stops the compiler keeping the loop's hottest locals in registers -- about 5% on structure-dense documents.
+///
+/// This is deliberately allocation-free, and `noexcept` to say so. It runs from a `catch` handler at a point where no
+/// `parse_index` owns the tape yet, so throwing from here -- as a `std::vector` would be entitled to -- would leak it.
+/// The parser bounds nesting to `max_structure_depth`, which is what makes a fixed stack sufficient.
+void parse_index::impl::close_unclosed_structures() noexcept
+{
+    struct frame
+    {
+        std::size_t open_index;
+        std::size_t element_count;
+    };
+
+    // The parser pushes the enclosing document through the same stack it uses for objects and arrays, so the tape can
+    // never be nested deeper than this.
+    constexpr std::size_t capacity = parse_options::k::max_structure_depth + 1U;
+
+    frame       open[capacity];
+    std::size_t depth       = 0U;
+    std::size_t error_index = 0U;
+
+    auto starts_a_value = [](ast_node_type type) noexcept
+        {
+            switch (type)
+            {
+            case ast_node_type::object_begin:
+            case ast_node_type::array_begin:
+            case ast_node_type::string_canonical:
+            case ast_node_type::string_escaped:
+            case ast_node_type::literal_true:
+            case ast_node_type::literal_false:
+            case ast_node_type::literal_null:
+            case ast_node_type::integer:
+            case ast_node_type::decimal:
+                return true;
+            default:
+                return false;
+            }
+        };
+
+    auto record = [&](const frame& f, std::size_t end_index) noexcept
+        {
+            // `0` is unambiguous as "no end at all": index 0 always holds the `document_start`.
+            data(f.open_index + 1) = end_index > f.open_index ? end_index : unclosed_structure_end_index;
+            data(f.open_index + 2) = f.element_count;
+        };
+
+    for (std::size_t idx = 0U; idx < data_size; )
+    {
+        auto type = ast_node_type_from_coded(data(idx));
+
+        // Count this node against its parent before it can become a parent itself. An object counts its keys, since
+        // every key is followed by exactly one value; anything else counts the values directly inside it. That matches
+        // what the parser counts, which is commas plus a final item.
+        if (depth > 0U)
+        {
+            auto& parent = open[depth - 1U];
+
+            if (ast_node_type_from_coded(data(parent.open_index)) == ast_node_type::object_begin)
+            {
+                if (type == ast_node_type::key_canonical || type == ast_node_type::key_escaped)
+                    ++parent.element_count;
+            }
+            else if (starts_a_value(type))
+            {
+                ++parent.element_count;
+            }
+        }
+
+        switch (type)
+        {
+        case ast_node_type::document_start:
+        case ast_node_type::object_begin:
+        case ast_node_type::array_begin:
+            if (depth < capacity)
+                open[depth++] = frame{ idx, 0U };
+            break;
+        case ast_node_type::document_end:
+        case ast_node_type::object_end:
+        case ast_node_type::array_end:
+            // Only a close token which actually matches its opener closes it. A document which ends mid-structure
+            // still gets a `document_end` appended, and that must not be mistaken for the inner structure closing.
+            if (depth > 0U
+                && ast_node_type_from_coded(data(open[depth - 1U].open_index)) == matching_open_token(type)
+               )
+            {
+                record(open[--depth], idx);
+            }
+            break;
+        case ast_node_type::error:
+            error_index = idx;
+            break;
+        default:
+            break;
+        }
+
+        idx += code_size(type);
+    }
+
+    // Whatever is still open ends at the error which cut the parse short, so stepping over one lands past the last
+    // thing in the tape rather than nowhere.
+    while (depth > 0U)
+        record(open[--depth], error_index);
+}
+
 parse_index parse_index::parse(std::string_view                src,
                                const parse_options&       options,
                                std::optional<std::size_t> initial_buffer_capacity
@@ -703,6 +842,7 @@ parse_index parse_index::parse(std::string_view                src,
     catch (const ast_exception&)
     {
         // Still a usable index -- it ends with an `error` node describing the failure.
+        p->close_unclosed_structures();
     }
     catch (...)
     {
