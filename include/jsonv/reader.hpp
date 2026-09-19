@@ -245,7 +245,7 @@ public:
     /// \returns \c true if the reader is still \c good to read from \c current.
     /// \throws std::invalid_argument if the reader is not currently at the start of a key.
     JSONV_NODISCARD
-    bool next_key() noexcept;
+    bool next_key();
 
 private:
     class impl;

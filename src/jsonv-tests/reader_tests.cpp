@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include <random>
+#include <stdexcept>
 #include <tuple>
 #include <vector>
 
@@ -459,5 +460,14 @@ static std::vector<std::vector<std::unique_ptr<jsonv_test::unit_test>>> create_a
 }
 
 static std::vector<std::vector<std::unique_ptr<jsonv_test::unit_test>>> all_tests = create_all_tests();
+
+
+/// \see https://github.com/tgockel/json-voorhees/issues/213
+TEST(reader_next_key_on_non_key_node_throws)
+{
+    jsonv::reader reader("[1, 2]");
+    ensure(reader.next_token());    // document_start -> array_begin
+    ensure_throws(std::invalid_argument, reader.next_key());
+}
 
 }

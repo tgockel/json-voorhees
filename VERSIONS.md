@@ -35,6 +35,11 @@
        on a non-object even when the range is empty, matching `value::insert(std::initializer_list)`.
      - Added `value::emplace`, `value::try_emplace`, and `value::insert_or_assign` for `kind::object`.
      - Changed the backing data type of `kind::array`s to an `std::vector<value>`
+     - Fixed `reader::next_key` being declared `noexcept` while both its documentation and its implementation
+       promised `std::invalid_argument` when called somewhere other than the start of a key. The exception
+       escaped a `noexcept` frame, so the documented error was unreachable and ordinary caller error aborted
+       the process instead. `next_key` is no longer `noexcept` and the throw is now catchable, as documented.
+       Note this changes the function's type, which since C++17 includes the exception specification (#213).
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options

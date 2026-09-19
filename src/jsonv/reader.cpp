@@ -127,7 +127,7 @@ bool reader::next_structure() noexcept
         return false;
 }
 
-bool reader::next_key() noexcept
+bool reader::next_key()
 {
     if (_impl)
         return _impl->next_key();
