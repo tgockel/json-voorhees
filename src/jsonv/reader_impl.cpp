@@ -102,6 +102,11 @@ bool reader::impl::next_key()
 
 bool reader::impl::next_structure_impl() noexcept
 {
+    // `current` throws when the reader is not `good`, which would escape this `noexcept` function and terminate. An
+    // exhausted reader has no structure left to leave, so report that the way every other `next_` function does.
+    if (!good())
+        return false;
+
     // If we start at the end of a structure, then just go to the next thing
     if (auto tok = current().type();
         tok == ast_node_type::object_end || tok == ast_node_type::array_end

@@ -463,6 +463,18 @@ static std::vector<std::vector<std::unique_ptr<jsonv_test::unit_test>>> all_test
 
 
 /// \see https://github.com/tgockel/json-voorhees/issues/213
+TEST(reader_next_structure_on_exhausted_reader)
+{
+    jsonv::reader reader("[1, 2]");
+    while (reader.next_token())
+    { }
+
+    // The reader is exhausted, so there is no current node to inspect. This must report failure instead of letting
+    // `current`'s exception escape the `noexcept` boundary.
+    ensure(!reader.next_structure());
+}
+
+/// \see https://github.com/tgockel/json-voorhees/issues/213
 TEST(reader_next_key_on_non_key_node_throws)
 {
     jsonv::reader reader("[1, 2]");

@@ -35,6 +35,10 @@
        on a non-object even when the range is empty, matching `value::insert(std::initializer_list)`.
      - Added `value::emplace`, `value::try_emplace`, and `value::insert_or_assign` for `kind::object`.
      - Changed the backing data type of `kind::array`s to an `std::vector<value>`
+     - Fixed `reader::next_structure` aborting the process when called on an exhausted reader. It inspected the
+       current node without guarding, and there is no current node once any `next_` function has returned
+       `false`, so the resulting exception escaped a `noexcept` frame. It now reports failure by returning
+       `false`, matching the rest of the `next_` family (#213).
      - Fixed `reader::next_key` being declared `noexcept` while both its documentation and its implementation
        promised `std::invalid_argument` when called somewhere other than the start of a key. The exception
        escaped a `noexcept` frame, so the documented error was unreachable and ordinary caller error aborted
