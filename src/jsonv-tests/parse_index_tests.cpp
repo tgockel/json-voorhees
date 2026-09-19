@@ -8,11 +8,14 @@
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
+#include "filesystem_util.hpp"
 
 #include <jsonv/ast.hpp>
 #include <jsonv/parse_index.hpp>
 
 #include <cstddef>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <string_view>
 #include <vector>
@@ -219,6 +222,186 @@ TEST(ast_parse_failed_parse_has_determinate_element_count)
                    : node.as<jsonv::ast_node::array_begin>().element_count();
         ensure_eq(c.expected_count, count);
     }
+}
+
+/// Stepping over a structure on a failed parse must stay inside the tape. A structure which closed but never had its
+/// end recorded would otherwise jump by an uninitialized displacement.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/150
+TEST(ast_skip_subtree_on_failed_parse_stays_in_the_tape)
+{
+    {
+        std::vector<std::vector<std::uint64_t>> dirt;
+        for (std::size_t n = 0; n < 64U; ++n)
+            dirt.emplace_back(1024U, 0xdeadbeefcafef00dULL);
+    }
+
+    struct
+    {
+        std::string_view src;
+        bool             root_closed;
+    }
+    const cases[] =
+    {
+        // The root structure is properly closed; only the trailing input is bad. Stepping over it lands on the error,
+        // because the structure really does end at its own close token.
+        { "[]x",             true  },
+        { "{}x",             true  },
+        { "[ 1, 2 ]x",       true  },
+        { R"({ "a": 1 }x)",  true  },
+        // The root structure never closed, so it ends at the error itself, and stepping past that reaches the end.
+        { "{",               false },
+        { "[ 1, 2",          false },
+        { R"({ "a": 1)",     false },
+    };
+
+    for (const auto& c : cases)
+    {
+        auto ast = jsonv::parse_index::parse(c.src);
+        ensure(!ast.success());
+
+        auto root = ast.begin();
+        ++root;                     // document_start -> the opener
+
+        auto after_root = root;
+        after_root.skip_subtree();
+
+        // Whatever the shape of the failure, the jump has to stay within the tape.
+        ensure(after_root <= ast.end());
+
+        if (c.root_closed)
+        {
+            ensure(after_root != ast.end());
+            ensure_eq(jsonv::ast_node_type::error, (*after_root).type());
+        }
+        else
+        {
+            ensure(after_root == ast.end());
+        }
+
+        // The document never closes on a failed parse, so stepping over it always reaches the end.
+        auto after_document = ast.begin();
+        ensure(after_document.skip_subtree() == ast.end());
+    }
+}
+
+/// Step over the structure at \a pos the slow way, by counting openers and closers. This is what `skip_subtree`
+/// replaces, and it is the oracle it is checked against.
+static jsonv::parse_index::iterator walked_skip_subtree(const jsonv::parse_index&    index,
+                                                        jsonv::parse_index::iterator pos
+                                                       )
+{
+    std::size_t depth = 0U;
+
+    do
+    {
+        switch ((*pos).type())
+        {
+        case jsonv::ast_node_type::document_start:
+        case jsonv::ast_node_type::object_begin:
+        case jsonv::ast_node_type::array_begin:
+            ++depth;
+            break;
+        case jsonv::ast_node_type::document_end:
+        case jsonv::ast_node_type::object_end:
+        case jsonv::ast_node_type::array_end:
+            --depth;
+            break;
+        default:
+            break;
+        }
+
+        ++pos;
+    } while (depth > 0U && pos != index.end());
+
+    return pos;
+}
+
+static void ensure_skip_subtree_matches_walking(std::string_view src)
+{
+    auto ast = jsonv::parse_index::parse(src);
+    ensure(ast.success());
+
+    std::size_t structures_checked = 0U;
+
+    for (auto iter = ast.begin(); iter != ast.end(); ++iter)
+    {
+        switch ((*iter).type())
+        {
+        case jsonv::ast_node_type::document_start:
+        case jsonv::ast_node_type::object_begin:
+        case jsonv::ast_node_type::array_begin:
+            break;
+        default:
+            continue;
+        }
+
+        auto jumped = iter;
+        jumped.skip_subtree();
+        auto walked = walked_skip_subtree(ast, iter);
+        ensure(jumped == walked);
+
+        // Comparing node types alone would not catch the real hazard here. The tape stores a source pointer with its
+        // top 8 bits truncated, and the iterator carries those bits along as it steps. A jump which recovered them
+        // incorrectly still lands on the right slot and reports the right type -- it just hands back a pointer into
+        // nowhere. Compare the pointers themselves.
+        // Compare as `const void*`: streaming a `const char*` on failure would print it as a C string, and the whole
+        // point of this check is that the pointer may not be safe to read.
+        if (jumped != ast.end())
+            ensure_eq(static_cast<const void*>((*walked).token_raw().data()),
+                      static_cast<const void*>((*jumped).token_raw().data())
+                     );
+
+        ++structures_checked;
+    }
+
+    ensure(structures_checked > 0U);
+}
+
+TEST(ast_skip_subtree_matches_walking)
+{
+    ensure_skip_subtree_matches_walking("[]");
+    ensure_skip_subtree_matches_walking("{}");
+    ensure_skip_subtree_matches_walking("[ 1, 2, 3 ]");
+    ensure_skip_subtree_matches_walking(R"({ "a": [ 1, 2, 3 ], "b": { "key": "value" }, "c": 4 })");
+    ensure_skip_subtree_matches_walking(R"([ [ [ [ [ 1 ] ] ] ], [], [ {} ], { "x": [ { "y": [] } ] } ])");
+    ensure_skip_subtree_matches_walking(R"({ "esc\t": "a\nb", "u": "\u00e9", "nested": { "deep": { "deeper": [] } } })");
+}
+
+TEST(ast_skip_subtree_matches_walking_on_corpus)
+{
+    for (const char* name : { "canada.json", "citm_catalog.json", "generated.json", "blns.json" })
+    {
+        std::ifstream    in(jsonv_test::test_path(name));
+        std::ostringstream buffer;
+        buffer << in.rdbuf();
+        auto src = std::move(buffer).str();
+        ensure(!src.empty());
+
+        ensure_skip_subtree_matches_walking(src);
+    }
+}
+
+/// A structure which never closes has no recorded end, so there is nothing to step over.
+TEST(ast_skip_subtree_of_unclosed_structure_is_end)
+{
+    auto ast = jsonv::parse_index::parse(R"({ "a": [ 1, 2)");
+    ensure(!ast.success());
+
+    auto iter = ast.begin();
+    ++iter;     // document_start -> the `{` which never closes
+    ensure(iter.skip_subtree() == ast.end());
+}
+
+TEST(ast_skip_subtree_rejects_non_structural_tokens)
+{
+    auto ast = jsonv::parse_index::parse(R"({ "a": 1 })");
+    ensure(ast.success());
+
+    auto iter = ast.begin();
+    ++iter;     // `{`
+    ++iter;     // the key
+    ensure_throws(std::invalid_argument, iter.skip_subtree());
 }
 
 TEST(ast_parse_string_blns_94)

@@ -45,6 +45,24 @@ public:
             return temp;
         }
 
+        /// Move to the node after the structure this iterator is on, however much is inside it.
+        ///
+        /// This is a constant-time operation. The index records where each structure ends as it parses the matching
+        /// close token, so stepping over a subtree costs the same whether it holds one element or a million. Use it to
+        /// ignore a value without paying to walk it.
+        ///
+        /// \code
+        /// // `iter` is on the `[` of `"a": [ 1, 2, 3 ]`
+        /// iter.skip_subtree();    // now on the key which follows the array
+        /// \endcode
+        ///
+        /// If the structure was never closed -- only possible when \ref parse_index::success is \c false -- this
+        /// moves to the end of the index, treating the error which truncated the document as the structure's end.
+        ///
+        /// \throws std::invalid_argument if this iterator is not on a \c ast_node_type::document_start,
+        ///  \c ast_node_type::object_begin or \c ast_node_type::array_begin.
+        iterator& skip_subtree();
+
         JSONV_NODISCARD
         value_type operator*() const;
 
@@ -151,6 +169,7 @@ public:
 
     JSONV_NODISCARD
     iterator end() const;
+
     JSONV_NODISCARD
     iterator cend() const { return end(); }
 

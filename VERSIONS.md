@@ -44,6 +44,9 @@
        escaped a `noexcept` frame, so the documented error was unreachable and ordinary caller error aborted
        the process instead. `next_key` is no longer `noexcept` and the throw is now catchable, as documented.
        Note this changes the function's type, which since C++17 includes the exception specification (#213).
+     - Added `parse_index::iterator::skip_subtree`, which steps over a whole object or array in constant time.
+       The index already recorded where each structure ends when it parsed the matching close token, but
+       nothing surfaced it, so skipping a value meant walking every node inside it.
      - Fixed a failed parse leaving a structure's recorded end and element count uninitialized. Those slots are
        only written when the matching close token arrives, so both a structure which never closed (`{`,
        `[ 1, 2`) and one which closed but was followed by trailing input (`[]x`) produced an

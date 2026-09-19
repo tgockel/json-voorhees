@@ -76,9 +76,9 @@ static inline std::pair<ast_node_type, const char*> decode_ast_node_position(std
     return { ast_node_type_from_coded(src), reinterpret_cast<const char*>(ptr) };
 }
 
-/// Stored in an opener's end slot when its structure has no recorded end at all. Index 0 always holds the
-/// `document_start`, so it can never be a real close index.
-static constexpr std::uint64_t unclosed_structure_end_index = 0U;
+/// Stored in an opener's end-offset slot when its structure never received a close token and no error node was
+/// recorded either. A real offset is always at least 1, so `0` is unambiguous.
+static constexpr std::uint64_t unclosed_structure_end_offset = 0U;
 
 /// The opening token which \a close_token terminates.
 static constexpr ast_node_type matching_open_token(ast_node_type close_token)
@@ -174,7 +174,7 @@ struct JSONV_LOCAL parse_index::impl final
         return data_ptr[idx];
     }
 
-    /// Repair the end index and element count of every structure on a tape whose parse failed.
+    /// Repair the end offset and element count of every structure on a tape whose parse failed.
     void close_unclosed_structures() noexcept;
 
     static void destroy(impl* p)
@@ -419,6 +419,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
     const char* iter        = begin;
     const char* const end   = begin + src.size();
 
+
     auto push_back_deeper =
         [&](ast_node_type token, const char* src_location) JSONV_ALWAYS_INLINE
         {
@@ -476,7 +477,9 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
                 container = ast_node_type::error;
             }
 
-            self->data(structure[depth].open_index + 1) = this_idx;
+            // Store where the close token is *relative to its opener*. An absolute index would force whoever wants
+            // to jump to it to know where the tape begins; an offset is all an `iterator` needs to move itself.
+            self->data(structure[depth].open_index + 1) = this_idx - structure[depth].open_index;
             self->data(structure[depth].open_index + 2) = structure[depth].item_count;
         };
 
@@ -759,8 +762,9 @@ void parse_index::impl::close_unclosed_structures() noexcept
 
     auto record = [&](const frame& f, std::size_t end_index) noexcept
         {
-            // `0` is unambiguous as "no end at all": index 0 always holds the `document_start`.
-            data(f.open_index + 1) = end_index > f.open_index ? end_index : unclosed_structure_end_index;
+            // `0` is unambiguous as "no end at all": a close token always sits at least one slot past its opener.
+            data(f.open_index + 1) = end_index > f.open_index ? end_index - f.open_index
+                                                              : unclosed_structure_end_offset;
             data(f.open_index + 2) = f.element_count;
         };
 
@@ -908,6 +912,41 @@ parse_index::iterator& parse_index::iterator::operator++()
         _prefix += ast_node_prefix_add;
 
     return *this;
+}
+
+parse_index::iterator& parse_index::iterator::skip_subtree()
+{
+    auto [type, prev_ptr] = decode_ast_node_position(_prefix, *_iter);
+
+    switch (type)
+    {
+    case ast_node_type::document_start:
+    case ast_node_type::object_begin:
+    case ast_node_type::array_begin:
+        break;
+    default:
+        throw std::invalid_argument(std::string("parse_index::iterator::skip_subtree on a non-structural token: ")
+                                    + to_string(type)
+                                   );
+    }
+
+    auto offset = _iter[1];
+    if (offset == unclosed_structure_end_offset)
+    {
+        JSONV_UNLIKELY
+        throw std::invalid_argument("parse_index::iterator::skip_subtree on a structure with no recorded end");
+    }
+
+    // Land on the matching close token. The `_prefix` carry cannot be inherited across a jump the way `operator++`
+    // inherits it, but it can be recovered the same way: source pointers only ever move forward through the tape, so a
+    // decoded pointer which appears to have gone backwards is one which wrapped. A structure spans far less than the
+    // 2^56 bytes it would take to wrap twice, so at most one carry is possible.
+    _iter += offset;
+    if (decode_ast_node_position(_prefix, *_iter).second < prev_ptr)
+        _prefix += ast_node_prefix_add;
+
+    // Every close token occupies exactly one slot, so stepping past it is an ordinary increment.
+    return ++*this;
 }
 
 ast_node parse_index::iterator::operator*() const
