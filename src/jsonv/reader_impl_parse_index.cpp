@@ -116,6 +116,26 @@ bool reader::impl_parse_index::next_token_impl() noexcept
     return _current != _index.end();
 }
 
+bool reader::impl_parse_index::next_value_impl() noexcept
+{
+    if (_current == _index.end())
+        return false;
+
+    switch ((*_current).type())
+    {
+    case ast_node_type::object_begin:
+    case ast_node_type::array_begin:
+        // The tape recorded where this structure ends when it parsed the matching close token, so there is no need to
+        // walk what is inside it.
+        _current.skip_subtree();
+        break;
+    default:
+        return next_token_impl();
+    }
+
+    return _current != _index.end();
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // reader::impl_parse_index_owning                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

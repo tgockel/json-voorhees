@@ -127,6 +127,14 @@ bool reader::next_structure() noexcept
         return false;
 }
 
+bool reader::next_value() noexcept
+{
+    if (_impl)
+        return _impl->next_value();
+    else
+        return false;
+}
+
 bool reader::next_key()
 {
     if (_impl)

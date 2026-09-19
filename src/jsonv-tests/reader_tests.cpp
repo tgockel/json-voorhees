@@ -462,6 +462,114 @@ static std::vector<std::vector<std::unique_ptr<jsonv_test::unit_test>>> create_a
 static std::vector<std::vector<std::unique_ptr<jsonv_test::unit_test>>> all_tests = create_all_tests();
 
 
+/// Walk to node \a index, then report where `next_value` lands, as an index into the token stream.
+static std::size_t next_value_from(std::string_view src, std::size_t index)
+{
+    jsonv::reader reader(src);
+    for (std::size_t n = 0U; n < index; ++n)
+        ensure(reader.next_token());
+
+    if (!reader.next_value())
+        return std::size_t(-1);
+
+    // Find where we ended up by counting from the start again.
+    jsonv::reader counter(src);
+    for (std::size_t n = 0U; ; ++n)
+    {
+        if (counter.current().type()       == reader.current().type()
+            && counter.current_path()      == reader.current_path()
+            && counter.current().token_raw().data() == reader.current().token_raw().data()
+           )
+        {
+            return n;
+        }
+
+        if (!counter.next_token())
+            return std::size_t(-2);
+    }
+}
+
+/// `next_value` steps over exactly the value the reader is on. Contrast `next_structure`, which leaves the structure
+/// the reader is *inside* -- on a scalar member those two differ, and confusing them silently consumes the rest of the
+/// enclosing object.
+TEST(reader_next_value_steps_over_one_value)
+{
+    static const char src[] = R"({ "a": [ 1, 2, 3 ], "b": { "key": "value" }, "c": 4 })";
+
+    // Token stream, counting the document start the reader begins on:
+    //   0 ^   1 {   2 "a"   3 [   4 1   5 2   6 3   7 ]   8 "b"   9 {   10 "key"   11 "value"
+    //   12 }   13 "c"   14 4   15 }   16 $
+
+    // Over a structure: the `[` at 3 lands on the key "b" at 8, and the `{` at 9 on the key "c" at 13.
+    ensure_eq(8U,  next_value_from(src, 3U));
+    ensure_eq(13U, next_value_from(src, 9U));
+
+    // Over a scalar it is a single step: `1` at 4 -> `2` at 5.
+    ensure_eq(5U, next_value_from(src, 4U));
+
+    // And the case the two primitives disagree on: the scalar `4` at 14 goes to the enclosing `}` at 15, where
+    // `next_structure` would leave the object altogether.
+    ensure_eq(15U, next_value_from(src, 14U));
+
+    {
+        jsonv::reader reader(src);
+        for (std::size_t n = 0U; n < 14U; ++n)
+            ensure(reader.next_token());
+        ensure(reader.next_structure());
+        ensure_eq(jsonv::ast_node_type::document_end, reader.current().type());
+    }
+}
+
+/// The tape records where each structure ends, so `impl_parse_index` overrides the depth-counting walk. Both have to
+/// agree, for every position in the document.
+TEST(reader_next_value_agrees_with_counting_the_way_out)
+{
+    for (const auto& example : examples)
+    {
+        jsonv::reader probe(example.source);
+
+        for (std::size_t index = 0U; probe.good(); ++index, static_cast<void>(probe.next_token()))
+        {
+            auto type = probe.current().type();
+            if (type != jsonv::ast_node_type::object_begin && type != jsonv::ast_node_type::array_begin)
+                continue;
+
+            // Count the way out by hand, exactly as the base implementation would.
+            jsonv::reader counted(example.source);
+            for (std::size_t n = 0U; n < index; ++n)
+                ensure(counted.next_token());
+
+            std::size_t depth = 0U;
+            do
+            {
+                auto tok = counted.current().type();
+                if (tok == jsonv::ast_node_type::object_begin || tok == jsonv::ast_node_type::array_begin)
+                {
+                    ++depth;
+                }
+                else if (tok == jsonv::ast_node_type::object_end || tok == jsonv::ast_node_type::array_end)
+                {
+                    --depth;
+                    if (depth == 0U)
+                        break;
+                }
+            } while (counted.next_token());
+            ensure(counted.next_token());
+
+            jsonv::reader jumped(example.source);
+            for (std::size_t n = 0U; n < index; ++n)
+                ensure(jumped.next_token());
+            ensure(jumped.next_value());
+
+            ensure_eq(counted.current().type(), jumped.current().type());
+            ensure_eq(counted.current_path(),   jumped.current_path());
+            ensure_eq(static_cast<const void*>(counted.current().token_raw().data()),
+                      static_cast<const void*>(jumped.current().token_raw().data())
+                     );
+        }
+    }
+}
+
 /// \see https://github.com/tgockel/json-voorhees/issues/213
 TEST(reader_next_structure_on_exhausted_reader)
 {

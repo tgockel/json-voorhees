@@ -44,6 +44,10 @@
        escaped a `noexcept` frame, so the documented error was unreachable and ordinary caller error aborted
        the process instead. `next_key` is no longer `noexcept` and the throw is now catchable, as documented.
        Note this changes the function's type, which since C++17 includes the exception specification (#213).
+     - Added `reader::next_value`, which steps over the value the reader is on. This is distinct from
+       `reader::next_structure`, which leaves the structure the reader is *inside*: on a scalar object
+       member the two differ, and using `next_structure` to skip an unwanted member silently consumes the
+       rest of the enclosing object. For a `parse_index` source this is a constant-time jump.
      - Added `parse_index::iterator::skip_subtree`, which steps over a whole object or array in constant time.
        The index already recorded where each structure ends when it parsed the matching close token, but
        nothing surfaced it, so skipping a value meant walking every node inside it.

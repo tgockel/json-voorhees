@@ -35,6 +35,8 @@ public:
 
     bool next_structure();
 
+    bool next_value();
+
     bool next_key();
 
 protected:
@@ -46,6 +48,11 @@ protected:
     virtual bool next_token_impl() noexcept = 0;
 
     virtual bool next_structure_impl() noexcept;
+
+    /// Step over the value \c current is on. There is no depth-counting default here on purpose: the only source
+    /// today is \c impl_parse_index, which reads the structure's extent off the tape, so a default would be code
+    /// nothing runs. A source which cannot do better should grow one when it arrives.
+    virtual bool next_value_impl() noexcept = 0;
 
     virtual bool next_key_impl() noexcept;
 

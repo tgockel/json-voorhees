@@ -222,6 +222,37 @@ public:
     JSONV_NODISCARD
     bool next_structure() noexcept;
 
+    /// Go to one past the value this reader is on.
+    ///
+    /// Unlike \ref next_structure, which leaves the structure the reader is *inside*, this steps over the single value
+    /// the reader is *on*. On a structure that means its matching close token; on anything else it is the same as
+    /// \ref next_token.
+    ///
+    /// \code
+    /// ^
+    /// {
+    ///   "a":   /* <- go to [ */
+    ///     [    /* <- go to "b" */
+    ///       1, /* <- go to 2 */
+    ///       2,
+    ///       3,
+    ///     ],
+    ///   "b":
+    ///     {    /* <- go to "c" */
+    ///     },
+    ///   "c":
+    ///     4    /* <- go to } */
+    /// }
+    /// $
+    /// \endcode
+    ///
+    /// This is the primitive for ignoring a value you do not want. Note the difference from \ref next_structure at the
+    /// `4` above: this goes to the `}`, while \ref next_structure leaves the enclosing object entirely.
+    ///
+    /// \returns \c true if the reader is still \c good to read from \c current.
+    JSONV_NODISCARD
+    bool next_value() noexcept;
+
     /// Go to the next object key or end-of-object.
     ///
     /// \code

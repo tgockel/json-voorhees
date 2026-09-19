@@ -930,11 +930,16 @@ parse_index::iterator& parse_index::iterator::skip_subtree()
                                    );
     }
 
+    // Every structure on a tape from `parse` has an end recorded for it -- the repair pass gives one even to
+    // structures a failed parse left open. A structure without one means the tape never got that far, which only
+    // happens when an allocation failed and the index is already being thrown away. Step a single node rather than
+    // throw: callers of this live behind `noexcept` boundaries, and turning an unreachable case into a `terminate` is
+    // a worse trade than moving conservatively.
     auto offset = _iter[1];
     if (offset == unclosed_structure_end_offset)
     {
         JSONV_UNLIKELY
-        throw std::invalid_argument("parse_index::iterator::skip_subtree on a structure with no recorded end");
+        return ++*this;
     }
 
     // Land on the matching close token. The `_prefix` carry cannot be inherited across a jump the way `operator++`

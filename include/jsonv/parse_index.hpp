@@ -56,8 +56,8 @@ public:
         /// iter.skip_subtree();    // now on the key which follows the array
         /// \endcode
         ///
-        /// If the structure was never closed -- only possible when \ref parse_index::success is \c false -- this
-        /// moves to the end of the index, treating the error which truncated the document as the structure's end.
+        /// If the structure was never closed -- only possible when \ref parse_index::success is \c false -- the
+        /// error which truncated the document stands in as its end, so this moves to the end of the index.
         ///
         /// \throws std::invalid_argument if this iterator is not on a \c ast_node_type::document_start,
         ///  \c ast_node_type::object_begin or \c ast_node_type::array_begin.

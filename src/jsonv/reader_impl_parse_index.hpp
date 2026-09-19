@@ -36,6 +36,8 @@ public:
 
     virtual bool next_token_impl() noexcept override;
 
+    virtual bool next_value_impl() noexcept override;
+
 private:
     parse_index                 _index;
     parse_index::const_iterator _current;

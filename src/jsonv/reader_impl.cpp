@@ -74,6 +74,12 @@ bool reader::impl::next_structure()
     return next_structure_impl();
 }
 
+bool reader::impl::next_value()
+{
+    mark_dirty();
+    return next_value_impl();
+}
+
 bool reader::impl::next_key()
 {
     ast_node_type current_type;
