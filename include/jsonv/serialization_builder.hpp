@@ -475,8 +475,8 @@ namespace jsonv
 ///
 ///  - <tt>after(version)</tt>
 ///
-/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than or
-/// equal to the provided \c version.
+/// Only serialize this member if the \c serialization_context was not created with a version, or its version is
+/// greater than the provided \c version.
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_alternate_name alternate_name
 ///
@@ -489,8 +489,8 @@ namespace jsonv
 ///
 ///  - <tt>before(version)</tt>
 ///
-/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than or
-/// equal to the provided \c version.
+/// Only serialize this member if the \c serialization_context was not created with a version, or its version is
+/// less than the provided \c version.
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_check_input check_input
 ///
@@ -540,15 +540,15 @@ namespace jsonv
 ///
 ///  - <tt>since(version)</tt>
 ///
-/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is greater than the
-/// provided \c version.
+/// Only serialize this member if the \c serialization_context was not created with a version, or its version is
+/// greater than or equal to the provided \c version.
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_until until
 ///
 ///  - <tt>until(version)</tt>
 ///
-/// Only serialize this member if the \c serialization_context::version is not \c version::empty and is less than the
-/// provided \c version.
+/// Only serialize this member if the \c serialization_context was not created with a version, or its version is
+/// less than or equal to the provided \c version.
 
 class formats_builder;
 
@@ -902,42 +902,46 @@ public:
         return *this;
     }
 
-    /** Only encode this member if the \c serialization_context::version is greater than or equal to \a ver. **/
+    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// is greater than or equal to \a ver.
     member_adapter_builder& since(version ver)
     {
         return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
-                             return context.version().empty() || context.version() >= ver;
+                             return !context.version() || *context.version() >= ver;
                          }
                         );
     }
 
-    /** Only encode this member if the \c serialization_context::version is less than or equal to \a ver. **/
+    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// is less than or equal to \a ver.
     member_adapter_builder& until(version ver)
     {
         return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
-                             return context.version().empty() || context.version() <= ver;
+                             return !context.version() || *context.version() <= ver;
                          }
                         );
     }
 
-    /** Only encode this member if the \c serialization_context::version is greater than \a ver. **/
+    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// is greater than \a ver.
     member_adapter_builder& after(version ver)
     {
         return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
-                             return context.version().empty() || context.version() > ver;
+                             return !context.version() || *context.version() > ver;
                          }
                         );
     }
 
-    /** Only encode this member if the \c serialization_context::version is less than \a ver. **/
+    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// is less than \a ver.
     member_adapter_builder& before(version ver)
     {
         return encode_if([ver] (const serialization_context& context, const TMember&)
                          {
-                             return context.version().empty() || context.version() < ver;
+                             return !context.version() || *context.version() < ver;
                          }
                         );
     }

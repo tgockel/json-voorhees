@@ -10,7 +10,10 @@
 #pragma once
 
 #include <jsonv/config.hpp>
+#include <jsonv/demangle.hpp>
 #include <jsonv/serialization.hpp>
+
+#include "adapter_for.hpp"
 
 namespace jsonv
 {
