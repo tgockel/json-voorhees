@@ -20,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #ifndef JSONV_READER_TESTS_LOG_ENABLED
@@ -720,8 +721,8 @@ TEST(reader_expect_and_current_as_on_const_reader)
 }
 
 /// The header claimed `std::invalid_argument` for a reader which is not `good`, but that case comes out of
-/// `reader::impl::current` as a `std::logic_error`. `std::invalid_argument` is only the moved-from case, which cannot
-/// be reached from a test: `reader` does not currently compile when moved outside of `reader.cpp`.
+/// `reader::impl::current` as a `std::logic_error`. `std::invalid_argument` is only the moved-from case, which is
+/// pinned by `reader_moved_from_source_throws_invalid_argument` below.
 ///
 /// \see https://github.com/tgockel/json-voorhees/issues/223
 TEST(reader_expect_on_exhausted_reader_throws_logic_error)
@@ -734,6 +735,102 @@ TEST(reader_expect_on_exhausted_reader_throws_logic_error)
     ensure_throws(std::logic_error, reader.expect(jsonv::ast_node_type::integer));
     ensure_throws(std::logic_error, reader.expect({ jsonv::ast_node_type::integer }));
     ensure_throws(std::logic_error, reader.current_as<jsonv::ast_node::integer>());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Moving                                                                                                             //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// These are as much compiled as run. This file sees only the public headers, where `reader::impl` is incomplete, so a
+// `reader` whose move operations are inline `= default` does not compile here at all -- the deleter needs a complete
+// type. That is the whole of #240, and any of the four below is enough to catch it coming back.
+
+/// \see https://github.com/tgockel/json-voorhees/issues/240
+TEST(reader_move_construct_keeps_position)
+{
+    jsonv::reader src(R"({ "a": [ 1, 2, 3 ] })");
+    ensure(src.next_token());   // document_start -> {
+    ensure(src.next_token());   // { -> "a"
+    ensure(src.next_token());   // "a" -> [
+    ensure(src.next_token());   // [ -> 1
+
+    jsonv::reader dst(std::move(src));
+
+    ensure(dst.good());
+    ensure_eq(jsonv::ast_node_type::integer, dst.current().type());
+    ensure_eq(jsonv::path::create(".a[0]"), dst.current_path());
+    ensure_eq(std::int64_t(1), dst.current().as<jsonv::ast_node::integer>().value());
+
+    // ...and the walk carries on from where the source left off.
+    ensure(dst.next_token());
+    ensure_eq(std::int64_t(2), dst.current().as<jsonv::ast_node::integer>().value());
+}
+
+/// The destination's old implementation has to be destroyed, which is the half that needs a complete type. Assigning
+/// over a reader part-way through a different document is what makes a leak or a double free show up under ASan.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/240
+TEST(reader_move_assign_over_populated_destination)
+{
+    jsonv::reader src(R"({ "a": "taco" })");
+    ensure(src.next_token());   // document_start -> {
+    ensure(src.next_token());   // { -> "a"
+    ensure(src.next_token());   // "a" -> "taco"
+
+    jsonv::reader dst(R"([ 1, 2, 3 ])");
+    ensure(dst.next_token());   // document_start -> [
+    ensure(dst.next_token());   // [ -> 1
+
+    dst = std::move(src);
+
+    ensure(dst.good());
+    ensure_eq(jsonv::ast_node_type::string_canonical, dst.current().type());
+    ensure_eq(jsonv::path::create(".a"), dst.current_path());
+    ensure_eq("taco", dst.current().as<jsonv::ast_node::string_canonical>().value());
+
+    ensure(dst.next_token());
+    ensure_eq(jsonv::ast_node_type::object_end, dst.current().type());
+}
+
+/// The moved-from half of the contract the header documents, which #223 could only pin one side of. Note that this is
+/// `std::invalid_argument` rather than the `std::logic_error` an exhausted reader gives: the two failures are
+/// different, and telling them apart is the point.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/240
+TEST(reader_moved_from_source_throws_invalid_argument)
+{
+    jsonv::reader src("5");
+    ensure(src.next_token());   // document_start -> 5
+
+    jsonv::reader dst(std::move(src));
+    ensure(dst.good());
+
+    ensure(!src.good());
+    ensure_throws(std::invalid_argument, src.current());
+    ensure_throws(std::invalid_argument, src.current_path());
+    ensure_throws(std::invalid_argument, src.expect(jsonv::ast_node_type::integer));
+    ensure_throws(std::invalid_argument, src.expect({ jsonv::ast_node_type::integer }));
+    ensure_throws(std::invalid_argument, src.current_as<jsonv::ast_node::integer>());
+}
+
+/// Self-move must leave the reader on the node it was already on. The reference is what keeps the compiler from seeing
+/// the self-assignment and warning about it -- the same trick as `object_node_handle_move_assign_to_self`.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/240
+TEST(reader_move_assign_to_self)
+{
+    jsonv::reader  reader(R"([ 1, 2, 3 ])");
+    jsonv::reader& same = reader;
+
+    ensure(reader.next_token());    // document_start -> [
+    ensure(reader.next_token());    // [ -> 1
+
+    reader = std::move(same);
+
+    ensure(reader.good());
+    ensure_eq(jsonv::ast_node_type::integer, reader.current().type());
+    ensure_eq(jsonv::path::create("[0]"), reader.current_path());
+    ensure_eq(std::int64_t(1), reader.current().as<jsonv::ast_node::integer>().value());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

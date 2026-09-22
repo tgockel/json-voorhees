@@ -60,6 +60,12 @@
        `reader::expect`, which was not, so instantiating it was a hard error -- on a `const reader` or any other.
        Nothing in the tree instantiated the template, so the mismatch was never diagnosed; there is now a test
        which does (#222).
+     - Fixed `reader` failing to compile for any consumer which moved one. Both move operations were declared
+       inline `= default` while `reader::impl` is only forward-declared in the public header, so the
+       `std::unique_ptr` deleter was instantiated against an incomplete type in the caller's translation unit.
+       They are now declared in the header and defaulted in `reader.cpp`, which is what the destructor already
+       did. The issue reported move assignment; move construction was broken the same way, since the defaulted
+       constructor still needs a destructible member for the exception path (#240).
      - Added `parse_index::iterator::skip_subtree`, which steps over a whole object or array in constant time.
        The index already recorded where each structure ends when it parsed the matching close token, but
        nothing surfaced it, so skipping a value meant walking every node inside it.

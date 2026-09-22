@@ -124,8 +124,13 @@ public:
     reader(const reader&)            = delete;
     reader& operator=(const reader&) = delete;
 
-    reader(reader&&) noexcept            = default;
-    reader& operator=(reader&&) noexcept = default;
+    /// \{
+    /// Moving a reader transfers its implementation, leaving the source moved-from: \c good is \c false and the
+    /// accessors throw \c std::invalid_argument. These are out-of-line because destroying the implementation needs a
+    /// complete \c reader::impl, which this header does not have -- the same reason the destructor is.
+    reader(reader&&) noexcept;
+    reader& operator=(reader&&) noexcept;
+    /// \}
 
     ~reader() noexcept;
 

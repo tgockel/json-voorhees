@@ -56,6 +56,9 @@ reader::reader(std::string&& source, const parse_options& options) :
         reader(std::in_place_type<impl_parse_index_owning>, std::move(source), options)
 { }
 
+reader::reader(reader&&) noexcept            = default;
+reader& reader::operator=(reader&&) noexcept = default;
+
 reader::~reader() noexcept = default;
 
 bool reader::good() const
