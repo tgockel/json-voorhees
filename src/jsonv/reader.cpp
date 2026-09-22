@@ -9,10 +9,9 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/ast.hpp>
 #include <jsonv/parse_index.hpp>
-#include <jsonv/serialization.hpp>
 #include <jsonv/reader.hpp>
 
-#include <sstream>
+#include <stdexcept>
 
 #include "reader_impl.hpp"
 #include "reader_impl_parse_index.hpp"
@@ -67,32 +66,14 @@ bool reader::good() const
         return false;
 }
 
-void reader::expect(ast_node_type type)
+std::expected<void, ast_node_type> reader::expect(ast_node_type type) const
 {
-    if (current().type() != type)
-    {
-        std::ostringstream ss;
-        ss << "Read node of type " << current().type() << " when expecting " << type;
-        throw extraction_error(current_path(), std::move(ss).str());
-    }
+    return current().expect(type);
 }
 
-void reader::expect(std::initializer_list<ast_node_type> types)
+std::expected<void, ast_node_type> reader::expect(std::initializer_list<ast_node_type> types) const
 {
-    if (types.size() == 0U)
-        throw std::invalid_argument("Cannot expect 0 types");
-    else if (types.size() == 1U)
-        return expect(*types.begin());
-
-    if (std::find(types.begin(), types.end(), current().type()) == types.end())
-    {
-        std::ostringstream ss;
-        ss << "Read node of type " << current().type() << " when expecting one of ";
-        for (const auto& type : types)
-            ss << type;
-
-        throw extraction_error(current_path(), std::move(ss).str());
-    }
+    return current().expect(types);
 }
 
 const ast_node& reader::current() const

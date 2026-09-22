@@ -27,16 +27,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Report Clang version
-        run: clang++ --version
-
+      # Clang 19 rather than the ubuntu-24.04 default of 18: 18 reports `__cpp_concepts` as 201907,
+      # and libstdc++ gates <expected> on `__cpp_concepts >= 202002L`, so `std::expected` does not
+      # exist there. See the build-linux-clang job in ci.yml for the full reasoning.
+      #
       # libFuzzer and the sanitizer runtimes live in libclang-rt-*-dev, which the clang package does
-      # not depend on. The unversioned metapackage follows whichever Clang the runner defaults to,
-      # which keeps this tracking the runner toolchain rather than pinning a version that goes stale.
-      - name: Install sanitizer runtimes
+      # not depend on, so it is named explicitly and must match the pinned compiler version.
+      - name: Install Clang and sanitizer runtimes
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libclang-rt-dev
+          sudo apt-get install --yes clang-19 libclang-rt-19-dev
+
+      - name: Report Clang version
+        run: clang++-19 --version
 
       # The committed seeds are generated output. Nothing else would notice them drifting from the generator.
       # `git status` rather than `git diff`, because a seed added to make_seeds.py but never committed shows up as an
@@ -56,8 +59,8 @@ jobs:
           cmake -S . -B build
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
           -DJSONV_BUILD_FUZZERS=ON
-          -DCMAKE_C_COMPILER=clang
-          -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_C_COMPILER=clang-19
+          -DCMAKE_CXX_COMPILER=clang++-19
 
       - name: Build
         run: >

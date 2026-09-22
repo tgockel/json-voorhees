@@ -67,16 +67,27 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      # Clang 18, the ubuntu-24.04 default, reports `__cpp_concepts` as 201907. libstdc++ gates
+      # <expected> on `__cpp_concepts >= 202002L`, so the header compiles to nothing and
+      # `std::expected` does not exist. Clang 19 raised the macro for exactly this reason -- its
+      # release notes call out enabling libstdc++'s <expected> -- and it ships in the runner's own
+      # archive, so no third-party apt source is needed. This pins a version rather than following
+      # the runner default because the default cannot build the library.
+      - name: Install Clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-19
+
       - name: Report Clang version
-        run: clang++ --version
+        run: clang++-19 --version
 
       - name: Configure
         run: >
           cmake -S . -B build
           -DJSONV_BUILD_TESTS=ON
           -DCMAKE_BUILD_TYPE=${{ matrix.build-type }}
-          -DCMAKE_C_COMPILER=clang
-          -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_C_COMPILER=clang-19
+          -DCMAKE_CXX_COMPILER=clang++-19
 
       - name: Build and test
         run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
@@ -89,17 +100,20 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Report Clang version
-        run: clang++ --version
-
+      # Clang 19 rather than the ubuntu-24.04 default of 18: 18 reports `__cpp_concepts` as 201907,
+      # and libstdc++ gates <expected> on `__cpp_concepts >= 202002L`, so `std::expected` does not
+      # exist there. See the build-linux-clang job for the full reasoning.
+      #
       # The sanitizer runtimes live in libclang-rt-*-dev, which the clang package does not depend
-      # on. The unversioned metapackage follows whichever Clang the runner defaults to, which keeps
-      # this tracking the runner toolchain rather than pinning a version that goes stale. The
-      # symbolizer is in `llvm`, and without it every frame of a report comes back as `??:0`.
-      - name: Install sanitizer runtimes
+      # on, so it is named explicitly and must match the pinned compiler version. The symbolizer is
+      # in `llvm`, and without it every frame of a report comes back as `??:0`.
+      - name: Install Clang and sanitizer runtimes
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libclang-rt-dev llvm
+          sudo apt-get install --yes clang-19 libclang-rt-19-dev llvm
+
+      - name: Report Clang version
+        run: clang++-19 --version
 
       # Debug rather than an optimized build: `JSONV_DEBUG=1` drops the benchmark tests to a single
       # iteration, so the run spends its time on assertions instead of timing loops over the
@@ -110,8 +124,8 @@ jobs:
           -DJSONV_BUILD_TESTS=ON
           -DJSONV_SANITIZE=ON
           -DCMAKE_BUILD_TYPE=Debug
-          -DCMAKE_C_COMPILER=clang
-          -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_C_COMPILER=clang-19
+          -DCMAKE_CXX_COMPILER=clang++-19
 
       - name: Build and test
         env:
@@ -136,7 +150,7 @@ jobs:
             cpack-generator: DEB
             package-glob: "*.deb"
           - format: rpm
-            container: rockylinux:9
+            container: almalinux:10
             cpack-generator: RPM
             package-glob: "*.rpm"
 

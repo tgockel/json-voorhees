@@ -12,9 +12,11 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/kind.hpp>
+#include <expected>
 #include <string_view>
 
 #include <cstdint>
+#include <initializer_list>
 #include <iosfwd>
 #include <utility>
 #include <variant>
@@ -490,6 +492,22 @@ public:
     {
         return visit([](const auto& x) { return x.type(); });
     }
+
+    /// \{
+    /// Check that this node has the given \a type or is one of the expected \a types.
+    ///
+    /// A mismatch is returned rather than thrown, since which node types are acceptable is a question about the JSON
+    /// source and not about the correctness of the program asking. The caller decides whether it is an error.
+    ///
+    /// \returns Nothing if this instance has \a type or one of the given \a types; otherwise the \c ast_node_type this
+    ///          instance actually has.
+    /// \throws std::invalid_argument if \a types is empty. Unlike a type mismatch, expecting nothing at all is a
+    ///         mistake in the calling code.
+    JSONV_NODISCARD
+    JSONV_PUBLIC std::expected<void, ast_node_type> expect(ast_node_type type) const;
+    JSONV_NODISCARD
+    JSONV_PUBLIC std::expected<void, ast_node_type> expect(std::initializer_list<ast_node_type> types) const;
+    /// \}
 
     /// Get a view of the raw token. For example, \c "true", \c "{", or \c "1234". Note that this includes the complete
     /// source, so string types such as \c ast_node_type::string_canonical include the opening and closing quotations.

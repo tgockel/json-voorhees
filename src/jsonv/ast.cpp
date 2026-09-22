@@ -12,6 +12,7 @@
 #include <jsonv/serialization.hpp>
 #include <jsonv/value.hpp>
 
+#include <algorithm>
 #include <cassert>
 #include <charconv>
 #include <cstdlib>
@@ -19,6 +20,7 @@
 #include <limits>
 #include <ostream>
 #include <sstream>
+#include <stdexcept>
 
 #include <iostream>
 #include <system_error>
@@ -232,6 +234,32 @@ double ast_node::decimal::value() const
         return val;
     else
         throw make_failed_numeric_extract(*this, "decimal");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ast_node                                                                                                           //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::expected<void, ast_node_type> ast_node::expect(ast_node_type expected_type) const
+{
+    if (auto found_type = type(); found_type == expected_type)
+        return {};
+    else
+        return std::unexpected(found_type);
+}
+
+std::expected<void, ast_node_type> ast_node::expect(std::initializer_list<ast_node_type> expected_types) const
+{
+    if (expected_types.size() == 0U)
+        throw std::invalid_argument("Cannot expect 0 types");
+    else if (expected_types.size() == 1U)
+        return expect(*expected_types.begin());
+
+    auto found_type = type();
+    if (std::find(expected_types.begin(), expected_types.end(), found_type) != expected_types.end())
+        return {};
+    else
+        return std::unexpected(found_type);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

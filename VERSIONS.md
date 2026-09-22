@@ -48,6 +48,18 @@
        `reader::next_structure`, which leaves the structure the reader is *inside*: on a scalar object
        member the two differ, and using `next_structure` to skip an unwanted member silently consumes the
        rest of the enclosing object. For a `parse_index` source this is a constant-time jump.
+     - `reader::expect` and the new `ast_node::expect` report a type mismatch by returning
+       `std::expected<void, ast_node_type>` carrying the type actually found, rather than throwing
+       `extraction_error` and building a message. Which node types are acceptable is a question about the JSON
+       source, not about the correctness of the program asking, so the caller decides whether a mismatch is an
+       error -- and trying a type no longer costs a throw. `reader::current_as` returns
+       `std::expected<TAstNode, ast_node_type>` in the same way. Expecting an empty list of types still throws
+       `std::invalid_argument`, since that is a mistake in the calling code. This also drops `reader`'s only
+       dependency on `serialization.hpp` (#223).
+     - Fixed `reader::current_as` failing to compile for every node type. It is declared `const` but called
+       `reader::expect`, which was not, so instantiating it was a hard error -- on a `const reader` or any other.
+       Nothing in the tree instantiated the template, so the mismatch was never diagnosed; there is now a test
+       which does (#222).
      - Added `parse_index::iterator::skip_subtree`, which steps over a whole object or array in constant time.
        The index already recorded where each structure ends when it parsed the matching close token, but
        nothing surfaced it, so skipping a value meant walking every node inside it.

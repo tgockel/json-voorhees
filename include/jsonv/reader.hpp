@@ -12,6 +12,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/ast.hpp>
+#include <expected>
 #include <string_view>
 
 #include <cstdint>
@@ -36,6 +37,61 @@ class value;
 /// Readers normalize access to JSON source for conversion to some other format. They can be provided with pre-parsed
 /// JSON through a \c parse_index or \c value. They can be provided with a \c std::string or \c std::string_view directly.
 /// This allows \c extractor implementations to operate on all forms of JSON without worrying about the implementation.
+///
+/// A reader is a forward cursor over that sequence. It starts on \c ast_node_type::document_start, so the first thing
+/// to do is step onto the value itself. Reading an object means walking its keys, handling the ones you recognize and
+/// skipping the ones you do not:
+///
+/// \code
+/// struct my_object
+/// {
+///     std::int64_t a = 0;
+/// };
+///
+/// std::optional<my_object> extract_my_object(jsonv::reader& from)
+/// {
+///     if (!from.expect(jsonv::ast_node_type::object_begin))
+///         return std::nullopt;
+///
+///     // Step onto the first key, or onto the } of an empty object.
+///     if (!from.next_token())
+///         return std::nullopt;
+///
+///     my_object out;
+///     while (from.good() && from.current().type() != jsonv::ast_node_type::object_end)
+///     {
+///         // Keys arrive canonical or escaped, depending on whether the source used escape sequences.
+///         if (!from.expect({ jsonv::ast_node_type::key_canonical, jsonv::ast_node_type::key_escaped }))
+///             return std::nullopt;
+///
+///         auto key = from.current().visit_key([](const auto& k) { return std::string(k.value()); });
+///         if (key == "a")
+///         {
+///             if (!from.next_token())
+///                 return std::nullopt;
+///
+///             if (auto node = from.current_as<jsonv::ast_node::integer>())
+///                 out.a = node->value();
+///             else
+///                 return std::nullopt;
+///
+///             // Step off the value and onto the next key, or onto the closing }.
+///             if (!from.next_token())
+///                 return std::nullopt;
+///         }
+///         else
+///         {
+///             // A key we do not care about -- skip its value, however large, and land on the next key.
+///             if (!from.next_key())
+///                 return std::nullopt;
+///         }
+///     }
+///     return out;
+/// }
+/// \endcode
+///
+/// Note that \c next_key is only valid while sitting on a key or on the opening \c { -- it is the "skip this member"
+/// step, not the loop's advance. Use \c next_token to move off a value you have just read.
 class JSONV_PUBLIC reader final
 {
 public:
@@ -80,30 +136,40 @@ public:
 
     /// Get the current AST node this reader is pointing at.
     ///
-    /// \throws std::invalid_argument if this instance is not \c good.
+    /// \throws std::logic_error if this instance is not \c good, or std::invalid_argument if it has been moved-from.
     JSONV_NODISCARD
     const ast_node& current() const;
 
     /// \{
-    /// Check that the \c current AST node has the given \a type or is one of the expected \a types. Using this leads to
-    /// a slightly more informative error message than `current.as<T>()` call.
+    /// Check that the \c current AST node has the given \a type or is one of the expected \a types.
     ///
-    /// \throws extraction_error if the current node does not match the expected \a type or \a types.
-    /// \throws std::invalid_argument if this instance is not \c good.
-    void expect(ast_node_type type);
-    void expect(std::initializer_list<ast_node_type> types);
+    /// \returns Nothing if the \c current node matches \a type or one of the given \a types; otherwise the
+    ///          \c ast_node_type the \c current node actually has.
+    /// \throws std::invalid_argument if \a types is empty.
+    /// \throws std::logic_error if this instance is not \c good, or std::invalid_argument if it has been moved-from.
+    ///
+    /// \see ast_node::expect
+    JSONV_NODISCARD
+    std::expected<void, ast_node_type> expect(ast_node_type type) const;
+    JSONV_NODISCARD
+    std::expected<void, ast_node_type> expect(std::initializer_list<ast_node_type> types) const;
     /// \}
 
     /// Get the \c current AST node as a specific \c TAstNode subtype, calling \c expect beforehand.
     ///
-    /// \throws std::invalid_argument if this instance is not \c good.
-    /// \throws extraction_error if the current node does not match `TAstNode::type()`.
+    /// \returns The \c current node as a \c TAstNode; otherwise the \c ast_node_type the \c current node actually has.
+    /// \throws std::logic_error if this instance is not \c good, or std::invalid_argument if it has been moved-from.
     template <typename TAstNode>
     JSONV_NODISCARD
-    TAstNode current_as() const
+    std::expected<TAstNode, ast_node_type> current_as() const
     {
-        expect(TAstNode::type());
-        return current().as<TAstNode>();
+        // Written as an explicit branch rather than `expect(...).transform(...)` on purpose. The monadic operations on
+        // `std::expected` are a later addition than the type itself -- libstdc++ 12 and libc++ 16 have `expected` but
+        // no `transform` -- so using one here would quietly raise the minimum toolchain by a whole release.
+        if (auto matched = expect(TAstNode::type()); !matched)
+            return std::unexpected(matched.error());
+        else
+            return current().as<TAstNode>();
     }
 
     /// Get the path to the current node this reader is pointing at. This is used in the generation of error messages to
@@ -129,7 +195,7 @@ public:
     /// $               /* "." */
     /// \endcode
     ///
-    /// \throws std::invalid_argument if this instance is not \c good.
+    /// \throws std::logic_error if this instance is not \c good, or std::invalid_argument if it has been moved-from.
     JSONV_NODISCARD
     const path& current_path() const;
 
@@ -177,46 +243,53 @@ public:
     /// $
     /// \endcode
     ///
-    /// This is meant to be used when parsing an object or array
+    /// The point of this over \ref next_token is abandoning a structure you are only part-way through. Once the one
+    /// member you came for has been read, there is no reason to walk the rest of the object:
     ///
     /// \code
-    /// my_object extract_my_object(jsonv::reader& from)
+    /// /// Find the "a" member of an object and leave the rest of it unread.
+    /// std::optional<std::int64_t> find_a(jsonv::reader& from)
     /// {
-    ///     from.expect(jsonv::ast_node_type::object_begin);
-    ///     from.next_token();
+    ///     if (!from.expect(jsonv::ast_node_type::object_begin))
+    ///         return std::nullopt;
     ///
-    ///     // Use this helper macro to always execute code
-    ///     JSONV_SCOPE_EXIT { from.next_structure(); };
+    ///     if (!from.next_token())
+    ///         return std::nullopt;
     ///
-    ///     std::optional<std::int64_t> a;
-    ///     while (from.good())
+    ///     while (from.good() && from.current().type() != jsonv::ast_node_type::object_end)
     ///     {
-    ///         auto token = from.current();
-    ///         if (token.type() == jsonv::ast_node_type::object_end)
+    ///         if (!from.expect({ jsonv::ast_node_type::key_canonical, jsonv::ast_node_type::key_escaped }))
+    ///             return std::nullopt;
+    ///
+    ///         auto key = from.current().visit_key([](const auto& k) { return std::string(k.value()); });
+    ///         if (key != "a")
     ///         {
-    ///             return my_object(a.value_or(0));
+    ///             if (!from.next_key())
+    ///                 return std::nullopt;
+    ///
+    ///             continue;
     ///         }
-    ///         else if (token.type() == jsonv::ast_node_type::key_canonical)
-    ///         {
-    ///             if (token.value() == "a")
-    ///             {
-    ///                 reader.next_token();
-    ///                 a = reader.current_as<jsonv::ast_node::integer>().value();
-    ///                 reader.next_token();
-    ///             }
-    ///             else
-    ///             {
-    ///                 // ignore
-    ///                 reader.next_key();
-    ///             }
-    ///         }
+    ///
+    ///         if (!from.next_token())
+    ///             return std::nullopt;
+    ///
+    ///         auto node = from.current_as<jsonv::ast_node::integer>();
+    ///
+    ///         // Whatever is left of this object, we are done with it.
+    ///         (void) from.next_structure();
+    ///
+    ///         if (node)
+    ///             return node->value();
     ///         else
-    ///         {
-    ///             throw jsonv::extraction_error(from.current_path(), "Did not handle escaped keys");
-    ///         }
+    ///             return std::nullopt;
     ///     }
+    ///     return std::nullopt;
     /// }
     /// \endcode
+    ///
+    /// Note the call site: \c next_structure is used while sitting on a *value* inside the object, which is where it
+    /// differs from \ref next_token. Called on the closing \c } itself it is merely \ref next_token, since there is no
+    /// longer a structure to leave.
     ///
     /// \returns \c true if the reader is still \c good to read from \c current.
     JSONV_NODISCARD

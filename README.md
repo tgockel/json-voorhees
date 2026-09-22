@@ -108,6 +108,11 @@ As examples, modern GCC and Clang toolchains should be built with `--std=c++23`.
 For MSVC, use stable `/std:c++23` support when it is available for your toolset; MSVC
 `/std:c++23preview` is treated as experimental.
 
+The language mode alone is not always sufficient, since the library also uses C++23 *library*
+features. `std::expected` requires libstdc++ 12 or libc++ 16; with libstdc++ it additionally
+requires Clang 19, because Clang 18 reports `__cpp_concepts` as `201907` while libstdc++ gates
+`<expected>` on `202002`. On Linux that makes GCC 12 and Clang 19 the practical floor.
+
 Versioning
 ----------
 
