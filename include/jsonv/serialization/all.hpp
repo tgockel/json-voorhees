@@ -10,15 +10,20 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
+#include "adapter.hpp"
 #include "adapter_for.hpp"
 #include "container_adapter.hpp"
+#include "context.hpp"
 #include "enum_adapter.hpp"
+#include "extract.hpp"
 #include "extractor_construction.hpp"
 #include "extractor_for.hpp"
+#include "formats.hpp"
 #include "function_adapter.hpp"
 #include "function_extractor.hpp"
 #include "function_serializer.hpp"
 #include "optional_adapter.hpp"
 #include "polymorphic_adapter.hpp"
+#include "serializer.hpp"
 #include "serializer_for.hpp"
 #include "wrapper_adapter.hpp"
