@@ -48,6 +48,19 @@
        `reader::next_structure`, which leaves the structure the reader is *inside*: on a scalar object
        member the two differ, and using `next_structure` to skip an unwanted member silently consumes the
        rest of the enclosing object. For a `parse_index` source this is a constant-time jump.
+     - Added `reader::from_value`, which reads an in-memory `value` directly. The header has always named `value`
+       as one of the sources a `reader` accepts, but the implementation behind it was never written: the
+       constructor was declared and never defined, so calling it was a link error. It now walks the tree with an
+       explicit frame stack, synthesising token text into an arena as it goes, which keeps `extract<T>(const
+       value&)` a tree walk instead of a round trip out through the encoder and back through the parser. This is
+       a named factory rather than a constructor because `value` converts implicitly from `std::string`, which
+       would have made `reader(some_std_string)` ambiguous against the JSON-source overload. Strings and keys
+       arrive canonical, since a `value` holds decoded bytes, and a non-finite `kind::decimal` arrives as
+       `null` -- both of which match what encoding the same value produces (#224).
+     - Corrected `reader::next_value`'s documentation, which said that on a structure it lands on the matching
+       close token. It lands on the token *after* it, as the worked example beside the clause and the
+       `parse_index` implementation both always did. A caller who believed the prose and added a `next_token`
+       to step off the close would have skipped the following key.
      - `reader::expect` and the new `ast_node::expect` report a type mismatch by returning
        `std::expected<void, ast_node_type>` carrying the type actually found, rather than throwing
        `extraction_error` and building a message. Which node types are acceptable is a question about the JSON

@@ -15,12 +15,10 @@
 #include "detail.hpp"
 
 #include <array>
-#include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <ostream>
 #include <string_view>
-#include <system_error>
 
 namespace jsonv
 {
@@ -120,24 +118,9 @@ void ostream_encoder::write_decimal(double value)
 {
     if (std::isfinite(value))
     {
-        std::array<char, 64> buffer;
-        auto result = std::to_chars(buffer.data(),
-                                    buffer.data() + buffer.size(),
-                                    value,
-                                    std::chars_format::general);
-        if (result.ec == std::errc{})
-        {
-            const std::string_view text(buffer.data(), static_cast<std::size_t>(result.ptr - buffer.data()));
-            _output.write(text.data(), static_cast<std::streamsize>(text.size()));
-
-            // `general` gives the shortest representation that round-trips, which for an integral value carries
-            // neither a decimal point nor an exponent -- `2.0` prints as `2` and `-0.0` as `-0`. Those re-parse as
-            // `kind::integer` rather than `kind::decimal`, and negative zero loses its sign along the way, which also
-            // makes encoding unstable across a parse/encode cycle. Append a fractional part so the token stays a
-            // decimal. See issue #208.
-            if (text.find_first_of(".eE") == std::string_view::npos)
-                _output.write(".0", 2);
-        }
+        std::array<char, number_token_max> buffer;
+        if (auto text = format_decimal(value, buffer.data()))
+            _output.write(text->data(), static_cast<std::streamsize>(text->size()));
         else
             _output << value;
     }

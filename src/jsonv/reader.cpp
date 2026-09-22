@@ -15,6 +15,7 @@
 
 #include "reader_impl.hpp"
 #include "reader_impl_parse_index.hpp"
+#include "reader_impl_value.hpp"
 
 namespace jsonv
 {
@@ -31,6 +32,16 @@ reader::reader(std::in_place_type_t<TImpl>, TArgs&&... args) :
 reader::reader(parse_index index) :
         reader(std::in_place_type<impl_parse_index>, std::move(index))
 { }
+
+reader reader::from_value(const value& source)
+{
+    return reader(std::in_place_type<impl_value>, source);
+}
+
+reader reader::from_value(value&& source)
+{
+    return reader(std::in_place_type<impl_value_owning>, std::move(source));
+}
 
 reader::reader(std::string_view source) :
         reader(std::in_place_type<impl_parse_index>, source)

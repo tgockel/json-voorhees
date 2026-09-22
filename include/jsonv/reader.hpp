@@ -98,10 +98,24 @@ public:
     /// Create a reader which reads from the given \a index.
     explicit reader(parse_index index);
 
+    /// \{
     /// Create a reader which reads from an in-memory \a value.
     ///
-    /// \param value The value to read from. This must remain valid for the lifetime of the reader.
-    explicit reader(const value* value);
+    /// \param value The value to read from. The overload taking a reference does not copy it, so it must remain
+    ///              valid for the lifetime of the reader; the rvalue overload moves \a value into the reader, which
+    ///              then keeps it alive.
+    ///
+    /// These are named rather than constructors because \c value converts implicitly from \c std::string, among
+    /// others. A \c reader(const value&) constructor would make <tt>reader(some_std_string)</tt> ambiguous -- a
+    /// \c std::string reaches \c std::string_view and \c value through user-defined conversions of equal rank --
+    /// and the same trap would reopen for every type \c value grows a converting constructor from. Returning by
+    /// value costs nothing: the result is a prvalue of the returned type, so it initializes the caller's object
+    /// directly without a move.
+    JSONV_NODISCARD
+    static reader from_value(const value& value);
+    JSONV_NODISCARD
+    static reader from_value(value&& value);
+    /// \}
 
     /// \{
     /// Create a reader which reads from JSON \a source.
@@ -303,8 +317,8 @@ public:
     /// Go to one past the value this reader is on.
     ///
     /// Unlike \ref next_structure, which leaves the structure the reader is *inside*, this steps over the single value
-    /// the reader is *on*. On a structure that means its matching close token; on anything else it is the same as
-    /// \ref next_token.
+    /// the reader is *on*. On a structure that means the token *after* its matching close, since the structure is the
+    /// value being stepped over; on anything else it is the same as \ref next_token.
     ///
     /// \code
     /// ^
@@ -361,6 +375,7 @@ private:
     class impl_parse_index;
     class impl_parse_index_owning;
     class impl_value;
+    class impl_value_owning;
 
     template <typename TImpl, typename... TArgs>
     explicit reader(std::in_place_type_t<TImpl>, TArgs&&...);

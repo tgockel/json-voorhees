@@ -12,7 +12,9 @@
 #include "char_convert.hpp"
 
 #include <algorithm>
+#include <charconv>
 #include <sstream>
+#include <system_error>
 
 namespace jsonv
 {
@@ -103,6 +105,43 @@ std::ostream& stream_escaped_string(std::ostream& stream, std::string_view str, 
     detail::string_encode(stream, str, ensure_ascii);
     stream << "\"";
     return stream;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Numbers                                                                                                            //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::optional<std::string_view> format_decimal(double value, char* buffer)
+{
+    // Two bytes short of the end, so the `.0` fixup below can never run off it. `general` needs at most 24 for a
+    // `double`, so nothing is actually given up.
+    auto result = std::to_chars(buffer, buffer + number_token_max - 2U, value, std::chars_format::general);
+    if (result.ec != std::errc{})
+        return std::nullopt;
+
+    std::string_view text(buffer, static_cast<std::size_t>(result.ptr - buffer));
+
+    // `general` gives the shortest representation that round-trips, which for an integral value carries neither a
+    // decimal point nor an exponent -- `2.0` prints as `2` and `-0.0` as `-0`. Those re-parse as `kind::integer`
+    // rather than `kind::decimal`, and negative zero loses its sign along the way, which also makes encoding unstable
+    // across a parse/encode cycle. Append a fractional part so the token stays a decimal. See issue #208.
+    if (text.find_first_of(".eE") == std::string_view::npos)
+    {
+        buffer[text.size()]      = '.';
+        buffer[text.size() + 1U] = '0';
+        text = std::string_view(buffer, text.size() + 2U);
+    }
+
+    return text;
+}
+
+std::optional<std::string_view> format_integer(std::int64_t value, char* buffer)
+{
+    auto result = std::to_chars(buffer, buffer + number_token_max, value);
+    if (result.ec != std::errc{})
+        return std::nullopt;
+
+    return std::string_view(buffer, static_cast<std::size_t>(result.ptr - buffer));
 }
 
 }

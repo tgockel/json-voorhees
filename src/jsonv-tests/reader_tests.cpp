@@ -9,14 +9,23 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv-tests/test.hpp>
 
+#include <jsonv-tests/filesystem_util.hpp>
+
 #include <jsonv/ast.hpp>
+#include <jsonv/parse.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
+#include <jsonv/value.hpp>
 
+#include <algorithm>
+#include <bit>
 #include <cstdint>
+#include <fstream>
 #include <iostream>
+#include <limits>
 #include <optional>
 #include <random>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -64,13 +73,51 @@ struct example_data_type
     std::vector<walk_info> expected;
 };
 
+/// Which \c reader the walk is against. Every example is walked both ways: the same document reached through the
+/// parser and through an in-memory \c value has to produce the same node sequence, or an extractor written against
+/// one source would silently misbehave on the other.
+enum class walk_source
+{
+    text,   //!< `reader(std::string_view)`, reading the example's source text
+    value,  //!< `reader::from_value`, reading the example parsed into a `value` first
+};
+
+}
+
+static std::string to_string(walk_source source)
+{
+    return source == walk_source::value ? "value" : "text";
+}
+
+static jsonv::reader make_reader(std::string_view source, walk_source from)
+{
+    if (from == walk_source::value)
+        return jsonv::reader::from_value(jsonv::parse(source));
+    else
+        return jsonv::reader(source);
+}
+
+/// A `value` holds *decoded* string bytes, so a value-sourced reader reports every string and key as canonical no
+/// matter how the source document spelled it. Nothing else about the walk differs, which is the point.
+static jsonv::ast_node_type expected_type(jsonv::ast_node_type type, walk_source from)
+{
+    if (from == walk_source::text)
+        return type;
+
+    switch (type)
+    {
+    case jsonv::ast_node_type::string_escaped: return jsonv::ast_node_type::string_canonical;
+    case jsonv::ast_node_type::key_escaped:    return jsonv::ast_node_type::key_canonical;
+    default:                                   return type;
+    }
 }
 
 template <typename FShouldJumpNextKey, typename FShouldJumpNextStruct>
 static void walk_expecting(jsonv::reader&                reader,
                            const std::vector<walk_info>& expected,
                            FShouldJumpNextKey&&          should_jump_next_key,
-                           FShouldJumpNextStruct&&       should_jump_next_struct
+                           FShouldJumpNextStruct&&       should_jump_next_struct,
+                           walk_source                   from = walk_source::text
                           )
 {
 
@@ -81,7 +128,7 @@ static void walk_expecting(jsonv::reader&                reader,
     {
         auto current = reader.current();
 
-        ensure_eq(expected[idx].type, current.type());
+        ensure_eq(expected_type(expected[idx].type, from), current.type());
         ensure_eq(expected[idx].path, reader.current_path());
 
         if (auto type = current.type();
@@ -232,40 +279,51 @@ class reader_example_walkthrough_no_jump_test final :
         public jsonv_test::unit_test
 {
 public:
-    reader_example_walkthrough_no_jump_test(example_data_type data) :
-            jsonv_test::unit_test(std::string("reader_example_walkthrough_no_jump/") + std::string(data.name)),
-            _data(std::move(data))
+    reader_example_walkthrough_no_jump_test(example_data_type data, walk_source from) :
+            jsonv_test::unit_test(std::string("reader_example_walkthrough_no_jump/") + std::string(data.name)
+                                  + "/" + to_string(from)),
+            _data(std::move(data)),
+            _from(from)
     { }
 
     static std::vector<std::unique_ptr<jsonv_test::unit_test>> make_tests(const example_data_type& data)
     {
         std::vector<std::unique_ptr<jsonv_test::unit_test>> out;
-        out.emplace_back(std::make_unique<reader_example_walkthrough_no_jump_test>(data));
+        for (auto from : { walk_source::text, walk_source::value })
+            out.emplace_back(std::make_unique<reader_example_walkthrough_no_jump_test>(data, from));
         return out;
     }
 
 protected:
     virtual void run_impl() override
     {
-        jsonv::reader reader(_data.source);
-        walk_expecting(reader, _data.expected, [](auto&&...) { return false; }, [](auto&&...) { return false; });
+        auto reader = make_reader(_data.source, _from);
+        walk_expecting(reader,
+                       _data.expected,
+                       [](auto&&...) { return false; },
+                       [](auto&&...) { return false; },
+                       _from
+                      );
     }
 
 private:
     example_data_type _data;
+    walk_source       _from;
 };
 
 static void walk_expecting_next_struct_at_index(std::string_view            src,
                                                 const std::vector<walk_info>& expected,
-                                                std::size_t                   jump_from_idx
+                                                std::size_t                   jump_from_idx,
+                                                walk_source                   from
                                                )
 {
     JSONV_READER_TESTS_LOG(std::endl << "to " << jump_from_idx << "...");
-    jsonv::reader reader(src);
+    auto reader = make_reader(src, from);
     walk_expecting(reader,
                    expected,
                    [](auto&&...) { return false; },
-                   [&](auto&&, auto idx) { return idx == jump_from_idx; }
+                   [&](auto&&, auto idx) { return idx == jump_from_idx; },
+                   from
                   );
 }
 
@@ -273,44 +331,53 @@ class reader_example_walkthrough_next_struct_at_index final :
         public jsonv_test::unit_test
 {
 public:
-    reader_example_walkthrough_next_struct_at_index(example_data_type data, std::size_t next_struct_at_idx) :
+    reader_example_walkthrough_next_struct_at_index(example_data_type data,
+                                                   std::size_t       next_struct_at_idx,
+                                                   walk_source       from
+                                                  ) :
             jsonv_test::unit_test(std::string("reader_example_walkthrough_next_struct_at_index/")
-                                  + std::string(data.name) + "/" + std::to_string(next_struct_at_idx)),
+                                  + std::string(data.name) + "/" + std::to_string(next_struct_at_idx)
+                                  + "/" + to_string(from)),
             _data(std::move(data)),
-            _next_struct_at_idx(next_struct_at_idx)
+            _next_struct_at_idx(next_struct_at_idx),
+            _from(from)
     { }
 
     static std::vector<std::unique_ptr<jsonv_test::unit_test>> make_tests(const example_data_type& data)
     {
         std::vector<std::unique_ptr<jsonv_test::unit_test>> out;
-        out.reserve(data.expected.size());
+        out.reserve(data.expected.size() * 2U);
         for (std::size_t idx = 0U; idx < data.expected.size(); ++idx)
-            out.emplace_back(std::make_unique<reader_example_walkthrough_next_struct_at_index>(data, idx));
+            for (auto from : { walk_source::text, walk_source::value })
+                out.emplace_back(std::make_unique<reader_example_walkthrough_next_struct_at_index>(data, idx, from));
         return out;
     }
 
 protected:
     virtual void run_impl() override
     {
-        walk_expecting_next_struct_at_index(_data.source, _data.expected, _next_struct_at_idx);
+        walk_expecting_next_struct_at_index(_data.source, _data.expected, _next_struct_at_idx, _from);
     }
 
 private:
     example_data_type _data;
     std::size_t       _next_struct_at_idx;
+    walk_source       _from;
 };
 
 static void walk_expecting_next_key_at_index(std::string_view            src,
                                              const std::vector<walk_info>& expected,
-                                             std::size_t                   jump_from_idx
+                                             std::size_t                   jump_from_idx,
+                                             walk_source                   from
                                             )
 {
     JSONV_READER_TESTS_LOG(std::endl << "to " << jump_from_idx << "...");
-    jsonv::reader reader(src);
+    auto reader = make_reader(src, from);
     walk_expecting(reader,
                    expected,
                    [&](auto&&, auto idx) { return idx == jump_from_idx; },
-                   [](auto&&...) { return false; }
+                   [](auto&&...) { return false; },
+                   from
                   );
 }
 
@@ -318,21 +385,27 @@ class reader_example_walkthrough_next_key_at_index final :
         public jsonv_test::unit_test
 {
 public:
-    reader_example_walkthrough_next_key_at_index(example_data_type data, std::size_t next_key_at_idx) :
+    reader_example_walkthrough_next_key_at_index(example_data_type data,
+                                                std::size_t       next_key_at_idx,
+                                                walk_source       from
+                                               ) :
             jsonv_test::unit_test(std::string("reader_example_walkthrough_next_key_at_index/")
-                                  + std::string(data.name) + "/" + std::to_string(next_key_at_idx)),
+                                  + std::string(data.name) + "/" + std::to_string(next_key_at_idx)
+                                  + "/" + to_string(from)),
             _data(std::move(data)),
-            _next_key_at_idx(next_key_at_idx)
+            _next_key_at_idx(next_key_at_idx),
+            _from(from)
     { }
 
     static std::vector<std::unique_ptr<jsonv_test::unit_test>> make_tests(const example_data_type& data)
     {
         std::vector<std::unique_ptr<jsonv_test::unit_test>> out;
-        out.reserve(data.expected.size());
+        out.reserve(data.expected.size() * 2U);
         for (std::size_t idx = 0U; idx < data.expected.size(); ++idx)
         {
             if (data.expected[idx].next_key_idx != 0U)
-                out.emplace_back(std::make_unique<reader_example_walkthrough_next_key_at_index>(data, idx));
+                for (auto from : { walk_source::text, walk_source::value })
+                    out.emplace_back(std::make_unique<reader_example_walkthrough_next_key_at_index>(data, idx, from));
         }
         return out;
     }
@@ -340,12 +413,13 @@ public:
 protected:
     virtual void run_impl() override
     {
-        walk_expecting_next_key_at_index(_data.source, _data.expected, _next_key_at_idx);
+        walk_expecting_next_key_at_index(_data.source, _data.expected, _next_key_at_idx, _from);
     }
 
 private:
     example_data_type _data;
     std::size_t       _next_key_at_idx;
+    walk_source       _from;
 };
 
 /// Walk through \a source, randomly calling \c next_key with \a next_key_probability (when current position is a key
@@ -355,7 +429,8 @@ static void walk_random_expecting(std::string_view            source,
                                   const std::vector<walk_info>& expected,
                                   double                        next_key_probability    = 0.0,
                                   double                        next_struct_probability = 0.0,
-                                  std::size_t                   rng_seed                = 0U
+                                  std::size_t                   rng_seed                = 0U,
+                                  walk_source                   from                    = walk_source::text
                                  )
 {
     if ((next_key_probability > 0.0 || next_struct_probability > 0.0) && rng_seed == 0U)
@@ -368,11 +443,12 @@ static void walk_random_expecting(std::string_view            source,
     std::bernoulli_distribution next_key_dist(next_key_probability);
     std::bernoulli_distribution next_struct_dist(next_struct_probability);
 
-    jsonv::reader reader(source);
+    auto reader = make_reader(source, from);
     return walk_expecting(reader,
                           expected,
                           [&](auto&&...) { return next_key_dist(rng); },
-                          [&](auto&&...) { return next_struct_dist(rng); }
+                          [&](auto&&...) { return next_struct_dist(rng); },
+                          from
                          );
 }
 
@@ -383,17 +459,19 @@ public:
     reader_example_walkthrough_randomly(example_data_type data,
                                         double            next_struct_probability,
                                         double            next_key_probability,
-                                        std::size_t       seed
+                                        std::size_t       seed,
+                                        walk_source       from
                                        ) :
             jsonv_test::unit_test(std::string("reader_example_walkthrough_randomly/")
                                   + std::string(data.name)
                                   + "/P(next_struct=" + std::to_string(next_struct_probability)
                                        + ",next_key=" + std::to_string(next_key_probability) + ")/"
-                                  + std::to_string(seed)),
+                                  + std::to_string(seed) + "/" + to_string(from)),
             _data(std::move(data)),
             _next_struct_probability(next_struct_probability),
             _next_key_probability(next_key_probability),
-            _seed(seed)
+            _seed(seed),
+            _from(from)
     { }
 
     static std::vector<std::unique_ptr<jsonv_test::unit_test>> make_tests(const example_data_type& data)
@@ -412,12 +490,17 @@ public:
             {
                 for (std::size_t seed_idx = 0U; seed_idx < 10U; ++seed_idx)
                 {
-                    out.emplace_back(std::make_unique<reader_example_walkthrough_randomly>(data,
-                                                                                           next_struct_p,
-                                                                                           next_key_p,
-                                                                                           dist(rng)
-                                                                                          )
-                                    );
+                    auto seed = dist(rng);
+                    for (auto from : { walk_source::text, walk_source::value })
+                    {
+                        out.emplace_back(std::make_unique<reader_example_walkthrough_randomly>(data,
+                                                                                               next_struct_p,
+                                                                                               next_key_p,
+                                                                                               seed,
+                                                                                               from
+                                                                                              )
+                                        );
+                    }
                 }
             }
         }
@@ -427,12 +510,19 @@ public:
         std::uniform_real_distribution next_key_dist;
         for (std::size_t count = 0U; count < data.expected.size(); ++count)
         {
-            out.emplace_back(std::make_unique<reader_example_walkthrough_randomly>(data,
-                                                                                   next_struct_dist(rng),
-                                                                                   next_key_dist(rng),
-                                                                                   dist(rng)
-                                                                                  )
-                            );
+            auto next_struct_p = next_struct_dist(rng);
+            auto next_key_p    = next_key_dist(rng);
+            auto seed          = dist(rng);
+            for (auto from : { walk_source::text, walk_source::value })
+            {
+                out.emplace_back(std::make_unique<reader_example_walkthrough_randomly>(data,
+                                                                                       next_struct_p,
+                                                                                       next_key_p,
+                                                                                       seed,
+                                                                                       from
+                                                                                      )
+                                );
+            }
         }
 
         return out;
@@ -441,7 +531,13 @@ public:
 protected:
     virtual void run_impl() override
     {
-        walk_random_expecting(_data.source, _data.expected, _next_key_probability, _next_struct_probability, _seed);
+        walk_random_expecting(_data.source,
+                              _data.expected,
+                              _next_key_probability,
+                              _next_struct_probability,
+                              _seed,
+                              _from
+                             );
     }
 
 private:
@@ -449,6 +545,7 @@ private:
     double            _next_struct_probability;
     double            _next_key_probability;
     std::size_t       _seed;
+    walk_source       _from;
 };
 
 static std::vector<std::vector<std::unique_ptr<jsonv_test::unit_test>>> create_all_tests()
@@ -1014,6 +1111,599 @@ TEST(reader_docs_find_a_missing_member)
     jsonv::reader reader(R"({ "b": 1, "c": 2 })");
     ensure(reader.next_token());
     ensure(!find_a(reader).has_value());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// reader::from_value                                                                                                 //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// What a node *means*, as a string which can be compared across sources.
+///
+/// The token text cannot be compared directly: a value-sourced reader synthesises it, so `"a\nb"` arrives as a
+/// canonical token holding a real newline where the text source has a six-byte escaped one. What has to match is
+/// everything a caller can actually get out of the node.
+static std::string node_payload(const jsonv::ast_node& node)
+{
+    switch (node.type())
+    {
+    case jsonv::ast_node_type::object_begin:
+        return "n=" + std::to_string(node.as<jsonv::ast_node::object_begin>().element_count());
+    case jsonv::ast_node_type::array_begin:
+        return "n=" + std::to_string(node.as<jsonv::ast_node::array_begin>().element_count());
+    case jsonv::ast_node_type::integer:
+        return std::to_string(node.as<jsonv::ast_node::integer>().value());
+    case jsonv::ast_node_type::decimal:
+        // Compare the bits rather than the value: `-0.0 == 0.0`, and losing the sign of a zero is precisely the
+        // round-trip damage this is here to catch.
+        return std::to_string(std::bit_cast<std::uint64_t>(node.as<jsonv::ast_node::decimal>().value()));
+    case jsonv::ast_node_type::string_canonical:
+        return std::string(node.as<jsonv::ast_node::string_canonical>().value());
+    case jsonv::ast_node_type::string_escaped:
+        return node.as<jsonv::ast_node::string_escaped>().value();
+    case jsonv::ast_node_type::key_canonical:
+    case jsonv::ast_node_type::key_escaped:
+        return node.visit_key([](const auto& key) { return std::string(key.value()); });
+    default:
+        return std::string();
+    }
+}
+
+/// Whether \c ensure_value_walk_matches_text compares \c current_path at every node.
+///
+/// It is \c off only for the multi-megabyte corpus documents. A \c parse_index -sourced reader rebuilds the path by
+/// re-walking the tape from the start of the document on every call, so asking for it at every node is quadratic in
+/// the document size: eight seconds for the first twenty thousand nodes of `citm_catalog.json`. A value-sourced
+/// reader reads its path straight off its frame stack, so it is only the side being compared against which cannot
+/// afford this. The structural shapes which make path bookkeeping interesting are covered exhaustively by the
+/// example walk tables and by the hand-written documents below.
+enum class path_checking
+{
+    on,
+    off,
+};
+
+/// Walk \a source both ways -- as a `value` and as the text that value encodes to -- and require the two readers to
+/// report the same document, node for node.
+///
+/// This is the property the whole implementation exists for: `extract<T>(const value&)` reaches an extractor through
+/// a reader, and it has to see what it would have seen had the document arrived as text.
+static void ensure_value_walk_matches_text(const jsonv::value& source,
+                                           path_checking       check_paths = path_checking::on
+                                          )
+{
+    auto text       = to_string(source);
+    auto from_text  = jsonv::reader(std::string_view(text));
+    auto from_value = jsonv::reader::from_value(source);
+
+    for (std::size_t idx = 0U; ; ++idx)
+    {
+        JSONV_READER_TESTS_LOG(std::endl << "[" << idx << "] " << from_text.current().type());
+
+        ensure_eq(expected_type(from_text.current().type(), walk_source::value), from_value.current().type());
+        ensure_eq(node_payload(from_text.current()),                             node_payload(from_value.current()));
+
+        if (check_paths == path_checking::on)
+            ensure_eq(from_text.current_path(), from_value.current_path());
+
+        bool text_more  = from_text.next_token();
+        bool value_more = from_value.next_token();
+        ensure_eq(text_more, value_more);
+
+        if (!text_more)
+            break;
+    }
+}
+
+/// Named apart from its `value` sibling rather than overloaded on purpose -- `value` converts implicitly from
+/// `std::string` and from `const char*`, so a pair of overloads taking `const value&` and `std::string_view` is
+/// ambiguous for every caller. That is the same collision which makes `reader::from_value` a named factory.
+static void ensure_parsed_walk_matches_text(std::string_view source)
+{
+    ensure_value_walk_matches_text(jsonv::parse(source));
+}
+
+/// One test per corpus document, so a failure names the file it came from.
+class reader_from_value_matches_text_on_corpus final :
+        public jsonv_test::unit_test
+{
+public:
+    reader_from_value_matches_text_on_corpus(std::string filename, path_checking check_paths) :
+            jsonv_test::unit_test("reader_from_value_matches_text_on_corpus/" + filename),
+            _filename(std::move(filename)),
+            _check_paths(check_paths)
+    { }
+
+    static std::vector<std::unique_ptr<jsonv_test::unit_test>> make_tests()
+    {
+        std::vector<std::unique_ptr<jsonv_test::unit_test>> out;
+
+        // Deliberately not the whole tree: `data/json_checker` is full of documents which are supposed to fail to
+        // parse, and there is nothing to compare for those.
+        for (const char* name : { "blns.json", "paths.json" })
+            out.emplace_back(std::make_unique<reader_from_value_matches_text_on_corpus>(name, path_checking::on));
+
+        for (const char* name : { "canada.json", "citm_catalog.json", "generated.json" })
+            out.emplace_back(std::make_unique<reader_from_value_matches_text_on_corpus>(name, path_checking::off));
+
+        return out;
+    }
+
+protected:
+    virtual void run_impl() override
+    {
+        std::ifstream      in(jsonv_test::test_path(_filename));
+        std::ostringstream buffer;
+        buffer << in.rdbuf();
+        auto src = std::move(buffer).str();
+        ensure(!src.empty());
+
+        ensure_value_walk_matches_text(jsonv::parse(src), _check_paths);
+    }
+
+private:
+    std::string   _filename;
+    path_checking _check_paths;
+};
+
+static std::vector<std::unique_ptr<jsonv_test::unit_test>> corpus_tests =
+        reader_from_value_matches_text_on_corpus::make_tests();
+
+/// The fuzz seeds, which is where the awkward documents live: escapes of every shape, surrogate pairs, embedded
+/// NULs, duplicate keys, numbers at the edge of their types, and nesting at the depth limit.
+///
+/// Roughly half of them are supposed to fail to parse -- that is what they are seeds *for* -- so those are skipped
+/// rather than being a failure here. The count is asserted so that a corpus which stopped parsing entirely, or a
+/// directory which moved, cannot leave this passing vacuously.
+TEST(reader_from_value_matches_text_on_fuzz_corpus)
+{
+    // `test_path` is rooted at `src/jsonv-tests/data`, and the fuzz seeds are a sibling of that tree.
+    auto root = jsonv_test::test_path("../../jsonv-fuzz/corpus");
+
+    std::size_t compared = 0U;
+    jsonv_test::recursive_directory_for_each(root, ".json", [&](const std::string& path)
+        {
+            std::ifstream      in(path);
+            std::ostringstream buffer;
+            buffer << in.rdbuf();
+            auto src = std::move(buffer).str();
+            ensure(!src.empty());
+
+            jsonv::value parsed;
+            try
+            {
+                parsed = jsonv::parse(src);
+            }
+            catch (const std::exception&)
+            {
+                // Not just `parse_error`: a number which no `double` can hold, like the `1e309` in
+                // `numbers_extremes.json`, fails later than that and arrives as `std::invalid_argument`. Either way
+                // there is no `value` to compare, and the `try` covers nothing but the parse.
+                return;
+            }
+
+            // Five of the seeds hold byte sequences which are not valid UTF-8 at all. `parse` accepts those into a
+            // `value`, but encoding one does not survive a re-parse: `to_string` turns the bytes into `\u0000`, or
+            // into an unpaired surrogate which fails to parse at all. That is a defect on the text side -- neither
+            // reader is involved in it -- and it leaves the text path useless as a baseline for those documents.
+            // The check reaches for neither reader, so it cannot hide a mistake in one.
+            try
+            {
+                if (jsonv::parse(to_string(parsed)) != parsed)
+                    return;
+            }
+            catch (const std::exception&)
+            {
+                return;
+            }
+
+            JSONV_READER_TESTS_LOG(std::endl << jsonv_test::filename(path));
+            ensure_value_walk_matches_text(parsed);
+            ++compared;
+        });
+
+    ensure_ge(compared, std::size_t(8U));
+}
+
+TEST(reader_from_value_matches_text)
+{
+    for (const auto& example : examples)
+        ensure_parsed_walk_matches_text(example.source);
+
+    ensure_parsed_walk_matches_text("{}");
+    ensure_parsed_walk_matches_text("[]");
+    ensure_parsed_walk_matches_text("null");
+    ensure_parsed_walk_matches_text("4");
+    ensure_parsed_walk_matches_text(R"("bare string")");
+    ensure_parsed_walk_matches_text(R"({ "a": {}, "b": [], "c": { "d": [ {}, [] ] } })");
+    ensure_parsed_walk_matches_text(R"([ true, false, null, 0, -0.5, "", "é" ])");
+    // The same string spelled as an escape. It is `string_escaped` down the text path and `string_canonical`
+    // down the value path, which is the one difference the two walks are allowed to have.
+    ensure_parsed_walk_matches_text(R"([ "\u00e9", "a\nb", "\"", "\\" ])");
+}
+
+/// Numbers a careless round trip damages. Each is built as a `value` rather than parsed, so the only thing under test
+/// is what `impl_value` synthesises.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/208
+TEST(reader_from_value_number_edges)
+{
+    for (std::int64_t x : { std::numeric_limits<std::int64_t>::min(),
+                            std::numeric_limits<std::int64_t>::max(),
+                            std::int64_t(0),
+                            std::int64_t(-1),
+                            (std::int64_t(1) << 53) + 1,
+                            -((std::int64_t(1) << 53) + 1),
+                          }
+        )
+    {
+        auto reader = jsonv::reader::from_value(jsonv::value(x));
+        ensure(reader.next_token());
+        auto node = reader.current_as<jsonv::ast_node::integer>();
+        ensure(node.has_value());
+        ensure_eq(x, node->value());
+    }
+
+    for (double x : { 0.0,
+                      -0.0,
+                      2.0,
+                      3.14,
+                      0.1,
+                      0.1 + 0.2,
+                      1.7976931348623157e308,
+                      5e-324,
+                      -1.2345678901234567e-300,
+                    }
+        )
+    {
+        auto reader = jsonv::reader::from_value(jsonv::value(x));
+        ensure(reader.next_token());
+
+        // An integral decimal has to stay a decimal: `2.0` printed as `2` would arrive as `kind::integer`.
+        auto node = reader.current_as<jsonv::ast_node::decimal>();
+        ensure(node.has_value());
+        ensure_eq(std::bit_cast<std::uint64_t>(x), std::bit_cast<std::uint64_t>(node->value()));
+    }
+}
+
+/// A non-finite `double` has no JSON representation, and the encoder writes `null` for one. A value-sourced reader
+/// has to agree, or a NaN would mean one thing in an encoded document and another through an extractor.
+TEST(reader_from_value_non_finite_decimal_is_null)
+{
+    for (double x : { std::numeric_limits<double>::quiet_NaN(),
+                      std::numeric_limits<double>::infinity(),
+                      -std::numeric_limits<double>::infinity(),
+                    }
+        )
+    {
+        auto value = jsonv::value(x);
+        ensure_eq(jsonv::kind::decimal, value.kind());
+
+        auto reader = jsonv::reader::from_value(value);
+        ensure(reader.next_token());
+        ensure_eq(jsonv::ast_node_type::literal_null, reader.current().type());
+
+        // ...which is what the text path does too.
+        ensure_value_walk_matches_text(value);
+    }
+}
+
+/// A `value` holds decoded bytes, so every string and key is canonical no matter what it contains -- including the
+/// bytes JSON would have to escape. Nothing re-lexes a synthesised token, and the canonical `string_from_token`
+/// strips exactly the outer two bytes, so a `"` inside one is harmless.
+TEST(reader_from_value_strings_are_canonical)
+{
+    const std::string contents[] =
+    {
+        "",
+        "plain",
+        "has \" quote",
+        "has \\ backslash",
+        std::string("has \0 nul", 9U),
+        "\n\t\r",
+        "\xc3\xa9 \xe2\x98\x83 \xf0\x9f\x92\xa9",     // é ☃ 💩
+        "\x7f",
+    };
+
+    for (const auto& content : contents)
+    {
+        jsonv::value obj = jsonv::object({ { content, content } });
+
+        auto reader = jsonv::reader::from_value(obj);
+        ensure(reader.next_token());    // document_start -> object_begin
+        ensure(reader.next_token());    // object_begin   -> the key
+
+        auto key = reader.current_as<jsonv::ast_node::key_canonical>();
+        ensure(key.has_value());
+        ensure_eq(content, std::string(key->value()));
+
+        ensure(reader.next_token());    // the key -> the string
+
+        auto str = reader.current_as<jsonv::ast_node::string_canonical>();
+        ensure(str.has_value());
+        ensure_eq(content, std::string(str->value()));
+
+        // The raw token is the bytes with a quotation mark on each end, which for these is not valid JSON on its own.
+        ensure_eq(content.size() + 2U, str->token_raw().size());
+        ensure_eq('"', str->token_raw().front());
+        ensure_eq('"', str->token_raw().back());
+    }
+}
+
+/// The frame stack is a `std::vector` and the walk is a loop, so depth costs heap instead of call frames.
+TEST(reader_from_value_deep_nesting)
+{
+    constexpr std::size_t depth = 4096U;
+
+    // Built by moving rather than with `jsonv::array({ ... })`, whose `initializer_list` elements are `const` -- that
+    // spelling deep-copies the whole nesting once per level.
+    jsonv::value nested = jsonv::array();
+    for (std::size_t n = 0U; n < depth; ++n)
+    {
+        jsonv::value outer = jsonv::array();
+        outer.push_back(std::move(nested));
+        nested = std::move(outer);
+    }
+
+    auto reader = jsonv::reader::from_value(std::move(nested));
+
+    std::size_t opens = 0U;
+    std::size_t peak  = 0U;
+    while (reader.next_token())
+    {
+        if (reader.current().type() == jsonv::ast_node_type::array_begin)
+        {
+            ++opens;
+            peak = std::max(peak, reader.current_path().size());
+        }
+    }
+
+    ensure_eq(depth + 1U, opens);
+    // The innermost `[` is inside `depth` enclosing arrays, each contributing one index to the path.
+    ensure_eq(depth, peak);
+}
+
+/// Where `next_value` lands, as an index into the token stream.
+///
+/// The position is recovered by counting what is *left* rather than by hunting for a matching node. The tape-backed
+/// twin of this test identifies the landing spot with `token_raw().data()`, which works only because both of its
+/// readers point into one source text; two value-sourced readers have independent arenas, and a node type with a
+/// path does not pin a position uniquely.
+static std::size_t next_value_destination(jsonv::reader& reader, std::size_t total)
+{
+    if (!reader.next_value())
+        return std::size_t(-1);
+
+    std::size_t remaining = 0U;
+    while (reader.next_token())
+        ++remaining;
+
+    return total - remaining;
+}
+
+/// Count the way out by hand. `next_value` steps *over* the value the reader is on, so for a structure it lands one
+/// past the matching close token -- landing on the close would leave an object loop looking at what it cannot tell
+/// apart from the end of the enclosing object -- and for anything else it is a single step.
+static std::size_t next_value_expected(std::string_view text, std::size_t idx, std::size_t total)
+{
+    auto reader = jsonv::reader(text);
+    for (std::size_t n = 0U; n < idx; ++n)
+        ensure(reader.next_token());
+
+    if (auto type = reader.current().type();
+        type != jsonv::ast_node_type::object_begin && type != jsonv::ast_node_type::array_begin
+       )
+    {
+        return idx < total ? idx + 1U : std::size_t(-1);
+    }
+
+    std::size_t depth = 0U;
+    for (std::size_t n = idx; ; ++n)
+    {
+        auto tok = reader.current().type();
+        if (tok == jsonv::ast_node_type::object_begin || tok == jsonv::ast_node_type::array_begin)
+        {
+            ++depth;
+        }
+        else if (tok == jsonv::ast_node_type::object_end || tok == jsonv::ast_node_type::array_end)
+        {
+            --depth;
+            if (depth == 0U)
+                return n + 1U;
+        }
+
+        ensure(reader.next_token());
+    }
+}
+
+/// `next_value` has to land in the same place whichever source the reader has. This is checked against a hand-counted
+/// walk *and* across the two sources, at every position: an oracle written only against the reader under test would
+/// happily confirm whatever that reader does.
+///
+/// The failure this guards against is quiet. An extractor which skips an uninteresting member whose value is an
+/// object would, on a reader left sitting on that object's `}`, read it as the end of the enclosing object and drop
+/// every member after it -- against one source only.
+static void ensure_next_value_agrees(const jsonv::value& source)
+{
+    auto text = to_string(source);
+
+    std::size_t total = 0U;
+    {
+        auto reader = jsonv::reader(std::string_view(text));
+        while (reader.next_token())
+            ++total;
+    }
+
+    for (std::size_t idx = 0U; idx <= total; ++idx)
+    {
+        JSONV_READER_TESTS_LOG(std::endl << "next_value from [" << idx << "]");
+
+        auto expected = next_value_expected(text, idx, total);
+
+        auto from_text = jsonv::reader(std::string_view(text));
+        auto from_value = jsonv::reader::from_value(source);
+        for (std::size_t n = 0U; n < idx; ++n)
+        {
+            ensure(from_text.next_token());
+            ensure(from_value.next_token());
+        }
+
+        ensure_eq(expected, next_value_destination(from_text,  total));
+        ensure_eq(expected, next_value_destination(from_value, total));
+    }
+}
+
+TEST(reader_from_value_next_value_agrees_with_counting_the_way_out)
+{
+    for (const auto& example : examples)
+        ensure_next_value_agrees(jsonv::parse(example.source));
+
+    // The shapes where landing on the close rather than past it diverges: a member whose value is a structure, a
+    // structure at the root, and a structure as an array element.
+    ensure_next_value_agrees(jsonv::parse(R"({ "a": {}, "b": 123 })"));
+    ensure_next_value_agrees(jsonv::parse(R"({ "a": { "x": 1 }, "b": 2 })"));
+    ensure_next_value_agrees(jsonv::parse(R"({ "a": [ 1, 2 ], "b": 2 })"));
+    ensure_next_value_agrees(jsonv::parse(R"([ [ 1, 2 ], 3 ])"));
+    ensure_next_value_agrees(jsonv::parse(R"([ [ [ [ [ 1 ] ] ] ], [], [ {} ] ])"));
+    ensure_next_value_agrees(jsonv::parse(R"({ "a": {}, "b": [ { "c": 1 } ] })"));
+    ensure_next_value_agrees(jsonv::parse("4"));
+    ensure_next_value_agrees(jsonv::parse("{}"));
+    ensure_next_value_agrees(jsonv::parse("[]"));
+}
+
+/// The member after one whose value was skipped has to still be there. This is the concrete shape of the bug the
+/// position-by-position check above generalizes, spelled out so a regression reads as what it costs a caller.
+static void ensure_skipping_a_member_keeps_the_next_one(jsonv::reader& reader)
+{
+    ensure(reader.next_token());    // document_start -> object_begin
+    ensure(reader.next_token());    // object_begin   -> "a"
+    ensure(reader.next_token());    // "a"            -> its value
+
+    ensure(reader.next_value());
+
+    auto key = reader.current_as<jsonv::ast_node::key_canonical>();
+    ensure(key.has_value());
+    ensure_eq(std::string("b"), std::string(key->value()));
+}
+
+TEST(reader_next_value_over_a_member_lands_on_the_next_key)
+{
+    for (const char* src : { R"({ "a": {}, "b": 123 })",
+                             R"({ "a": { "x": 1 }, "b": 123 })",
+                             R"({ "a": [ 1, 2 ], "b": 123 })",
+                             R"({ "a": 1, "b": 123 })",
+                           }
+        )
+    {
+        auto from_text = jsonv::reader(src);
+        ensure_skipping_a_member_keeps_the_next_one(from_text);
+
+        auto from_value = jsonv::reader::from_value(jsonv::parse(src));
+        ensure_skipping_a_member_keeps_the_next_one(from_value);
+    }
+}
+
+/// The contract the arena exists for: a view taken from `current` stays readable after the reader has moved on. A
+/// `parse_index` source provides that for free by pointing into the source text, and two reader sources disagreeing
+/// about it would be a miserable bug to find in an extractor.
+TEST(reader_from_value_views_survive_next_token)
+{
+    auto reader = jsonv::reader::from_value(jsonv::parse(R"({ "key": "value", "n": 12345 })"));
+
+    ensure(reader.next_token());    // document_start -> object_begin
+    ensure(reader.next_token());    // object_begin   -> "key"
+
+    auto key_token = reader.current().token_raw();
+    auto key_text  = reader.current_as<jsonv::ast_node::key_canonical>()->value();
+
+    ensure(reader.next_token());    // "key" -> "value"
+
+    auto string_token = reader.current().token_raw();
+    auto string_text  = reader.current_as<jsonv::ast_node::string_canonical>()->value();
+
+    // Walk the rest of the document, which is what would recycle a single scratch buffer.
+    while (reader.next_token())
+        (void) reader.current().token_raw();
+
+    ensure_eq(std::string(R"("key")"),   std::string(key_token));
+    ensure_eq(std::string("key"),        std::string(key_text));
+    ensure_eq(std::string(R"("value")"), std::string(string_token));
+    ensure_eq(std::string("value"),      std::string(string_text));
+}
+
+/// The rvalue overload keeps its source alive. Under AddressSanitizer this is where a frame pointing into a
+/// destroyed `value` shows up.
+TEST(reader_from_value_rvalue_owns_its_source)
+{
+    auto reader = []
+        {
+            jsonv::value source = jsonv::parse(R"({ "a": [ 1, "two", 3.5 ], "b": { "c": null } })");
+            return jsonv::reader::from_value(std::move(source));
+        }();
+
+    std::size_t count = 0U;
+    do
+    {
+        (void) reader.current().token_raw();
+        (void) reader.current_path();
+        ++count;
+    } while (reader.next_token());
+
+    ensure_eq(std::size_t(15U), count);
+}
+
+/// Every `next_` reports an exhausted reader by returning `false`, and the accessors throw after that. A
+/// value-sourced reader is no different from a tape-sourced one here.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/213
+TEST(reader_from_value_exhausted)
+{
+    auto reader = jsonv::reader::from_value(jsonv::parse("[ 1 ]"));
+    while (reader.next_token())
+        ;
+
+    ensure(!reader.good());
+    ensure(!reader.next_token());
+    ensure(!reader.next_value());
+    ensure(!reader.next_structure());
+    ensure(!reader.next_key());
+    ensure_throws(std::logic_error, reader.current());
+    ensure_throws(std::logic_error, reader.current_path());
+}
+
+TEST(reader_from_value_moved_from)
+{
+    auto reader = jsonv::reader::from_value(jsonv::parse(R"({ "a": 1 })"));
+    auto moved  = std::move(reader);
+
+    ensure(!reader.good());
+    ensure(!reader.next_token());
+    ensure_throws(std::invalid_argument, reader.current());
+    ensure_throws(std::invalid_argument, reader.current_path());
+
+    ensure(moved.good());
+    ensure_eq(jsonv::ast_node_type::document_start, moved.current().type());
+}
+
+/// `next_key` is only valid on a key or on the opening `{`, whichever source the reader has.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/213
+TEST(reader_from_value_next_key_on_non_key_node_throws)
+{
+    auto reader = jsonv::reader::from_value(jsonv::parse("[1, 2]"));
+    ensure(reader.next_token());    // document_start -> array_begin
+    ensure_throws(std::invalid_argument, reader.next_key());
+}
+
+/// The reference overload does not copy, so the caller keeps ownership -- and reading the same value twice has to
+/// give the same answer both times.
+TEST(reader_from_value_reference_does_not_consume)
+{
+    jsonv::value source = jsonv::parse(R"({ "a": [ 1, 2 ], "b": "x" })");
+
+    auto first  = to_string(source);
+    ensure_value_walk_matches_text(source);
+    ensure_value_walk_matches_text(source);
+    ensure_eq(first, to_string(source));
 }
 
 }
