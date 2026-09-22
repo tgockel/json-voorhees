@@ -1706,4 +1706,20 @@ TEST(reader_from_value_reference_does_not_consume)
     ensure_eq(first, to_string(source));
 }
 
+
+TEST(reader_current_path_on_an_unmatched_close)
+{
+    // `parse_index::parse` does not validate, so a reader can sit on a close token with nothing open. Asking where it
+    // is must answer rather than run off the end of the element stack.
+    for (const auto* source : { "}", "]", "{}}", "[1]]" })
+    {
+        jsonv::reader rdr(source);
+        while (rdr.good())
+        {
+            (void) rdr.current_path();
+            (void) rdr.next_token();
+        }
+    }
+}
+
 }

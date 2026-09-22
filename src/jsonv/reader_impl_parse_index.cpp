@@ -71,11 +71,18 @@ static path build_current_path(parse_index::const_iterator begin, parse_index::c
         }
         else if (tok == ast_node_type::object_end || tok == ast_node_type::array_end)
         {
-            elem_stack.pop_back();
+            // A close with nothing open reaches here from any tape which was not run through `validate` -- nothing
+            // requires a reader's source to have been, and popping an empty vector is undefined. The size underflows
+            // to SIZE_MAX, so the symptom is a `length_error` out of the `reserve` below rather than a crash, which
+            // makes it look like an allocation failure instead of a malformed document.
+            if (!elem_stack.empty())
+                elem_stack.pop_back();
         }
         else if (tok == ast_node_type::key_canonical || tok == ast_node_type::key_escaped)
         {
-            elem_stack.back().first = node;
+            // Likewise: a key outside any object only occurs on an unvalidated tape.
+            if (!elem_stack.empty())
+                elem_stack.back().first = node;
         }
     }
 
