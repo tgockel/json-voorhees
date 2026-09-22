@@ -181,7 +181,7 @@ formats_builder& formats_builder_dsl::on_duplicate_type(duplicate_type_action ac
 
 }
 
-void throw_extra_keys_extraction_error(const extraction_context&    context,
+void throw_extra_keys_extraction_error(extraction_context&    context,
                                        const value&,
                                        const std::set<std::string>& extra_keys
                                       )

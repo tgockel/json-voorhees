@@ -251,7 +251,7 @@ TEST(serialization_builder_defaults)
                             .default_value(20)
                         .member("favorite_numbers", &person::favorite_numbers)
                         .member("winning_numbers",  &person::winning_numbers)
-                            .default_value([] (const extraction_context& cxt, const value& val)
+                            .default_value([] (extraction_context& cxt, const value& val)
                                            {
                                                return cxt.extract_sub<std::vector<long>>(val, "favorite_numbers");
                                            }

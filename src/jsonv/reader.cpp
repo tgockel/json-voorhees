@@ -98,6 +98,14 @@ const ast_node& reader::current() const
         throw std::invalid_argument("reader instance has been moved-from");
 }
 
+const value* reader::current_value() const noexcept
+{
+    if (_impl)
+        return _impl->borrowed_value();
+    else
+        return nullptr;
+}
+
 const path& reader::current_path() const
 {
     if (_impl)

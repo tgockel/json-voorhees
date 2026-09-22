@@ -134,6 +134,16 @@ bool reader::impl_value::good() const
     return _position != position::exhausted;
 }
 
+const value* reader::impl_value::borrowed_value() const noexcept
+{
+    // `at_value` is the only position naming a whole value: a key names half a member, a close names a structure the
+    // cursor has already left, and the two document positions sit outside the tree entirely.
+    if (_position != position::at_value)
+        return nullptr;
+    else
+        return &current_value();
+}
+
 const value& reader::impl_value::current_value() const noexcept
 {
     if (_stack.empty())

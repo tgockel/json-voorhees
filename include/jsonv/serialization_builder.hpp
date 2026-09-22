@@ -378,14 +378,14 @@ namespace jsonv
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_pre_extract pre_extract
 ///
-///  - <tt>pre_extract(std::function&lt;void (const extraction_context& context, const value& from)&gt; perform)</tt>
+///  - <tt>pre_extract(std::function&lt;void (extraction_context& context, const value& from)&gt; perform)</tt>
 ///
 /// Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
 /// be called multiple times -- all functions will be called in the order they are provided.
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
 ///
-///  - <tt>post_extract(std::function&lt;T (const extraction_context& context, T&& out)&gt; perform)</tt>
+///  - <tt>post_extract(std::function&lt;T (extraction_context& context, T&& out)&gt; perform)</tt>
 ///
 /// Call the given \a perform function after the \c extract operation. All functions will be called in the order they
 /// are provided. This allows validation methods to be called on the extracted object as part of extraction.
@@ -402,7 +402,7 @@ namespace jsonv
 /// \paragraph serialization_builder_dsl_ref_type_level_type_default_value
 ///
 ///  - <tt>type_default_value(T value)</tt>
-///  - <tt>type_default_value(std::function&lt;T (const extraction_context& context)&gt;)</tt>
+///  - <tt>type_default_value(std::function&lt;T (extraction_context& context)&gt;)</tt>
 ///
 /// What value should be used to create the default for this type?
 ///
@@ -414,9 +414,9 @@ namespace jsonv
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys on_extract_extra_keys
 ///
-///  - <tt>on_extract_extra_keys(std::function&lt;void (const extraction_context&   context,
-///                                                     const value&                from,
-///                                                     std::set&lt;std::string&gt; extra_keys)&gt; action
+///  - <tt>on_extract_extra_keys(std::function&lt;void (extraction_context&      context,
+///                                                   const value&                from,
+///                                                   std::set&lt;std::string&gt; extra_keys)&gt; action
 ///                             )</tt>
 ///
 /// When extracting, perform some \a action if extra keys are provided. By default, extra keys are usually simply
@@ -426,7 +426,7 @@ namespace jsonv
 ///   .type<my_type>()
 ///       .member("x", &my_type::x)
 ///       .member("y", &my_type::y)
-///       .on_extract_extra_keys([] (const extraction_context&, const value&, std::set<std::string> extra_keys)
+///       .on_extract_extra_keys([] (extraction_context&, const value&, std::set<std::string> extra_keys)
 ///                              {
 ///                                  throw extracted_extra_keys("my_type", std::move(extra_keys));
 ///                              }
@@ -512,7 +512,7 @@ namespace jsonv
 /// \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
 ///
 ///  - <tt>default_value(TMember value)</tt>
-///  - <tt>default_value(std::function&lt;TMember (const extraction_context&, const value&)&gt; create)</tt>
+///  - <tt>default_value(std::function&lt;TMember (extraction_context&, const value&)&gt; create)</tt>
 ///
 /// Provide a default value for this member if no key is found when extracting. You can use the function implementation
 /// to synthesize the key however you want.
@@ -633,7 +633,7 @@ public:
 
     adapter_builder<T>& type_default_on_null(bool on = true);
 
-    adapter_builder<T>& type_default_value(std::function<T (const extraction_context& ctx)> create);
+    adapter_builder<T>& type_default_value(std::function<T (extraction_context& ctx)> create);
 
     adapter_builder<T>& type_default_value(const T& value);
 
@@ -681,7 +681,7 @@ public:
     virtual ~member_adapter() noexcept
     { }
 
-    virtual void mutate(const extraction_context& context, const value& from, T& out) const = 0;
+    virtual void mutate(extraction_context& context, const value& from, T& out) const = 0;
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
 
@@ -711,7 +711,7 @@ public:
                                )
     { }
 
-    virtual void mutate(const extraction_context& context, const value& from, T& out) const override
+    virtual void mutate(extraction_context& context, const value& from, T& out) const override
     {
         value::const_object_iterator iter;
         for (const auto& name : _names)
@@ -786,7 +786,7 @@ public:
         });
     }
 
-    void default_value(std::function<TMember (const extraction_context&, const value&)>&& create)
+    void default_value(std::function<TMember (extraction_context&, const value&)>&& create)
     {
         _default_value = std::move(create);
     }
@@ -814,7 +814,7 @@ private:
     mutator_type                                                       _set_value;
     accessor_type                                                      _get_value;
     std::function<bool (const serialization_context&, const TMember&)> _should_encode;
-    std::function<TMember (const extraction_context&, const value&)>   _default_value;
+    std::function<TMember (extraction_context&, const value&)>         _default_value;
     bool                                                               _default_on_null = false;
     std::function<TMember (TMember&&)>                                 _extract_mutate;
 };
@@ -872,7 +872,7 @@ public:
     /** If the key for this member is not in the object when deserializing, call this function to create a value. If a
      *  \c default_value is not specified, the key is required.
     **/
-    member_adapter_builder& default_value(std::function<TMember (const extraction_context&, const value&)> create)
+    member_adapter_builder& default_value(std::function<TMember (extraction_context&, const value&)> create)
     {
         _adapter->default_value(std::move(create));
         return *this;
@@ -883,7 +883,7 @@ public:
     **/
     member_adapter_builder& default_value(TMember value)
     {
-        return default_value([value] (const extraction_context&, const jsonv::value&) { return value; });
+        return default_value([value] (extraction_context&, const jsonv::value&) { return value; });
     }
 
     /** Should a \c kind::null for a key be interpreted as a missing value? **/
@@ -955,9 +955,9 @@ class adapter_builder :
         public detail::formats_builder_dsl
 {
 public:
-    using pre_extract_func  = std::function<void (const extraction_context&, const value&)>;
-    using post_extract_func = std::function<T (const extraction_context&, T&&)>;
-    using extra_keys_func   = std::function<void (const extraction_context&, const value&, std::set<std::string>)>;
+    using pre_extract_func  = std::function<void (extraction_context&, const value&)>;
+    using post_extract_func = std::function<T (extraction_context&, T&&)>;
+    using extra_keys_func   = std::function<void (extraction_context&, const value&, std::set<std::string>)>;
 
 public:
     template <typename F>
@@ -982,7 +982,7 @@ public:
         return *this;
     }
 
-    adapter_builder<T>& type_default_value(std::function<T (const extraction_context& ctx)> create)
+    adapter_builder<T>& type_default_value(std::function<T (extraction_context& ctx)> create)
     {
         _adapter->_create_default = std::move(create);
         return *this;
@@ -990,7 +990,7 @@ public:
 
     adapter_builder<T>& type_default_value(const T& value)
     {
-        return type_default_value([value] (const extraction_context&) { return T(value); });
+        return type_default_value([value] (extraction_context&) { return T(value); });
     }
 
     template <typename TMember>
@@ -1061,7 +1061,7 @@ public:
         if (_adapter->_pre_extract)
         {
             pre_extract_func old_perform = std::move(_adapter->_pre_extract);
-            _adapter->_pre_extract = [old_perform, perform] (const extraction_context& context, const value& from)
+            _adapter->_pre_extract = [old_perform, perform] (extraction_context& context, const value& from)
                                      {
                                          old_perform(context, from);
                                          perform(context, from);
@@ -1079,7 +1079,7 @@ public:
         if (_adapter->_post_extract)
         {
             post_extract_func old_perform = std::move(_adapter->_post_extract);
-            _adapter->_post_extract = [old_perform, perform] (const extraction_context& context, T&& out)
+            _adapter->_post_extract = [old_perform, perform] (extraction_context& context, T&& out)
                                      {
                                          return perform(context, old_perform(context, std::move(out)));
                                      };
@@ -1094,7 +1094,7 @@ public:
     adapter_builder<T>& on_extract_extra_keys(extra_keys_func handler)
     {
         adapter_impl* adapter = _adapter;
-        return pre_extract([adapter, handler] (const extraction_context& context, const value& from)
+        return pre_extract([adapter, handler] (extraction_context& context, const value& from)
         {
             auto is_key = [adapter] (std::string_view key) -> bool
                           {
@@ -1116,14 +1116,14 @@ public:
 
 private:
     class adapter_impl :
-            public adapter_for<T>
+            public value_adapter_for<T>
     {
     public:
         adapter_impl() :
                 _default_on_null(false)
         { }
 
-        virtual T create(const extraction_context& context, const value& from) const override
+        virtual T create(extraction_context& context, const value& from) const override
         {
             if (_pre_extract)
                 _pre_extract(context, from);
@@ -1152,7 +1152,7 @@ private:
         std::deque<std::unique_ptr<detail::member_adapter<T>>> _members;
         pre_extract_func                                       _pre_extract;
         post_extract_func                                      _post_extract;
-        std::function<T (const extraction_context&)>           _create_default;
+        std::function<T (extraction_context&)>                 _create_default;
         bool                                                   _default_on_null;
     };
 
@@ -1223,7 +1223,7 @@ public:
     }
 
     template <typename TSub>
-    polymorphic_adapter_builder& subtype(std::function<bool (const extraction_context&, const value&)> discriminator)
+    polymorphic_adapter_builder& subtype(std::function<bool (extraction_context&, const value&)> discriminator)
     {
         _adapter->template add_subtype<TSub>(std::move(discriminator));
         reference_type(std::type_index(typeid(TSub)), std::type_index(typeid(TPointer)));
@@ -1233,7 +1233,7 @@ public:
     template <typename TSub>
     polymorphic_adapter_builder& subtype(std::function<bool (const value&)> discriminator)
     {
-        return subtype<TSub>([discriminator] (const extraction_context&, const value& val)
+        return subtype<TSub>([discriminator] (extraction_context&, const value& val)
                              {
                                  return discriminator(val);
                              }
@@ -1480,7 +1480,7 @@ adapter_builder<T>& adapter_builder_dsl<T>::type_default_on_null(bool on)
 }
 
 template <typename T>
-adapter_builder<T>& adapter_builder_dsl<T>::type_default_value(std::function<T (const extraction_context& ctx)> create)
+adapter_builder<T>& adapter_builder_dsl<T>::type_default_value(std::function<T (extraction_context& ctx)> create)
 {
     return owner->type_default_value(std::move(create));
 }
@@ -1567,7 +1567,7 @@ adapter_builder<T>& adapter_builder_dsl<T>::on_extract_extra_keys(typename adapt
  *  \throws extraction_error always.
 **/
 JSONV_NO_RETURN JSONV_PUBLIC
-void throw_extra_keys_extraction_error(const extraction_context&    context,
+void throw_extra_keys_extraction_error(extraction_context&    context,
                                        const value&                 from,
                                        const std::set<std::string>& extra_keys
                                       );

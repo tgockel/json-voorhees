@@ -191,6 +191,20 @@ public:
             return current().as<TAstNode>();
     }
 
+    /// Get the in-memory \c value this reader is positioned on, if it has one to lend.
+    ///
+    /// A reader created by \c from_value is walking a \c value which already exists, so the subtree under \c current
+    /// is something it can hand out by reference rather than rebuild. A reader over JSON text has no such tree.
+    ///
+    /// Extraction uses this to avoid copying a subtree it was already given, and so that an extractor which returns a
+    /// view of what it was handed -- \c std::string_view among them -- borrows the caller's storage rather than a
+    /// temporary which dies with the call.
+    ///
+    /// \returns The value \c current names; or \c nullptr if this reader is not value-backed, is not \c good, or is
+    ///          positioned somewhere which does not start a value, such as an object key or a closing token.
+    JSONV_NODISCARD
+    const value* current_value() const noexcept;
+
     /// Get the path to the current node this reader is pointing at. This is used in the generation of error messages to
     /// describe the location of something that could not be extracted.
     ///

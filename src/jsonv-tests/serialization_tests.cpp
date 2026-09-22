@@ -41,7 +41,7 @@ struct my_thing
     int b;
     std::string c;
 
-    my_thing(const value& from, const extraction_context& cxt) :
+    my_thing(const value& from, extraction_context& cxt) :
             a(cxt.extract_sub<int>(from, "a")),
             b(cxt.extract_sub<int>(from, "b")),
             c(cxt.extract_sub<std::string>(from, "c"))

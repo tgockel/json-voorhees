@@ -40,6 +40,11 @@ const ast_node& reader::impl::current() const
         throw std::logic_error("Cannot get current -- did `next` or `skip` return false?");
 }
 
+const value* reader::impl::borrowed_value() const noexcept
+{
+    return nullptr;
+}
+
 const path& reader::impl::current_path() const
 {
     if (_current_path_dirty)

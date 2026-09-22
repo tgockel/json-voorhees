@@ -1,6 +1,6 @@
 /// \file jsonv/serialization/polymorphic_adapter.hpp
 ///
-/// Copyright (c) 2017-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2017-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -57,10 +57,10 @@ enum class keyed_subtype_action : unsigned char
 ///
 template <typename TPointer>
 class polymorphic_adapter :
-        public adapter_for<TPointer>
+        public value_adapter_for<TPointer>
 {
 public:
-    using match_predicate = std::function<bool (const extraction_context&, const value&)>;
+    using match_predicate = std::function<bool (extraction_context&, const value&)>;
 
 public:
     polymorphic_adapter() = default;
@@ -73,7 +73,7 @@ public:
     void add_subtype(match_predicate pred)
     {
         _subtype_ctors.emplace_back(std::move(pred),
-                                    [] (const extraction_context& context, const value& value)
+                                    [] (extraction_context& context, const value& value)
                                     {
                                         return TPointer(new T(context.extract<T>(value)));
                                     }
@@ -93,7 +93,7 @@ public:
         if (!_serialization_actions.emplace(tidx, std::make_tuple(key, expected_value, action)).second)
             throw duplicate_type_error("polymorphic_adapter subtype", std::type_index(typeid(T)));
 
-        match_predicate op = [key, expected_value] (const extraction_context&, const value& value)
+        match_predicate op = [key, expected_value] (extraction_context&, const value& value)
                              {
                                  if (!value.is_object())
                                      return false;
@@ -135,7 +135,7 @@ public:
 
 protected:
     JSONV_NODISCARD
-    virtual TPointer create(const extraction_context& context, const value& from) const override
+    virtual TPointer create(extraction_context& context, const value& from) const override
     {
         using std::begin;
         using std::end;
@@ -206,7 +206,7 @@ protected:
     }
 
 private:
-    using create_function = std::function<TPointer (const extraction_context&, const value&)>;
+    using create_function = std::function<TPointer (extraction_context&, const value&)>;
 
 private:
     using serialization_action = std::tuple<std::string, value, keyed_subtype_action>;

@@ -1,6 +1,6 @@
-/// \file jsonv/serialization/extractor_for.hpp
+/// \file jsonv/serialization/function_extractor.hpp
 ///
-/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -10,9 +10,12 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization.hpp>
+#include <jsonv/serialization/extract.hpp>
 
 #include "extractor_for.hpp"
+
+#include <expected>
+#include <utility>
 
 namespace jsonv
 {
@@ -21,6 +24,9 @@ namespace jsonv
 /// \{
 
 /// An \c extractor which calls a function to perform extraction.
+///
+/// The function may take any of the shapes \c detail::invoke_extract accepts and may return either a \c T or a
+/// \c std::expected<T, ast_node_type>.
 template <typename T, typename FExtract>
 class function_extractor :
         public extractor_for<T>
@@ -33,52 +39,22 @@ public:
 
 protected:
     JSONV_NODISCARD
-    virtual T create(const extraction_context& context, const value& from) const override
+    virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const override
     {
-        return create_impl(_func, context, from);
-    }
-
-private:
-    template <typename FUExtract>
-    static auto create_impl(const FUExtract& func, const extraction_context& context, const value& from)
-            -> decltype(func(context, from))
-    {
-        return func(context, from);
-    }
-
-    template <typename FUExtract, typename = void>
-    static auto create_impl(const FUExtract& func, const extraction_context&, const value& from)
-            -> decltype(func(from))
-    {
-        return func(from);
+        return detail::invoke_extract<T>(_func, context, from);
     }
 
 private:
     FExtract _func;
 };
 
+/// Create an \c extractor from \a func, deducing what it extracts from its return type.
 template <typename FExtract>
 JSONV_NODISCARD
 auto make_extractor(FExtract func)
-    -> function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
-                          FExtract
-                         >
+    -> function_extractor<detail::extract_function_result_t<FExtract>, FExtract>
 {
-    return function_extractor<decltype(func(std::declval<const extraction_context&>(), std::declval<const value&>())),
-                              FExtract
-                             >
-            (std::move(func));
-}
-
-template <typename FExtract, typename = void>
-JSONV_NODISCARD
-auto make_extractor(FExtract func)
-    -> function_extractor<decltype(func(std::declval<const value&>())),
-                          FExtract
-                         >
-{
-    return function_extractor<decltype(func(std::declval<const value&>())), FExtract>
-            (std::move(func));
+    return function_extractor<detail::extract_function_result_t<FExtract>, FExtract>(std::move(func));
 }
 
 /// \}

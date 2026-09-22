@@ -1,6 +1,6 @@
 /// \file jsonv/serialization/serializer_for.hpp
 ///
-/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -27,13 +27,13 @@ namespace jsonv
 ///                    iteration and an \c insert operation.
 template <typename TContainer>
 class container_adapter :
-        public adapter_for<TContainer>
+        public value_adapter_for<TContainer>
 {
     using element_type = typename TContainer::value_type;
 
 protected:
     JSONV_NODISCARD
-    virtual TContainer create(const extraction_context& context, const value& from) const override
+    virtual TContainer create(extraction_context& context, const value& from) const override
     {
         using std::end;
 

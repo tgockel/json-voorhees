@@ -1,6 +1,6 @@
 /// \file jsonv/serialization/function_adapter.hpp
 ///
-/// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
+/// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
 /// This program is free software: you can redistribute it and/or modify it under the terms of the Apache License
 /// as published by the Apache Software Foundation, either version 2 of the License, or (at your option) any later
@@ -10,9 +10,12 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization.hpp>
+#include <jsonv/serialization/extract.hpp>
 
 #include "adapter_for.hpp"
+
+#include <expected>
+#include <utility>
 
 namespace jsonv
 {
@@ -33,9 +36,9 @@ public:
 
 protected:
     JSONV_NODISCARD
-    virtual T create(const extraction_context& context, const value& from) const override
+    virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const override
     {
-        return create_impl(_extract, context, from);
+        return detail::invoke_extract<T>(_extract, context, from);
     }
 
     JSONV_NODISCARD
@@ -45,20 +48,6 @@ protected:
     }
 
 private:
-    template <typename FUExtract>
-    static auto create_impl(const FUExtract& func, const extraction_context& context, const value& from)
-            -> decltype(func(context, from))
-    {
-        return func(context, from);
-    }
-
-    template <typename FUExtract, typename = void>
-    static auto create_impl(const FUExtract& func, const extraction_context&, const value& from)
-            -> decltype(func(from))
-    {
-        return func(from);
-    }
-
     template <typename FUToJson>
     static auto to_json_impl(const FUToJson& func, const serialization_context& context, const T& from)
             -> decltype(func(context, from))
@@ -78,33 +67,13 @@ private:
     FToJson  _to_json;
 };
 
+/// Create an \c adapter from \a extract and \a to_json_, deducing the adapted type from what \a extract returns.
 template <typename FExtract, typename FToJson>
 JSONV_NODISCARD
 auto make_adapter(FExtract extract, FToJson to_json_)
-    -> function_adapter<decltype(extract(std::declval<const extraction_context&>(), std::declval<const value&>())),
-                        FExtract,
-                        FToJson
-                       >
+    -> function_adapter<detail::extract_function_result_t<FExtract>, FExtract, FToJson>
 {
-    return function_adapter<decltype(extract(std::declval<const extraction_context&>(), std::declval<const value&>())),
-                            FExtract,
-                            FToJson
-                           >
-            (std::move(extract), std::move(to_json_));
-}
-
-template <typename FExtract, typename FToJson, typename = void>
-JSONV_NODISCARD
-auto make_adapter(FExtract extract, FToJson to_json_)
-    -> function_adapter<decltype(extract(std::declval<const value&>())),
-                        FExtract,
-                        FToJson
-                       >
-{
-    return function_adapter<decltype(extract(std::declval<const value&>())),
-                            FExtract,
-                            FToJson
-                           >
+    return function_adapter<detail::extract_function_result_t<FExtract>, FExtract, FToJson>
             (std::move(extract), std::move(to_json_));
 }
 

@@ -379,7 +379,7 @@ namespace jsonv
 /// class my_type
 /// {
 /// public:
-///     my_type(const jsonv::value& from, const jsonv::extraction_context& context) :
+///     my_type(const jsonv::value& from, jsonv::extraction_context& context) :
 ///             a(context.extract_sub<int>(from, "a")),
 ///             b(context.extract_sub<int>(from, "b")),
 ///             c(context.extract_sub<std::string>(from, "c"))
@@ -425,7 +425,7 @@ namespace jsonv
 /// funny-looking constructor:
 ///
 /// \code
-///     my_type(const jsonv::value& from, const jsonv::extraction_context& context) :
+///     my_type(const jsonv::value& from, jsonv::extraction_context& context) :
 ///             a(context.extract_sub<int>(from, "a")),
 ///             b(context.extract_sub<int>(from, "b")),
 ///             c(context.extract_sub<std::string>(from, "c"))

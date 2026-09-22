@@ -111,6 +111,10 @@ private:
         exhausted,      //!< past the end; `good` is false
     };
 
+protected:
+    /// \see reader::current_value
+    const value* borrowed_value() const noexcept override;
+
 private:
     /// The value the cursor is on in \c position::at_value. With no frames that is the root, since the root is the
     /// only value not inside a container.

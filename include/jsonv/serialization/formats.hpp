@@ -12,6 +12,7 @@
 #include <jsonv/config.hpp>
 #include <jsonv/forward.hpp>
 
+#include <expected>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -221,16 +222,19 @@ public:
     JSONV_NODISCARD
     static formats compose(const list& bases);
 
-    /// Extract the provided \a type \a from a \c value \a into an area of memory. The \a context is passed to the
+    /// Extract the provided \a type \a from a \c reader \a into an area of memory. The \a context is passed to the
     /// \c extractor which performs the conversion. In general, this should not be used directly as it is quite painful
     /// to do so -- prefer \c extraction_context::extract or the free function \c jsonv::extract.
     ///
+    /// \returns whatever the located \c extractor returned; see \c extractor::extract.
+    ///
     /// \throws no_extractor if an \c extractor for \a type could not be found.
-    void extract(const std::type_info&     type,
-                 const value&              from,
-                 void*                     into,
-                 const extraction_context& context
-                ) const;
+    JSONV_NODISCARD
+    std::expected<void, ast_node_type> extract(const std::type_info& type,
+                                               reader&               from,
+                                               void*                 into,
+                                               extraction_context&   context
+                                              ) const;
 
     /// Get the \c extractor for the given \a type.
     ///

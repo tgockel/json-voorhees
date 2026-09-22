@@ -19,6 +19,7 @@
 #include <jsonv/value.hpp>
 
 #include <cstdint>
+#include <expected>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -295,13 +296,13 @@ const extractor& formats::get_extractor(const std::type_info& type) const
     return get_extractor(std::type_index(type));
 }
 
-void formats::extract(const std::type_info&     type,
-                      const value&              from,
-                      void*                     into,
-                      const extraction_context& context
-                     ) const
+std::expected<void, ast_node_type> formats::extract(const std::type_info& type,
+                                                    reader&               from,
+                                                    void*                 into,
+                                                    extraction_context&   context
+                                                   ) const
 {
-    get_extractor(type).extract(context, from, into);
+    return get_extractor(type).extract(context, from, into);
 }
 
 const serializer& formats::get_serializer(std::type_index type) const
@@ -395,9 +396,28 @@ static formats create_default_formats()
                                                );
     fmt.register_adapter(&string_extractor);
 
-    static auto string_view_adapter = make_adapter([] (const value& from) { return from.as_string_view(); },
-                                                   [] (const std::string_view& from) { return value(from); }
-                                                  );
+    // The only built-in which hands back a view of what it was given, and so the only one which has to care where
+    // that storage came from. Extracting from a `value` borrows the caller's string, as it always has; extracting
+    // from JSON text decodes into a tree the bridge owns and destroys, so a view of it would dangle the moment this
+    // returns. Refusing is the honest answer until case 07 rewrites this against the reader, where the token can be
+    // viewed in the source text directly.
+    static auto string_view_adapter =
+        make_adapter([] (extraction_context& context, const value& from)
+                        -> std::expected<std::string_view, ast_node_type>
+                     {
+                         if (context.source_is_temporary())
+                         {
+                             return context.problem(context.path(),
+                                                    "Cannot extract a std::string_view from JSON text: the string it "
+                                                    "would refer to is decoded into storage owned by the extraction "
+                                                    "and freed when it finishes. Extract a std::string instead."
+                                                   );
+                         }
+
+                         return from.as_string_view();
+                     },
+                     [] (const std::string_view& from) { return value(from); }
+                    );
     fmt.register_adapter(&string_view_adapter);
 
     static auto cchar_ptr_serializer = make_serializer<const char*>([] (const char* from) { return value(from); });

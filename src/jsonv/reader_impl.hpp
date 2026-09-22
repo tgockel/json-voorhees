@@ -12,6 +12,7 @@
 #include <jsonv/ast.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
+#include <jsonv/value.hpp>
 
 #include <optional>
 
@@ -30,6 +31,12 @@ public:
     const ast_node& current() const;
 
     const path& current_path() const;
+
+    /// The in-memory value \c current names, if this source has one to lend. Sources which synthesise their nodes
+    /// from text have nothing to return here.
+    ///
+    /// \see reader::current_value
+    virtual const value* borrowed_value() const noexcept;
 
     bool next_token();
 
