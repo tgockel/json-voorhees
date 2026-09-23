@@ -12,6 +12,7 @@
 #include "test.hpp"
 
 #include <jsonv/ast.hpp>
+#include <jsonv/detail/reserve.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
@@ -31,6 +32,7 @@
 #include <memory>
 #include <new>
 #include <string>
+#include <string_view>
 #include <typeinfo>
 #include <utility>
 
@@ -317,21 +319,40 @@ struct unnamed_vector
 };
 
 class unnamed_vector_adapter final :
-        public value_adapter_for<unnamed_vector>
+        public adapter_for<unnamed_vector>
 {
 protected:
     JSONV_NODISCARD
-    virtual unnamed_vector create(extraction_context& context, const value& from) const override
+    virtual std::expected<unnamed_vector, ast_node_type> create(extraction_context& context,
+                                                                reader&             from
+                                                               ) const override
     {
         using std::end;
 
+        auto opened = context.current_as<ast_node::array_begin>(from);
+        if (!opened)
+            return std::unexpected(opened.error());
+
         unnamed_vector out;
+        jsonv::detail::reserve_if_possible(out.values, opened->element_count());
 
-        (void) from.as_array();
-        for (value::size_type idx = 0U; idx < from.size(); ++idx)
-            out.values.insert(end(out.values), context.extract<std::int64_t>(from.at(idx)));
+        (void) from.next_token();
+        while (from.good())
+        {
+            if (from.current().type() == ast_node_type::array_end)
+            {
+                (void) from.next_token();
+                return out;
+            }
 
-        return out;
+            auto element = context.extract<std::int64_t>(from);
+            if (!element)
+                return std::unexpected(element.error());
+
+            out.values.insert(end(out.values), *std::move(element));
+        }
+
+        return context.problem(context.problem_path(from), "Unterminated array");
     }
 
     JSONV_NODISCARD
@@ -1063,20 +1084,55 @@ TEST(extract_string_view_from_an_escaped_string_is_refused)
     ensure_eq(std::string("a \xc3\xa9 which the source spelt the long way"), *decoded);   // U+00E9
 }
 
-TEST(extract_nested_string_view_from_text_is_refused)
+TEST(extract_nested_string_view_from_text_points_at_the_source)
 {
-    // A leaf-only check would miss this: the container materialises once, and each element then sees a value-backed
-    // reader over that temporary and would happily borrow from it.
+    // This was a refusal while `container_adapter` was on the bridge: the container materialised the whole array and
+    // every element then borrowed from a temporary which died with the extraction. Walking the reader means there is
+    // no temporary, so each element views the source document exactly as a lone `std::string_view` does -- and is
+    // valid for exactly as long as that source is.
     formats fmts = formats::compose({ formats_builder()
                                           .register_container<std::vector<std::string_view>>(),
                                       formats::defaults()
                                     });
 
+    std::string        source = R"([ "the first long string value here", "the second long string value here" ])";
     extraction_context cxt(fmts);
-    auto               rdr = open(R"([ "the first long string value here", "the second long string value here" ])");
+    reader             rdr(std::string_view{ source });
+    (void) rdr.next_token();
 
-    ensure(!cxt.extract<std::vector<std::string_view>>(rdr).has_value());
+    auto views = cxt.extract<std::vector<std::string_view>>(rdr);
+    ensure(views.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(2U, views->size());
+    ensure_eq(std::string_view("the first long string value here"),  views->at(0));
+    ensure_eq(std::string_view("the second long string value here"), views->at(1));
+
+    // Views of the document itself, not copies of it.
+    for (const auto& view : *views)
+        ensure(view.data() >= source.data() && view.data() < source.data() + source.size());
+}
+
+TEST(extract_string_view_under_a_bridged_composite_from_text_is_refused)
+{
+    // The coverage the test above gave up. A composite which still materialises is exactly where a view of the
+    // materialised tree would dangle, and `source_is_temporary` is what an extractor asks to notice it. The container
+    // no longer creates that situation; the DSL does, until it reads the reader too.
+    struct view_holder
+    {
+        std::string_view s;
+    };
+
+    formats fmts = formats_builder()
+                       .type<view_holder>()
+                           .member("s", &view_holder::s)
+                   .compose_checked(formats::defaults());
+
+    extraction_context cxt(fmts);
+    auto               rdr = open(R"({ "s": "a long string value which would be left dangling" })");
+
+    ensure(!cxt.extract<view_holder>(rdr).has_value());
     ensure(!cxt.problems().empty());
+    ensure(cxt.problems().at(0).message().find("std::string_view") != std::string::npos);
 }
 
 TEST(extract_scope_free_loop_over_text_stays_linear)
@@ -1177,19 +1233,16 @@ TEST(extract_native_structure_failure_names_the_value_it_was_on)
 TEST(extract_stale_cursor_does_not_leak_into_a_nested_reader)
 {
     // The bridge marks the reader it walked past, not a global flag: a nested extraction running on its own
-    // value-backed reader must still get that reader's exact position.
-    formats fmts = formats::compose({ formats_builder()
-                                          .register_optional<std::optional<std::int64_t>>(),
-                                      formats::defaults()
-                                    });
-
-    extraction_context cxt(fmts);
-    auto               rdr = open(R"([ { "a": "wrong" }, 99 ])");
+    // value-backed reader must still get that reader's exact position. The DSL is the composite which still
+    // materialises -- `optional_adapter` used to stand in here and now reads the reader, so it no longer would.
+    extraction_context cxt(triple_formats());
+    auto               rdr = open(R"([ { "a": "wrong", "b": 2, "c": 3 }, 99 ])");
     (void) rdr.next_token();   // onto the object
 
     // The object is materialised (cursor moves past it); the member extraction below runs on a fresh value reader.
-    ensure(!cxt.extract<std::optional<std::int64_t>>(rdr).has_value());
+    ensure(!cxt.extract<triple>(rdr).has_value());
     ensure(!cxt.problems().empty());
+    ensure_eq(path::create(".a"), cxt.problems().at(0).path());
 }
 
 TEST(extract_malformed_key_does_not_escape_the_diagnostic)
@@ -1236,19 +1289,16 @@ TEST(extract_explicit_location_outranks_the_reader)
 TEST(extract_failure_location_does_not_outlive_its_extraction)
 {
     // The `extraction_error` branch folds problems which already carry their own paths, so it never asks where it is
-    // -- and must not leave the location the bridge deposited lying around for the next failure to pick up.
-    formats fmts = formats::compose({ formats_builder()
-                                          .register_optional<std::optional<std::int64_t>>(),
-                                      formats::defaults()
-                                    });
-
-    extraction_context cxt(fmts);
-    auto               rdr = open(R"([ { "a": 1 }, "not a number" ])");
+    // -- and must not leave the location the bridge deposited lying around for the next failure to pick up. The DSL
+    // is the composite which both materialises and reports by throwing, which is what this needs; `optional_adapter`
+    // stood in here until it read the reader directly.
+    extraction_context cxt(triple_formats());
+    auto               rdr = open(R"([ { "a": 1, "b": 2, "c": "x" }, "not a number" ])");
     (void) rdr.next_token();   // onto the object, which is `[0]`
 
     // The object is materialised, so the cursor moves past it; the nested extraction then throws an
     // `extraction_error`, which is folded rather than re-located.
-    ensure(!cxt.extract<std::optional<std::int64_t>>(rdr).has_value());
+    ensure(!cxt.extract<triple>(rdr).has_value());
     auto after_first = cxt.problems().size();
     ensure_gt(after_first, 0U);
 
@@ -1366,6 +1416,25 @@ TEST(extract_collect_all_gathers_every_bad_element)
         ensure_eq(2U, err.problems().size());
         ensure_eq(std::string("[1] [3]"), problem_paths(err));
     }
+}
+
+TEST(extract_collect_all_resumes_after_a_bridged_element_over_text)
+{
+    // Over text there is no tree for a bridged adapter to borrow, so the bridge materialises the element -- and
+    // materialising is what walks the cursor over it. A failure then leaves the cursor already past the element,
+    // where every other failure leaves it *on* the element, so a container recovering with a plain `next_value`
+    // steps over the following sibling as well and loses both it and whatever it had to report.
+    extraction_context cxt(triple_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+    auto               rdr = open(R"([ { "a": "x", "b": 2, "c": 3 },
+                                       { "a": 1,   "b": 2, "c": 3 },
+                                       { "a": "y", "b": 2, "c": 3 }
+                                     ])"
+                                 );
+
+    ensure(!cxt.extract<std::vector<triple>>(rdr).has_value());
+    ensure_eq(2U, cxt.problems().size());
+    ensure_eq(path::create("[0].a"), cxt.problems().at(0).path());
+    ensure_eq(path::create("[2].a"), cxt.problems().at(1).path());
 }
 
 TEST(extract_collect_all_records_a_nested_failure_exactly_once)

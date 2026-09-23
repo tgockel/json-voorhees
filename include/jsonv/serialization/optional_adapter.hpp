@@ -9,8 +9,14 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
+#include <jsonv/ast.hpp>
 #include <jsonv/config.hpp>
+#include <jsonv/kind.hpp>
+#include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
+
+#include <expected>
+#include <utility>
 
 #include "adapter_for.hpp"
 
@@ -30,18 +36,45 @@ namespace jsonv
 ///  these properties.
 template <typename TOptional>
 class optional_adapter :
-        public value_adapter_for<TOptional>
+        public adapter_for<TOptional>
 {
     using element_type = typename TOptional::value_type;
 
 protected:
     JSONV_NODISCARD
-    virtual TOptional create(extraction_context& context, const value& from) const override
+    virtual std::expected<TOptional, ast_node_type> create(extraction_context& context, reader& from) const override
     {
-        if (from.is_null())
-            return TOptional();
-        else
-            return TOptional(context.extract<element_type>(from));
+        // A value-backed reader renders a non-finite `kind::decimal` as `literal_null`, because the token it writes
+        // has nowhere to put one -- that is what encoding the value produces, not what the tree holds. Where there is
+        // a `value` to ask, its `kind` decides and the rendering does not, which is the same rule the numeric
+        // extractors follow for the same reason.
+        const value* lent = from.current_value();
+        bool         none = lent ? lent->kind() == jsonv::kind::null
+                                 : from.current().type() == ast_node_type::literal_null;
+
+        // Everything past here steps the cursor before it builds anything, so a `TOptional` which refuses -- its
+        // default constructor for the `null` case, its converting one for the other -- fails with the value behind
+        // it rather than in front of it. Saying so is what stops whatever recovers from this skipping the following
+        // sibling as well, and is where the failure gets its location from.
+        try
+        {
+            if (none)
+            {
+                (void) from.next_token();
+                return TOptional();
+            }
+
+            auto element = context.extract<element_type>(from);
+            if (!element)
+                return std::unexpected(element.error());
+
+            return TOptional(*std::move(element));
+        }
+        catch (...)
+        {
+            context.note_value_consumed(from);
+            throw;
+        }
     }
 
     JSONV_NODISCARD

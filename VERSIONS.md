@@ -175,6 +175,62 @@
        over again, so each member cost three map lookups where one will do. What a failure reports is unchanged,
        down to the path of a member matched through an `alternate_name`, which is still the key the document used
        rather than the declared one. `extract_sub` itself is unchanged and remains available (#228).
+     - `container_adapter`, `optional_adapter` and `wrapper_adapter` read the reader directly instead of a `value`
+       materialised for them. A `std::vector<my_type>` built the whole array as a `value` and then extracted each
+       element out of it, so a large array was built twice; it is now walked once. The array's opening token carries
+       how many elements follow it, so a container which can be told its size is told it rather than doubling its way
+       there -- the count is bounded by what is on the tape even when the parse which produced it failed part-way
+       through, which is what makes it safe to hand to `reserve`. This is a source break for anyone deriving from one
+       of the three and overriding `create(extraction_context&, const value&)`: the base is now `adapter_for` and the
+       hook takes a `reader`. `polymorphic_adapter`, `enum_adapter` and the serialization builder DSL stay on the
+       bridge for now (#230).
+     - `std::vector<std::string_view>` extracted from JSON text is a view of the source rather than a refusal. It was
+       refused for a structural reason rather than a semantic one: the container materialised the whole array and
+       every element then saw `extraction_context::source_is_temporary`, because a view of that temporary would name
+       storage freed as the extraction unwound. With nothing materialised each element views the document exactly as
+       a lone `std::string_view` does, and is valid for exactly as long as that source is. A string the source spelt
+       with escape sequences is still refused, and a value-backed source still borrows the caller's storage rather
+       than the reader's arena (#230).
+     - `std::optional<T>` reads what the `value` holds rather than what encoding it would write. A value-backed
+       reader has no token for a non-finite `kind::decimal` and renders one as `null`, so deciding "none" from the
+       node type alone turned a `std::optional<double>` holding a NaN into an empty one. Where there is a `value` to
+       ask, its `kind` decides -- the same line the numeric extractors already drew for the same reason (#230).
+     - Added `extraction_context::skip_failed_value` and `extraction_context::note_value_consumed`, which are what a
+       composite honouring
+       `extract_options::on_error::collect_all` should step over a failed element with. `reader::next_value` alone is
+       not enough and the recovery example on `extraction_context::recover` said otherwise: an adapter on the `value`
+       bridge reading a structure out of JSON *text* has already walked the cursor past it, because materialising it
+       is what does the walking, so a loop stepping again skipped the following sibling entirely -- dropping it from
+       the result, dropping every problem it had to report, and renumbering everything after it. Collecting over an
+       array of three objects where the first and third were bad reported the first and the *second*, and never read
+       the third. Whatever fails with the value behind it rather than in front of it now says so through
+       `note_value_consumed`, keyed to the reader it consumed it from, and the note lives and dies with one call to
+       `extract`. The bridge says it for itself; so does a container which read its own closing token, and a wrapper
+       or optional whose construction rejects a value the extraction below it already stepped over. The note also
+       settles *where* the failure was, since the cursor no longer says: the enclosing structure, which is still true
+       of the value that failed, where the next sibling is both false and actively misleading. That is the same
+       approximation the bridge already made, and for the same reason -- naming the position exactly would mean
+       building a path before every successful extraction, which on a text source rescans from the start of the
+       document. This was unreachable until a composite walked the reader per element, which is what made it
+       visible (#230).
+     - The same note covers every way an adapter can fail once it has stepped the cursor, which is more ways than it
+       first appears: a wrapper or optional whose constructor refuses the value handed to it, an optional-like type
+       which refuses to default-construct on `null`, the moves at the end of `adapter_for::extract` and
+       `extractor_for::extract` which place the created object into the caller's storage, and both of the moves a
+       registered callable's result makes on its way out -- the one which normalises it into the `std::expected` the
+       pipeline speaks, and, for a callable written against `value`, the return which happens once the bridge has
+       committed and can no longer report it. All of these are the caller's own types and all of them can throw after
+       the value is behind the cursor. A throw out of the callable itself is deliberately not treated this way: it
+       may have failed before consuming anything, so the call is made outside the guard.
+     - `container_adapter` finishes walking its array before letting an exception out of the element loop. Inserting
+       into the container is the caller's code -- a `std::set` comparator or a move constructor may throw -- and a
+       failure there used to leave the cursor stranded between two elements. A loop above it resumed at that token
+       and read the inner `]` as its own end, so extracting a `std::vector<std::set<T>>` under `collect_all` where
+       two of the sets were bad reported one of them and stopped. The walk steps over whole child values rather than
+       leaving "the current structure", because a child which is itself an array or object has to be crossed rather
+       than entered -- leaving one of those lands back inside the container being built. A failure after the closing
+       token has already been read has nothing left to walk and skips this entirely, which is what keeps a throwing
+       move of the finished container from consuming the sibling after it (#230).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC

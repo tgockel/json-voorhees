@@ -45,7 +45,18 @@ public:
     {
         if (auto created = create(context, from))
         {
-            new(into) T(std::move(created).value());
+            try
+            {
+                new(into) T(std::move(created).value());
+            }
+            catch (...)
+            {
+                // `create` succeeded, so the cursor is already one past the value this was built from. Moving it
+                // into place is the last thing which can fail, and `T` is the caller's type; a loop recovering from
+                // that failure must not step over the value a second time.
+                context.note_value_consumed(from);
+                throw;
+            }
             return {};
         }
         else

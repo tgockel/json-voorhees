@@ -9,8 +9,13 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
+#include <jsonv/ast.hpp>
 #include <jsonv/config.hpp>
+#include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
+
+#include <expected>
+#include <utility>
 
 #include "adapter_for.hpp"
 
@@ -26,15 +31,33 @@ namespace jsonv
 ///  be explicitly convertible to and from the \c value_type.
 template <typename TWrapper>
 class wrapper_adapter :
-        public value_adapter_for<TWrapper>
+        public adapter_for<TWrapper>
 {
     using element_type = typename TWrapper::value_type;
 
 protected:
     JSONV_NODISCARD
-    virtual TWrapper create(extraction_context& context, const value& from) const override
+    virtual std::expected<TWrapper, ast_node_type> create(extraction_context& context, reader& from) const override
     {
-        return TWrapper(context.extract<element_type>(from));
+        // Nothing to decide and nothing to position: the wrapped type's extractor reads the same value this one was
+        // handed and leaves the cursor where this one owes it.
+        // `extraction_context::extract` reports an ordinary failure by returning, so anything which *throws* here
+        // does so having already stepped the cursor: a `TWrapper` which rejects what it was handed, or a move of
+        // the extracted value. Either way the failure is behind the cursor rather than in front of it, and saying
+        // so is what stops whatever recovers from this skipping the following sibling as well.
+        try
+        {
+            auto element = context.extract<element_type>(from);
+            if (!element)
+                return std::unexpected(element.error());
+
+            return TWrapper(*std::move(element));
+        }
+        catch (...)
+        {
+            context.note_value_consumed(from);
+            throw;
+        }
     }
 
     JSONV_NODISCARD

@@ -401,6 +401,45 @@ bool extraction_context::recover(const extraction_error& ex)
     return true;
 }
 
+void extraction_context::note_value_consumed(const reader& from) noexcept
+{
+    _consumed_failed_value = &from;
+
+    // The cursor no longer names the value which failed, so where that value was has to be settled now -- the
+    // handler which records the problem runs later, by which time the cursor names an unrelated sibling. This is the
+    // same deposit `borrowed_subtree` makes for the same reason, and the same approximation: the enclosing structure
+    // is still true of the value which failed, where the next sibling is both false and actively misleading.
+    //
+    // Nothing is computed unless a failure is actually being reported, which is what keeps `reader::current_path`
+    // -- a rescan from the start of the document on a text source -- off the success path.
+    if (_failure_path || _innermost || !_base_path.empty())
+        return;
+
+    try
+    {
+        _failure_path.emplace(enclosing_path(from));
+    }
+    catch (...)
+    {
+        // Naming a position must never cost more than the name.
+        try
+        {
+            _failure_path.emplace();
+        }
+        catch (...)
+        { }
+    }
+}
+
+void extraction_context::skip_failed_value(reader& from) noexcept
+{
+    // Matched against the reader the note was left for rather than merely taken: an adapter on the bridge may run
+    // nested extractions through readers of its own, and a note left on one of those must not answer for a position
+    // in this one.
+    if (std::exchange(_consumed_failed_value, nullptr) != &from)
+        (void) from.next_value();
+}
+
 extraction_context::problem_list extraction_context::take_problems_since(problem_list::size_type mark)
 {
     using std::begin;
@@ -497,6 +536,11 @@ std::expected<void, ast_node_type> extraction_context::extract(const std::type_i
     // leaves a location behind which belongs to nothing.
     _failure_path.reset();
     auto discard_deposit = detail::on_scope_exit([this] { _failure_path.reset(); });
+
+    // Cleared on the way in but deliberately *not* on the way out: the note is left by a destructor running as this
+    // call unwinds and is read by whoever recovers from the failure, which is after this returns. Bounding it to one
+    // extraction is what keeps a note nobody collects from answering for an unrelated position later.
+    _consumed_failed_value = nullptr;
 
     try
     {
@@ -731,6 +775,7 @@ detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& 
         _borrowed(nullptr),
         _materialised(false),
         _advanced(false),
+        _committed(false),
         _uncaught_on_entry(std::uncaught_exceptions())
 {
     if (from.good() && from.current().type() == ast_node_type::document_start)
@@ -769,6 +814,12 @@ detail::borrowed_subtree::~borrowed_subtree() noexcept
     if (_materialised)
         --_context->_materialised_depth;
 
+    // Walked past the value, and the older body it was walked for did not succeed. Whatever recovers from this has to
+    // be told, or its own step over the failed value lands on the sibling after the one it meant to skip. This is
+    // outside the unwinding check below because a failure reported by returning is just as consuming as one thrown.
+    if (_advanced && !_committed)
+        _context->note_value_consumed(*_from);
+
     if (!_advanced || std::uncaught_exceptions() <= _uncaught_on_entry)
         return;
 
@@ -800,6 +851,8 @@ detail::borrowed_subtree::~borrowed_subtree() noexcept
 
 void detail::borrowed_subtree::commit()
 {
+    _committed = true;
+
     if (!_advanced)
     {
         (void) _from->next_value();

@@ -415,10 +415,13 @@ public:
     ///         return std::unexpected(element.error());
     ///
     ///     recovered = true;
-    ///     (void) from.next_value();
+    ///     context.skip_failed_value(from);
     ///     continue;
     /// }
     /// \endcode
+    ///
+    /// Note \ref skip_failed_value rather than \c reader::next_value: where the value which failed was read through
+    /// the \c value bridge, the cursor is already past it and stepping again would skip the next one.
     ///
     /// The overload taking an \c extraction_error is for an adapter on the \c value bridge, which reports failure by
     /// throwing. On \c true the problems \a ex carries have been folded onto this context and the caller may
@@ -439,6 +442,33 @@ public:
     /// the catch which folds that error back onto a context to record a second time.
     JSONV_NODISCARD
     problem_list take_problems_since(problem_list::size_type mark);
+
+    /// Step \a from past the value whose failure is being recovered from.
+    ///
+    /// This is \c reader::next_value, except where the step has already happened. Most extractors leave the cursor
+    /// naming the value they rejected, so stepping over it is exactly one \c reader::next_value. An adapter on the
+    /// \c value bridge reading a structure out of JSON text is the exception: materialising that structure is what
+    /// walks the cursor over it, so by the time the older body reports a failure the cursor names the *next* sibling.
+    /// A loop recovering with a bare \c reader::next_value steps over that sibling as well, dropping it from the
+    /// result and dropping every problem it had to report -- and misnumbering everything after it.
+    ///
+    /// The note this consults belongs to \a from and to the one failure being reported. It is cleared when the next
+    /// extraction starts, so a note nobody collects expires rather than answering for an unrelated position.
+    ///
+    /// \see recover
+    /// \see note_value_consumed
+    void skip_failed_value(reader& from) noexcept;
+
+    /// Note that the failure about to be reported has already consumed, from \a from, the value it failed on, so
+    /// whatever recovers from it must not step over that value a second time.
+    ///
+    /// The \c value bridge says this for itself. An adapter which walks the reader has to say it whenever it fails
+    /// with the value behind it rather than in front of it: after a nested extraction which succeeded, or once it
+    /// has read its own closing token. A composite which fails part-way through a structure should finish walking
+    /// that structure first -- the position inside it means nothing to a caller -- and then say so.
+    ///
+    /// \see skip_failed_value
+    void note_value_consumed(const reader& from) noexcept;
 
     /// \{
     /// Check that the \c reader::current AST node of \a from has the given \a type or is one of the given \a types. If
@@ -619,6 +649,10 @@ private:
     /// in the destructor and picked up by \ref take_failure_path. It lives and dies with one call to \c extract.
     std::optional<jsonv::path> _failure_path;
 
+    /// The reader whose cursor a bridge already walked past the value currently failing. Read by
+    /// \ref skip_failed_value and, like \ref _failure_path, it lives and dies with one call to \c extract.
+    const reader*     _consumed_failed_value = nullptr;
+
     problem_list      _problems;
 };
 
@@ -681,6 +715,9 @@ private:
     const value*        _borrowed;
     bool                _materialised;
     bool                _advanced;
+    /// Distinct from \ref _advanced: a structure read out of text is advanced by the constructor, so the two only
+    /// agree for the shapes \c commit had something left to do for.
+    bool                _committed;
     int                 _uncaught_on_entry;
     value               _owned;
 };
@@ -710,13 +747,30 @@ std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_
                          }
                      };
 
+    // The reader shapes consume the value themselves, so by the time `func` has returned the cursor is past it and
+    // normalising -- which moves the result into the pipeline's `std::expected`, using the caller's own move
+    // constructor -- is failing with that value behind it. Anything thrown *by* `func` is deliberately left alone:
+    // it may have failed before consuming anything, and the call is evaluated outside the guard for that reason.
+    auto normalise_consumed = [&] (auto&& raw) -> std::expected<T, ast_node_type>
+                              {
+                                  try
+                                  {
+                                      return normalise(std::forward<decltype(raw)>(raw));
+                                  }
+                                  catch (...)
+                                  {
+                                      context.note_value_consumed(from);
+                                      throw;
+                                  }
+                              };
+
     if constexpr (std::invocable<const FExtract&, extraction_context&, reader&>)
     {
-        return normalise(func(context, from));
+        return normalise_consumed(func(context, from));
     }
     else if constexpr (std::invocable<const FExtract&, reader&>)
     {
-        return normalise(func(from));
+        return normalise_consumed(func(from));
     }
     else if constexpr (std::invocable<const FExtract&, extraction_context&, const value&>)
     {
@@ -724,9 +778,22 @@ std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_
         // mutable one would let a callable overloaded on both pick the other overload.
         borrowed_subtree subtree(context, from);
         auto             result = normalise(func(context, subtree.get()));
-        if (result)
-            subtree.commit();
-        return result;
+        if (!result)
+            return result;
+
+        // Committing steps the cursor past the value, so the named return -- which moves the result with the
+        // caller's own move constructor -- fails with that value behind it. `borrowed_subtree` cannot say so on our
+        // behalf here: it has committed, which is the state it takes to mean the body succeeded.
+        subtree.commit();
+        try
+        {
+            return result;
+        }
+        catch (...)
+        {
+            context.note_value_consumed(from);
+            throw;
+        }
     }
     else
     {
@@ -737,9 +804,22 @@ std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_
 
         borrowed_subtree subtree(context, from);
         auto             result = normalise(func(subtree.get()));
-        if (result)
-            subtree.commit();
-        return result;
+        if (!result)
+            return result;
+
+        // Committing steps the cursor past the value, so the named return -- which moves the result with the
+        // caller's own move constructor -- fails with that value behind it. `borrowed_subtree` cannot say so on our
+        // behalf here: it has committed, which is the state it takes to mean the body succeeded.
+        subtree.commit();
+        try
+        {
+            return result;
+        }
+        catch (...)
+        {
+            context.note_value_consumed(from);
+            throw;
+        }
     }
 }
 
