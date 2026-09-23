@@ -687,6 +687,11 @@ public:
 
     JSONV_NODISCARD
     virtual bool has_extract_key(std::string_view key) const = 0;
+
+    /// The name this member was declared with, for naming it in a problem raised where the document's own key is not
+    /// to hand. It is owned by this adapter and outlives any extraction, so it is safe to push as a `path_scope`.
+    JSONV_NODISCARD
+    virtual std::string_view primary_name() const = 0;
 };
 
 template <typename T, typename TMember>
@@ -746,6 +751,12 @@ public:
     virtual bool has_extract_key(std::string_view key) const override
     {
         return std::any_of(begin(_names), end(_names), [key] (const std::string& name) { return name == key; });
+    }
+
+    JSONV_NODISCARD
+    virtual std::string_view primary_name() const override
+    {
+        return _names.at(0);
     }
 
     void add_encode_check(std::function<bool (const serialization_context&, const TMember&)> check)
@@ -1131,9 +1142,63 @@ private:
             if (_default_on_null && from.is_null())
                 return _create_default(context);
 
-            T out;
+            auto mark      = context.problems().size();
+            T    out;
+            bool recovered = false;
+
             for (const auto& member : _members)
-                member->mutate(context, from, out);
+            {
+                try
+                {
+                    member->mutate(context, from, out);
+                }
+                catch (const extraction_error& ex)
+                {
+                    // Every member looks itself up by name, so the next one is reachable whatever this one did. In
+                    // `collect_all` that turns "the first field is wrong" into a list of every field which is, and
+                    // -- since `mutate` throws for a missing required field too -- every one of those as well.
+                    if (!context.recover(ex))
+                        throw;
+
+                    recovered = true;
+                }
+                catch (const std::bad_alloc&)
+                {
+                    // Recovering means recording, and recording allocates -- as does the `extraction_error` below,
+                    // whose constructors are `noexcept`, so failing to allocate inside one terminates rather than
+                    // propagating. There is nothing to be gained by trying.
+                    throw;
+                }
+                catch (...)
+                {
+                    // A member's default factory is user code called outside `extract_sub`, so it fails with
+                    // whatever it threw rather than with an `extraction_error` -- `from.at("seed")` alone is an
+                    // `std::out_of_range`. Giving it the shape the rest of the loop deals in is what keeps which
+                    // members get attempted from depending on how the first failing one happened to fail.
+                    //
+                    // Asked before anything is built, because translating allocates and rethrowing the original
+                    // untouched is what leaves `fail_immediately` reaching the same translation it always did.
+                    if (context.options().failure_mode() != extract_options::on_error::collect_all)
+                        throw;
+
+                    // `extract_sub` names the member it failed in; this failure happened outside it and would
+                    // otherwise be the one problem in the list which does not say which member it came from. The
+                    // scope `extract_sub` pushed is long gone by the time this handler runs, so there is nothing to
+                    // double up with.
+                    extraction_context::path_scope scope(context, member->primary_name());
+                    extraction_error               translated(context.path(), std::current_exception());
+
+                    if (!context.recover(translated))
+                        throw;
+
+                    recovered = true;
+                }
+            }
+
+            // Collecting gathers diagnostics; it does not make a half-populated `out` worth handing back. Thrown
+            // before `_post_extract`, which has no business seeing one.
+            if (recovered)
+                throw extraction_error(context.take_problems_since(mark));
 
             if (_post_extract)
                 out = _post_extract(context, std::move(out));

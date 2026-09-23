@@ -270,9 +270,11 @@ void extraction_context::path_scope::append_to(jsonv::path& out) const
 extraction_context::extraction_context(jsonv::formats                fmt,
                                        std::optional<jsonv::version> ver,
                                        jsonv::path                   p,
-                                       const void*                   userdata
+                                       const void*                   userdata,
+                                       extract_options               options
                                       ) :
         context(std::move(fmt), std::move(ver), userdata),
+        _options(std::move(options)),
         _base_path(std::move(p))
 { }
 
@@ -368,6 +370,30 @@ path extraction_context::take_failure_path(const reader& from)
     {
         return safe_current_path(from);
     }
+}
+
+bool extraction_context::recover() const noexcept
+{
+    // The problem is already recorded, so the question is whether there is room for another one.
+    return _options.failure_mode() == extract_options::on_error::collect_all
+        && _problems.size() < _options.max_failures();
+}
+
+bool extraction_context::recover(const extraction_error& ex)
+{
+    if (_options.failure_mode() != extract_options::on_error::collect_all)
+        return false;
+
+    // The problems are still in `ex`, so the question is whether folding them would overrun the budget. Declining
+    // leaves them there for the caller to rethrow, which keeps each one recorded exactly once whichever way this
+    // goes.
+    if (_problems.size() + ex.problems().size() >= _options.max_failures())
+        return false;
+
+    for (const auto& p : ex.problems())
+        (void) problem(p);
+
+    return true;
 }
 
 extraction_context::problem_list extraction_context::take_problems_since(problem_list::size_type mark)

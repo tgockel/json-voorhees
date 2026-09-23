@@ -95,6 +95,17 @@
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory
+     - `extract_options::on_error` and `max_failures` are now honoured. Both have been documented since the type was
+       introduced and neither was ever consumed: `extraction_context` held no `extract_options`, so there was nowhere
+       to pass one, and the only reader of the type was `parse_index::extract_tree` for `on_duplicate_key`. The
+       context now carries options, and `collect_all` keeps extracting past a problem wherever a composite knows
+       where to resume -- an array's next element, an object's next key -- so one bad member no longer hides every
+       problem after it. Collecting gathers diagnostics and does not produce partially-extracted objects: an
+       extraction which recovered from anything still throws, carrying what it found. A failure with no enclosing
+       composite to resume into ends extraction whatever the mode, which is why `extraction_context::recover` is
+       asked by the loop rather than decided for it. `max_failures` is the threshold extraction stops at rather than
+       a cap on the reported list -- a failure which reports several problems at once is taken whole -- and a limit
+       of `0` or `1` makes the first problem the last, which is `fail_immediately` in all but name (#227).
      - Fixed `extraction_error` built from an empty `problem_list` leaving `problems()` empty, which its own
        documentation says cannot happen. `path()` and `nested_ptr()` each guarded the empty case and returned a
        static empty value; `problems()` has nothing to fall back on and was missed, so a caller iterating it to

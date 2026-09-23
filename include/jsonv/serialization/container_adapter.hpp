@@ -37,10 +37,33 @@ protected:
     {
         using std::end;
 
+        auto       mark      = context.problems().size();
         TContainer out;
+        bool       recovered = false;
+
         (void) from.as_array(); // get nice error if input is not an array
         for (value::size_type idx = 0U; idx < from.size(); ++idx)
-            out.insert(end(out), context.extract_sub<element_type>(from, idx));
+        {
+            try
+            {
+                out.insert(end(out), context.extract_sub<element_type>(from, idx));
+            }
+            catch (const extraction_error& ex)
+            {
+                // The next element starts at a known place, so a bad one does not have to hide every problem after
+                // it. Only in `collect_all`, and only while the budget lasts -- otherwise this rethrows and the
+                // problems stay in `ex` to be folded on exactly once by the catch above this one.
+                if (!context.recover(ex))
+                    throw;
+
+                recovered = true;
+            }
+        }
+
+        // Recovering collected the rest of the problems; it did not make the container valid.
+        if (recovered)
+            throw extraction_error(context.take_problems_since(mark));
+
         return out;
     }
 

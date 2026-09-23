@@ -182,9 +182,20 @@ public:
     /// When an error is encountered during extraction, what should happen?
     enum class on_error
     {
-        /// Immediately throw an \c extraction_error -- do not attempt to continue.
+        /// Report the first problem and stop, so the \c extraction_error thrown describes one thing that went wrong.
         fail_immediately,
-        /// Attempt to continue extraction, collecting all errors and throwing at the end.
+        /// Keep extracting past a problem wherever something knows how to resume, so the \c extraction_error thrown
+        /// at the end describes as many of them as it can.
+        ///
+        /// Resuming is only possible where a composite knows where its next element begins -- the next element of an
+        /// array, the next key of an object -- which is why \c extraction_context::recover is asked rather than told.
+        /// A failure with no enclosing composite to resume into still ends extraction with a single problem.
+        ///
+        /// Collecting gathers diagnostics; it does not produce partially-extracted objects. An extraction which
+        /// recovered from anything still throws, so this changes how much the error explains and never whether one
+        /// happens.
+        ///
+        /// \see extract_options::max_failures
         collect_all,
     };
 
@@ -222,8 +233,17 @@ public:
     /// \}
 
     /// \{
-    /// The maximum allowed extractor failures the parser can encounter before throwing an error. This is only
-    /// applicable if the \c failure_mode is not \c on_error::fail_immediately. By default, this value is 10.
+    /// The number of problems to collect before giving up. This is only applicable if the \c failure_mode is
+    /// \c on_error::collect_all. By default, this value is 10.
+    ///
+    /// This is a threshold extraction stops at rather than a cap on the list it reports. A single failure which
+    /// reports several problems at once -- an adapter recording a batch of them before returning, or throwing an
+    /// \c extraction_error carrying several -- is taken whole rather than torn in half, so the final list can exceed
+    /// the limit by that batch. Truncating would drop diagnostics to enforce a bound whose purpose is to stop the
+    /// walk, not to edit the report.
+    ///
+    /// A limit of \c 0 or \c 1 makes the first problem the last, which is \c on_error::fail_immediately in all but
+    /// name.
     ///
     /// You should probably not set this value to an unreasonably high number, as each error encountered must be stored
     /// in memory for some period of time.
@@ -300,14 +320,17 @@ public:
     /// Create a new instance using the default \c formats (\c formats::global).
     extraction_context();
 
-    /// Create a new instance using the given \a fmt, \a ver, \a p and \a userdata.
+    /// Create a new instance using the given \a fmt, \a ver, \a p, \a userdata and \a options.
     ///
     /// \param p A path all reported problems are relative to. This is almost always empty -- it exists for extraction
     ///          of a document which is itself a fragment of some larger one.
+    /// \param options What to do when something goes wrong. The default reports the first problem and stops; see
+    ///                \c extract_options::on_error.
     explicit extraction_context(jsonv::formats                fmt,
                                 std::optional<jsonv::version> ver      = std::nullopt,
                                 jsonv::path                   p        = jsonv::path(),
-                                const void*                   userdata = nullptr
+                                const void*                   userdata = nullptr,
+                                extract_options               options  = extract_options()
                                );
 
     extraction_context(const extraction_context&)            = delete;
@@ -328,6 +351,10 @@ public:
     /// then borrows from that temporary.
     JSONV_NODISCARD
     bool source_is_temporary() const noexcept { return _materialised_depth != 0U; }
+
+    /// Get the options this context is extracting under.
+    JSONV_NODISCARD
+    const extract_options& options() const noexcept { return _options; }
 
     /// Get the path currently being extracted, as named by the live \ref path_scope guards.
     ///
@@ -364,6 +391,54 @@ public:
     JSONV_NODISCARD
     problem_list&&      problems() &&     { return std::move(_problems); }
     /// \}
+
+    /// \{
+    /// May extraction recover from a failure and keep going?
+    ///
+    /// A composite which knows where its next element begins -- the next element of an array, the next key of an
+    /// object -- asks this when one of them fails. A \c true answer means skip what failed and keep walking, so one
+    /// bad element does not hide every problem after it; \c false means report the failure and let the pipeline
+    /// unwind. Only the loop knows where it would resume, which is why collecting is something a composite opts into
+    /// rather than something this context can deliver on its own -- and why a failure with no enclosing composite
+    /// ends extraction however \c extract_options::failure_mode is set.
+    ///
+    /// The answer is \c false under \c extract_options::on_error::fail_immediately, and becomes \c false in
+    /// \c collect_all once \c extract_options::max_failures problems have been recorded. It is never a promise that
+    /// extraction will succeed: recovering collects diagnostics, it does not produce partial objects, so a composite
+    /// which recovered from anything **must still report failure** once its loop is done.
+    ///
+    /// \code
+    /// auto element = context.extract<T>(from);
+    /// if (!element)
+    /// {
+    ///     if (!context.recover())
+    ///         return std::unexpected(element.error());
+    ///
+    ///     recovered = true;
+    ///     (void) from.next_value();
+    ///     continue;
+    /// }
+    /// \endcode
+    ///
+    /// The overload taking an \c extraction_error is for an adapter on the \c value bridge, which reports failure by
+    /// throwing. On \c true the problems \a ex carries have been folded onto this context and the caller may
+    /// continue; on \c false nothing was folded and the caller should rethrow \a ex, which the catch in
+    /// \c extract(const std::type_info&, reader&, void*) folds instead. Either way every problem is recorded exactly
+    /// once, which is the thing to preserve: the \c value -based overloads hand their problems to the exception
+    /// rather than leaving them behind, so a fold in both places would report each failure twice.
+    JSONV_NODISCARD
+    bool recover() const noexcept;
+    JSONV_NODISCARD
+    bool recover(const extraction_error& ex);
+    /// \}
+
+    /// Remove and return the problems recorded since \a mark, a value \c problems() previously reported the size of.
+    ///
+    /// A composite which recovered still has to report failure, and on the \c value -based interface that means
+    /// throwing an \c extraction_error. This is how it hands over what it collected without leaving a copy behind for
+    /// the catch which folds that error back onto a context to record a second time.
+    JSONV_NODISCARD
+    problem_list take_problems_since(problem_list::size_type mark);
 
     /// \{
     /// Check that the \c reader::current AST node of \a from has the given \a type or is one of the given \a types. If
@@ -528,13 +603,8 @@ private:
     JSONV_NODISCARD
     jsonv::path take_failure_path(const reader& from);
 
-    /// Remove and return the problems recorded since \a mark. Used by the \c value -based overloads to move what they
-    /// collected into the \c extraction_error they throw, so the catch which folds that error back onto a context does
-    /// not record it twice.
-    JSONV_NODISCARD
-    problem_list take_problems_since(problem_list::size_type mark);
-
 private:
+    extract_options   _options;
     jsonv::path       _base_path;
     const path_scope* _innermost          = nullptr;
     std::size_t       _materialised_depth = 0U;
@@ -702,12 +772,30 @@ T extract(const value& from, const formats& fmts)
     return context.extract<T>(from);
 }
 
+/// Extract a C++ value from \a from using the provided \a fmts and \a options.
+template <typename T>
+JSONV_NODISCARD
+T extract(const value& from, const formats& fmts, const extract_options& options)
+{
+    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return context.extract<T>(from);
+}
+
 /// Extract a C++ value from \a from using \c jsonv::formats::global().
 template <typename T>
 JSONV_NODISCARD
 T extract(const value& from)
 {
     extraction_context context;
+    return context.extract<T>(from);
+}
+
+/// Extract a C++ value from \a from using \c jsonv::formats::global() and the provided \a options.
+template <typename T>
+JSONV_NODISCARD
+T extract(const value& from, const extract_options& options)
+{
+    extraction_context context(formats::global(), std::nullopt, jsonv::path(), nullptr, options);
     return context.extract<T>(from);
 }
 

@@ -24,6 +24,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <optional>
+#include <sstream>
+#include <stdexcept>
 #include <vector>
 #include <memory>
 #include <new>
@@ -83,6 +85,118 @@ formats bounded_formats()
     formats out = formats::compose({ formats::defaults() });
     out.register_extractor(&instance, duplicate_type_action::replace);
     return out;
+}
+
+/// Three required integer members, so a document which puts something else in one is one bad member and nothing
+/// else -- which is what makes counting the problems a `collect_all` run reports meaningful.
+struct triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+
+    bool operator==(const triple& other) const
+    {
+        return a == other.a && b == other.b && c == other.c;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const triple& x)
+    {
+        return os << "{ " << x.a << ", " << x.b << ", " << x.c << " }";
+    }
+};
+
+formats triple_formats()
+{
+    static formats instance =
+        formats_builder()
+            .type<triple>()
+                .member("a", &triple::a)
+                .member("b", &triple::b)
+                .member("c", &triple::c)
+            .register_container<std::vector<triple>>()
+            .register_container<std::vector<std::int64_t>>()
+        .compose_checked(formats::defaults())
+        ;
+
+    return instance;
+}
+
+/// A `triple` whose `a` falls back to a factory which reads another key -- user code running outside `extract_sub`,
+/// so it fails with whatever `value::at` throws rather than with an `extraction_error`.
+formats seeded_triple_formats()
+{
+    static formats instance =
+        formats_builder()
+            .type<triple>()
+                .member("a", &triple::a)
+                    .default_value([] (extraction_context&, const value& from) -> std::int64_t
+                                   {
+                                       return from.at("seed").as_integer();
+                                   }
+                                  )
+                .member("b", &triple::b)
+                .member("c", &triple::c)
+        .compose_checked(formats::defaults())
+        ;
+
+    return instance;
+}
+
+/// A type whose adapter reports every problem it found in one go, the way a validator checking a whole record at
+/// once does. `max_failures` is a threshold extraction stops at, not a truncation applied to what a single failure
+/// reports, so a batch like this arrives whole.
+struct batched { };
+
+class batch_problem_adapter final :
+        public adapter_for<batched>
+{
+protected:
+    std::expected<batched, ast_node_type> create(extraction_context& context, reader& from) const override
+    {
+        (void) from.next_value();
+
+        (void) context.problem(context.path(), "first");
+        (void) context.problem(context.path(), "second");
+        return context.problem(context.path(), "third");
+    }
+
+    value to_json(const serialization_context&, const batched&) const override
+    {
+        return value();
+    }
+};
+
+formats batched_formats()
+{
+    static batch_problem_adapter instance;
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_adapter(&instance, duplicate_type_action::replace);
+    return out;
+}
+
+extract_options collecting(extract_options::size_type max_failures = 10U)
+{
+    return extract_options::create_default()
+                .failure_mode(extract_options::on_error::collect_all)
+                .max_failures(max_failures);
+}
+
+/// The paths of every problem an `extraction_error` carries, in document order and joined, so a mismatch prints
+/// the whole list rather than the first difference.
+std::string problem_paths(const extraction_error& err)
+{
+    std::ostringstream os;
+    bool               first = true;
+    for (const auto& problem : err.problems())
+    {
+        if (!std::exchange(first, false))
+            os << " ";
+        os << problem.path();
+    }
+
+    return std::move(os).str();
 }
 
 }
@@ -796,6 +910,267 @@ TEST(extract_value_and_text_sources_agree)
     extraction_context cxt(formats::defaults());
     auto               rdr = open(source);
     ensure_eq(parse(source), *cxt.extract<value>(rdr));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// extract_options::on_error and max_failures                                                                         //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST(extract_collect_default_stops_at_the_first_problem)
+{
+    // The default is `fail_immediately` and must stay that way: every existing caller gets one problem and a stop.
+    value source = parse(R"({ "a": "x", "b": "y", "c": "z" })");
+
+    try
+    {
+        (void) extract<triple>(source, triple_formats());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+        ensure_eq(path::create(".a"), err.problems().at(0).path());
+    }
+}
+
+TEST(extract_collect_all_gathers_every_bad_member)
+{
+    value source = parse(R"({ "a": "x", "b": 2, "c": "z" })");
+
+    try
+    {
+        (void) extract<triple>(source, triple_formats(), collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(2U, err.problems().size());
+        ensure_eq(std::string(".a .c"), problem_paths(err));
+    }
+}
+
+TEST(extract_collect_all_gathers_every_missing_member)
+{
+    // `mutate` throws for a missing required field as well as for a failed conversion, so recovery reports all of
+    // them rather than only the first. The path names the object, so the field is identified by the message.
+    try
+    {
+        (void) extract<triple>(parse("{ }"), triple_formats(), collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(3U, err.problems().size());
+        ensure_eq(std::string("Missing required field a"), err.problems().at(0).message());
+        ensure_eq(std::string("Missing required field b"), err.problems().at(1).message());
+        ensure_eq(std::string("Missing required field c"), err.problems().at(2).message());
+    }
+}
+
+TEST(extract_collect_all_gathers_every_bad_element)
+{
+    try
+    {
+        (void) extract<std::vector<std::int64_t>>(parse(R"([ 1, "x", 3, "y" ])"), triple_formats(), collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(2U, err.problems().size());
+        ensure_eq(std::string("[1] [3]"), problem_paths(err));
+    }
+}
+
+TEST(extract_collect_all_records_a_nested_failure_exactly_once)
+{
+    // The interesting one. `extract_sub` moves the problems it collected off the context and into the exception it
+    // throws, so a fold at both the member loop and the element loop would report every failure twice. Two levels of
+    // recovery over four failures must still be four problems.
+    value source = parse(R"([ { "a": "x", "b": "y", "c": 3 },
+                              { "a": 1,   "b": 2,   "c": 3 },
+                              { "a": "x", "b": "y", "c": 3 }
+                            ])"
+                        );
+
+    try
+    {
+        (void) extract<std::vector<triple>>(source, triple_formats(), collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(4U, err.problems().size());
+        ensure_eq(std::string("[0].a [0].b [2].a [2].b"), problem_paths(err));
+    }
+}
+
+TEST(extract_collect_all_stops_at_max_failures)
+{
+    value source = parse(R"([ "a", "b", "c", "d", "e" ])");
+
+    try
+    {
+        (void) extract<std::vector<std::int64_t>>(source, triple_formats(), collecting(3U));
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(3U, err.problems().size());
+        ensure_eq(std::string("[0] [1] [2]"), problem_paths(err));
+    }
+}
+
+TEST(extract_collect_all_max_failures_boundary_is_fail_immediately)
+{
+    // A budget of 0 or 1 makes the first problem the last, which is `fail_immediately` in all but name -- and, note,
+    // still reports one problem rather than none.
+    for (auto limit : { extract_options::size_type(0U), extract_options::size_type(1U) })
+    {
+        try
+        {
+            (void) extract<triple>(parse(R"({ "a": "x", "b": "y", "c": "z" })"), triple_formats(), collecting(limit));
+            ensure(!"extraction_error was not thrown");
+        }
+        catch (const extraction_error& err)
+        {
+            ensure_eq(1U, err.problems().size());
+            ensure_eq(path::create(".a"), err.problems().at(0).path());
+        }
+    }
+}
+
+TEST(extract_collect_all_terminates_without_an_enclosing_composite)
+{
+    // Nothing knows where to resume, so there is no loop to ask and the failure ends extraction. Collecting is
+    // something a composite opts into, not something the context can deliver on its own.
+    try
+    {
+        (void) extract<std::int64_t>(parse(R"("x")"), formats::defaults(), collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+    }
+}
+
+TEST(extract_collect_all_still_throws_when_it_recovered)
+{
+    // Recovering collects diagnostics; it does not hand back a half-built object. An array of five where only the
+    // third is bad still fails rather than yielding the other four.
+    ensure_throws(extraction_error,
+                  extract<std::vector<std::int64_t>>(parse(R"([ 1, 2, "x", 4, 5 ])"), triple_formats(), collecting())
+                 );
+}
+
+TEST(extract_collect_all_recovers_from_a_default_factory_failure)
+{
+    // A member's default factory is user code running outside `extract_sub`, so it fails with `std::out_of_range`
+    // rather than an `extraction_error`. Recovery has to cover that too, or which members get looked at would depend
+    // on how the first failing one happened to fail.
+    try
+    {
+        (void) extract<triple>(parse(R"({ "b": "x", "c": "y" })"), seeded_triple_formats(), collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(3U, err.problems().size());
+        ensure_eq(std::string(".a .b .c"), problem_paths(err));
+    }
+}
+
+TEST(extract_collect_all_max_failures_is_a_threshold_not_a_truncation)
+{
+    // A single failure which reports several problems at once is folded on whole rather than torn in half, so the
+    // final list can exceed the limit by that batch. Pinned because it is the documented behaviour, not an accident:
+    // truncating would drop diagnostics to enforce a bound whose point is to stop the walk, not to edit the report.
+    try
+    {
+        (void) extract<batched>(parse("5"), batched_formats(), collecting(2U));
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(3U, err.problems().size());
+    }
+}
+
+TEST(extract_default_factory_failure_is_untouched_when_not_collecting)
+{
+    // The new handler declines before recording anything and rethrows the original, so `fail_immediately` sees the
+    // same exception reaching the same translation it always did -- with the factory's own exception kept as the
+    // cause.
+    try
+    {
+        (void) extract<triple>(parse(R"({ "b": 2, "c": 3 })"), seeded_triple_formats());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+        ensure(err.problems().at(0).nested_ptr());
+        ensure_throws(std::out_of_range, (std::rethrow_exception(err.problems().at(0).nested_ptr()), 0));
+    }
+}
+
+TEST(extract_collect_all_recovered_factory_failure_names_its_member)
+{
+    // A caller which walked the reader to `.child` itself has told the reader where it is and not the context, and
+    // the two are arbitrated by `extraction_context::path_scope`: a live scope is authoritative and the reader is
+    // not consulted, so this names the member rather than the document position. That is what makes the recovered
+    // problem say which default factory blew up, which the un-recovered path cannot -- it reports where the reader
+    // was and not which member was being built.
+    value  source = parse(R"({ "child": { "b": 2, "c": 3 } })");
+    reader rdr    = reader::from_value(source);
+
+    (void) rdr.next_token();   // onto the outer object
+    (void) rdr.next_token();   // onto the key "child"
+    (void) rdr.next_token();   // onto the child object itself
+
+    extraction_context cxt(seeded_triple_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+
+    auto result = cxt.extract<triple>(rdr);
+    ensure(!result.has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(path::create(".a"), cxt.problems().at(0).path());
+    ensure(cxt.problems().at(0).nested_ptr());
+}
+
+TEST(extract_factory_failure_outside_collect_all_still_reports_where_the_reader_was)
+{
+    // The mirror of the test above: with nothing to recover into, the original exception unwinds to the bridge and
+    // is located from the reader, exactly as it was before this handler existed.
+    value  source = parse(R"({ "child": { "b": 2, "c": 3 } })");
+    reader rdr    = reader::from_value(source);
+
+    (void) rdr.next_token();
+    (void) rdr.next_token();
+    (void) rdr.next_token();
+
+    extraction_context cxt(seeded_triple_formats());
+
+    auto result = cxt.extract<triple>(rdr);
+    ensure(!result.has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(path::create(".child"), cxt.problems().at(0).path());
+}
+
+TEST(extract_context_carries_its_options)
+{
+    extraction_context defaulted(formats::defaults());
+    ensure(defaulted.options().failure_mode() == extract_options::on_error::fail_immediately);
+    ensure(!defaulted.recover());
+
+    extraction_context collector(formats::defaults(), std::nullopt, jsonv::path(), nullptr, collecting(2U));
+    ensure(collector.options().failure_mode() == extract_options::on_error::collect_all);
+
+    // Nothing recorded yet, so there is room; after two there is not.
+    ensure(collector.recover());
+    (void) collector.problem(jsonv::path(), "first");
+    ensure(collector.recover());
+    (void) collector.problem(jsonv::path(), "second");
+    ensure(!collector.recover());
 }
 
 }
