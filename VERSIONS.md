@@ -92,6 +92,11 @@
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
        (things like allowing ECMAScript-style block comments `/* ... */`) and extraction-specific options and errors
        (things like what to do if an object has the same key).
+     - Fixed `match_string` passing a raw `char` to `std::isxdigit` when validating the four hex digits of a `\u`
+       escape, and `compare_icase` doing the same with `std::tolower`. Both classifiers are defined only over
+       `unsigned char` values and `EOF`, so a byte at or above `0x80` -- negative in a signed `char` -- was
+       undefined behaviour on the way in. Malformed input is now rejected rather than reaching the classifier at
+       all (#211).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory
@@ -112,6 +117,16 @@
        report what went wrong got nothing while a caller reading `what()` got a description. The list is now
        normalised when the error is built, which gives `problems().size() == 1` and a different `what()` for that
        case (#245).
+   - Platform
+     - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
+       appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC
+       Debug build compiled with `JSONV_DEBUG=0` and ran the test suite's timing loops -- a hundred parses of every
+       corpus document -- which is the thing both `CONTRIBUTING.md` and the CI workflow say a Debug build does not
+       do. It is now a `$<CONFIG:Debug>` compile definition, which is also the only form a multi-config generator
+       can read, since `CMAKE_BUILD_TYPE` is empty there at configure time.
+     - Link-time optimization is now enabled per configuration rather than globally. `CMAKE_BUILD_TYPE` was defaulted
+       to `Release` whenever it was empty, which is always under a multi-config generator, so a Visual Studio build
+       chose LTO from a configuration it was not building and compiled the Debug one `/GL` and `/LTCG`.
 
 1._ Series
 ==========

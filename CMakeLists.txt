@@ -21,11 +21,20 @@ set(PACKAGE_NAME "jsonv"
 # Configuration                                                                #
 ################################################################################
 
-if (NOT CMAKE_BUILD_TYPE)
+# A multi-config generator -- Visual Studio, Xcode, Ninja Multi-Config -- chooses its configuration at build time and
+# leaves CMAKE_BUILD_TYPE empty on purpose. Defaulting it to Release there does not change what gets built, since the
+# build tool takes the configuration from `--config`, but it does make every configure-time test below believe it is
+# looking at a Release build. That is how the Windows Debug job came to be compiled with link-time optimization.
+get_property(JSONV_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if (NOT JSONV_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release")
   message(STATUS "No build type selected, default to ${CMAKE_BUILD_TYPE}")
 endif()
-message(STATUS "Configuration: ${CMAKE_BUILD_TYPE}")
+if (JSONV_MULTI_CONFIG)
+  message(STATUS "Configurations: ${CMAKE_CONFIGURATION_TYPES} (selected at build time)")
+else()
+  message(STATUS "Configuration: ${CMAKE_BUILD_TYPE}")
+endif()
 
 # Extract version information from the config file. It can still be overridden by the user setting JSONV_VERSION, but
 # that is probably a bad idea.
@@ -109,25 +118,29 @@ option(BENCHMARK
 
 # Link-time optimization gives the compiler a chance to inline across translation units, which
 # matters most for the parser hot path (parse_index.cpp + match/string.cpp + match/number.cpp).
-# Default ON for Release builds, OFF otherwise -- and OFF for a sanitizer build regardless, because
-# interprocedural optimization interacts badly with the instrumentation. The fuzz targets turn it off
-# for the same reason.
+# Default ON except for a sanitizer build, because interprocedural optimization interacts badly with
+# the instrumentation. The fuzz targets turn it off for the same reason. Which configurations it
+# actually applies to is decided below rather than here: a multi-config generator has no build type to
+# test at configure time, so gating the option on one silently turned LTO off for the Windows Release
+# build and on for the Windows Debug one.
 if(JSONV_SANITIZE)
     set(JSONV_LTO_DEFAULT OFF)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    set(JSONV_LTO_DEFAULT ON)
 else()
-    set(JSONV_LTO_DEFAULT OFF)
+    set(JSONV_LTO_DEFAULT ON)
 endif()
 option(JSONV_LTO
-       "Enable link-time / interprocedural optimization."
+       "Enable link-time / interprocedural optimization in optimized configurations."
        ${JSONV_LTO_DEFAULT}
       )
 if(JSONV_LTO)
     include(CheckIPOSupported)
     check_ipo_supported(RESULT JSONV_LTO_SUPPORTED OUTPUT JSONV_LTO_CHECK_OUTPUT)
     if(JSONV_LTO_SUPPORTED)
-        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+        # The per-configuration variables rather than the plain `CMAKE_INTERPROCEDURAL_OPTIMIZATION`, which would
+        # apply to every configuration a multi-config generator builds. A Debug build compiled `/GL` and linked
+        # `/LTCG` pays the link time and gives up incremental linking to optimize code nobody is measuring.
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELEASE        TRUE)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO TRUE)
     else()
         message(WARNING "JSONV_LTO requested but the toolchain does not support it: ${JSONV_LTO_CHECK_OUTPUT}")
     endif()
@@ -138,15 +151,26 @@ option(JSONV_RELEASE_WITH_DEBUG_SYMBOLS
        OFF
       )
 
-if(WIN32)
-else(WIN32)
+# `JSONV_DEBUG` throttles the test suite's timing loops: without it `benchmark_tests.cpp` runs 100 iterations over the
+# multi-megabyte corpus and `extract_tests.cpp` sizes its linearity guard at 20000 elements. It therefore has to follow
+# the configuration being built rather than the platform. It used to be appended to `CMAKE_CXX_FLAGS_DEBUG` inside the
+# non-Windows branch below, which left every MSVC build -- Debug included -- running the timing loops, against what
+# both CONTRIBUTING.md and the CI workflow say happens.
+#
+# A generator expression rather than a `CMAKE_BUILD_TYPE` test so that multi-config generators get the right answer,
+# and `add_compile_definitions` rather than a `PUBLIC` definition on the library so that it stays out of the installed
+# interface. `config.hpp` documents `JSONV_DEBUG` as needing to match between the library build and the consumer's,
+# which is not a choice this project should be making on a consumer's behalf.
+add_compile_definitions($<$<CONFIG:Debug>:JSONV_DEBUG=1>)
+
+if(NOT WIN32)
     # Reasonable compilers...
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
-    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -ggdb -DJSONV_DEBUG=1")
+    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -ggdb")
     if(JSONV_RELEASE_WITH_DEBUG_SYMBOLS)
         set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ggdb")
     endif()
-endif(WIN32)
+endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/include"
                     "${PROJECT_SOURCE_DIR}/src"
@@ -189,6 +213,15 @@ if (JSONV_BUILD_TESTS)
     target_link_libraries(jsonv-tests
             "jsonv"
         )
+
+    # Windows gives a thread 1 MB of stack where Linux and macOS give 8. `value` is a tree and its destructor
+    # recurses once per level, so tearing down the 4096-deep document `reader_from_value_deep_nesting` builds
+    # exhausts that in an unoptimized build -- the walk under test is a loop and is not what runs out. Nothing a
+    # document can do reaches this depth: `parse` refuses anything past `parse_options::k::max_structure_depth`,
+    # which is 128 and cannot be raised past its own ceiling, so only a value built in code gets this deep.
+    if(MSVC)
+        target_link_options(jsonv-tests PRIVATE /STACK:8388608)
+    endif()
 
     add_custom_target(check
                       COMMAND $<TARGET_FILE:jsonv-tests>
@@ -305,11 +338,16 @@ if (JSONV_BUILD_FUZZERS)
         target_link_options(jsonv-fuzz-${fuzzer} PRIVATE -fsanitize=fuzzer)
     endforeach()
 
-    # JSONV_LTO defaults ON for Release and RelWithDebInfo and sets CMAKE_INTERPROCEDURAL_OPTIMIZATION globally, which
-    # interacts badly with the sanitizer and coverage instrumentation. Fuzzing does not need it.
+    # JSONV_LTO defaults ON and turns interprocedural optimization on for the optimized configurations, which
+    # interacts badly with the sanitizer and coverage instrumentation. Fuzzing does not need it. The per-configuration
+    # properties have to be cleared alongside the plain one: CMake reads `INTERPROCEDURAL_OPTIMIZATION_<CONFIG>` in
+    # preference to `INTERPROCEDURAL_OPTIMIZATION` when it is set, and it is set here for every target, so switching
+    # off only the latter would leave these built `-flto` in the RelWithDebInfo configuration the fuzz workflow uses.
     set_target_properties(jsonv-fuzz-lib jsonv-fuzz-parse jsonv-fuzz-roundtrip
                           PROPERTIES
-                            INTERPROCEDURAL_OPTIMIZATION FALSE
+                            INTERPROCEDURAL_OPTIMIZATION                FALSE
+                            INTERPROCEDURAL_OPTIMIZATION_RELEASE        FALSE
+                            INTERPROCEDURAL_OPTIMIZATION_RELWITHDEBINFO FALSE
                          )
 
     # Seeds. The JSON_Checker suite and the naughty-string list are already in the repository as test data, so they

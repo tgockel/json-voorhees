@@ -280,10 +280,15 @@ match_string_result match_string(const char* iter, const char* end, const parse_
                     return match_string_result::create_unmatched(length);
                 }
 
-                if (  std::isxdigit(iter[0])
-                   && std::isxdigit(iter[1])
-                   && std::isxdigit(iter[2])
-                   && std::isxdigit(iter[3])
+                // Through `unsigned char`: `char` is signed here, so a byte above 0x7f arrives as a negative
+                // value, and the `<cctype>` classifiers are defined only for `unsigned char` values and `EOF`.
+                // Anything else is undefined, and the MSVC Debug runtime says so out loud -- `isctype.cpp`
+                // asserts `c >= -1 && c <= 255`. A high byte in a `\u` escape is malformed input the parser
+                // should simply reject, not a diagnostic it should trip over.
+                if (  std::isxdigit(static_cast<unsigned char>(iter[0]))
+                   && std::isxdigit(static_cast<unsigned char>(iter[1]))
+                   && std::isxdigit(static_cast<unsigned char>(iter[2]))
+                   && std::isxdigit(static_cast<unsigned char>(iter[3]))
                    )
                 {
                     JSONV_LIKELY

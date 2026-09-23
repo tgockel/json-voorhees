@@ -35,8 +35,10 @@ struct compare_traits_icase :
         
         for ( ; aiter != end(a) && biter != end(b); ++aiter, ++biter)
         {
-            auto aa = std::tolower(*aiter);
-            auto bb = std::tolower(*biter);
+            // Through `unsigned char` for the same reason `match_string` does it: `std::tolower` is defined
+            // only for `unsigned char` values and `EOF`, and a `char` holding a byte above 0x7f is negative.
+            auto aa = std::tolower(static_cast<unsigned char>(*aiter));
+            auto bb = std::tolower(static_cast<unsigned char>(*biter));
             if (aa == bb)
                 continue;
             else if (aa < bb)

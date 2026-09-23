@@ -12,6 +12,7 @@ jobs:
   build:
     name: Build (${{ matrix.os }}, ${{ matrix.build-type }})
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -49,12 +50,27 @@ jobs:
           -A x64
           -DJSONV_BUILD_TESTS=ON
 
-      - name: Build and test
-        run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build-type }} --parallel
+
+      # The test binary is invoked directly rather than through the `check` target. The Visual Studio generator
+      # ignores `USES_TERMINAL` and MSBuild buffers a custom target's output until the command returns, so a run which
+      # never returns prints nothing at all. `unit_test::run` already flushes the name of each test before starting
+      # it, which is exactly what is needed to see where a run stopped -- but only if something is forwarding it.
+      # Splitting the step also distinguishes a compiler which is stuck from a test which is.
+      - name: Test (Unix)
+        if: runner.os != 'Windows'
+        run: ./build/jsonv-tests
+
+      - name: Test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\build\${{ matrix.build-type }}\jsonv-tests.exe
 
   build-linux-clang:
     name: Build (ubuntu-24.04, clang, ${{ matrix.build-type }})
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -89,12 +105,16 @@ jobs:
           -DCMAKE_C_COMPILER=clang-19
           -DCMAKE_CXX_COMPILER=clang++-19
 
-      - name: Build and test
-        run: cmake --build build --config ${{ matrix.build-type }} --target check --parallel
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ./build/jsonv-tests
 
   sanitizers:
     name: Sanitizers (ubuntu-24.04, clang, ASan+UBSan)
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -127,19 +147,23 @@ jobs:
           -DCMAKE_C_COMPILER=clang-19
           -DCMAKE_CXX_COMPILER=clang++-19
 
-      - name: Build and test
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
         env:
           # `detect_stack_use_after_return` is instrumented by default but only armed at runtime, so
           # it has to be asked for here. `halt_on_error` is already implied by
           # `-fno-sanitize-recover=all`; it is set anyway so the intent survives a flag edit.
           ASAN_OPTIONS: detect_leaks=1:detect_stack_use_after_return=1
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-        run: cmake --build build --target check --parallel
+        run: ./build/jsonv-tests
 
   packages:
     name: Packages (${{ matrix.format }})
     runs-on: ubuntu-24.04
     needs: build
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
@@ -280,6 +304,7 @@ jobs:
     name: Packages (nuget)
     runs-on: windows-2025
     needs: build
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -385,6 +410,7 @@ jobs:
     name: Packages (macOS pkg)
     runs-on: macos-15
     needs: build
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -464,6 +490,7 @@ jobs:
     name: Build documentation
     runs-on: ubuntu-24.04
     needs: build
+    timeout-minutes: 30
     if: github.event_name == 'push' && github.ref == 'refs/heads/trunk'
 
     permissions:
