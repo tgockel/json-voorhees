@@ -108,8 +108,23 @@ static std::string make_extraction_error_errmsg(const extraction_error::problem_
     return std::move(os).str();
 }
 
+/// Establish what \c extraction_error::problems documents: there is always at least one \c problem.
+///
+/// \c path and \c nested_ptr each guard the empty case themselves and hand back a static empty value, which left
+/// \c problems -- the one accessor with nothing sensible to fall back on -- returning an empty list against its own
+/// documentation. A caller which iterates \c problems to report what went wrong and a caller which reads \c what
+/// should not disagree about whether anything did.
+static extraction_error::problem_list& ensure_nonempty(extraction_error::problem_list& problems)
+{
+    if (problems.empty())
+        problems.emplace_back(jsonv::path(), "Unspecified extraction error");
+
+    return problems;
+}
+
 extraction_error::extraction_error(problem_list problems) noexcept :
-        std::runtime_error(make_extraction_error_errmsg(problems)),
+        // The base is initialised first, so normalising here is also what `_problems` below ends up with.
+        std::runtime_error(make_extraction_error_errmsg(ensure_nonempty(problems))),
         _problems(std::move(problems))
 { }
 

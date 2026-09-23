@@ -510,6 +510,20 @@ TEST(extract_error_message_separates_an_empty_path_from_the_message)
     }
 }
 
+TEST(extract_error_with_no_problems_synthesises_one)
+{
+    // `problems()` documents that the list is never empty, and unlike `path()` and `nested_ptr()` it has nothing
+    // sensible to fall back on -- so the invariant is established when the error is built rather than guarded at
+    // each accessor. A caller reading `problems()` and a caller reading `what()` should not disagree about whether
+    // anything went wrong.
+    extraction_error err{ extraction_error::problem_list() };
+
+    ensure_eq(1U, err.problems().size());
+    ensure(err.problems().at(0).path().empty());
+    ensure(!err.problems().at(0).nested_ptr());
+    ensure(!std::string(err.what()).empty());
+}
+
 TEST(extract_read_value_rejects_an_unmatched_close)
 {
     // These reach `read_value` only from a tape which was never validated, and the diagnostic it builds asks the

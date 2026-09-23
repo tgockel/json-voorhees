@@ -95,6 +95,12 @@
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory
+     - Fixed `extraction_error` built from an empty `problem_list` leaving `problems()` empty, which its own
+       documentation says cannot happen. `path()` and `nested_ptr()` each guarded the empty case and returned a
+       static empty value; `problems()` has nothing to fall back on and was missed, so a caller iterating it to
+       report what went wrong got nothing while a caller reading `what()` got a description. The list is now
+       normalised when the error is built, which gives `problems().size() == 1` and a different `what()` for that
+       case (#245).
 
 1._ Series
 ==========
