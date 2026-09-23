@@ -223,6 +223,16 @@ if (JSONV_BUILD_TESTS)
         target_link_options(jsonv-tests PRIVATE /STACK:8388608)
     endif()
 
+    # `allocation_counter` replaces the global `operator new` and `operator delete`, which is not something to do to
+    # AddressSanitizer -- it installs its own, and taking them over costs the whole suite its `alloc-dealloc-mismatch`
+    # detection. So the counter compiles itself out under a sanitizer, and the tests which assert what path tracking
+    # costs go with it. That leaves the failure mode where the detection misfires somewhere it should not have, and
+    # those tests quietly stop existing in a run that stays green. This is the second opinion: CMake knows whether
+    # sanitizers were asked for, so it is the one thing in the build that can tell the counter it is wrong.
+    if (NOT JSONV_SANITIZE)
+        target_compile_definitions(jsonv-tests PRIVATE JSONV_TEST_REQUIRE_ALLOCATION_COUNTING=1)
+    endif()
+
     add_custom_target(check
                       COMMAND $<TARGET_FILE:jsonv-tests>
                       DEPENDS jsonv-tests

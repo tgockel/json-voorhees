@@ -8,6 +8,7 @@
 /// version.
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
+#include "allocation_counter.hpp"
 #include "test.hpp"
 
 #include <jsonv/ast.hpp>
@@ -122,8 +123,8 @@ formats triple_formats()
     return instance;
 }
 
-/// A `triple` whose `a` falls back to a factory which reads another key -- user code running outside `extract_sub`,
-/// so it fails with whatever `value::at` throws rather than with an `extraction_error`.
+/// A `triple` whose `a` falls back to a factory which reads another key -- user code running outside the member's
+/// own extraction, so it fails with whatever `value::at` throws rather than with an `extraction_error`.
 formats seeded_triple_formats()
 {
     static formats instance =
@@ -198,6 +199,180 @@ std::string problem_paths(const extraction_error& err)
 
     return std::move(os).str();
 }
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+/// Push \a depth nested \c path_scope guards -- alternating the two forms which own nothing -- and run \a at_bottom
+/// inside the innermost one.
+template <typename FAtBottom>
+void with_nested_path_scopes(extraction_context& cxt, std::size_t depth, const FAtBottom& at_bottom)
+{
+    if (depth == 0U)
+    {
+        at_bottom();
+    }
+    else if (depth % 2U == 0U)
+    {
+        extraction_context::path_scope scope(cxt, depth);
+        with_nested_path_scopes(cxt, depth - 1U, at_bottom);
+    }
+    else
+    {
+        // A literal, so it outlives the scope viewing it -- which is the requirement the `string_view` form puts on
+        // its caller in exchange for not copying the key.
+        extraction_context::path_scope scope(cxt, std::string_view("k"));
+        with_nested_path_scopes(cxt, depth - 1U, at_bottom);
+    }
+}
+
+/// Member names past every small-string buffer, so a design which copies the key in order to name it pays a visible
+/// string allocation rather than hiding inside SSO.
+const std::string long_a = "member_alpha_with_a_deliberately_long_name";
+const std::string long_b = "member_bravo_with_a_deliberately_long_name";
+const std::string long_c = "member_carol_with_a_deliberately_long_name";
+
+/// Three members reached through the DSL, which names each one as it descends into it.
+struct named_triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+};
+
+/// The same three members reached by an adapter which names nothing, so that comparing the two says what naming
+/// costs and nothing else. Everything else either one does -- the enclosing context, the reader the bridge builds
+/// per member, the lookup, the container it lands in -- is identical and cancels.
+struct unnamed_triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+};
+
+class unnamed_triple_adapter final :
+        public value_adapter_for<unnamed_triple>
+{
+protected:
+    JSONV_NODISCARD
+    virtual unnamed_triple create(extraction_context& context, const value& from) const override
+    {
+        unnamed_triple out;
+        out.a = context.extract<std::int64_t>(from.at(long_a));
+        out.b = context.extract<std::int64_t>(from.at(long_b));
+        out.c = context.extract<std::int64_t>(from.at(long_c));
+        return out;
+    }
+
+    JSONV_NODISCARD
+    virtual value to_json(const serialization_context&, const unnamed_triple&) const override
+    {
+        return value();
+    }
+};
+
+/// A `std::vector<std::int64_t>` filled by an adapter which names nothing -- `container_adapter`'s loop with the
+/// `path_scope` taken out and not one other thing changed.
+struct unnamed_vector
+{
+    std::vector<std::int64_t> values;
+
+    JSONV_NODISCARD
+    std::size_t size() const
+    {
+        return values.size();
+    }
+};
+
+class unnamed_vector_adapter final :
+        public value_adapter_for<unnamed_vector>
+{
+protected:
+    JSONV_NODISCARD
+    virtual unnamed_vector create(extraction_context& context, const value& from) const override
+    {
+        using std::end;
+
+        unnamed_vector out;
+
+        (void) from.as_array();
+        for (value::size_type idx = 0U; idx < from.size(); ++idx)
+            out.values.insert(end(out.values), context.extract<std::int64_t>(from.at(idx)));
+
+        return out;
+    }
+
+    JSONV_NODISCARD
+    virtual value to_json(const serialization_context&, const unnamed_vector&) const override
+    {
+        return array();
+    }
+};
+
+/// The named and unnamed halves of both comparisons, in one `formats` so a single context reaches all of them.
+const formats& path_cost_formats()
+{
+    static const formats instance =
+        [] ()
+        {
+            static unnamed_triple_adapter                         unnamed_triple_instance;
+            static unnamed_vector_adapter                         unnamed_vector_instance;
+            static container_adapter<std::vector<unnamed_triple>> unnamed_triple_vector_instance;
+
+            formats named = formats_builder()
+                                .type<named_triple>()
+                                    .member(long_a, &named_triple::a)
+                                    .member(long_b, &named_triple::b)
+                                    .member(long_c, &named_triple::c)
+                                .register_container<std::vector<named_triple>>()
+                                .register_container<std::vector<std::int64_t>>()
+                            .compose_checked(formats::defaults());
+
+            formats out = formats::compose({ named });
+            out.register_adapter(&unnamed_triple_instance,        duplicate_type_action::replace);
+            out.register_adapter(&unnamed_vector_instance,        duplicate_type_action::replace);
+            out.register_adapter(&unnamed_triple_vector_instance, duplicate_type_action::replace);
+            return out;
+        }();
+
+    return instance;
+}
+
+/// An array of \a count integers.
+value integers(std::size_t count)
+{
+    value out = array();
+    for (std::size_t idx = 0U; idx < count; ++idx)
+        out.push_back(std::int64_t(idx));
+
+    return out;
+}
+
+/// An array of \a count objects carrying the three long member names.
+value named_triples(std::size_t count)
+{
+    value out = array();
+    for (std::size_t idx = 0U; idx < count; ++idx)
+        out.push_back(object({ { long_a, std::int64_t(idx) }, { long_b, 2 }, { long_c, 3 } }));
+
+    return out;
+}
+
+/// The allocations a fresh extraction of \c T from \a source performs. The result's size is checked too, so an
+/// extraction which quietly produced nothing cannot pass for a cheap one.
+template <typename T>
+std::size_t extraction_cost(const value& source)
+{
+    extraction_context cxt(path_cost_formats());
+
+    allocation_counter allocations;
+    const auto         out  = cxt.extract<T>(source);
+    const std::size_t  cost = allocations.count();
+
+    ensure_eq(source.size(), out.size());
+    return cost;
+}
+
+#endif
 
 }
 
@@ -334,6 +509,11 @@ TEST(extract_path_scope_restores_when_unwound_by_an_exception)
     { }
 
     ensure_eq(path(), cxt.path());
+
+    // An `_innermost` left naming a destroyed frame would report whatever that stack now holds rather than just
+    // `.after`. ASan is where that shows up, as a stack-use-after-scope rather than a quietly wrong answer.
+    extraction_context::path_scope after(cxt, std::string_view("after"));
+    ensure_eq(path::create(".after"), cxt.path());
 }
 
 TEST(extract_path_scope_takes_precedence_over_the_readers_path)
@@ -349,6 +529,144 @@ TEST(extract_path_scope_takes_precedence_over_the_readers_path)
     ensure(!cxt.expect(rdr, ast_node_type::integer).has_value());
     ensure_eq(path::create(".renamed"), cxt.problems().at(0).path());
 }
+
+TEST(extract_member_scope_ends_before_the_setter)
+{
+    // The member's scope names where the *extraction* is, not where the assignment is. A setter supplied through
+    // the `member(name, access, mutate)` overload is arbitrary user code, and once the member's value exists the
+    // extractor is no longer at that key -- anything the setter goes on to extract sits where the document puts
+    // it rather than underneath the member whose setter happens to be running. `pre_extract` is handed the
+    // context precisely so user code can reach it, which is what lets this observe the boundary at all.
+    struct probe
+    {
+        std::int64_t a;
+    };
+
+    extraction_context* captured = nullptr;
+    jsonv::path         seen_by_setter = path::create(".neverran");
+
+    const formats fmts =
+        formats_builder()
+            .type<probe>()
+                .pre_extract([&captured] (extraction_context& cxt, const value&) { captured = &cxt; })
+                .member<std::int64_t>("a",
+                                      [] (const probe& x) -> const std::int64_t& { return x.a; },
+                                      [&] (probe& x, std::int64_t&& value)
+                                      {
+                                          seen_by_setter = captured->path();
+                                          x.a            = value;
+                                      }
+                                     )
+        .compose_checked(formats::defaults())
+        ;
+
+    const auto out = extract<probe>(parse(R"({ "a": 7 })"), fmts);
+
+    ensure_eq(7, out.a);
+    ensure_eq(path(), seen_by_setter);
+}
+
+TEST(extract_allocation_counting_is_available)
+{
+    // The cost assertions below are compiled out where the counter is, which is right under a sanitizer build and
+    // would be silent breakage anywhere else -- the tests would simply stop existing and the run would stay green.
+    // CMake knows whether sanitizers were asked for, so it is the one thing in the build that can tell the counter
+    // it is wrong; this asks it, in both directions, and deliberately lives outside the guard it is checking.
+#if JSONV_TEST_REQUIRE_ALLOCATION_COUNTING
+    ensure(JSONV_TEST_COUNTS_ALLOCATIONS != 0);
+#else
+    ensure(JSONV_TEST_COUNTS_ALLOCATIONS == 0);
+#endif
+}
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+TEST(extract_path_scope_push_and_pop_allocate_nothing)
+{
+    // The path is read only when something goes wrong, so maintaining it has to be free when nothing does: a scope
+    // is a stack object linked into a chain, and descending into an element costs two stores rather than a copy of
+    // everything above it. A regression here would otherwise surface only as a slightly worse benchmark number.
+    extraction_context cxt;
+
+    for (std::size_t depth : { std::size_t(1U), std::size_t(64U), std::size_t(1024U) })
+    {
+        allocation_counter allocations;
+        with_nested_path_scopes(cxt, depth, [] { });
+        const std::size_t cost = allocations.count();
+
+        ensure_eq(0U, cost);
+        ensure(cxt.path().empty());
+    }
+
+    // The chain still says where it is. Asked outside a counted region, because building a `jsonv::path` is exactly
+    // the work this design defers to the moment something actually fails.
+    jsonv::path deepest;
+    with_nested_path_scopes(cxt, 3U, [&] { deepest = cxt.path(); });
+    ensure_eq(path::create(".k[2].k"), deepest);
+}
+
+TEST(extract_container_element_naming_costs_nothing)
+{
+    // The same array through two adapters which differ only in whether the element is named. Everything else -- the
+    // context, the reader the bridge builds per element, the extraction itself, the vector it lands in and how that
+    // vector grows -- is identical and cancels, so the two counts are equal exactly when naming is free. Before this
+    // change `container_adapter` reached the scope through `extract_sub`, which builds a `jsonv::path` from its
+    // argument, and the named arm exceeded the unnamed one by one allocation per element.
+    const value source = integers(256U);
+
+    // Discarded: the first extraction of a type pays for whatever the formats cache on first use, which is not
+    // per-element and not what is being compared.
+    (void) extraction_cost<std::vector<std::int64_t>>(source);
+    (void) extraction_cost<unnamed_vector>(source);
+
+    const std::size_t named   = extraction_cost<std::vector<std::int64_t>>(source);
+    const std::size_t unnamed = extraction_cost<unnamed_vector>(source);
+
+    ensure_eq(unnamed, named);
+}
+
+TEST(extract_member_naming_costs_nothing)
+{
+    // The container half of this is the same on both sides, so what is left is the DSL's member loop against an
+    // adapter reading the same three members without naming them. The names are long on purpose: the old code
+    // copied the key into a `path_element`, which a short name hides inside the small-string buffer.
+    const value source = named_triples(64U);
+
+    (void) extraction_cost<std::vector<named_triple>>(source);
+    (void) extraction_cost<std::vector<unnamed_triple>>(source);
+
+    const std::size_t named   = extraction_cost<std::vector<named_triple>>(source);
+    const std::size_t unnamed = extraction_cost<std::vector<unnamed_triple>>(source);
+
+    ensure_eq(unnamed, named);
+}
+
+TEST(extract_path_tracking_does_not_grow_with_the_base_path)
+{
+    // A context extracting a fragment of some larger document carries the path to that fragment. `_base_path` is
+    // read only by `path()`, which a successful extraction never calls, so how deep the fragment sits changes
+    // nothing. This is the guard against the design this one replaced, where a scope saved and restored a copy of
+    // the whole current path and every push would have copied those five elements and their five keys.
+    const value source = named_triples(16U);
+
+    auto cost_with = [&source] (jsonv::path base) -> std::size_t
+                     {
+                         extraction_context cxt(path_cost_formats(), std::nullopt, std::move(base));
+
+                         allocation_counter allocations;
+                         const auto         out  = cxt.extract<std::vector<named_triple>>(source);
+                         const std::size_t  cost = allocations.count();
+
+                         ensure_eq(source.size(), out.size());
+                         return cost;
+                     };
+
+    (void) cost_with(jsonv::path());
+
+    ensure_eq(cost_with(jsonv::path()), cost_with(path::create(".a.b.c.d.e")));
+}
+
+#endif
 
 TEST(extract_read_value_scalars)
 {
@@ -983,9 +1301,9 @@ TEST(extract_collect_all_gathers_every_bad_element)
 
 TEST(extract_collect_all_records_a_nested_failure_exactly_once)
 {
-    // The interesting one. `extract_sub` moves the problems it collected off the context and into the exception it
-    // throws, so a fold at both the member loop and the element loop would report every failure twice. Two levels of
-    // recovery over four failures must still be four problems.
+    // The interesting one. `extraction_context::extract` moves the problems it collected off the context and into
+    // the exception it throws, so a fold at both the member loop and the element loop would report every failure
+    // twice. Two levels of recovery over four failures must still be four problems.
     value source = parse(R"([ { "a": "x", "b": "y", "c": 3 },
                               { "a": 1,   "b": 2,   "c": 3 },
                               { "a": "x", "b": "y", "c": 3 }
@@ -1065,9 +1383,9 @@ TEST(extract_collect_all_still_throws_when_it_recovered)
 
 TEST(extract_collect_all_recovers_from_a_default_factory_failure)
 {
-    // A member's default factory is user code running outside `extract_sub`, so it fails with `std::out_of_range`
-    // rather than an `extraction_error`. Recovery has to cover that too, or which members get looked at would depend
-    // on how the first failing one happened to fail.
+    // A member's default factory is user code running outside the member's own extraction, so it fails with
+    // `std::out_of_range` rather than an `extraction_error`. Recovery has to cover that too, or which members get
+    // looked at would depend on how the first failing one happened to fail.
     try
     {
         (void) extract<triple>(parse(R"({ "b": "x", "c": "y" })"), seeded_triple_formats(), collecting());

@@ -46,7 +46,21 @@ protected:
         {
             try
             {
-                out.insert(end(out), context.extract_sub<element_type>(from, idx));
+                // Naming the element is what puts `[3]` into a problem raised inside it. The scope lives on this
+                // frame and is two stores to push; no `jsonv::path` is built unless a problem is actually
+                // recorded, which is why a wholly successful extraction of a large array allocates nothing to
+                // track where it is. Reaching the scope through `extract_sub` instead built one per element.
+                //
+                // It covers the extraction and not the insertion, which is `TContainer`'s code and may be a
+                // user's -- the same line `extract_sub` drew by returning before the insert was reached.
+                auto extracted = [&] () -> element_type
+                                 {
+                                     extraction_context::path_scope scope(context, idx);
+
+                                     return context.extract<element_type>(from.at(idx));
+                                 }();
+
+                out.insert(end(out), std::move(extracted));
             }
             catch (const extraction_error& ex)
             {

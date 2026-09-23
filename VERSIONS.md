@@ -117,6 +117,22 @@
        report what went wrong got nothing while a caller reading `what()` got a description. The list is now
        normalised when the error is built, which gives `problems().size() == 1` and a different `what()` for that
        case (#245).
+     - Extraction no longer allocates to say where it is. `extraction_context` names its position with a chain of
+       `path_scope` guards living on the C++ stack -- a push is two stores, a pop is one -- and materialises a
+       `jsonv::path` only when `path()` is called, which happens only when a problem is recorded. The two places
+       which name a position on every element of every document now push one of those guards directly:
+       `container_adapter` pushes the element's index and the serialization builder's member loop pushes the key the
+       document used. Both previously went through `extraction_context::extract_sub`, which takes its subpath by
+       value, so every element built a `std::vector<path_element>` and every member built one more -- and, for a key
+       too long for the small-string buffer, two copies of that key, since the `path_element` is copied once into
+       the call and again on the way into the vector. Extracting an array of `n` objects with `m` members apiece
+       performed `n * (m + 1)` heap allocations for the path vectors alone on a wholly successful extraction, and
+       `n * (3m + 1)` in total once the member names stopped fitting in a small string -- all to describe a position
+       nothing would go on to ask for. It now performs none. The member loop also stops looking itself up twice: it
+       held the iterator its own search returned and then asked `value::at_path` to `count` and `at` the same key
+       over again, so each member cost three map lookups where one will do. What a failure reports is unchanged,
+       down to the path of a member matched through an `alternate_name`, which is still the key the document used
+       rather than the declared one. `extract_sub` itself is unchanged and remains available (#228).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC

@@ -736,9 +736,31 @@ public:
         }
 
         if (use_default)
+        {
             _set_value(out, _default_value(context, from));
+        }
         else
-            _set_value(out, context.extract_sub<TMember>(from, iter->first));
+        {
+            // Scoped to the extraction and not to the assignment. `_set_value` is whatever the
+            // `member(name, access, mutate)` overload was handed, so it is arbitrary user code, and once the
+            // member's value exists the extractor is no longer at this key -- something that setter goes on to
+            // extract is where the document says it is rather than underneath this member. Reaching the scope
+            // through `extract_sub` drew the line here too, by returning before the setter was entered.
+            auto extracted = [&] () -> TMember
+                             {
+                                 // The key this object actually used, which is the one to name when a member
+                                 // matched through an `alternate_name`. It is owned by `from` and outlives this
+                                 // scope, so naming it costs nothing -- where `extract_sub` built a `jsonv::path`
+                                 // holding a copy of it. And `iter->second` is the member the search above
+                                 // already found, rather than asking `value::at_path` to count and then find the
+                                 // same key over again.
+                                 extraction_context::path_scope scope(context, std::string_view(iter->first));
+
+                                 return context.extract<TMember>(iter->second);
+                             }();
+
+            _set_value(out, std::move(extracted));
+        }
     }
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const override
@@ -1171,20 +1193,21 @@ private:
                 }
                 catch (...)
                 {
-                    // A member's default factory is user code called outside `extract_sub`, so it fails with
-                    // whatever it threw rather than with an `extraction_error` -- `from.at("seed")` alone is an
-                    // `std::out_of_range`. Giving it the shape the rest of the loop deals in is what keeps which
-                    // members get attempted from depending on how the first failing one happened to fail.
+                    // A member's default factory is user code called outside the member's own extraction, so it
+                    // fails with whatever it threw rather than with an `extraction_error` -- `from.at("seed")`
+                    // alone is an `std::out_of_range`. Giving it the shape the rest of the loop deals in is what
+                    // keeps which members get attempted from depending on how the first failing one happened to
+                    // fail.
                     //
                     // Asked before anything is built, because translating allocates and rethrowing the original
                     // untouched is what leaves `fail_immediately` reaching the same translation it always did.
                     if (context.options().failure_mode() != extract_options::on_error::collect_all)
                         throw;
 
-                    // `extract_sub` names the member it failed in; this failure happened outside it and would
-                    // otherwise be the one problem in the list which does not say which member it came from. The
-                    // scope `extract_sub` pushed is long gone by the time this handler runs, so there is nothing to
-                    // double up with.
+                    // `mutate` names the member it failed in; this failure happened outside that and would
+                    // otherwise be the one problem in the list which does not say which member it came from.
+                    // Unwinding completes before a handler body runs, so the scope `mutate` pushed is long gone by
+                    // the time this one does and there is nothing to double up with.
                     extraction_context::path_scope scope(context, member->primary_name());
                     extraction_error               translated(context.path(), std::current_exception());
 
