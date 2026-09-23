@@ -57,7 +57,6 @@ namespace detail
 
 std::string string_from_token(std::string_view token, std::true_type is_escaped JSONV_UNUSED)
 {
-    // TODO(#150): This logic should be in a dedicated extractor
     static const string_decode_fn decoder = get_string_decoder(parse_options::encoding::utf8);
 
     // chop off the ""s
@@ -147,7 +146,6 @@ static inline std::uint64_t parse_unsigned_integer_swar(const char* p, const cha
 
 std::int64_t ast_node::integer::value() const
 {
-    // TODO(#150): This logic should be moved to a dedicated extractor
     auto characters = token_raw();
     auto begin      = characters.data();
     auto end        = characters.data() + characters.size();
@@ -215,7 +213,6 @@ std::int64_t ast_node::integer::value() const
 
 double ast_node::decimal::value() const
 {
-    // TODO(#150): This logic should be moved to a dedicated extractor
     auto characters = token_raw();
     auto begin      = characters.data();
     auto end        = characters.data() + characters.size();
@@ -278,7 +275,7 @@ std::ostream& operator<<(std::ostream& os, const ast_error& src)
     case ast_error::depth_exceeded:         return os << "max structural depth exceeded";
     case ast_error::extra_close:            return os << "extra closing character";
     case ast_error::mismatched_close:       return os << "mismatched closing character";
-    case ast_error::close_after_comma:      return os << "structure closed after comma";
+    case ast_error::close_after_comma:      return os << "structure closed where a value was required";
     case ast_error::unexpected_comma:       return os << "unexpected comma";
     case ast_error::expected_string:        return os << "expected a string";
     case ast_error::expected_key_delimiter: return os << "expected ':'";

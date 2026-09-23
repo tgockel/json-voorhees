@@ -177,6 +177,39 @@ formats batched_formats()
     return out;
 }
 
+/// A `std::int64_t` reached through the older `value`-based interface, reporting a mismatch the way every built-in
+/// did before they read the reader directly: by letting `value::as_integer` throw. The bridge is still how
+/// `container_adapter`, the DSL and the polymorphic adapters reach a value, so what it does with a failure is still
+/// worth pinning.
+struct bridged_int
+{
+    std::int64_t value;
+};
+
+class bridged_int_adapter final :
+        public value_adapter_for<bridged_int>
+{
+protected:
+    bridged_int create(extraction_context&, const value& from) const override
+    {
+        return bridged_int{ from.as_integer() };
+    }
+
+    value to_json(const serialization_context&, const bridged_int& from) const override
+    {
+        return value(from.value);
+    }
+};
+
+formats bridged_formats()
+{
+    static bridged_int_adapter instance;
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_adapter(&instance);
+    return out;
+}
+
 extract_options collecting(extract_options::size_type max_failures = 10U)
 {
     return extract_options::create_default()
@@ -992,24 +1025,42 @@ TEST(extract_legacy_dispatch_passes_a_const_value)
     ensure_eq(std::string("const"), extract<std::string>(value("ignored"), fmts));
 }
 
-TEST(extract_string_view_from_text_is_refused_rather_than_dangling)
+TEST(extract_string_view_from_text_points_at_the_source)
 {
-    // The bridge decodes text into a tree it owns, so a view of that tree would name freed storage the moment the
-    // extraction unwinds. Reporting a problem is the honest answer; case 07 makes it work by viewing the source text.
+    // A canonical string token *is* the string, so a view of it is a view of the document the caller handed over --
+    // no decoding, no copy, and valid for exactly as long as that source is.
+    std::string        source = R"("long enough to be on the heap rather than in the small-string buffer")";
     extraction_context cxt(formats::defaults());
-    auto               rdr = open(R"("long enough to be on the heap rather than in the small-string buffer")");
+    reader             rdr(std::string_view{ source });
+    (void) rdr.next_token();
+
+    auto borrowed = cxt.extract<std::string_view>(rdr);
+    ensure(borrowed.has_value());
+    ensure_eq(std::string_view("long enough to be on the heap rather than in the small-string buffer"), *borrowed);
+    ensure(borrowed->data() == source.data() + 1);
+    ensure(cxt.problems().empty());
+}
+
+TEST(extract_string_view_from_an_escaped_string_is_refused)
+{
+    // An escaped string has no decoded form anywhere in the source to point at, so there is nothing to borrow. A
+    // silent copy into storage which dies with the call is the thing worth refusing.
+    extraction_context cxt(formats::defaults());
+    auto               rdr = open(R"("a \u00e9 which the source spelt the long way")");
 
     auto result = cxt.extract<std::string_view>(rdr);
     ensure(!result.has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure(cxt.problems().at(0).message().find("std::string_view") != std::string::npos);
 
-    // `std::string` is the documented way to get the same text out of a text source, and still works.
-    auto other = open(R"("long enough to be on the heap rather than in the small-string buffer")");
-    extraction_context copied(formats::defaults());
-    ensure_eq(std::string("long enough to be on the heap rather than in the small-string buffer"),
-              *copied.extract<std::string>(other)
-             );
+    // `std::string` is the documented way to get the same text out, and decodes it.
+    auto               other = open(R"("a \u00e9 which the source spelt the long way")");
+    extraction_context decoding(formats::defaults());
+    auto               decoded = decoding.extract<std::string>(other);
+    ensure(decoded.has_value());
+    // Explicit UTF-8 bytes rather than `\u00e9`: a universal character name in a narrow literal is encoded in the
+    // compiler's execution character set, which is not UTF-8 everywhere, while the decoder always produces UTF-8.
+    ensure_eq(std::string("a \xc3\xa9 which the source spelt the long way"), *decoded);   // U+00E9
 }
 
 TEST(extract_nested_string_view_from_text_is_refused)
@@ -1077,14 +1128,14 @@ TEST(extract_bridged_structure_failure_names_the_enclosing_structure)
     // The sibling it lands on is a perfectly valid value and naming it would send the reader of the error to the
     // wrong place; the structure around the failure is still true of it.
     {
-        extraction_context cxt(formats::defaults());
+        extraction_context cxt(bridged_formats());
         auto               rdr = open(R"({ "a": [ [], 99 ] })");
 
         while (rdr.good() && rdr.current().type() != ast_node_type::array_begin)
             (void) rdr.next_token();
         (void) rdr.next_token();   // onto the inner [], which is `.a[0]`
 
-        auto result = cxt.extract<std::int64_t>(rdr);
+        auto result = cxt.extract<bridged_int>(rdr);
         ensure(!result.has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure_ne(path::create(".a[1]"), cxt.problems().at(0).path());
@@ -1093,16 +1144,34 @@ TEST(extract_bridged_structure_failure_names_the_enclosing_structure)
 
     // Landing on a closing token is the case where `current_path` already names the structure, so nothing is dropped.
     {
-        extraction_context cxt(formats::defaults());
+        extraction_context cxt(bridged_formats());
         auto               rdr = open(R"({ "a": [ [] ] })");
 
         while (rdr.good() && rdr.current().type() != ast_node_type::array_begin)
             (void) rdr.next_token();
         (void) rdr.next_token();   // onto the inner []
 
-        ensure(!cxt.extract<std::int64_t>(rdr).has_value());
+        ensure(!cxt.extract<bridged_int>(rdr).has_value());
         ensure_eq(path::create(".a"), cxt.problems().at(0).path());
     }
+}
+
+TEST(extract_native_structure_failure_names_the_value_it_was_on)
+{
+    // The other half of the case above: an extractor which reads the reader never moves off the value it rejected,
+    // so the enclosing structure is not the best it can say. `.a[0]` is where the array actually is.
+    extraction_context cxt(formats::defaults());
+    auto               rdr = open(R"({ "a": [ [], 99 ] })");
+
+    while (rdr.good() && rdr.current().type() != ast_node_type::array_begin)
+        (void) rdr.next_token();
+    (void) rdr.next_token();   // onto the inner [], which is `.a[0]`
+
+    auto result = cxt.extract<std::int64_t>(rdr);
+    ensure(!result.has_value());
+    ensure(result.error() == ast_node_type::array_begin);
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(path::create(".a[0]"), cxt.problems().at(0).path());
 }
 
 TEST(extract_stale_cursor_does_not_leak_into_a_nested_reader)
@@ -1193,7 +1262,7 @@ TEST(extract_expect_is_independent_of_a_pending_failure_location)
 {
     // `expect` is about where the reader is sitting, which is always right at the moment it is asked. The location a
     // bridge leaves behind on its way out of a failure is for translating that one exception and nothing else.
-    extraction_context cxt(formats::defaults());
+    extraction_context cxt(bridged_formats());
     auto               rdr = open(R"({ "a": [ [], 99 ] })");
 
     while (rdr.good() && rdr.current().type() != ast_node_type::array_begin)
@@ -1202,10 +1271,10 @@ TEST(extract_expect_is_independent_of_a_pending_failure_location)
 
     // Reaching the extractor through `formats` is public, discouraged, and -- the point here -- skips the handler
     // which would have translated and consumed what the bridge leaves behind.
-    alignas(std::int64_t) std::byte place[sizeof(std::int64_t)];
+    alignas(bridged_int) std::byte place[sizeof(bridged_int)];
     try
     {
-        (void) cxt.formats().extract(typeid(std::int64_t), rdr, static_cast<void*>(place), cxt);
+        (void) cxt.formats().extract(typeid(bridged_int), rdr, static_cast<void*>(place), cxt);
         ensure(!"extracting an integer from an array did not fail");
     }
     catch (const std::exception&)

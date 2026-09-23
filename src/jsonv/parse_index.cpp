@@ -559,9 +559,12 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             break;
         case '{':
             push_back_deeper(ast_node_type::object_begin, iter);
-            state = container_state::opened;
             ++iter;
-            get_key();
+
+            // `get_key` reports whether it consumed a key and the `:` after it. If it did, a value has to follow and
+            // this object cannot close yet -- `{"a":}` is as malformed as `{"a":1,"b":}`, which reaches the same
+            // state by way of the `,` below. If it did not, it stopped on the `}` of an empty object, which may.
+            state = get_key() ? container_state::needs_item : container_state::opened;
             break;
         case '}':
             if (state == container_state::needs_item)

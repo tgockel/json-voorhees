@@ -473,6 +473,19 @@ public:
             return from.current().as<TAstNode>();
     }
 
+    /// Where to report a problem noticed while \a from is sitting on the thing that is wrong.
+    ///
+    /// This is \ref path when any \ref path_scope has named a position and the reader's own \c reader::current_path
+    /// when none has -- never both, since an adapter walking a single reader would otherwise have its position
+    /// counted twice. \ref expect and \ref current_as report through this; an extractor which rejects a value for a
+    /// reason other than its node type -- a number outside the range of what it builds, say -- wants the same answer
+    /// for the same reason.
+    ///
+    /// It is not free: on a text-backed reader with no scope live, \c reader::current_path rescans from the start of
+    /// the document. Ask for it when recording a problem, not before one happens.
+    JSONV_NODISCARD
+    jsonv::path problem_path(const reader& from) const;
+
     /// \{
     /// Attempt to extract a \c T from \a from using the \c formats associated with this context.
     ///
@@ -588,14 +601,6 @@ public:
 private:
     friend class path_scope;
     friend class detail::borrowed_subtree;
-
-    /// The path to report a problem encountered at \c reader::current of \a from. This is \ref path when any scope has
-    /// named a position and the reader's own \c reader::current_path when none has -- never both, since an adapter
-    /// walking a single reader would otherwise have its position counted twice.
-    /// Where to report a problem noticed while the reader is sitting on the thing that is wrong -- what \c expect and
-    /// \c current_as want. The reader's own position is right, so nothing else is consulted.
-    JSONV_NODISCARD
-    jsonv::path problem_path(const reader& from) const;
 
     /// Where to report a failure which is being translated out of an exception. Unlike \ref problem_path this takes
     /// the location a bridge left behind on its way out, because by now the cursor has moved on from the value which

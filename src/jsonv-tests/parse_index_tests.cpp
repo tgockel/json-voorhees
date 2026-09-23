@@ -166,6 +166,30 @@ TEST(ast_object)
     ensure_eq(to_string(ast), "^{kdksk[]K{}}$");
 }
 
+/// An object's first member is read by the `{` case rather than by the `,` case, and only the latter recorded that a
+/// value was owed. `{"a":}` therefore parsed as a *successful* index whose tape is a key and nothing else -- which
+/// `jsonv::parse` still rejected, since building the tree walks onto the `}` where a value should be, but anything
+/// reading the index or a `reader` directly was told the document was fine.
+TEST(ast_parse_object_missing_first_member_value)
+{
+    for (std::string_view src : { R"({"a":})", R"({ "a" : })", R"([{"a":}])", R"({"a":{"b":}})" })
+    {
+        auto ast = jsonv::parse_index::parse(src);
+        ensure(!ast.success());
+    }
+
+    // The same shape in any position but the first already failed, and still does.
+    ensure(!jsonv::parse_index::parse(R"({"a":1,"b":})").success());
+
+    // An empty object reaches the very same code path -- `get_key` stops on the `}` without consuming anything --
+    // and must keep parsing.
+    ensure(jsonv::parse_index::parse("{}").success());
+    ensure(jsonv::parse_index::parse("{ }").success());
+    ensure(jsonv::parse_index::parse(R"({"a":1})").success());
+    ensure(jsonv::parse_index::parse(R"({"a":{}})").success());
+    ensure(jsonv::parse_index::parse(R"([{},{"a":1}])").success());
+}
+
 TEST(ast_parse_object_with_numeric_keys)
 {
     auto ast = jsonv::parse_index::parse("{ 3: \"Bob\", \"a\": \"A\" }");

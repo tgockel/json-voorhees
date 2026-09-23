@@ -163,7 +163,17 @@ public:
 
 public:
     /// Get the default \c formats instance. This uses \e strict type-checking and behaves by the same rules as the
-    /// \c value \c as_ member functions (\c as_integer, \c as_string, etc).
+    /// \c value \c as_ member functions (\c as_integer, \c as_string, etc): the JSON node has to be the kind the C++
+    /// type is built from.
+    ///
+    /// Range is the one place the built-ins are stricter than those accessors. An integer literal which does not fit
+    /// the destination is reported as a problem rather than saturated to \c std::int64_t and then wrapped into it, so
+    /// \c 999 is not a \c std::uint8_t and \c -1 is not a \c std::uint64_t.
+    ///
+    /// A \c std::string_view is extracted as a view of the source rather than a copy, so the source has to outlive
+    /// it: the caller's \c value for an in-memory extraction, the JSON text for a \c reader over one. A string the
+    /// source spelt with escape sequences has no decoded form in it to view and is refused, as is one belonging to a
+    /// tree the pipeline materialised and is about to free -- see \c extraction_context::source_is_temporary.
     ///
     /// \note
     /// This function actually returns a \e copy of the default \c formats, so modifications do not affect the actual
@@ -192,7 +202,10 @@ public:
     static formats reset_global();
 
     /// Get the coercing \c formats instance. This uses \e loose type-checking and behaves by the same rules as the
-    /// \c coerce_ functions in \c coerce.hpp.
+    /// \c coerce_ functions in \c coerce.hpp: a string holding \c "10" extracts as the integer \c 10, an integer
+    /// extracts as the string \c "5", and every kind has a truth value -- \c kind::null's is \c false. It is composed
+    /// over \c defaults, so anything it does not redefine -- \c value and \c std::string_view among them -- behaves
+    /// as it does there, range checking included.
     ///
     /// \note
     /// This function actually returns a \e copy of the default \c formats, so modifications do not affect the actual

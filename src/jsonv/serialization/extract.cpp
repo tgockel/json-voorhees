@@ -12,10 +12,15 @@
 #include <jsonv/demangle.hpp>
 #include <jsonv/value.hpp>
 
+#include <algorithm>
 #include <exception>
 #include <optional>
 #include <sstream>
 #include <string_view>
+#include <utility>
+#include <vector>
+
+#include "describe.hpp"
 
 namespace jsonv
 {
@@ -410,11 +415,7 @@ extraction_context::problem_list extraction_context::take_problems_since(problem
     return taken;
 }
 
-/// A human-readable name for \a type.
-///
-/// `operator<<(std::ostream&, ast_node_type)` writes the single-character tape representation, which is what dumping a
-/// token stream in a test wants and is not what someone reading `extraction_error::what()` wants.
-static std::string_view describe(ast_node_type type)
+std::string_view describe(ast_node_type type)
 {
     switch (type)
     {
@@ -461,14 +462,28 @@ std::expected<void, ast_node_type> extraction_context::expect(reader&           
     if (matched)
         return {};
 
-    std::ostringstream os;
-    os << "Read node of type " << describe(matched.error()) << " when expecting one of ";
-    bool first = true;
+    // Several node types share a description -- the two spellings of a string, the two of a key -- and a message
+    // reading "one of string, string" would be describing how the source was encoded, which is not the question the
+    // caller asked.
+    std::vector<std::string_view> wanted;
     for (const auto& type : types)
+    {
+        auto name = describe(type);
+        if (std::find(wanted.begin(), wanted.end(), name) == wanted.end())
+            wanted.push_back(name);
+    }
+
+    std::ostringstream os;
+    os << "Read node of type " << describe(matched.error()) << " when expecting ";
+    if (wanted.size() > 1U)
+        os << "one of ";
+
+    bool first = true;
+    for (const auto& name : wanted)
     {
         if (!std::exchange(first, false))
             os << ", ";
-        os << describe(type);
+        os << name;
     }
     (void) problem(problem_path(from), std::move(os).str());
     return std::unexpected(matched.error());

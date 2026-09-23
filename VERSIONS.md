@@ -82,6 +82,15 @@
      - Added `parse_index::iterator::skip_subtree`, which steps over a whole object or array in constant time.
        The index already recorded where each structure ends when it parsed the matching close token, but
        nothing surfaced it, so skipping a value meant walking every node inside it.
+     - Fixed `parse_index::parse` accepting an object whose first member has a key and a `:` but no value, as in
+       `{"a":}`. An object's first member is read by the parser's `{` case rather than by its `,` case, and only the
+       latter recorded that the structure then owed a value, so the `}` closed cleanly and the index reported success
+       over a tape holding a key and nothing after it. The same shape in any later position already failed.
+       `jsonv::parse` rejected the document anyway, since building the tree walks onto that `}` where a value should
+       be, which is why nothing noticed -- but anything reading a `parse_index` or a `reader` directly was told the
+       source was well-formed. `ast_error::close_after_comma` now covers both ways a structure can be closed while it
+       still owes a value, so its description reads "structure closed where a value was required" rather than naming
+       a comma which need not be involved (#229).
      - Fixed a failed parse leaving a structure's recorded end and element count uninitialized. Those slots are
        only written when the matching close token arrives, so both a structure which never closed (`{`,
        `[ 1, 2`) and one which closed but was followed by trailing input (`[]x`) produced an
@@ -111,6 +120,39 @@
        asked by the loop rather than decided for it. `max_failures` is the threshold extraction stops at rather than
        a cap on the reported list -- a failure which reports several problems at once is taken whole -- and a limit
        of `0` or `1` makes the first problem the last, which is `fail_immediately` in all but name (#227).
+     - The built-in extractors in `formats::defaults` and `formats::coerce` now read the AST node the reader is
+       sitting on instead of a `value` materialised for them, which is what makes the claim above true: these are the
+       leaves of every extraction, so this is where the middle man stops being allocated. Extracting a `std::string`
+       out of JSON text costs one allocation -- the string handed back -- where it cost four, and every other
+       built-in costs none. `std::string_view` is now a view of the source rather than a refusal, since a canonical
+       string token *is* the string; the source has to outlive the view, which for a `reader` over text means the
+       text. A string the source spelt with escape sequences has no decoded form in it to view and is still refused,
+       as is one belonging to a tree the pipeline materialised and is about to free. A bad escape -- a `\uD800` with
+       no low surrogate, which the parser accepts because it validates an escape's syntax without decoding it -- is
+       now a problem in the extraction's list with a path rather than a `parse_error` thrown out of `extract`. This
+       resolves the three `TODO(#150)` markers in `ast.cpp`: the extractors own the policy, and the nodes keep the
+       mechanism they always had (#229).
+     - Integer extraction reports a literal which does not fit the destination instead of wrapping it. It read
+       through `ast_node::integer::value()`, which saturates to the bound of `std::int64_t`, and then narrowed that
+       result modularly, so `extract<std::uint8_t>` of `999` produced `231` and `extract<std::int8_t>` of `200`
+       produced `-56`. The token is now read against the destination type directly, so both are reported failures
+       naming the literal and the type it did not fit. A negative literal is likewise out of range for an unsigned
+       destination rather than its two's-complement reinterpretation, which is a compatibility break worth calling
+       out: `to_json` writes a `std::uint64_t` above `INT64_MAX` as a negative number, because `value` holds integers
+       as `std::int64_t`, and `extract<std::uint64_t>` used to reinterpret that back. It now refuses, so such a value
+       no longer round-trips. The document said `-1`, every other JSON reader sees `-1`, and reading it back as
+       `18446744073709551615` was two mistakes cancelling.
+     - `double` and `float` read the number token with the decimal node's parser, which accepts the integer grammar
+       as a subset, so an integer literal beyond `std::int64_t` rounds to the nearest `double` rather than to the
+       bound the integer accessor saturates to.
+     - All of the above is about what the *source text* says. Extracting from an in-memory `value` reads what the
+       `value` holds, which for a literal outside `std::int64_t` is already the saturated number `parse` recorded --
+       that is #206, and `value::as_integer` and `ast_node::integer::value()` are unchanged here (#229).
+     - `extraction_context::problem_path` is public. An extractor which rejects a value for a reason other than its
+       node type -- a number outside the range of what it builds, say -- wants the answer `expect` and `current_as`
+       already report through, and had no way to ask for it. Relatedly, a mismatch naming several acceptable node
+       types no longer repeats a description they share: expecting a string now reports "when expecting string"
+       rather than "when expecting one of string, string" (#229).
      - Fixed `extraction_error` built from an empty `problem_list` leaving `problems()` empty, which its own
        documentation says cannot happen. `path()` and `nested_ptr()` each guarded the empty case and returned a
        static empty value; `problems()` has nothing to fall back on and was missed, so a caller iterating it to

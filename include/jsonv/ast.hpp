@@ -142,6 +142,8 @@ enum class ast_error : std::uint64_t
     depth_exceeded,
     extra_close,
     mismatched_close,
+    /// A `]` or `}` arrived where the structure still owed a value -- after a `,` in either kind of structure, or
+    /// after the `:` of an object member, as in `{"a":}`.
     close_after_comma,
     invalid_literal,
     invalid_number,
