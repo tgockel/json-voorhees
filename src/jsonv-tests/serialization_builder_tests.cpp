@@ -13,6 +13,7 @@
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
 
+#include <array>
 #include <optional>
 #include <set>
 #include <sstream>
@@ -160,7 +161,7 @@ TEST(serialization_builder_container_members)
 TEST(serialization_builder_extract_extra_keys)
 {
     std::set<std::string> extra_keys;
-    auto extra_keys_handler = [&extra_keys] (const extraction_context&, const value&, std::set<std::string> x)
+    auto extra_keys_handler = [&extra_keys] (extraction_context&, std::set<std::string> x)
                               {
                                   extra_keys = std::move(x);
                               };
@@ -251,12 +252,20 @@ TEST(serialization_builder_defaults)
                             .default_value(20)
                         .member("favorite_numbers", &person::favorite_numbers)
                         .member("winning_numbers",  &person::winning_numbers)
-                            .default_value([] (extraction_context& cxt, const value& val)
-                                           {
-                                               return cxt.extract_sub<std::vector<long>>(val, "favorite_numbers");
-                                           }
-                                          )
+                            .default_value(std::vector<long>())
                             .default_on_null()
+                        // A default computed from a sibling member cannot be a `default_value` any more: the walk is
+                        // a forward one, so when a missing key is noticed the object it would have read from has
+                        // already gone by. `post_extract` sees the whole object and is where such a default belongs.
+                        .post_extract([] (extraction_context&, person&& out) -> person
+                                      {
+                                          if (out.winning_numbers.empty())
+                                              out.winning_numbers.assign(begin(out.favorite_numbers),
+                                                                         end(out.favorite_numbers)
+                                                                        );
+                                          return std::move(out);
+                                      }
+                                     )
                     .register_containers<long, std::set, std::vector>()
                     .compose_checked(formats::defaults())
                 ;
@@ -271,6 +280,46 @@ TEST(serialization_builder_defaults)
     auto encoded = to_json(p, fmt);
     person q = extract<person>(encoded, fmt);
     ensure_eq(p, q);
+}
+
+TEST(serialization_builder_defaults_are_taken_from_a_document_missing_them)
+{
+    // The test above round-trips an object which has every key, so it never reaches a default at all. This one reads
+    // the document that one builds and discards: `age` is absent and `winning_numbers` is null, which is the pair of
+    // paths `default_value` and `default_on_null` exist for. The sibling-derived half of it is a `post_extract`,
+    // which is where such a default has to live now that the walk is a forward one.
+    formats fmt = formats_builder()
+                    .type<person>()
+                        .member("firstname",        &person::firstname)
+                        .member("lastname",         &person::lastname)
+                        .member("age",              &person::age)
+                            .default_value(20)
+                        .member("favorite_numbers", &person::favorite_numbers)
+                        .member("winning_numbers",  &person::winning_numbers)
+                            .default_value(std::vector<long>())
+                            .default_on_null()
+                        .post_extract([] (extraction_context&, person&& out) -> person
+                                      {
+                                          if (out.winning_numbers.empty())
+                                              out.winning_numbers.assign(begin(out.favorite_numbers),
+                                                                         end(out.favorite_numbers)
+                                                                        );
+                                          return std::move(out);
+                                      }
+                                     )
+                    .register_containers<long, std::set, std::vector>()
+                    .compose_checked(formats::defaults())
+                ;
+
+    value input = object({ { "firstname",        "Bob"                },
+                           { "lastname",         "Builder"            },
+                           { "favorite_numbers", array({ 1, 2, 3, 4 })},
+                           { "winning_numbers",  null                 },
+                         }
+                        );
+
+    person q = extract<person>(input, fmt);
+    ensure_eq(person("Bob", "Builder", 20, { 1, 2, 3, 4 }, { 1, 2, 3, 4 }), q);
 }
 
 TEST(serialization_builder_encode_checks)
@@ -754,6 +803,598 @@ TEST(serialization_builder_duplicate_type_actions)
     builder.on_duplicate_type(duplicate_type_action::exception);
     ensure_throws(duplicate_type_error, builder.register_adapter(&adapter1));
     ensure_eq(3, serde(1, builder));
+}
+
+
+namespace
+{
+
+/// Three required members with short names, for walking the key loop over.
+struct triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+
+    bool operator==(const triple& other) const
+    {
+        return a == other.a && b == other.b && c == other.c;
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const triple& x)
+    {
+        return os << "{ " << x.a << ", " << x.b << ", " << x.c << " }";
+    }
+
+    friend std::string to_string(const triple& x)
+    {
+        std::ostringstream os;
+        os << x;
+        return os.str();
+    }
+};
+
+formats triple_formats()
+{
+    static const formats instance = formats_builder()
+                                        .type<triple>()
+                                            .member("a", &triple::a)
+                                            .member("b", &triple::b)
+                                            .member("c", &triple::c)
+                                    .compose_checked(formats::defaults());
+
+    return instance;
+}
+
+/// A reader over \a source, stepped off `document_start` and onto the value itself.
+///
+/// The DSL tests mostly extract from a `jsonv::value`, which is the shorter spelling -- but a value has already had
+/// its duplicate keys collapsed and spells every key canonically, so the two things only a *text* source can present
+/// have to be read as text.
+reader open(std::string_view source)
+{
+    reader out(source);
+    (void) out.next_token();
+    return out;
+}
+
+extract_options collecting(extract_options::size_type max_failures = 10U)
+{
+    return extract_options::create_default()
+                .failure_mode(extract_options::on_error::collect_all)
+                .max_failures(max_failures);
+}
+
+}
+
+TEST(serialization_builder_skips_an_unknown_nested_key)
+{
+    // An unrecognised key is stepped over with `reader::next_value`, which crosses the whole subtree in one move on a
+    // tape-backed reader rather than walking into it. The member after it is what proves the cursor landed in the
+    // right place: leaving the walk inside `ignored` would read its members as this object's.
+    extraction_context cxt(triple_formats());
+    auto               rdr = open(R"({
+                                       "a": 1,
+                                       "ignored": { "a": 90, "deeper": [ 1, 2, { "b": 3 }, [ [ [ 4 ] ] ] ] },
+                                       "b": 2,
+                                       "c": 3
+                                     })");
+
+    auto out = cxt.extract<triple>(rdr);
+    ensure(out.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(triple({ 1, 2, 3 }), *out);
+}
+
+TEST(serialization_builder_skips_an_unknown_trailing_key)
+{
+    // The last key in the object claims no member, so the step over it has to land on the `}` rather than past it.
+    ensure_eq(triple({ 1, 2, 3 }),
+              extract<triple>(parse(R"({ "a": 1, "b": 2, "c": 3, "extra": [ 1, 2, 3 ] })"), triple_formats())
+             );
+}
+
+TEST(serialization_builder_skips_an_only_unknown_key)
+{
+    // Nothing claims anything, so every member falls to the pass over the ones no key claimed -- and all three are
+    // required.
+    try
+    {
+        (void) extract<triple>(parse(R"({ "extra": 1 })"), triple_formats(), collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(3U, err.problems().size());
+        ensure_eq(std::string("Missing required field a"), err.problems().at(0).message());
+        ensure_eq(std::string("Missing required field c"), err.problems().at(2).message());
+    }
+}
+
+TEST(serialization_builder_members_in_any_document_order)
+{
+    // Declaration order is what the members are *reported* in; it is not the order they are read in any more.
+    ensure_eq(triple({ 1, 2, 3 }),
+              extract<triple>(parse(R"({ "c": 3, "a": 1, "b": 2 })"), triple_formats())
+             );
+}
+
+TEST(serialization_builder_empty_object_takes_every_default)
+{
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .default_value(7)
+                        .member("b", &triple::b)
+                            .default_value(8)
+                        .member("c", &triple::c)
+                            .default_value(9)
+                  .compose_checked(formats::defaults());
+
+    ensure_eq(triple({ 7, 8, 9 }), extract<triple>(parse("{}"), fmt));
+}
+
+TEST(serialization_builder_empty_object_still_requires_a_member_without_one)
+{
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .default_value(7)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                            .default_value(9)
+                  .compose_checked(formats::defaults());
+
+    try
+    {
+        (void) extract<triple>(parse("{}"), fmt);
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+        ensure_eq(std::string("Missing required field b"), err.problems().at(0).message());
+    }
+}
+
+TEST(serialization_builder_alternate_name_prefers_the_declared_one)
+{
+    // Both spellings are in the document. The declared name is preferred whichever order they arrive in, which the
+    // walk has to decide for itself: it meets the names in the order the document put them, and that says nothing
+    // about which one the type prefers. A key which loses that race is not an extra key either -- a member answers
+    // for every name it has.
+    //
+    // Read as text on purpose. A `jsonv::value` is a sorted map, so extracting one only ever presents the two
+    // spellings in collating order and an implementation which took the last of them would pass half the time by
+    // accident.
+    std::set<std::string> extra_keys;
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .alternate_name("A")
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                        .on_extract_extra_keys([&extra_keys] (extraction_context&, std::set<std::string> found)
+                                               {
+                                                   extra_keys = std::move(found);
+                                               }
+                                              )
+                  .compose_checked(formats::defaults());
+
+    for (std::string_view source : { R"({ "A": 50, "a": 1, "b": 2, "c": 3 })",
+                                     R"({ "a": 1, "A": 50, "b": 2, "c": 3 })"
+                                   })
+    {
+        extraction_context cxt(fmt);
+        auto               rdr = open(source);
+
+        auto out = cxt.extract<triple>(rdr);
+        ensure(out.has_value());
+        ensure(cxt.problems().empty());
+        ensure_eq(triple({ 1, 2, 3 }), *out);
+    }
+
+    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(R"({ "A": 50, "a": 1, "b": 2, "c": 3 })"), fmt));
+    ensure(extra_keys.empty());
+}
+
+TEST(serialization_builder_alternate_names_rank_against_each_other)
+{
+    // Two alternates, so the choice is not simply "the declared one or not". They are preferred in the order they
+    // were added, again whichever order the document uses.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .alternate_name("first_alternate")
+                            .alternate_name("second_alternate")
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    for (std::string_view source : { R"({ "first_alternate": 1, "second_alternate": 50, "b": 2, "c": 3 })",
+                                     R"({ "second_alternate": 50, "first_alternate": 1, "b": 2, "c": 3 })"
+                                   })
+    {
+        extraction_context cxt(fmt);
+        auto               rdr = open(source);
+
+        auto out = cxt.extract<triple>(rdr);
+        ensure(out.has_value());
+        ensure(cxt.problems().empty());
+        ensure_eq(triple({ 1, 2, 3 }), *out);
+    }
+}
+
+TEST(serialization_builder_an_alternate_name_is_not_a_duplicate_key)
+{
+    // Naming one member two ways and repeating one key are different things, and only the second is
+    // `duplicate_key_action`'s to refuse. Strict handling used to reject this document, which is valid.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .alternate_name("A")
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    auto strict = extract_options::create_default()
+                      .on_duplicate_key(extract_options::duplicate_key_action::exception);
+
+    extraction_context cxt(fmt, std::nullopt, jsonv::path(), nullptr, strict);
+    auto               rdr = open(R"({ "a": 1, "A": 50, "b": 2, "c": 3 })");
+
+    auto out = cxt.extract<triple>(rdr);
+    ensure(out.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(triple({ 1, 2, 3 }), *out);
+
+    // The same name twice still is one.
+    extraction_context repeated(fmt, std::nullopt, jsonv::path(), nullptr, strict);
+    auto               repeated_rdr = open(R"({ "a": 1, "a": 50, "b": 2, "c": 3 })");
+
+    ensure(!repeated.extract<triple>(repeated_rdr).has_value());
+    ensure_eq(std::string("Duplicate key in object: \"a\""), repeated.problems().at(0).message());
+}
+
+TEST(serialization_builder_a_superseded_alternate_is_not_validated)
+{
+    // The spelling which loses is stepped over unread, so a `check_input` on the member never sees it. Reading it
+    // only to throw the result away would report failures against a value the type did not take.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .alternate_name("A")
+                            .check_input([] (const std::int64_t& value)
+                                         {
+                                             if (value > 10)
+                                                 throw std::logic_error("a must be small");
+                                         }
+                                        )
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    extraction_context cxt(fmt);
+    auto               rdr = open(R"({ "a": 1, "A": 5000, "b": 2, "c": 3 })");
+
+    auto out = cxt.extract<triple>(rdr);
+    ensure(out.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(triple({ 1, 2, 3 }), *out);
+}
+
+TEST(serialization_builder_names_the_key_the_document_used)
+{
+    // A failure inside a member is reported at the key the *document* spelled, not at the name the member was
+    // declared with -- which is what makes `alternate_name` a matching rule rather than a rename.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .alternate_name("A")
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    try
+    {
+        (void) extract<triple>(parse(R"({ "A": "not a number", "b": 2, "c": 3 })"), fmt);
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(path::create(".A"), err.path());
+    }
+}
+
+TEST(serialization_builder_matches_an_escaped_key)
+{
+    // A key the document spelled with escape sequences arrives as `ast_node_type::key_escaped` and has to be decoded
+    // before it can be matched. Only a text source produces one: a `jsonv::value` has already decoded its keys.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a\nb", &triple::a)
+                        .member("b",    &triple::b)
+                        .member("c",    &triple::c)
+                  .compose_checked(formats::defaults());
+
+    extraction_context cxt(fmt);
+    auto               rdr = open(R"({ "a\nb": 1, "b": 2, "c": 3 })");
+
+    auto out = cxt.extract<triple>(rdr);
+    ensure(out.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(triple({ 1, 2, 3 }), *out);
+}
+
+TEST(serialization_builder_names_an_escaped_key_it_failed_in)
+{
+    // The decoded key outlives the member's extraction, so it is still there to name the failure.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a\nb", &triple::a)
+                        .member("b",    &triple::b)
+                        .member("c",    &triple::c)
+                  .compose_checked(formats::defaults());
+
+    extraction_context cxt(fmt);
+    auto               rdr = open(R"({ "a\nb": "not a number", "b": 2, "c": 3 })");
+
+    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    // Spelled as an element rather than through `path::create`, which parses its argument and has no syntax for a
+    // key containing a newline.
+    ensure_eq(path({ "a\nb" }), cxt.problems().at(0).path());
+}
+
+TEST(serialization_builder_duplicate_key_replaces_by_default)
+{
+    // `extract_options::duplicate_key_action::replace` is the default and means the last spelling of a key wins,
+    // which is what `parse_index::extract_tree` does with one.
+    extraction_context cxt(triple_formats());
+    auto               rdr = open(R"({ "a": 1, "b": 2, "c": 3, "a": 99 })");
+
+    auto out = cxt.extract<triple>(rdr);
+    ensure(out.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(triple({ 99, 2, 3 }), *out);
+}
+
+TEST(serialization_builder_duplicate_key_can_keep_the_first)
+{
+    extraction_context cxt(triple_formats(),
+                           std::nullopt,
+                           jsonv::path(),
+                           nullptr,
+                           extract_options::create_default()
+                               .on_duplicate_key(extract_options::duplicate_key_action::ignore)
+                          );
+    auto rdr = open(R"({ "a": 1, "b": 2, "c": 3, "a": 99 })");
+
+    auto out = cxt.extract<triple>(rdr);
+    ensure(out.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(triple({ 1, 2, 3 }), *out);
+}
+
+TEST(serialization_builder_duplicate_key_can_be_refused)
+{
+    extraction_context cxt(triple_formats(),
+                           std::nullopt,
+                           jsonv::path(),
+                           nullptr,
+                           extract_options::create_default()
+                               .on_duplicate_key(extract_options::duplicate_key_action::exception)
+                          );
+    auto rdr = open(R"({ "a": 1, "b": 2, "c": 3, "a": 99 })");
+
+    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("Duplicate key in object: \"a\""), cxt.problems().at(0).message());
+}
+
+TEST(serialization_builder_refuses_a_non_object)
+{
+    // The walk asks for `{` and says what it found instead. This used to be a `kind_error` out of `value::find`,
+    // because each member looked itself up in something which was not an object.
+    extraction_context cxt(triple_formats());
+    auto               rdr = open("5");
+
+    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure(cxt.problems().at(0).message().find("object") != std::string::npos);
+}
+
+TEST(serialization_builder_check_input_rejects_a_member)
+{
+    // `check_input` runs on the value which was read, before it reaches the member. It had never run at all: the
+    // mutator it composes into was stored and never called.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .check_input([] (const std::int64_t& value)
+                                         {
+                                             if (value < 0)
+                                                 throw std::logic_error("a must not be negative");
+                                         }
+                                        )
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(R"({ "a": 1, "b": 2, "c": 3 })"), fmt));
+
+    try
+    {
+        (void) extract<triple>(parse(R"({ "a": -1, "b": 2, "c": 3 })"), fmt);
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure(err.problems().at(0).nested_ptr());
+        ensure_throws(std::logic_error, (std::rethrow_exception(err.problems().at(0).nested_ptr()), 0));
+    }
+}
+
+
+TEST(serialization_builder_more_members_than_a_word_has_bits)
+{
+    // Which members a key has claimed is tracked in a machine word while there is room and spills to a heap-allocated
+    // set when there is not, so the handover is worth walking over. The members here are deliberately declared in an
+    // order the document does not use, and every one past the inline capacity has a default, so both halves of the
+    // post-walk pass run on the spilled side.
+    constexpr std::size_t count = 70U;
+
+    struct wide
+    {
+        std::array<std::int64_t, count> v{};
+    };
+
+    formats_builder builder;
+    auto            type_builder = builder.type<wide>();
+    for (std::size_t idx = 0U; idx < count; ++idx)
+    {
+        auto member = type_builder.template member<std::int64_t>(
+            "m" + std::to_string(idx),
+            std::function<const std::int64_t& (const wide&)>([idx] (const wide& x) -> const std::int64_t&
+                                                             {
+                                                                 return x.v[idx];
+                                                             }),
+            std::function<void (wide&, std::int64_t&&)>([idx] (wide& x, std::int64_t&& val)
+                                                        {
+                                                            x.v[idx] = val;
+                                                        })
+        );
+
+        // Everything from the inline capacity on is optional, so the document can leave it out.
+        if (idx >= 64U)
+            member.default_value(std::int64_t(-1));
+    }
+
+    formats fmt = builder.compose_checked(formats::defaults());
+
+    // Written back to front, and stopping short of the members which have defaults.
+    value source = object();
+    for (std::size_t idx = 66U; idx-- > 0U; )
+        source["m" + std::to_string(idx)] = value(std::int64_t(idx) * 10);
+
+    wide out = extract<wide>(source, fmt);
+    for (std::size_t idx = 0U; idx < 66U; ++idx)
+        ensure_eq(std::int64_t(idx) * 10, out.v[idx]);
+    for (std::size_t idx = 66U; idx < count; ++idx)
+        ensure_eq(std::int64_t(-1), out.v[idx]);
+
+    // And the same walk still notices one of the spilled members going missing when it has nothing to fall back on.
+    formats_builder strict_builder;
+    auto            strict_type = strict_builder.type<wide>();
+    for (std::size_t idx = 0U; idx < count; ++idx)
+    {
+        strict_type.template member<std::int64_t>(
+            "m" + std::to_string(idx),
+            std::function<const std::int64_t& (const wide&)>([idx] (const wide& x) -> const std::int64_t&
+                                                             {
+                                                                 return x.v[idx];
+                                                             }),
+            std::function<void (wide&, std::int64_t&&)>([idx] (wide& x, std::int64_t&& val)
+                                                        {
+                                                            x.v[idx] = val;
+                                                        })
+        );
+    }
+
+    try
+    {
+        (void) extract<wide>(source, strict_builder.compose_checked(formats::defaults()));
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(std::string("Missing required field m66"), err.problems().at(0).message());
+    }
+}
+
+
+TEST(serialization_builder_a_failed_type_default_does_not_eat_the_next_value)
+{
+    // `type_default_on_null` consumes the `null` before the factory runs, so a factory which throws fails with the
+    // value it stood in for already behind the cursor. Saying so is what stops the array above stepping over the
+    // element *after* it -- which would drop that element from the result and every problem it had to report.
+    formats fmt = formats::compose({ formats_builder()
+                                         .type<triple>()
+                                             .member("a", &triple::a)
+                                             .member("b", &triple::b)
+                                             .member("c", &triple::c)
+                                             .type_default_on_null()
+                                             .type_default_value([] (extraction_context&) -> triple
+                                                                 {
+                                                                     throw std::runtime_error("no default to give");
+                                                                 }
+                                                                )
+                                         .register_container<std::vector<triple>>()
+                                     .compose_checked(formats::defaults())
+                                   });
+
+    try
+    {
+        (void) extract<std::vector<triple>>(parse(R"([ null, { "a": "bad", "b": 2, "c": 3 } ])"),
+                                            fmt,
+                                            collecting()
+                                           );
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        // The factory's failure at `[0]`, and then the element after it -- not just the first.
+        ensure_eq(2U, err.problems().size());
+        ensure_eq(path::create("[0]"),    err.problems().at(0).path());
+        ensure_eq(path::create("[1].a"),  err.problems().at(1).path());
+    }
+}
+
+
+TEST(serialization_builder_strict_duplicates_do_not_depend_on_key_order)
+{
+    // A second helping of a name the member has already passed over for a better one is still a repeat, but the
+    // winning name cannot see that: a lower-ranked key looks the same whether it is a first sighting of one
+    // alternate or a second of another. Strict handling therefore asks of the keys themselves, so the same object is
+    // refused whichever order it listed them in.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .alternate_name("A")
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    auto strict = extract_options::create_default()
+                      .on_duplicate_key(extract_options::duplicate_key_action::exception);
+
+    for (std::string_view source : { R"({ "A": 1, "a": 2, "A": 3, "b": 2, "c": 3 })",
+                                     R"({ "A": 1, "A": 3, "a": 2, "b": 2, "c": 3 })"
+                                   })
+    {
+        extraction_context cxt(fmt, std::nullopt, jsonv::path(), nullptr, strict);
+        auto               rdr = open(source);
+
+        ensure(!cxt.extract<triple>(rdr).has_value());
+        ensure_eq(1U, cxt.problems().size());
+        ensure_eq(std::string("Duplicate key in object: \"A\""), cxt.problems().at(0).message());
+    }
+}
+
+TEST(serialization_builder_strict_duplicates_cover_unrecognised_keys)
+{
+    // The policy is about the document repeating a key, which has nothing to do with whether this type happens to
+    // want it -- and it is what `parse_index::extract_tree` refuses for the same document.
+    auto strict = extract_options::create_default()
+                      .on_duplicate_key(extract_options::duplicate_key_action::exception);
+
+    extraction_context cxt(triple_formats(), std::nullopt, jsonv::path(), nullptr, strict);
+    auto               rdr = open(R"({ "a": 1, "b": 2, "c": 3, "extra": 1, "extra": 2 })");
+
+    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("Duplicate key in object: \"extra\""), cxt.problems().at(0).message());
 }
 
 }

@@ -182,8 +182,7 @@
        there -- the count is bounded by what is on the tape even when the parse which produced it failed part-way
        through, which is what makes it safe to hand to `reserve`. This is a source break for anyone deriving from one
        of the three and overriding `create(extraction_context&, const value&)`: the base is now `adapter_for` and the
-       hook takes a `reader`. `polymorphic_adapter`, `enum_adapter` and the serialization builder DSL stay on the
-       bridge for now (#230).
+       hook takes a `reader`. `polymorphic_adapter` and `enum_adapter` stay on the bridge for now (#230).
      - `std::vector<std::string_view>` extracted from JSON text is a view of the source rather than a refusal. It was
        refused for a structural reason rather than a semantic one: the container materialised the whole array and
        every element then saw `extraction_context::source_is_temporary`, because a view of that temporary would name
@@ -231,6 +230,71 @@
        than entered -- leaving one of those lands back inside the container being built. A failure after the closing
        token has already been read has nothing left to walk and skips this entirely, which is what keeps a throwing
        move of the finished container from consuming the sibling after it (#230).
+     - The serialization builder DSL reads the reader directly instead of a `value` materialised for it, which is
+       what takes the last composite most users actually extract through off the bridge. It is not a change of
+       signature so much as a change of who drives the loop: each member used to be handed the whole parent object
+       and look itself up in it by name, walking its `alternate_name`s until one hit, which is random access into
+       something a forward cursor cannot offer. The walk now goes the other way -- over the document's keys, each
+       dispatched to the member which claims it -- so a type described by the DSL is read in one pass instead of
+       being built as a tree and then read out of that tree. A key which claims no member is stepped over whole,
+       which on a tape-backed reader costs one move however large the subtree under it is (#231).
+     - Extraction of a DSL-described type runs in **document order** rather than member-declaration order. Which
+       member reports a problem first changes with it, and so does the order of any side effects a caller's mutator
+       has. Declaration order still decides two things: which name wins when a member and an `alternate_name` of
+       another both appear, and the order the members no key claimed are reported or defaulted in, since that pass
+       happens after the walk (#231).
+     - Three type-level hooks lose their `const value&` parameter, which is the price of the above and a source
+       break for anyone using them: `pre_extract` is now `void(extraction_context&)`, the `on_extract_extra_keys`
+       handler is `void(extraction_context&, std::set<std::string>)`, and a member's `default_value` factory is
+       `TMember(extraction_context&)`. `throw_extra_keys_extraction_error` follows the second of those and never
+       read its `value` anyway. A forward cursor cannot hand a callback the object it is part-way through reading,
+       and a missing key is only known to be missing once every key which was there has gone by. The capability
+       that removes -- most sharply a default computed from a sibling member, which has no workaround short of
+       restructuring -- is tracked in #235; `post_extract` sees the whole object and is where such a default
+       belongs today. `type_default_value` is unaffected: it took only the context already (#231).
+     - Finding the keys which claimed no member is now free. It used to be a second scan over the materialised
+       object, registered as a `pre_extract` and comparing every key against every member; the walk now knows which
+       keys those were because it is the thing which failed to place them. It is also no longer a `pre_extract`, so
+       it runs after the walk rather than before it -- a handler which throws, as `throw_extra_keys_extraction_error`
+       does, now does so with the object already read rather than untouched. The set of names is only built when a
+       handler was registered (#231).
+     - `extract_options::on_duplicate_key` is honoured by DSL extraction. It was not before, and not by omission:
+       on a `value` the duplicate had already been collapsed by the parse, and on JSON text the bridge's own
+       materialisation kept the last spelling whatever the option said. The walk sees both keys, so it can answer
+       for them -- `replace` extracts the later one over the earlier, `ignore` steps over it, and `exception`
+       reports `Duplicate key in object: "..."`, the same message `parse_index::extract_tree` raises for the same
+       document. `exception` is asked of every key on the way past rather than only of the ones a member answers to:
+       a repeated key is the same thing to it either way, and a member reading itself from its preferred name cannot
+       tell a repeat of a name it has already passed over from a first sighting of another, so which of the two an
+       object was refused for would otherwise depend on the order it listed them in. A document repeating a key no
+       member wants is refused as well, which is again what building the `value` first would have done (#231).
+     - `check_input` runs. The mutator it composes a check into was stored on the member and never read by anything,
+       so every `check_input` in every DSL since the feature was added in 2015 has been a no-op; it is now applied
+       to the value which was read, before that value reaches the member. A predicate which has never executed may
+       well reject data which has been extracting cleanly for years, which is the reason to call this out rather
+       than file it as a fix (#231).
+     - `alternate_name` compiles. The friendship which lets the member builder reach the member adapter's list of
+       names was declared unqualified inside `jsonv::detail`, so it named a `jsonv::detail::member_adapter_builder`
+       which does not exist rather than the `jsonv::member_adapter_builder` which does. Every use of
+       `alternate_name` failed to compile, which is why nothing in the tree used one (#231).
+     - The preference order among a member's names is enforced by the walk rather than falling out of the lookup.
+       Searching a materialised object went through the names in order and read only the winner; meeting them in the
+       order the *document* put them says nothing about which the type prefers, so each member remembers which of
+       its names it is being read from and a better-ranked one supersedes a worse. A document which spells one
+       member two ways therefore resolves to the earliest declared name whichever order it used, and the spelling
+       which loses is stepped over unread -- so a `check_input` on the member never sees it. One case does not
+       survive the change: where the losing spelling comes *first* and is itself malformed, it has already been read
+       and its failure reported by the time the preferred one arrives, because a forward walk has to read a value
+       when it meets it and the preferred name may never come (#231).
+     - A second name for the same member is not a duplicate key. The two are different questions -- one member named
+       two ways against one key repeated -- and only the second is `extract_options::on_duplicate_key`'s to decide,
+       so strict duplicate handling no longer refuses a document which merely uses an `alternate_name` (#231).
+     - Extracting a DSL-described type from something which is not an object reports a node type mismatch naming
+       what was found. It used to be whatever `value::find` threw when a member looked itself up in a non-object,
+       which was a `kind_error` about the wrong thing (#231).
+     - A `std::string_view` member of a DSL-described type extracted from JSON text is a view of the source rather
+       than a refusal, for the same reason `std::vector<std::string_view>` became one in #230: the refusal was
+       structural, and there is no longer a materialised tree for the view to dangle into (#231).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC

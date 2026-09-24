@@ -19,11 +19,19 @@
 #include <jsonv/serialization/polymorphic_adapter.hpp>
 #include <jsonv/serialization/wrapper_adapter.hpp>
 
+#include <algorithm>
+#include <array>
+#include <cstdint>
 #include <deque>
+#include <expected>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
+#include <string>
+#include <string_view>
 #include <type_traits>
+#include <vector>
 
 namespace jsonv
 {
@@ -378,10 +386,14 @@ namespace jsonv
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_pre_extract pre_extract
 ///
-///  - <tt>pre_extract(std::function&lt;void (extraction_context& context, const value& from)&gt; perform)</tt>
+///  - <tt>pre_extract(std::function&lt;void (extraction_context& context)&gt; perform)</tt>
 ///
 /// Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
 /// be called multiple times -- all functions will be called in the order they are provided.
+///
+/// The source document is not among the arguments. Extraction walks the reader forward, so at the point this runs
+/// there is nothing read yet to hand over; see \ref serialization_builder_dsl_ref_type_level_post_extract
+/// post_extract for a hook which sees the finished object.
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
 ///
@@ -415,18 +427,18 @@ namespace jsonv
 /// \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys on_extract_extra_keys
 ///
 ///  - <tt>on_extract_extra_keys(std::function&lt;void (extraction_context&      context,
-///                                                   const value&                from,
 ///                                                   std::set&lt;std::string&gt; extra_keys)&gt; action
 ///                             )</tt>
 ///
 /// When extracting, perform some \a action if extra keys are provided. By default, extra keys are usually simply
-/// ignored, so this is useful if you wish to throw an exception (or anything you want).
+/// ignored, so this is useful if you wish to throw an exception (or anything you want). The \a action is handed the
+/// names of the keys which claimed no member; their values have already been stepped over unread.
 ///
 /// \code
 ///   .type<my_type>()
 ///       .member("x", &my_type::x)
 ///       .member("y", &my_type::y)
-///       .on_extract_extra_keys([] (extraction_context&, const value&, std::set<std::string> extra_keys)
+///       .on_extract_extra_keys([] (extraction_context&, std::set<std::string> extra_keys)
 ///                              {
 ///                                  throw extracted_extra_keys("my_type", std::move(extra_keys));
 ///                              }
@@ -512,10 +524,13 @@ namespace jsonv
 /// \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
 ///
 ///  - <tt>default_value(TMember value)</tt>
-///  - <tt>default_value(std::function&lt;TMember (extraction_context&, const value&)&gt; create)</tt>
+///  - <tt>default_value(std::function&lt;TMember (extraction_context& context)&gt; create)</tt>
 ///
-/// Provide a default value for this member if no key is found when extracting. You can use the function implementation
-/// to synthesize the key however you want.
+/// Provide a default value for this member if no key is found when extracting. The function implementation can
+/// synthesize the value however it likes, but it is not handed the object being extracted: a missing key is only known
+/// to be missing once every key which was there has gone by, and the walk does not go back. A default which depends on
+/// the other members belongs in \ref serialization_builder_dsl_ref_type_level_post_extract post_extract, which sees
+/// the whole object once it is built.
 ///
 /// \code
 ///  .member("x", &my_type::x)
@@ -674,6 +689,90 @@ protected:
     adapter_builder<T>* owner;
 };
 
+/// Is the value \a from is positioned on a JSON `null`?
+///
+/// Asked of the lent \c value where there is one, exactly as \c optional_adapter does and for the same reason: a
+/// value-backed reader has no token for a non-finite \c kind::decimal and renders one as \c literal_null, so going by
+/// the node type alone would call a \c double holding a NaN "null" and take a default for it.
+JSONV_NODISCARD
+inline bool current_is_null(const reader& from)
+{
+    if (const value* lent = from.current_value())
+        return lent->kind() == jsonv::kind::null;
+    else
+        return from.good() && from.current().type() == ast_node_type::literal_null;
+}
+
+/// The answer \c member_adapter::extract_key_rank gives for a key which names no member.
+constexpr std::size_t no_extract_key = std::size_t(-1);
+
+/// Which member each key has claimed, and by which of that member's names.
+///
+/// A member answers to the name it was declared with and to every \c alternate_name after it, and that list is a
+/// preference order. Remembering only *that* a member was claimed cannot tell a second spelling of it from a repeat
+/// of the first, which is a different question with a different answer: the first is the document naming one member
+/// two ways, where the earliest name wins, and the second is a duplicate key, which is
+/// \c extract_options::on_duplicate_key's to decide.
+///
+/// Read once the walk is done, so it has to be cheap to make: a wholly successful extraction of an object allocates
+/// nothing, and a `std::vector` would spoil that for every object extracted. Types with more members than fit inline
+/// fall back to one.
+class member_claim_set
+{
+public:
+    /// No key has claimed this member.
+    static constexpr std::uint16_t unclaimed = std::uint16_t(-1);
+
+public:
+    explicit member_claim_set(std::size_t count)
+    {
+        if (count > inline_capacity)
+        {
+            _spilled = std::make_unique<std::uint16_t[]>(count);
+            std::fill_n(_spilled.get(), count, unclaimed);
+        }
+        else
+        {
+            _ranks.fill(unclaimed);
+        }
+    }
+
+    /// Which of member \a idx's names claimed it, or \ref unclaimed if none has.
+    JSONV_NODISCARD
+    std::uint16_t claim_rank(std::size_t idx) const
+    {
+        return _spilled ? _spilled[idx] : _ranks[idx];
+    }
+
+    JSONV_NODISCARD
+    bool claimed(std::size_t idx) const
+    {
+        return claim_rank(idx) != unclaimed;
+    }
+
+    /// Record that the name at \a rank is the one member \a idx is being read from.
+    void claim(std::size_t idx, std::size_t rank)
+    {
+        // A member with more names than this can count is not something anyone builds; the clamp is here so the type
+        // can stay narrow, not because the case is expected.
+        auto stored = std::uint16_t(std::min<std::size_t>(rank, unclaimed - 1U));
+
+        if (_spilled)
+            _spilled[idx] = stored;
+        else
+            _ranks[idx] = stored;
+    }
+
+private:
+    static constexpr std::size_t inline_capacity = 64U;
+
+    /// A plain array rather than a `std::vector`, which allocates a debugging proxy on some standard libraries even
+    /// when it is empty -- and this one is empty for every type small enough to be tracked inline, which is nearly
+    /// all of them.
+    std::array<std::uint16_t, inline_capacity> _ranks;
+    std::unique_ptr<std::uint16_t[]>           _spilled;
+};
+
 template <typename T>
 class member_adapter
 {
@@ -681,12 +780,36 @@ public:
     virtual ~member_adapter() noexcept
     { }
 
-    virtual void mutate(extraction_context& context, const value& from, T& out) const = 0;
+    /// Extract this member from \a from, which is positioned on the member's value, and set it on \a out. On return
+    /// the cursor sits one position past that value, as every extractor owes its caller.
+    ///
+    /// \param key The key the document used, which is what names this member in a problem raised inside it -- the
+    ///            declared name would be the wrong answer for a member matched through an \c alternate_name. It must
+    ///            outlive the call, which the caller arranges: a canonical key views the source, and an escaped one
+    ///            views the \c std::string the key loop decoded it into.
+    JSONV_NODISCARD
+    virtual std::expected<void, ast_node_type>
+    extract(extraction_context& context, reader& from, std::string_view key, T& out) const = 0;
+
+    /// Apply this member's default to \a out, reading nothing. Called when no key claimed this member, and when the
+    /// key which did held \c null and \c default_on_null is set.
+    JSONV_NODISCARD
+    virtual std::expected<void, ast_node_type> apply_default(extraction_context& context, T& out) const = 0;
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
 
+    /// Does this member have a default to fall back on? A member without one is required.
     JSONV_NODISCARD
-    virtual bool has_extract_key(std::string_view key) const = 0;
+    virtual bool has_default() const = 0;
+
+    /// Where \a key sits in this member's list of names -- 0 for the name it was declared with, then one for each
+    /// \c alternate_name in the order they were added -- or \ref no_extract_key if this member does not answer to it.
+    ///
+    /// That position is the preference order `alternate_name` documents, and a forward walk has to enforce it for
+    /// itself: it meets the names in the order the *document* put them, which says nothing about which one the type
+    /// prefers.
+    JSONV_NODISCARD
+    virtual std::size_t extract_key_rank(std::string_view key) const = 0;
 
     /// The name this member was declared with, for naming it in a problem raised where the document's own key is not
     /// to hand. It is owned by this adapter and outlives any extraction, so it is safe to push as a `path_scope`.
@@ -716,51 +839,48 @@ public:
                                )
     { }
 
-    virtual void mutate(extraction_context& context, const value& from, T& out) const override
+    JSONV_NODISCARD
+    virtual std::expected<void, ast_node_type>
+    extract(extraction_context& context, reader& from, std::string_view key, T& out) const override
     {
-        value::const_object_iterator iter;
-        for (const auto& name : _names)
-            if ((iter = from.find(name)) != from.end_object())
-                break;
-
-        bool use_default = false;
-        if (iter == from.end_object())
+        if (_default_on_null && current_is_null(from))
         {
-            use_default = bool(_default_value);
-            if (!use_default)
-                throw extraction_error(context.path(), std::string("Missing required field ") + _names.at(0));
-        }
-        else if (_default_on_null && iter->second.kind() == kind::null)
-        {
-            use_default = true;
+            (void) from.next_token();
+            return apply_default(context, out);
         }
 
-        if (use_default)
-        {
-            _set_value(out, _default_value(context, from));
-        }
+        // Scoped to the extraction and not to the assignment. `_set_value` is whatever the
+        // `member(name, access, mutate)` overload was handed, so it is arbitrary user code, and once the member's
+        // value exists the extractor is no longer at this key -- something that setter goes on to extract is where
+        // the document says it is rather than underneath this member.
+        //
+        // `key` is the key the document actually used, which is the one to name when a member matched through an
+        // `alternate_name`. The caller keeps it alive across this call, so naming it costs nothing.
+        auto extracted = [&] () -> std::expected<TMember, ast_node_type>
+                         {
+                             extraction_context::path_scope scope(context, key);
+
+                             return context.extract<TMember>(from);
+                         }();
+
+        if (!extracted)
+            return std::unexpected(extracted.error());
+
+        // `check_input` runs on the value which was read, before it reaches the setter. It throws rather than
+        // reporting, so it is user code the loop above has to be ready for.
+        if (_extract_mutate)
+            _set_value(out, _extract_mutate(*std::move(extracted)));
         else
-        {
-            // Scoped to the extraction and not to the assignment. `_set_value` is whatever the
-            // `member(name, access, mutate)` overload was handed, so it is arbitrary user code, and once the
-            // member's value exists the extractor is no longer at this key -- something that setter goes on to
-            // extract is where the document says it is rather than underneath this member. Reaching the scope
-            // through `extract_sub` drew the line here too, by returning before the setter was entered.
-            auto extracted = [&] () -> TMember
-                             {
-                                 // The key this object actually used, which is the one to name when a member
-                                 // matched through an `alternate_name`. It is owned by `from` and outlives this
-                                 // scope, so naming it costs nothing -- where `extract_sub` built a `jsonv::path`
-                                 // holding a copy of it. And `iter->second` is the member the search above
-                                 // already found, rather than asking `value::at_path` to count and then find the
-                                 // same key over again.
-                                 extraction_context::path_scope scope(context, std::string_view(iter->first));
+            _set_value(out, *std::move(extracted));
 
-                                 return context.extract<TMember>(iter->second);
-                             }();
+        return {};
+    }
 
-            _set_value(out, std::move(extracted));
-        }
+    JSONV_NODISCARD
+    virtual std::expected<void, ast_node_type> apply_default(extraction_context& context, T& out) const override
+    {
+        _set_value(out, _default_value(context));
+        return {};
     }
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const override
@@ -770,9 +890,19 @@ public:
     }
 
     JSONV_NODISCARD
-    virtual bool has_extract_key(std::string_view key) const override
+    virtual bool has_default() const override
     {
-        return std::any_of(begin(_names), end(_names), [key] (const std::string& name) { return name == key; });
+        return bool(_default_value);
+    }
+
+    JSONV_NODISCARD
+    virtual std::size_t extract_key_rank(std::string_view key) const override
+    {
+        for (std::size_t rank = 0U; rank < _names.size(); ++rank)
+            if (_names[rank] == key)
+                return rank;
+
+        return no_extract_key;
     }
 
     JSONV_NODISCARD
@@ -819,7 +949,7 @@ public:
         });
     }
 
-    void default_value(std::function<TMember (extraction_context&, const value&)>&& create)
+    void default_value(std::function<TMember (extraction_context&)>&& create)
     {
         _default_value = std::move(create);
     }
@@ -839,15 +969,18 @@ private:
     }
 
 private:
+    // Qualified: unqualified, this declares a friend `jsonv::detail::member_adapter_builder`, which is a different
+    // (and nonexistent) template from the `jsonv::member_adapter_builder` which actually reaches in here. Every use
+    // of `alternate_name` failed to compile until this was spelled out.
     template <typename U, typename UMember>
-    friend class member_adapter_builder;
+    friend class jsonv::member_adapter_builder;
 
 private:
     std::vector<std::string>                                           _names;
     mutator_type                                                       _set_value;
     accessor_type                                                      _get_value;
     std::function<bool (const serialization_context&, const TMember&)> _should_encode;
-    std::function<TMember (extraction_context&, const value&)>         _default_value;
+    std::function<TMember (extraction_context&)>                       _default_value;
     bool                                                               _default_on_null = false;
     std::function<TMember (TMember&&)>                                 _extract_mutate;
 };
@@ -905,7 +1038,7 @@ public:
     /** If the key for this member is not in the object when deserializing, call this function to create a value. If a
      *  \c default_value is not specified, the key is required.
     **/
-    member_adapter_builder& default_value(std::function<TMember (extraction_context&, const value&)> create)
+    member_adapter_builder& default_value(std::function<TMember (extraction_context&)> create)
     {
         _adapter->default_value(std::move(create));
         return *this;
@@ -916,7 +1049,7 @@ public:
     **/
     member_adapter_builder& default_value(TMember value)
     {
-        return default_value([value] (extraction_context&, const jsonv::value&) { return value; });
+        return default_value([value] (extraction_context&) { return value; });
     }
 
     /** Should a \c kind::null for a key be interpreted as a missing value? **/
@@ -988,9 +1121,9 @@ class adapter_builder :
         public detail::formats_builder_dsl
 {
 public:
-    using pre_extract_func  = std::function<void (extraction_context&, const value&)>;
+    using pre_extract_func  = std::function<void (extraction_context&)>;
     using post_extract_func = std::function<T (extraction_context&, T&&)>;
-    using extra_keys_func   = std::function<void (extraction_context&, const value&, std::set<std::string>)>;
+    using extra_keys_func   = std::function<void (extraction_context&, std::set<std::string>)>;
 
 public:
     template <typename F>
@@ -1094,10 +1227,10 @@ public:
         if (_adapter->_pre_extract)
         {
             pre_extract_func old_perform = std::move(_adapter->_pre_extract);
-            _adapter->_pre_extract = [old_perform, perform] (extraction_context& context, const value& from)
+            _adapter->_pre_extract = [old_perform, perform] (extraction_context& context)
                                      {
-                                         old_perform(context, from);
-                                         perform(context, from);
+                                         old_perform(context);
+                                         perform(context);
                                      };
         }
         else
@@ -1124,109 +1257,281 @@ public:
         return *this;
     }
 
+    /// The handler is stored rather than desugared into a \c pre_extract, because the keys which claimed no member
+    /// are only known once the walk is done. It is still registered against the members as they stand at extraction
+    /// time rather than at build time -- the key loop does the matching -- so declaring it before the members it
+    /// validates against keeps working.
     adapter_builder<T>& on_extract_extra_keys(extra_keys_func handler)
     {
-        adapter_impl* adapter = _adapter;
-        return pre_extract([adapter, handler] (extraction_context& context, const value& from)
+        if (_adapter->_extra_keys)
         {
-            auto is_key = [adapter] (std::string_view key) -> bool
-                          {
-                              return std::any_of(begin(adapter->_members), end(adapter->_members),
-                                                 [key] (const std::unique_ptr<detail::member_adapter<T>>& mem)
-                                                 {
-                                                     return mem->has_extract_key(key);
-                                                 }
-                                                );
-                          };
-            std::set<std::string> extra_keys;
-            for (const auto& pair : from.as_object())
-                if (!is_key(pair.first))
-                    extra_keys.insert(pair.first);
-            if (!extra_keys.empty())
-                handler(context, from, std::move(extra_keys));
-        });
+            extra_keys_func old_handler = std::move(_adapter->_extra_keys);
+            _adapter->_extra_keys = [old_handler, handler] (extraction_context& context, std::set<std::string> keys)
+                                    {
+                                        old_handler(context, keys);
+                                        handler(context, std::move(keys));
+                                    };
+        }
+        else
+        {
+            _adapter->_extra_keys = std::move(handler);
+        }
+        return *this;
     }
 
 private:
     class adapter_impl :
-            public value_adapter_for<T>
+            public adapter_for<T>
     {
     public:
         adapter_impl() :
                 _default_on_null(false)
         { }
 
-        virtual T create(extraction_context& context, const value& from) const override
+        JSONV_NODISCARD
+        virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const override
         {
             if (_pre_extract)
-                _pre_extract(context, from);
+                _pre_extract(context);
 
-            if (_default_on_null && from.is_null())
-                return _create_default(context);
-
-            auto mark      = context.problems().size();
-            T    out;
-            bool recovered = false;
-
-            for (const auto& member : _members)
+            if (_default_on_null && detail::current_is_null(from))
             {
+                (void) from.next_token();
+
                 try
                 {
-                    member->mutate(context, from, out);
-                }
-                catch (const extraction_error& ex)
-                {
-                    // Every member looks itself up by name, so the next one is reachable whatever this one did. In
-                    // `collect_all` that turns "the first field is wrong" into a list of every field which is, and
-                    // -- since `mutate` throws for a missing required field too -- every one of those as well.
-                    if (!context.recover(ex))
-                        throw;
-
-                    recovered = true;
-                }
-                catch (const std::bad_alloc&)
-                {
-                    // Recovering means recording, and recording allocates -- as does the `extraction_error` below,
-                    // whose constructors are `noexcept`, so failing to allocate inside one terminates rather than
-                    // propagating. There is nothing to be gained by trying.
-                    throw;
+                    return _create_default(context);
                 }
                 catch (...)
                 {
-                    // A member's default factory is user code called outside the member's own extraction, so it
-                    // fails with whatever it threw rather than with an `extraction_error` -- `from.at("seed")`
-                    // alone is an `std::out_of_range`. Giving it the shape the rest of the loop deals in is what
-                    // keeps which members get attempted from depending on how the first failing one happened to
-                    // fail.
-                    //
-                    // Asked before anything is built, because translating allocates and rethrowing the original
-                    // untouched is what leaves `fail_immediately` reaching the same translation it always did.
-                    if (context.options().failure_mode() != extract_options::on_error::collect_all)
-                        throw;
-
-                    // `mutate` names the member it failed in; this failure happened outside that and would
-                    // otherwise be the one problem in the list which does not say which member it came from.
-                    // Unwinding completes before a handler body runs, so the scope `mutate` pushed is long gone by
-                    // the time this one does and there is nothing to double up with.
-                    extraction_context::path_scope scope(context, member->primary_name());
-                    extraction_error               translated(context.path(), std::current_exception());
-
-                    if (!context.recover(translated))
-                        throw;
-
-                    recovered = true;
+                    // The `null` this stands in for is already behind the cursor, so whatever recovers from this
+                    // must not step over the value after it as well. Both the factory and the move of its result
+                    // into the answer are the caller's code.
+                    context.note_value_consumed(from);
+                    throw;
                 }
             }
 
-            // Collecting gathers diagnostics; it does not make a half-populated `out` worth handing back. Thrown
+            auto opened = context.current_as<ast_node::object_begin>(from);
+            if (!opened)
+                return std::unexpected(opened.error());
+
+            T                        out;
+            detail::member_claim_set claims(_members.size());
+            bool                     recovered = false;
+            bool                     closed    = false;
+
+            // Both of these stay empty on the ordinary path and are built only where they are actually wanted. A
+            // default-constructed container is not free everywhere -- some standard libraries allocate a debugging
+            // proxy or an end sentinel for one -- and this runs once per object extracted.
+            std::optional<std::set<std::string>> extra_keys;
+            std::optional<std::set<std::string>> repeated_keys;
+
+            // `duplicate_key_action::exception` is the one policy which needs to know the keys themselves rather
+            // than which member they claimed. A member's winning name cannot tell a lower-ranked name it is skipping
+            // from one it has already skipped, so which of the two an object is refused for would otherwise depend
+            // on the order it happened to list them in.
+            if (context.options().on_duplicate_key() == extract_options::duplicate_key_action::exception)
+                repeated_keys.emplace();
+
+            // Step off the `{` and onto the first key, or onto the `}` of an empty object. The loop never advances
+            // itself: extracting a member leaves the cursor one past its value, which is what every extractor owes
+            // its caller.
+            (void) from.next_token();
+
+            try
+            {
+                while (from.good())
+                {
+                    auto type = from.current().type();
+
+                    if (type == ast_node_type::document_end || type == ast_node_type::error)
+                    {
+                        // A parse which failed part-way through an object still hands back a usable tape; it just
+                        // ends where the rest of the members should have been.
+                        return context.problem(context.problem_path(from), "Unterminated object");
+                    }
+                    else if (type == ast_node_type::object_end)
+                    {
+                        // Deliberately *not* stepped over. Everything after this loop runs user code, and while the
+                        // cursor is on a closing token the reader still names this object rather than the sibling
+                        // after it -- which is both where a failure out of that code belongs and where a caller
+                        // recovering from it resumes, since `reader::next_value` on a `}` is a single step past it.
+                        closed = true;
+                        break;
+                    }
+
+                    // A canonical key is a view of the source, which outlives this whole extraction. An escaped one
+                    // has to be decoded, and it is decoded here rather than inside the member because dispatching it
+                    // needs the text anyway; `decoded` owns it for as long as a problem naming it can be raised.
+                    std::optional<std::string> decoded;
+                    std::string_view           key;
+                    if (type == ast_node_type::key_canonical)
+                    {
+                        key = from.current().as<ast_node::key_canonical>().value();
+                    }
+                    else if (type == ast_node_type::key_escaped)
+                    {
+                        key = decoded.emplace(from.current().as<ast_node::key_escaped>().value());
+                    }
+                    else
+                    {
+                        auto matched = context.expect(from,
+                                                      { ast_node_type::key_canonical, ast_node_type::key_escaped }
+                                                     );
+                        return std::unexpected(matched.error());
+                    }
+
+                    if (!from.next_token())
+                        return context.problem(context.problem_path(from), "Unterminated object");
+
+                    if (repeated_keys && !repeated_keys->emplace(key).second)
+                    {
+                        // Asked of every key rather than only of the ones a member answers to, since a key repeated
+                        // twice is the same thing to this policy whether anything claimed it or not -- and it is
+                        // what `parse_index::extract_tree` refuses for the same document.
+                        std::string message("Duplicate key in object: \"");
+                        message.append(key);
+                        message.append("\"");
+
+                        (void) context.problem(context.path(), std::move(message));
+
+                        if (!context.recover())
+                            return std::unexpected(ast_node_type::error);
+
+                        recovered = true;
+                        (void) from.next_value();
+                        continue;
+                    }
+
+                    auto matched = find_member(key);
+                    if (matched.index == _members.size())
+                    {
+                        // Nothing claimed it. The whole subtree goes by in constant time on a tape-backed reader,
+                        // and its name is only worth keeping if somebody registered to be told about it.
+                        if (_extra_keys)
+                        {
+                            if (!extra_keys)
+                                extra_keys.emplace();
+
+                            extra_keys->emplace(key);
+                        }
+
+                        (void) from.next_value();
+                        continue;
+                    }
+
+                    if (auto held = claims.claim_rank(matched.index); held != detail::member_claim_set::unclaimed)
+                    {
+                        if (matched.rank > held)
+                        {
+                            // Another of this member's names, but one it already answers to by a better one. That is
+                            // the document naming a member two ways rather than repeating a key, so the duplicate
+                            // policy has nothing to say about it and the value goes by unread -- which is also what
+                            // keeps a `check_input` on the member from being run against a spelling it did not take.
+                            (void) from.next_value();
+                            continue;
+                        }
+                        else if (matched.rank == held && !consume_duplicate(context, from))
+                        {
+                            // The same name twice, which is what `duplicate_key_action` is about.
+                            continue;
+                        }
+
+                        // Otherwise a name the member prefers to the one it is being read from, which supersedes it.
+                    }
+
+                    const auto& member = *_members[matched.index];
+                    auto        walked = run_member(context,
+                                                    member,
+                                                    &from,
+                                                    [&] { return member.extract(context, from, key, out); }
+                                                   );
+
+                    // Claimed even when it failed: the key was there, so the pass below has nothing to say about it.
+                    claims.claim(matched.index, matched.rank);
+
+                    if (!walked)
+                        return std::unexpected(walked.error());
+                    else if (!*walked)
+                        recovered = true;
+                }
+
+                if (!closed)
+                    return context.problem(context.problem_path(from), "Unterminated object");
+
+                // Reported before the members which never arrived, because that is the order the extra-key handler
+                // used to run in when it was a `pre_extract` -- ahead of everything the walk itself has to say.
+                if (_extra_keys && extra_keys && !extra_keys->empty())
+                    _extra_keys(context, *std::move(extra_keys));
+
+                for (std::size_t idx = 0U; idx < _members.size(); ++idx)
+                {
+                    if (claims.claimed(idx))
+                        continue;
+
+                    const auto& member = *_members[idx];
+                    if (!member.has_default())
+                    {
+                        std::string message("Missing required field ");
+                        message.append(member.primary_name());
+
+                        (void) context.problem(context.path(), std::move(message));
+                        if (!context.recover())
+                            return std::unexpected(ast_node_type::error);
+
+                        recovered = true;
+                        continue;
+                    }
+
+                    // The factory reads nothing, so there is no value in front of the cursor for a recovery to step
+                    // over -- hence no reader.
+                    auto applied = run_member(context,
+                                              member,
+                                              nullptr,
+                                              [&] { return member.apply_default(context, out); }
+                                             );
+
+                    if (!applied)
+                        return std::unexpected(applied.error());
+                    else if (!*applied)
+                        recovered = true;
+                }
+            }
+            catch (...)
+            {
+                // Something left the walk: a setter, a `check_input` or a default factory, all of which are the
+                // caller's code. Unless this object's `}` was reached the cursor is somewhere inside it, a position
+                // only this adapter can make sense of, so finish the walk before letting the failure out. A loop
+                // above which recovers resumes at the `}`, exactly as it would from a returned failure.
+                if (!closed)
+                    walk_to_close(from);
+
+                throw;
+            }
+
+            // Collecting gathers diagnostics; it does not make a half-populated `out` worth handing back. Reported
             // before `_post_extract`, which has no business seeing one.
             if (recovered)
-                throw extraction_error(context.take_problems_since(mark));
+                return std::unexpected(ast_node_type::error);
 
             if (_post_extract)
                 out = _post_extract(context, std::move(out));
 
-            return out;
+            // Only now, once nothing left is able to fail with this object in front of the cursor.
+            (void) from.next_token();
+
+            try
+            {
+                return out;
+            }
+            catch (...)
+            {
+                // Moving `out` into the answer is the last thing which can fail and `T` is the caller's type. The
+                // object is behind the cursor by this point, where every other failure in here leaves it in front.
+                context.note_value_consumed(from);
+                throw;
+            }
         }
 
         virtual value to_json(const serialization_context& context, const T& from) const override
@@ -1237,11 +1542,158 @@ private:
             return out;
         }
 
+
         std::deque<std::unique_ptr<detail::member_adapter<T>>> _members;
         pre_extract_func                                       _pre_extract;
         post_extract_func                                      _post_extract;
+        extra_keys_func                                        _extra_keys;
         std::function<T (extraction_context&)>                 _create_default;
         bool                                                   _default_on_null;
+
+    private:
+        /// Which member \a key claimed, and by which of that member's names.
+        struct member_match
+        {
+            /// The member, or \c _members.size() when the key claimed none.
+            std::size_t index;
+
+            /// Which of its names matched, lower being preferred; \c detail::no_extract_key when none did.
+            std::size_t rank;
+        };
+
+        /// Find the member which claims \a key.
+        ///
+        /// A linear scan of the members, each scanning its own names. For the member counts this DSL is used with
+        /// that is cheaper than anything with a hash in it.
+        JSONV_NODISCARD
+        member_match find_member(std::string_view key) const
+        {
+            for (std::size_t idx = 0U; idx < _members.size(); ++idx)
+                if (auto rank = _members[idx]->extract_key_rank(key); rank != detail::no_extract_key)
+                    return member_match{ idx, rank };
+
+            return member_match{ _members.size(), detail::no_extract_key };
+        }
+
+        /// Deal with \a key naming a member some earlier key already set, with the cursor on the repeat's value.
+        ///
+        /// \returns \c true to go on and extract it over the top of what is there, which is
+        ///          \c extract_options::duplicate_key_action::replace; \c false when the value has been stepped over
+        ///          and the walk should move on to the next key.
+        ///
+        /// \c duplicate_key_action::exception is not decided here. It is answered for every key on the way past,
+        /// because it is the only policy which cares about a repeat this member would otherwise never be told
+        /// about -- a second helping of a name it has already passed over for a better one.
+        JSONV_NODISCARD
+        static bool consume_duplicate(extraction_context& context, reader& from)
+        {
+            if (context.options().on_duplicate_key() == extract_options::duplicate_key_action::ignore)
+            {
+                (void) from.next_value();
+                return false;
+            }
+
+            return true;
+        }
+
+        /// Run one member's part of the walk and fold however it fails into the channel the loop deals in.
+        ///
+        /// Extraction reports failure by returning, but a member reaches the caller's code in three places -- the
+        /// setter, a \c check_input and a default factory -- and those report by throwing whatever they like. Giving
+        /// them the same shape is what keeps which members get attempted from depending on how the first failing one
+        /// happened to fail.
+        ///
+        /// \param from The reader to resume from, or \c nullptr where \a run reads nothing. A member which failed by
+        ///             returning still has the value it rejected in front of the cursor; one which failed by throwing
+        ///             has already stepped over it, and a default factory never had one.
+        /// \returns \c true when \a run succeeded and \c false when it failed and was recovered from, in which case
+        ///          the walk continues from where the cursor stands; otherwise the failure to report.
+        template <typename FRun>
+        JSONV_NODISCARD
+        static std::expected<bool, ast_node_type> run_member(extraction_context&              context,
+                                                             const detail::member_adapter<T>& member,
+                                                             reader*                          from,
+                                                             FRun&&                           run
+                                                            )
+        {
+            try
+            {
+                if (auto result = run())
+                {
+                    return true;
+                }
+                else if (!context.recover())
+                {
+                    return std::unexpected(result.error());
+                }
+                else if (from)
+                {
+                    context.skip_failed_value(*from);
+                }
+            }
+            catch (const extraction_error& ex)
+            {
+                // The next key starts at a known place, so one bad member does not have to hide every problem after
+                // it.
+                if (!context.recover(ex))
+                    throw;
+            }
+            catch (const std::bad_alloc&)
+            {
+                // Recovering means recording, and recording allocates -- as does the `extraction_error` below, whose
+                // constructors are `noexcept`, so failing to allocate inside one terminates rather than propagating.
+                // There is nothing to be gained by trying.
+                throw;
+            }
+            catch (...)
+            {
+                // Asked before anything is built, because translating allocates and rethrowing the original
+                // untouched is what leaves `fail_immediately` reaching the same translation it always did.
+                if (context.options().failure_mode() != extract_options::on_error::collect_all)
+                    throw;
+
+                // `member_adapter::extract` names the member it failed in through the key the document used; this
+                // failure happened outside that -- or, for a default factory, with no key to name it by at all --
+                // and would otherwise be the one problem in the list which does not say where it came from.
+                // Unwinding completes before a handler body runs, so any scope the member pushed is long gone by the
+                // time this one does and there is nothing to double up with.
+                extraction_context::path_scope scope(context, member.primary_name());
+                extraction_error               translated(context.path(), std::current_exception());
+
+                if (!context.recover(translated))
+                    throw;
+            }
+
+            return false;
+        }
+
+        /// Walk \a from to this object's own closing token, leaving the cursor on it.
+        ///
+        /// Stepping over whole member values is what finds it: \c reader::next_structure cannot, because a member
+        /// which is itself a structure gets left rather than crossed, landing back inside the object being built.
+        static void walk_to_close(reader& from) noexcept
+        {
+            while (from.good())
+            {
+                auto type = from.current().type();
+                if (  type == ast_node_type::object_end
+                   || type == ast_node_type::document_end
+                   || type == ast_node_type::error
+                   )
+                {
+                    break;
+                }
+                else if (type == ast_node_type::key_canonical || type == ast_node_type::key_escaped)
+                {
+                    // From a key, this is the whole member -- the key and the value under it.
+                    (void) from.next_key();
+                }
+                else
+                {
+                    (void) from.next_value();
+                }
+            }
+        }
     };
 
 private:
@@ -1650,13 +2102,12 @@ adapter_builder<T>& adapter_builder_dsl<T>::on_extract_extra_keys(typename adapt
 
 }
 
-/** Throw an \a extraction_error indicating that \a from had extra keys.
+/** Throw an \a extraction_error naming the \a extra_keys which claimed no member.
  *
  *  \throws extraction_error always.
 **/
 JSONV_NO_RETURN JSONV_PUBLIC
-void throw_extra_keys_extraction_error(extraction_context&    context,
-                                       const value&                 from,
+void throw_extra_keys_extraction_error(extraction_context&          context,
                                        const std::set<std::string>& extra_keys
                                       );
 

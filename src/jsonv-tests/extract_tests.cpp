@@ -125,17 +125,17 @@ formats triple_formats()
     return instance;
 }
 
-/// A `triple` whose `a` falls back to a factory which reads another key -- user code running outside the member's
-/// own extraction, so it fails with whatever `value::at` throws rather than with an `extraction_error`.
+/// A `triple` whose `a` falls back to a factory which fails -- user code running outside the member's own extraction,
+/// so it fails with whatever it threw rather than with an `extraction_error`.
 formats seeded_triple_formats()
 {
     static formats instance =
         formats_builder()
             .type<triple>()
                 .member("a", &triple::a)
-                    .default_value([] (extraction_context&, const value& from) -> std::int64_t
+                    .default_value([] (extraction_context&) -> std::int64_t
                                    {
-                                       return from.at("seed").as_integer();
+                                       throw std::out_of_range("no seed to derive `a` from");
                                    }
                                   )
                 .member("b", &triple::b)
@@ -203,12 +203,51 @@ protected:
     }
 };
 
+/// A type whose member is a view of whatever it was extracted from, which is only valid while that source is. Used
+/// from both sides of the materialisation question, so it lives out here rather than inside either test.
+struct view_holder
+{
+    std::string_view s;
+};
+
+/// Three members reached through the older `value`-based interface. Materialising the object is what walks the cursor
+/// past it and looking each member up by name is what needs the whole tree, so this is the shape the DSL had before it
+/// read the reader -- kept here because the bridge is still how `polymorphic_adapter` and `enum_adapter` reach a value,
+/// and what it does with a failure is still worth pinning.
+struct bridged_triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+};
+
+class bridged_triple_adapter final :
+        public value_adapter_for<bridged_triple>
+{
+protected:
+    bridged_triple create(extraction_context& context, const value& from) const override
+    {
+        bridged_triple out;
+        out.a = context.extract<std::int64_t>(from.at("a"));
+        out.b = context.extract<std::int64_t>(from.at("b"));
+        out.c = context.extract<std::int64_t>(from.at("c"));
+        return out;
+    }
+
+    value to_json(const serialization_context&, const bridged_triple&) const override
+    {
+        return object();
+    }
+};
+
 formats bridged_formats()
 {
-    static bridged_int_adapter instance;
+    static bridged_int_adapter    int_instance;
+    static bridged_triple_adapter triple_instance;
 
     formats out = formats::compose({ formats::defaults() });
-    out.register_adapter(&instance);
+    out.register_adapter(&int_instance);
+    out.register_adapter(&triple_instance);
     return out;
 }
 
@@ -275,8 +314,8 @@ struct named_triple
 };
 
 /// The same three members reached by an adapter which names nothing, so that comparing the two says what naming
-/// costs and nothing else. Everything else either one does -- the enclosing context, the reader the bridge builds
-/// per member, the lookup, the container it lands in -- is identical and cancels.
+/// costs and nothing else. Everything else either one does -- the enclosing context, the key walk, the lookup, the
+/// container it lands in -- is identical and cancels.
 struct unnamed_triple
 {
     std::int64_t a;
@@ -284,17 +323,44 @@ struct unnamed_triple
     std::int64_t c;
 };
 
+/// The DSL's key loop with the `path_scope` taken out and not one other thing changed. It was written against the
+/// `value` interface while the DSL was, and had to follow it onto the reader: an adapter which materialises has a
+/// wholly different cost, so comparing one against the other would measure the materialisation and not the naming.
 class unnamed_triple_adapter final :
-        public value_adapter_for<unnamed_triple>
+        public adapter_for<unnamed_triple>
 {
 protected:
     JSONV_NODISCARD
-    virtual unnamed_triple create(extraction_context& context, const value& from) const override
+    virtual std::expected<unnamed_triple, ast_node_type> create(extraction_context& context,
+                                                                reader&             from
+                                                               ) const override
     {
+        auto opened = context.current_as<ast_node::object_begin>(from);
+        if (!opened)
+            return std::unexpected(opened.error());
+
         unnamed_triple out;
-        out.a = context.extract<std::int64_t>(from.at(long_a));
-        out.b = context.extract<std::int64_t>(from.at(long_b));
-        out.c = context.extract<std::int64_t>(from.at(long_c));
+
+        (void) from.next_token();
+        while (from.good() && from.current().type() != ast_node_type::object_end)
+        {
+            auto key = from.current().as<ast_node::key_canonical>().value();
+            if (!from.next_token())
+                break;
+
+            auto member = context.extract<std::int64_t>(from);
+            if (!member)
+                return std::unexpected(member.error());
+
+            if (key == long_a)
+                out.a = *member;
+            else if (key == long_b)
+                out.b = *member;
+            else
+                out.c = *member;
+        }
+
+        (void) from.next_token();
         return out;
     }
 
@@ -602,7 +668,7 @@ TEST(extract_member_scope_ends_before_the_setter)
     const formats fmts =
         formats_builder()
             .type<probe>()
-                .pre_extract([&captured] (extraction_context& cxt, const value&) { captured = &cxt; })
+                .pre_extract([&captured] (extraction_context& cxt) { captured = &cxt; })
                 .member<std::int64_t>("a",
                                       [] (const probe& x) -> const std::int64_t& { return x.a; },
                                       [&] (probe& x, std::int64_t&& value)
@@ -1114,18 +1180,29 @@ TEST(extract_nested_string_view_from_text_points_at_the_source)
 
 TEST(extract_string_view_under_a_bridged_composite_from_text_is_refused)
 {
-    // The coverage the test above gave up. A composite which still materialises is exactly where a view of the
-    // materialised tree would dangle, and `source_is_temporary` is what an extractor asks to notice it. The container
-    // no longer creates that situation; the DSL does, until it reads the reader too.
-    struct view_holder
+    // The coverage the tests above gave up. A composite which still materialises is exactly where a view of the
+    // materialised tree would dangle, and `source_is_temporary` is what an extractor asks to notice it. Neither the
+    // container nor the DSL creates that situation any anymore, so the composite is written against the `value`
+    // interface directly -- which is what `polymorphic_adapter` and `enum_adapter` still do.
+    class view_holder_adapter final :
+            public value_adapter_for<view_holder>
     {
-        std::string_view s;
+    protected:
+        view_holder create(extraction_context& context, const value& from) const override
+        {
+            return view_holder{ context.extract<std::string_view>(from.at("s")) };
+        }
+
+        value to_json(const serialization_context&, const view_holder&) const override
+        {
+            return object();
+        }
     };
 
-    formats fmts = formats_builder()
-                       .type<view_holder>()
-                           .member("s", &view_holder::s)
-                   .compose_checked(formats::defaults());
+    static view_holder_adapter instance;
+
+    formats fmts = formats::compose({ formats::defaults() });
+    fmts.register_adapter(&instance, duplicate_type_action::replace);
 
     extraction_context cxt(fmts);
     auto               rdr = open(R"({ "s": "a long string value which would be left dangling" })");
@@ -1133,6 +1210,30 @@ TEST(extract_string_view_under_a_bridged_composite_from_text_is_refused)
     ensure(!cxt.extract<view_holder>(rdr).has_value());
     ensure(!cxt.problems().empty());
     ensure(cxt.problems().at(0).message().find("std::string_view") != std::string::npos);
+}
+
+TEST(extract_dsl_member_string_view_from_text_points_at_the_source)
+{
+    // The other half of the same change. A DSL-described type materialised its whole subtree, so a `std::string_view`
+    // member had to be refused -- for a structural reason rather than a semantic one. With nothing materialised the
+    // member views the document exactly as a lone `std::string_view` does.
+    formats fmts = formats_builder()
+                       .type<view_holder>()
+                           .member("s", &view_holder::s)
+                   .compose_checked(formats::defaults());
+
+    std::string        source = R"({ "s": "a long string value which is not copied anywhere" })";
+    extraction_context cxt(fmts);
+    reader             rdr(std::string_view{ source });
+    (void) rdr.next_token();
+
+    auto held = cxt.extract<view_holder>(rdr);
+    ensure(held.has_value());
+    ensure(cxt.problems().empty());
+    ensure_eq(std::string_view("a long string value which is not copied anywhere"), held->s);
+
+    // A view of the document itself, not a copy of it.
+    ensure(held->s.data() >= source.data() && held->s.data() < source.data() + source.size());
 }
 
 TEST(extract_scope_free_loop_over_text_stays_linear)
@@ -1289,16 +1390,17 @@ TEST(extract_explicit_location_outranks_the_reader)
 TEST(extract_failure_location_does_not_outlive_its_extraction)
 {
     // The `extraction_error` branch folds problems which already carry their own paths, so it never asks where it is
-    // -- and must not leave the location the bridge deposited lying around for the next failure to pick up. The DSL
-    // is the composite which both materialises and reports by throwing, which is what this needs; `optional_adapter`
-    // stood in here until it read the reader directly.
-    extraction_context cxt(triple_formats());
+    // -- and must not leave the location the bridge deposited lying around for the next failure to pick up. What this
+    // needs is a composite which both materialises and reports by throwing; `optional_adapter` stood in here until it
+    // read the reader directly, and the DSL until it did, so the adapter is written against the `value` interface
+    // here rather than borrowed from whichever one has not been ported yet.
+    extraction_context cxt(bridged_formats());
     auto               rdr = open(R"([ { "a": 1, "b": 2, "c": "x" }, "not a number" ])");
     (void) rdr.next_token();   // onto the object, which is `[0]`
 
     // The object is materialised, so the cursor moves past it; the nested extraction then throws an
     // `extraction_error`, which is folded rather than re-located.
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.extract<bridged_triple>(rdr).has_value());
     auto after_first = cxt.problems().size();
     ensure_gt(after_first, 0U);
 
@@ -1531,8 +1633,10 @@ TEST(extract_collect_all_recovers_from_a_default_factory_failure)
     }
     catch (const extraction_error& err)
     {
+        // Document order, not declaration order: `a` is absent, so its factory runs in the pass over the members no
+        // key claimed, which is after the walk `b` and `c` failed during.
         ensure_eq(3U, err.problems().size());
-        ensure_eq(std::string(".a .b .c"), problem_paths(err));
+        ensure_eq(std::string(".b .c .a"), problem_paths(err));
     }
 }
 
