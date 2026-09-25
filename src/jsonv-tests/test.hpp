@@ -7,8 +7,7 @@
 /// version.
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
-#ifndef __TEST_JSONV_TEST_HPP_INCLUDED__
-#define __TEST_JSONV_TEST_HPP_INCLUDED__
+#pragma once
 
 #define ASSERT_ON_TEST_FAILURE 0
 
@@ -132,5 +131,3 @@ protected:
     void name_ ## _test::run_impl()
 
 }
-
-#endif/*__TEST_JSONV_TEST_HPP_INCLUDED__*/

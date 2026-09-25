@@ -9,8 +9,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_TESTS_FILESYSTEM_UTIL_HPP_INCLUDED__
-#define __JSONV_TESTS_FILESYSTEM_UTIL_HPP_INCLUDED__
+#pragma once
 
 #include "test.hpp"
 
@@ -29,5 +28,3 @@ void recursive_directory_for_each(const std::string&                            
                                  );
 
 }
-
-#endif/*__JSONV_TESTS_FILESYSTEM_UTIL_HPP_INCLUDED__*/

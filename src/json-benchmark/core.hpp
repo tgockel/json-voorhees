@@ -8,8 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSON_BENCHMARK_CORE_HPP_INCLUDED__
-#define __JSON_BENCHMARK_CORE_HPP_INCLUDED__
+#pragma once
 
 #include <deque>
 #include <memory>
@@ -70,5 +69,3 @@ protected:
 };
 
 }
-
-#endif/*__JSON_BENCHMARK_CORE_HPP_INCLUDED__*/

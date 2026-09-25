@@ -9,8 +9,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_TESTS_STOPWATCH_HPP_INCLUDED__
-#define __JSONV_TESTS_STOPWATCH_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/detail/scope_exit.hpp>
 
@@ -86,5 +85,3 @@ std::ostream& operator<<(std::ostream& os, const stopwatch::values& x);
                                            )
 
 }
-
-#endif/*__JSONV_TESTS_STOPWATCH_HPP_INCLUDED__*/

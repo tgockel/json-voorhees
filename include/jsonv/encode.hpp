@@ -9,8 +9,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_ENCODE_HPP_INCLUDED__
-#define __JSONV_ENCODE_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/config.hpp>
 #include <jsonv/forward.hpp>
@@ -248,5 +247,3 @@ private:
 };
 
 }
-
-#endif/*__JSONV_ENCODE_HPP_INCLUDED__*/

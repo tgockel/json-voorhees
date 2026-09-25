@@ -9,8 +9,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_TESTS_CHRONO_IO_HPP_INCLUDED__
-#define __JSONV_TESTS_CHRONO_IO_HPP_INCLUDED__
+#pragma once
 
 #include <chrono>
 #include <cstdint>
@@ -28,5 +27,3 @@ std::ostream& operator<<(std::ostream& os, std::chrono::duration<TRep, TPeriod> 
 }
 
 }
-
-#endif/*__JSONV_TESTS_CHRONO_IO_HPP_INCLUDED__*/

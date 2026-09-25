@@ -8,8 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_DEMANGLE_HPP_INCLUDED__
-#define __JSONV_DEMANGLE_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/config.hpp>
 #include <string_view>
@@ -64,5 +63,3 @@ JSONV_NODISCARD JSONV_PUBLIC std::string current_exception_type_name();
 /** \} **/
 
 }
-
-#endif/*__JSONV_DEMANGLE_HPP_INCLUDED__*/

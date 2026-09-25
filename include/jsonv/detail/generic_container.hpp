@@ -8,8 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_DETAIL_GENERIC_CONTAINER_HPP_INCLUDED__
-#define __JSONV_DETAIL_GENERIC_CONTAINER_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/config.hpp>
 
@@ -173,5 +172,3 @@ bool operator!=(const generic_container<TStorage>& a, const generic_container<TS
 
 }
 }
-
-#endif/*__JSONV_DETAIL_GENERIC_CONTAINER_HPP_INCLUDED__*/

@@ -8,8 +8,7 @@
 /// version.
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
-#ifndef __JSONV_PATH_HPP_INCLUDED__
-#define __JSONV_PATH_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/config.hpp>
 #include <jsonv/detail/generic_container.hpp>
@@ -122,5 +121,3 @@ JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path&);
 JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const path&);
 
 }
-
-#endif/*__JSONV_PATH_HPP_INCLUDED__*/

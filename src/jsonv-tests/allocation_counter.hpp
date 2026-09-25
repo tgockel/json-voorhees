@@ -9,8 +9,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_TESTS_ALLOCATION_COUNTER_HPP_INCLUDED__
-#define __JSONV_TESTS_ALLOCATION_COUNTER_HPP_INCLUDED__
+#pragma once
 
 #include <cstddef>
 
@@ -83,5 +82,3 @@ private:
 }
 
 #endif
-
-#endif/*__JSONV_TESTS_ALLOCATION_COUNTER_HPP_INCLUDED__*/

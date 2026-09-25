@@ -7,6 +7,7 @@
 /// version.
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
+#pragma once
 
 #include <jsonv/config.hpp>
 

@@ -9,8 +9,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_ALGORITHM_HPP_INCLUDED__
-#define __JSONV_ALGORITHM_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/config.hpp>
 #include <jsonv/value.hpp>
@@ -495,5 +494,3 @@ JSONV_PUBLIC void validate(const value& val);
 /** \} **/
 
 }
-
-#endif/*__JSONV_ALGORITHM_HPP_INCLUDED__*/

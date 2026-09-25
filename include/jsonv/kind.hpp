@@ -8,8 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_KIND_HPP_INCLUDED__
-#define __JSONV_KIND_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/config.hpp>
 
@@ -47,5 +46,3 @@ JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const kind&);
 /** \} **/
 
 }
-
-#endif/*__JSONV_KIND_HPP_INCLUDED__*/

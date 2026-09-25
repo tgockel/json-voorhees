@@ -9,8 +9,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_FUNCTIONAL_HPP_INCLUDED__
-#define __JSONV_FUNCTIONAL_HPP_INCLUDED__
+#pragma once
 
 #include <jsonv/config.hpp>
 
@@ -81,5 +80,3 @@ using value_greater_equal_icase = basic_value_binary_predicate<value_compare_ica
 /** \} **/
 
 }
-
-#endif/*__JSONV_FUNCTIONAL_HPP_INCLUDED__*/

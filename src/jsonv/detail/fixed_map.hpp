@@ -8,8 +8,7 @@
  *
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
-#ifndef __JSONV_DETAIL_FIXED_MAP_HPP_INCLUDED__
-#define __JSONV_DETAIL_FIXED_MAP_HPP_INCLUDED__
+#pragma once
 
 #include <algorithm>
 #include <array>
@@ -84,5 +83,3 @@ private:
 
 }
 }
-
-#endif/*__JSONV_DETAIL_FIXED_MAP_HPP_INCLUDED__*/
