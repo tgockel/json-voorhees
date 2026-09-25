@@ -10,6 +10,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/serialization/extract.hpp>
 #include <jsonv/demangle.hpp>
+#include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
 
 #include <algorithm>
@@ -237,14 +238,6 @@ extraction_context::path_scope::path_scope(extraction_context& context, path_ele
     context._innermost = this;
 }
 
-extraction_context::path_scope::path_scope(extraction_context& context, const jsonv::path& subpath) noexcept :
-        _context(&context),
-        _parent(context._innermost),
-        _element(std::in_place_type<const jsonv::path*>, &subpath)
-{
-    context._innermost = this;
-}
-
 extraction_context::path_scope::~path_scope() noexcept
 {
     // Unlinking rather than restoring a saved copy is the whole point: this runs on the success path of every element
@@ -262,10 +255,8 @@ void extraction_context::path_scope::append_to(jsonv::path& out) const
         out += path_element(*idx);
     else if (auto key = std::get_if<std::string_view>(&_element))
         out += path_element(*key);
-    else if (auto elem = std::get_if<path_element>(&_element))
-        out += *elem;
     else
-        out += **std::get_if<const jsonv::path*>(&_element);
+        out += *std::get_if<path_element>(&_element);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -550,8 +541,9 @@ std::expected<void, ast_node_type> extraction_context::extract(const std::type_i
     {
         // An adapter on the value bridge reports failure by throwing, since that is the interface it was written
         // against. Fold what it collected onto this context so the path and message survive the boundary, then carry
-        // on down the std::expected channel the rest of the pipeline speaks. The value-based overloads below hand
-        // their problems to the exception rather than leaving them here, so nothing is recorded twice.
+        // on down the std::expected channel the rest of the pipeline speaks. `detail::extract_entry`, which the
+        // value-based overload runs through, hands its problems to the exception rather than leaving them here, so
+        // nothing is recorded twice.
         for (const auto& p : ex.problems())
             (void) problem(p);
 
@@ -570,51 +562,84 @@ std::expected<void, ast_node_type> extraction_context::extract(const std::type_i
     }
 }
 
-void extraction_context::extract(const std::type_info& type, const value& from, void* into)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// detail::extract_entry                                                                                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void detail::extract_entry(extraction_context&   context,
+                           const std::type_info& type,
+                           reader&               from,
+                           void*                 into,
+                           void               (* destroy)(void*) noexcept,
+                           source_lifetime       lifetime
+                          )
 {
-    auto   mark = _problems.size();
-    reader rdr  = reader::from_value(from);
+    // Only what this call records belongs to the exception it throws. The `value` bridge enters here with a context
+    // part-way through an extraction of its own, and whatever that already holds is for its own caller to report.
+    const auto mark = context.problems().size();
 
-    // A fresh reader sits on document_start; an extractor wants to be looking at the value itself.
-    (void) rdr.next_token();
+    // A depth rather than a flag, so it nests with any `borrowed_subtree` beneath it.
+    const bool owned = lifetime == source_lifetime::extraction;
+    if (owned)
+        ++context._temporary_source_depth;
+    auto release_source = on_scope_exit([&] { if (owned) --context._temporary_source_depth; });
 
-    if (!extract(type, rdr, into))
-        throw extraction_error(take_problems_since(mark));
-}
+    // Decided once and then trusted by all three of the steps which depend on it -- validating, stepping onto the
+    // value, and requiring nothing after it -- so they cannot disagree about whether this is a whole document.
+    const auto entry_type     = from.good() ? std::optional(from.current().type()) : std::nullopt;
+    const bool whole_document = entry_type == ast_node_type::document_start;
 
-void extraction_context::extract_sub(const std::type_info& type,
-                                     const value&          from,
-                                     jsonv::path           subpath,
-                                     void*                 into
-                                    )
-{
-    // `subpath` is a by-value parameter, so it outlives the scope which borrows it.
-    path_scope scope(*this, subpath);
+    // An `error` node under the cursor means the parse failed there, so there is no value to extract whether or not the
+    // caller positioned the reader. It has to be asked about separately because it is not always preceded by a
+    // `document_start`: a parse which fails before writing one -- a `max_structure_depth` of 0 does -- leaves a tape
+    // which is nothing else.
+    if (whole_document || entry_type == ast_node_type::error)
+    {
+        try
+        {
+            from.validate();
+        }
+        catch (const parse_error& ex)
+        {
+            // An extractor walking a tape which stopped at an `error` node can only say what it expected to find there
+            // instead, which describes the symptom. The parse knows what actually went wrong.
+            (void) context.problem(context.problem_path(from),
+                                   std::string("Could not parse JSON: ") + ex.what(),
+                                   std::current_exception()
+                                  );
+            throw extraction_error(context.take_problems_since(mark));
+        }
+    }
 
-    auto mark = _problems.size();
-    try
+    // The one place `document_start` is stepped over, so that no extractor is ever entered on one.
+    if (whole_document)
+        (void) from.next_token();
+
+    if (!context.extract(type, from, into))
+        throw extraction_error(context.take_problems_since(mark));
+
+    if (!whole_document)
+        return;
+
+    // There is an object in `into` from here on, so every way out but success destroys it.
+    auto discard = on_scope_exit([&] { destroy(into); });
+
+    if (from.good() && from.current().type() == ast_node_type::document_end)
     {
-        extract(type, from.at_path(subpath), into);
+        discard.release();
+        return;
     }
-    catch (const extraction_error&)
-    {
-        throw;
-    }
-    catch (const std::exception& ex)
-    {
-        // `value::at_path` reports a missing element by throwing std::out_of_range. A caller asking for a subpath
-        // wants that as an extraction failure naming the subpath, not a stray standard exception.
-        (void) problem(path(), ex.what(), std::current_exception());
-        throw extraction_error(take_problems_since(mark));
-    }
-    catch (...)
-    {
-        (void) problem(path(),
-                       std::string("Exception with type ") + current_exception_type_name(),
-                       std::current_exception()
-                      );
-        throw extraction_error(take_problems_since(mark));
-    }
+
+    // The value did not take up the whole document. The parser lets trailing text through after a top-level scalar --
+    // `5 6` parses -- so this is where that is refused; it is also what notices an extractor which left the cursor
+    // somewhere other than one past its value. `expect` names what was found instead, but reading `current` off an
+    // exhausted reader throws, so that case gets a message of its own.
+    if (from.good())
+        (void) context.expect(from, ast_node_type::document_end);
+    else
+        (void) context.problem(context.problem_path(from), "Extraction read past the end of the document");
+
+    throw extraction_error(context.take_problems_since(mark));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -806,13 +831,13 @@ detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& 
     }
 
     if (_materialised)
-        ++_context->_materialised_depth;
+        ++_context->_temporary_source_depth;
 }
 
 detail::borrowed_subtree::~borrowed_subtree() noexcept
 {
     if (_materialised)
-        --_context->_materialised_depth;
+        --_context->_temporary_source_depth;
 
     // Walked past the value, and the older body it was walked for did not succeed. Whatever recovers from this has to
     // be told, or its own step over the failed value lands on the sibling after the one it meant to skip. This is

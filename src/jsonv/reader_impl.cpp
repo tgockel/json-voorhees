@@ -26,6 +26,16 @@ reader::impl::impl() :
 
 reader::impl::~impl() noexcept = default;
 
+void reader::impl::validate() const
+{
+    // Nothing was parsed, so nothing can have failed to parse.
+}
+
+bool reader::impl::owns_source() const noexcept
+{
+    return false;
+}
+
 const ast_node& reader::impl::current() const
 {
     if (_current_dirty)

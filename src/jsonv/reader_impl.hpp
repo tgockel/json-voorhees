@@ -28,6 +28,12 @@ public:
 
     virtual bool good() const = 0;
 
+    /// \see reader::validate
+    virtual void validate() const;
+
+    /// \see reader::owns_source
+    virtual bool owns_source() const noexcept;
+
     const ast_node& current() const;
 
     const path& current_path() const;

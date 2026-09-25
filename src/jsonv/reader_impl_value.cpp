@@ -456,4 +456,9 @@ reader::impl_value_owning::impl_value_owning(value&& source) :
 
 reader::impl_value_owning::~impl_value_owning() noexcept = default;
 
+bool reader::impl_value_owning::owns_source() const noexcept
+{
+    return true;
+}
+
 }

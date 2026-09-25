@@ -232,12 +232,12 @@ std::expected<std::string_view, ast_node_type> extract_string_view(extraction_co
     std::string_view out;
     if (context.source_is_temporary())
     {
-        // The pipeline materialised a tree for the occasion and frees it as this unwinds, so a view of it would name
-        // storage which is already gone by the time the caller has it.
+        // The source is storage the extraction owns -- a tree materialised for the occasion, or text handed over to
+        // it -- so a view of it would name storage which is already gone by the time the caller has it.
         return context.problem(context.problem_path(from),
-                               "Cannot extract a std::string_view from a materialised JSON tree: the string it would "
-                               "refer to is owned by the extraction and freed when it finishes. Extract a std::string "
-                               "instead."
+                               "Cannot extract a std::string_view from a source which is freed when extraction "
+                               "finishes: the string it would refer to is owned by the extraction. Extract a "
+                               "std::string instead."
                               );
     }
     else if (const value* borrowed = from.current_value())

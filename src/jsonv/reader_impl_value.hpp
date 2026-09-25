@@ -165,6 +165,8 @@ public:
     explicit impl_value_owning(value&& source);
 
     virtual ~impl_value_owning() noexcept override;
+
+    virtual bool owns_source() const noexcept override;
 };
 
 }

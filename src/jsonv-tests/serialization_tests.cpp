@@ -42,9 +42,9 @@ struct my_thing
     std::string c;
 
     my_thing(const value& from, extraction_context& cxt) :
-            a(cxt.extract_sub<int>(from, "a")),
-            b(cxt.extract_sub<int>(from, "b")),
-            c(cxt.extract_sub<std::string>(from, "c"))
+            a(cxt.extract<int>(from.at("a"))),
+            b(cxt.extract<int>(from.at("b"))),
+            c(cxt.extract<std::string>(from.at("c")))
     { }
 
     my_thing(int a, int b, std::string c) :
@@ -134,20 +134,22 @@ TEST(extract_basics)
     extraction_context cxt(formats::defaults());
     ensure(cxt.user_data() == nullptr);
     ensure_eq(val, cxt.extract<value>(val));
-    ensure_eq(5, cxt.extract_sub<std::int8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int64_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint64_t>(val, "i"));
-    ensure_eq(4.5f, cxt.extract_sub<float>(val, "d"));
-    ensure_eq(4.5, cxt.extract_sub<double>(val, "d"));
-    ensure_eq("thing", cxt.extract_sub<std::string>(val, "s"));
+    ensure_eq(5, cxt.extract<std::int8_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint8_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::int16_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint16_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::int32_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint32_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::int64_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint64_t>(val.at("i")));
+    ensure_eq(4.5f, cxt.extract<float>(val.at("d")));
+    ensure_eq(4.5, cxt.extract<double>(val.at("d")));
+    ensure_eq("thing", cxt.extract<std::string>(val.at("s")));
     try
     {
-        (void) cxt.extract_sub<unassociated>(val, "o");
+        extraction_context::path_scope scope(cxt, std::string_view("o"));
+        (void) cxt.extract<unassociated>(val.at("o"));
+        ensure(!"extraction_error was not thrown");
     }
     catch (const extraction_error& extract_err)
     {
@@ -163,15 +165,6 @@ TEST(extract_basics)
             ensure_eq(demangle(typeid(unassociated).name()), noex.type_name());
             ensure(noex.type_index() == std::type_index(typeid(unassociated)));
         }
-    }
-
-    try
-    {
-        (void) cxt.extract_sub<int>(val, path::create(".a[3]"));
-    }
-    catch (const extraction_error& extract_err)
-    {
-        ensure_eq(path::create(".a[3]"), extract_err.path());
     }
 }
 
@@ -230,21 +223,21 @@ TEST(extract_coerce)
 
     // regular
     ensure_eq(val, cxt.extract<value>(val));
-    ensure_eq(5, cxt.extract_sub<std::int8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint8_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint16_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint32_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::int64_t>(val, "i"));
-    ensure_eq(5, cxt.extract_sub<std::uint64_t>(val, "i"));
-    ensure_eq(4.5f, cxt.extract_sub<float>(val, "d"));
-    ensure_eq(4.5, cxt.extract_sub<double>(val, "d"));
-    ensure_eq("10", cxt.extract_sub<std::string>(val, "s"));
+    ensure_eq(5, cxt.extract<std::int8_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint8_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::int16_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint16_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::int32_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint32_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::int64_t>(val.at("i")));
+    ensure_eq(5, cxt.extract<std::uint64_t>(val.at("i")));
+    ensure_eq(4.5f, cxt.extract<float>(val.at("d")));
+    ensure_eq(4.5, cxt.extract<double>(val.at("d")));
+    ensure_eq("10", cxt.extract<std::string>(val.at("s")));
 
     // some coercing...
-    ensure_eq("5", cxt.extract_sub<std::string>(val, "i"));
-    ensure_eq(10, cxt.extract_sub<int>(val, "s"));
+    ensure_eq("5", cxt.extract<std::string>(val.at("i")));
+    ensure_eq(10, cxt.extract<int>(val.at("s")));
 }
 
 // Tests that even if we throw a completely bogus exception type, the extraction_context wraps it in an extraction_error
@@ -258,7 +251,7 @@ TEST(extractor_throws_random_thing)
 
     extraction_context cxt(locals);
     ensure_throws(extraction_error, cxt.extract<unassociated>(val));
-    ensure_throws(extraction_error, cxt.extract_sub<unassociated>(val, "a"));
+    ensure_throws(extraction_error, cxt.extract<unassociated>(val.at("a")));
 }
 
 TEST(serialize_basics)

@@ -79,6 +79,12 @@
        They are now declared in the header and defaulted in `reader.cpp`, which is what the destructor already
        did. The issue reported move assignment; move construction was broken the same way, since the defaulted
        constructor still needs a destructible member for the exception path (#240).
+     - Added `reader::validate`, which throws `parse_error` if the reader is over JSON text which did not parse --
+       the question `parse_index::validate` answers, asked of a reader. Parsing never throws: a malformed document
+       produces a tape which stops at an `error` node, and a reader walks it as far as it goes, so there was no way
+       to ask one what was wrong with the rest. A reader over a `value` has nothing to parse and never throws. Also
+       added `reader::owns_source`, which is `true` for a reader made from a `std::string` rvalue or by
+       `from_value(value&&)` -- the two which keep their source alive only as long as the reader (#232).
      - Added `parse_index::iterator::skip_subtree`, which steps over a whole object or array in constant time.
        The index already recorded where each structure ends when it parsed the matching close token, but
        nothing surfaced it, so skipping a value meant walking every node inside it.
@@ -174,7 +180,7 @@
        held the iterator its own search returned and then asked `value::at_path` to `count` and `at` the same key
        over again, so each member cost three map lookups where one will do. What a failure reports is unchanged,
        down to the path of a member matched through an `alternate_name`, which is still the key the document used
-       rather than the declared one. `extract_sub` itself is unchanged and remains available (#228).
+       rather than the declared one. `extract_sub` itself is removed, by #232 (#228).
      - `container_adapter`, `optional_adapter` and `wrapper_adapter` read the reader directly instead of a `value`
        materialised for them. A `std::vector<my_type>` built the whole array as a `value` and then extracted each
        element out of it, so a large array was built twice; it is now walked once. The array's opening token carries
@@ -295,6 +301,41 @@
      - A `std::string_view` member of a DSL-described type extracted from JSON text is a view of the source rather
        than a refusal, for the same reason `std::vector<std::string_view>` became one in #230: the refusal was
        structural, and there is no longer a materialised tree for the view to dangle into (#231).
+     - Added `extract<T>` overloads which read JSON text and `reader`s directly, so extracting from text no longer
+       means building a `value` first. `extract<T>(text)` takes anything which converts to `std::string_view`,
+       optionally with `parse_options`; `extract<T>(reader&)` and `extract<T>(reader&&)` take a reader, the latter
+       so `extract<my_type>(jsonv::reader(text))` reads naturally. Every one takes `formats` and `extract_options`
+       as the `value` overloads do, and every one throws `extraction_error`. A reader on `document_start` is read as
+       a whole document: its source is checked with `reader::validate`, the `document_start` is stepped over -- so
+       neither the caller nor any extractor ever has to -- and the value must be all there is. A reader the caller
+       has already positioned is read from where it is, leaving the cursor one past the value. Text which does not
+       parse is reported as a problem carrying the `parse_error` as its cause, rather than as whatever an extractor
+       made of the `error` node it ran into -- including a reader positioned on that node, and a parse which failed
+       before the document began, as a `max_structure_depth` of 0 does (#232).
+     - A whole-document extraction refuses anything after the value. The parser lets trailing text through after a
+       top-level scalar -- `5 6` parses -- so without this `extract<int>("5 6")` would have been 5 where
+       `extract<int>(parse("5 6"))` always threw. The same check applies to `extract<T>(const value&)`, where the
+       only thing it can catch is an extractor which broke `extractor::extract`'s rule of leaving the cursor one past
+       its value; one which did so used to pass unnoticed at the top level and is now an error (#232).
+     - Source break: a C++ string passed to `extract<T>` is JSON text. `value` converts implicitly from
+       `const char*`, `std::string` and `std::string_view`, so `extract<ring>("fire", fmts)` used to extract from
+       the JSON *string* `"fire"`; it now parses `fire` as a document, which fails. Say `extract<ring>(value("fire"),
+       fmts)` to mean the string, or `extract<ring>(R"("fire")", fmts)` to write it as JSON. Anything else which
+       converts to `value` -- integers, `double`, `bool`, wide strings -- means what it did. This is the ambiguity
+       `reader::from_value` was named to avoid (#224), settled the other way round: the text overloads are an exact
+       match for a string where the conversion to `value` is not (#232).
+     - Extraction refuses to return a view of a source it was handed to own. `extract<T>(std::string&&)` takes the
+       text over and frees it on return, as `extract<T>(reader&&)` does for a reader which `reader::owns_source`, so
+       a `std::string_view` extracted from either would dangle before the caller could read it; both are refused, as
+       for a materialised tree. `extraction_context::source_is_temporary` now covers both causes. Pass a
+       `std::string_view`, a `std::string` lvalue or a reader over storage you keep to extract views (#232).
+     - Removed `extraction_context::extract_sub`. It reached into an already-materialised tree by path, which a
+       forward cursor has no equivalent for and which nothing in the library still did. Within a `value`-based
+       adapter, name the part and say where it is: `context.extract<int>(from.at("a"))` under an
+       `extraction_context::path_scope`. Also removed are the `path_scope` constructor taking a whole `jsonv::path`,
+       which only `extract_sub` used, and `extraction_context::extract(const std::type_info&, const value&, void*)`,
+       since an extraction refused after it has built its object -- something after the value -- has to destroy
+       that object, and a caller of the `void*` form had no way to let it (#232).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC

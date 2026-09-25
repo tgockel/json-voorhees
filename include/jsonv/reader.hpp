@@ -39,8 +39,8 @@ class value;
 /// This allows \c extractor implementations to operate on all forms of JSON without worrying about the implementation.
 ///
 /// A reader is a forward cursor over that sequence. It starts on \c ast_node_type::document_start, so the first thing
-/// to do is step onto the value itself. Reading an object means walking its keys, handling the ones you recognize and
-/// skipping the ones you do not:
+/// to do is step onto the value itself -- which \c jsonv::extract does for you when handed a fresh reader. Reading an
+/// object means walking its keys, handling the ones you recognize and skipping the ones you do not:
 ///
 /// \code
 /// struct my_object
@@ -152,6 +152,27 @@ public:
     /// and has not reached EOF. If this is \c false, \c current or \c current_path will throw an exception.
     JSONV_NODISCARD
     bool good() const;
+
+    /// Check that the source this reader was created from is valid JSON.
+    ///
+    /// Parsing text never throws: a malformed document produces a sequence which stops at an \c ast_node_type::error
+    /// node, and a reader walks it as far as it goes. What was wrong is not on that node in any form a reader of it can
+    /// act on, so this is the question \c parse_index::validate answers, asked of the reader. It is about the source,
+    /// not the cursor, so the answer is the same wherever the reader is positioned.
+    ///
+    /// \throws parse_error if this reader is over JSON text which did not parse. A reader over a \c value has nothing
+    ///                     to parse and never throws this.
+    /// \throws std::invalid_argument if this instance has been moved-from.
+    void validate() const;
+
+    /// Does this reader own the storage it reads from?
+    ///
+    /// This is \c true for a reader created from a \c std::string rvalue or by \c from_value(value&&), which keep their
+    /// source alive for exactly as long as the reader. Anything extracted as a view of the source -- a
+    /// \c std::string_view, say -- is then valid only while the reader is. It is \c false for every other source,
+    /// where the caller owns the storage, and for a moved-from reader.
+    JSONV_NODISCARD
+    bool owns_source() const noexcept;
 
     /// Get the current AST node this reader is pointing at.
     ///

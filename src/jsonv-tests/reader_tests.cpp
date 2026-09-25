@@ -13,6 +13,7 @@
 
 #include <jsonv/ast.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/parse_index.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
 #include <jsonv/value.hpp>
@@ -1720,6 +1721,70 @@ TEST(reader_current_path_on_an_unmatched_close)
             (void) rdr.next_token();
         }
     }
+}
+
+TEST(reader_validate_passes_text_which_parsed)
+{
+    // The answer is about the source, so it holds wherever the cursor is.
+    jsonv::reader rdr(R"({ "a": [ 1, 2 ] })");
+    rdr.validate();
+
+    (void) rdr.next_token();
+    (void) rdr.next_token();
+    rdr.validate();
+}
+
+TEST(reader_validate_throws_for_text_which_did_not_parse)
+{
+    // Constructing the reader succeeds -- parsing never throws -- so this is the only place to find out.
+    jsonv::reader rdr("[ 1, 2");
+    ensure(rdr.good());
+
+    try
+    {
+        rdr.validate();
+        ensure(!"parse_error was not thrown");
+    }
+    catch (const jsonv::parse_error& ex)
+    {
+        ensure(ex.character().has_value());
+    }
+}
+
+TEST(reader_validate_never_throws_for_a_value)
+{
+    jsonv::reader::from_value(jsonv::parse("[ 1, 2 ]")).validate();
+}
+
+TEST(reader_validate_on_a_moved_from_reader_throws)
+{
+    jsonv::reader rdr("5");
+    jsonv::reader other(std::move(rdr));
+
+    ensure_throws(std::invalid_argument, rdr.validate());
+    other.validate();
+}
+
+TEST(reader_owns_source)
+{
+    std::string  text   = "5";
+    jsonv::value in_mem = 5;
+
+    // The caller keeps these alive.
+    ensure(!jsonv::reader(std::string_view(text)).owns_source());
+    ensure(!jsonv::reader("5").owns_source());
+    ensure(!jsonv::reader(jsonv::parse_index::parse(text)).owns_source());
+    ensure(!jsonv::reader::from_value(in_mem).owns_source());
+
+    // The reader keeps these alive.
+    ensure(jsonv::reader(std::string(text)).owns_source());
+    ensure(jsonv::reader::from_value(jsonv::value(5)).owns_source());
+
+    // Ownership goes with the implementation when the reader moves.
+    jsonv::reader owning{ std::string(text) };
+    jsonv::reader moved(std::move(owning));
+    ensure(!owning.owns_source());
+    ensure(moved.owns_source());
 }
 
 }

@@ -13,6 +13,8 @@
 #include <jsonv/config.hpp>
 #include <jsonv/ast.hpp>
 #include <jsonv/detail/scope_exit.hpp>
+#include <jsonv/forward.hpp>
+#include <jsonv/parse.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
 #include <jsonv/serialization/context.hpp>
@@ -41,6 +43,39 @@ namespace detail
 {
 
 class borrowed_subtree;
+
+/// Does the source an extraction reads from outlive it?
+enum class source_lifetime : unsigned char
+{
+    /// The caller owns the source and keeps it alive past the extraction, so what is extracted may view it.
+    caller,
+    /// The source was handed to the extraction to own and is freed when it finishes, so nothing extracted may view it.
+    extraction,
+};
+
+/// The one place a public entry point runs an extraction: every \c jsonv::extract overload and
+/// \c extraction_context::extract(const value&) come through here.
+///
+/// A reader on \c ast_node_type::document_start is extracted as a whole document. Its source is checked to have
+/// parsed, the \c document_start is stepped over -- here and nowhere else, so an \c extractor is never entered on one
+/// -- and once the value has been read the reader must be on \c ast_node_type::document_end, where it is left. A
+/// reader the caller has already positioned gets none of that: the value under the cursor is extracted and the cursor
+/// is left one past it, as \c reader::next_value would. A reader on an \c ast_node_type::error node, positioned or
+/// not, has its source checked as well, since there is no value there and the parse can say why.
+///
+/// \param into Storage for the extracted object, as for \c extractor::extract.
+/// \param destroy Destroys the object in \a into. A document with something after its value is only found to have it
+///                once the object has been built, and has to be refused after all.
+///
+/// \throws extraction_error carrying the problems this call recorded, and only those, since a \c value bridge calls
+///                          this with a context which may already hold some.
+JSONV_PUBLIC void extract_entry(extraction_context&   context,
+                                const std::type_info& type,
+                                reader&               from,
+                                void*                 into,
+                                void               (* destroy)(void*) noexcept,
+                                source_lifetime       lifetime
+                               );
 
 /// \{
 /// Check if \c T is a \c std::expected and, if it is, get the type it holds.
@@ -284,7 +319,8 @@ public:
     ///                implementations via \c formats. It is also where a \ref extraction_context::problem is recorded
     ///                and where the \c path a problem is reported at comes from.
     /// \param from The JSON \c reader to extract something from. On entry, \c reader::current is the first node of the
-    ///             value to extract; on a successful return it should be one position past that value, as
+    ///             value to extract -- never \c ast_node_type::document_start, which the entry points step over
+    ///             before any \c extractor runs. On a successful return it should be one position past that value, as
     ///             \c reader::next_value would leave it.
     /// \param into The region of memory to create the extracted object in. There will always be enough room to create
     ///             your object and the alignment of the pointer should be correct (assuming a working \c alignof
@@ -338,19 +374,20 @@ public:
 
     virtual ~extraction_context() noexcept;
 
-    /// Is the \c value being extracted storage the pipeline materialised for the occasion, rather than storage the
-    /// caller handed in?
+    /// Is the source being extracted storage which is freed when extraction finishes, rather than storage the caller
+    /// keeps?
     ///
     /// An extractor which returns a view of what it was given must check this and refuse when it is \c true, because
-    /// the storage its view would name is destroyed as the bridge unwinds. \c std::string_view is the built-in one;
-    /// the situation arises whenever a \c value -based adapter runs against a reader over JSON text, since there is
-    /// no pre-existing tree for it to borrow and one has to be built.
+    /// the storage its view would name is gone by the time the caller has it. \c std::string_view is the built-in one.
+    /// There are two ways to get here:
     ///
-    /// This is true for everything nested under such a materialisation, not only the value that caused it: a
-    /// \c std::vector<std::string_view> extracted from text is materialised once at the container and each element
-    /// then borrows from that temporary.
+    ///  - A \c value -based adapter runs against a reader over JSON text. There is no pre-existing tree for it to
+    ///    borrow, so one is materialised and destroyed as the bridge unwinds. This is true for everything nested
+    ///    under such a materialisation, not only the value that caused it.
+    ///  - The source was handed to extraction to own: \c jsonv::extract given a \c std::string rvalue, or an rvalue
+    ///    \c reader which owns its source. That source dies with the call, so this is true for the whole extraction.
     JSONV_NODISCARD
-    bool source_is_temporary() const noexcept { return _materialised_depth != 0U; }
+    bool source_is_temporary() const noexcept { return _temporary_source_depth != 0U; }
 
     /// Get the options this context is extracting under.
     JSONV_NODISCARD
@@ -519,6 +556,10 @@ public:
     /// \{
     /// Attempt to extract a \c T from \a from using the \c formats associated with this context.
     ///
+    /// This is the positioned primitive a composite calls for each of its parts: it extracts the value under the
+    /// cursor and nothing else. In particular it does not step over \c ast_node_type::document_start, so it is not
+    /// the way to start on a fresh reader -- \c jsonv::extract is.
+    ///
     /// \tparam T is the type to extract. It must be movable.
     template <typename T>
     JSONV_NODISCARD
@@ -537,55 +578,19 @@ public:
     std::expected<void, ast_node_type> extract(const std::type_info& type, reader& from, void* into);
     /// \}
 
-    /// \{
     /// Attempt to extract a \c T from the in-memory \a from using the \c formats associated with this context.
     ///
-    /// These run the same pipeline as the \c reader overloads by walking \a from through a \c reader::from_value, and
-    /// report failure by throwing rather than by returning. They are how an adapter written against the older
-    /// \c value-based interface reaches the rest of the pipeline.
+    /// This runs the same pipeline as the \c reader overload by walking \a from through a \c reader::from_value, and
+    /// reports failure by throwing rather than by returning. It is how an adapter written against the older
+    /// \c value-based interface reaches the rest of the pipeline. To extract part of \a from, name the part --
+    /// <tt>extract<T>(from.at("a"))</tt> -- under a \ref path_scope saying where it is.
     ///
     /// \throws extraction_error if anything goes wrong when attempting to extract a value.
     ///
     /// \see value_adapter_for
     template <typename T>
     JSONV_NODISCARD
-    T extract(const value& from)
-    {
-        alignas(T) std::byte place[sizeof(T)];
-        extract(typeid(T), from, static_cast<void*>(place));
-        T*   ptr     = std::launder(reinterpret_cast<T*>(place));
-        auto destroy = detail::on_scope_exit([ptr] { std::destroy_at(ptr); });
-        return std::move(*ptr);
-    }
-
-    void extract(const std::type_info& type, const value& from, void* into);
-    /// \}
-
-    /// \{
-    /// Attempt to extract a \c T from <tt>from.at_path(subpath)</tt> using the \c formats associated with this context,
-    /// reporting any problem under \a subpath.
-    ///
-    /// \throws extraction_error if anything goes wrong when attempting to extract a value.
-    template <typename T>
-    JSONV_NODISCARD
-    T extract_sub(const value& from, jsonv::path subpath)
-    {
-        alignas(T) std::byte place[sizeof(T)];
-        extract_sub(typeid(T), from, std::move(subpath), static_cast<void*>(place));
-        T*   ptr     = std::launder(reinterpret_cast<T*>(place));
-        auto destroy = detail::on_scope_exit([ptr] { std::destroy_at(ptr); });
-        return std::move(*ptr);
-    }
-
-    void extract_sub(const std::type_info& type, const value& from, jsonv::path subpath, void* into);
-
-    template <typename T>
-    JSONV_NODISCARD
-    T extract_sub(const value& from, path_element elem)
-    {
-        return extract_sub<T>(from, jsonv::path({ std::move(elem) }));
-    }
-    /// \}
+    T extract(const value& from);
 
     /// An RAII guard naming one step of the extraction path while it is alive.
     ///
@@ -608,9 +613,6 @@ public:
         path_scope(extraction_context& context, std::string_view key) noexcept;
         path_scope(extraction_context& context, path_element elem);
 
-        /// Push every element of \a subpath at once. \a subpath must outlive the scope.
-        path_scope(extraction_context& context, const jsonv::path& subpath) noexcept;
-
         path_scope(const path_scope&)            = delete;
         path_scope& operator=(const path_scope&) = delete;
 
@@ -623,14 +625,22 @@ public:
         void append_to(jsonv::path& out) const;
 
     private:
-        extraction_context*                                                     _context;
-        const path_scope*                                                       _parent;
-        std::variant<std::size_t, std::string_view, path_element, const jsonv::path*> _element;
+        extraction_context*                                       _context;
+        const path_scope*                                         _parent;
+        std::variant<std::size_t, std::string_view, path_element> _element;
     };
 
 private:
     friend class path_scope;
     friend class detail::borrowed_subtree;
+
+    friend JSONV_PUBLIC void detail::extract_entry(extraction_context&   context,
+                                                   const std::type_info& type,
+                                                   reader&               from,
+                                                   void*                 into,
+                                                   void               (* destroy)(void*) noexcept,
+                                                   detail::source_lifetime lifetime
+                                                  );
 
     /// Where to report a failure which is being translated out of an exception. Unlike \ref problem_path this takes
     /// the location a bridge left behind on its way out, because by now the cursor has moved on from the value which
@@ -641,8 +651,8 @@ private:
 private:
     extract_options   _options;
     jsonv::path       _base_path;
-    const path_scope* _innermost          = nullptr;
-    std::size_t       _materialised_depth = 0U;
+    const path_scope* _innermost              = nullptr;
+    std::size_t       _temporary_source_depth = 0U;
 
     /// Where to report the failure currently unwinding, left by a bridge which walked the cursor past the value which
     /// failed. A destructor runs before the handler which records the problem, so the location has to be worked out
@@ -846,6 +856,61 @@ struct extract_function_result
 template <typename FExtract>
 using extract_function_result_t = typename extract_function_result<FExtract>::type;
 
+/// \c extract_entry for a \c T, which also owns the storage the \c T is built in.
+template <typename T>
+JSONV_NODISCARD
+T extract_entry(extraction_context& context, reader& from, source_lifetime lifetime)
+{
+    alignas(T) std::byte place[sizeof(T)];
+    extract_entry(context,
+                  typeid(T),
+                  from,
+                  static_cast<void*>(place),
+                  [](void* p) noexcept { std::destroy_at(std::launder(static_cast<T*>(p))); },
+                  lifetime
+                 );
+
+    T*   ptr     = std::launder(reinterpret_cast<T*>(place));
+    auto destroy = on_scope_exit([ptr] { std::destroy_at(ptr); });
+    return std::move(*ptr);
+}
+
+/// Extract a \c T from JSON \a source text.
+///
+/// A \c std::string rvalue is taken over: it is moved into a reader which lives as long as this call, so the extraction
+/// is told its source is temporary and refuses to hand back views of it. Anything else is read where it is, through a
+/// \c std::string_view, and views of it are the caller's to keep valid -- that includes an rvalue of any other string
+/// type, such as a \c std::pmr::string, which outlives this call as every temporary argument does.
+template <typename T, typename TSource>
+JSONV_NODISCARD
+T extract_text(TSource&&              source,
+               const parse_options&   parse_opts,
+               const formats&         fmts,
+               const extract_options& options
+              )
+{
+    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    if constexpr (std::is_same_v<TSource, std::string>)
+    {
+        reader from(std::move(source), parse_opts);
+        return extract_entry<T>(context, from, source_lifetime::extraction);
+    }
+    else
+    {
+        // Forwarded, so the conversion used is the one the constraint on the entry point accepted: a type may convert
+        // to text only as an rvalue, or differently as an lvalue and as an rvalue.
+        reader from(std::string_view(std::forward<TSource>(source)), parse_opts);
+        return extract_entry<T>(context, from, source_lifetime::caller);
+    }
+}
+
+}
+
+template <typename T>
+T extraction_context::extract(const value& from)
+{
+    reader rdr = reader::from_value(from);
+    return detail::extract_entry<T>(*this, rdr, detail::source_lifetime::caller);
 }
 
 /// Extract a C++ value from \a from using the provided \a fmts.
@@ -883,6 +948,129 @@ T extract(const value& from, const extract_options& options)
     extraction_context context(formats::global(), std::nullopt, jsonv::path(), nullptr, options);
     return context.extract<T>(from);
 }
+
+/// \{
+/// Extract a C++ value from a \a reader using \a fmts (by default \c jsonv::formats::global()) and \a options.
+///
+/// A reader on \c ast_node_type::document_start -- a freshly-created one -- is read as a whole document. It is checked
+/// with \c reader::validate first, so a source which did not parse is reported as that rather than as whatever an
+/// extractor made of the \c ast_node_type::error node it ran into; its \c document_start is stepped over, so neither
+/// the caller nor any \c extractor has to; and the value read must be the whole document, so the reader is left on
+/// \c ast_node_type::document_end. A reader the caller has already positioned gets none of this: the value under its
+/// cursor is extracted and the cursor left one past it, as \c reader::next_value would, whatever surrounds it. The
+/// exception is a reader on an \c ast_node_type::error node, which has no value to extract and is reported as the
+/// parse failure it is.
+///
+/// Anything extracted as a view of the source -- a \c std::string_view -- views the reader's storage. Through the
+/// rvalue overloads, a reader which \c reader::owns_source dies with the call, so such views are refused; one over
+/// storage the caller owns, like <tt>reader(std::string_view)</tt>, is viewed as usual.
+///
+/// \throws extraction_error if the source did not parse, the value could not be extracted or, for a whole document,
+///                          something follows the value.
+template <typename T>
+JSONV_NODISCARD
+T extract(reader& from, const formats& fmts = formats::global(), const extract_options& options = extract_options())
+{
+    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return detail::extract_entry<T>(context, from, detail::source_lifetime::caller);
+}
+
+/// Extract a C++ value from a \a reader using \c jsonv::formats::global() and the provided \a options.
+template <typename T>
+JSONV_NODISCARD
+T extract(reader& from, const extract_options& options)
+{
+    return extract<T>(from, formats::global(), options);
+}
+
+/// Extract a C++ value from a \a reader which may own its source, using \a fmts and \a options.
+template <typename T>
+JSONV_NODISCARD
+T extract(reader&& from, const formats& fmts = formats::global(), const extract_options& options = extract_options())
+{
+    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return detail::extract_entry<T>(context,
+                                    from,
+                                    from.owns_source() ? detail::source_lifetime::extraction
+                                                       : detail::source_lifetime::caller
+                                   );
+}
+
+/// Extract a C++ value from a \a reader which may own its source, using \c jsonv::formats::global() and the provided
+/// \a options.
+template <typename T>
+JSONV_NODISCARD
+T extract(reader&& from, const extract_options& options)
+{
+    return extract<T>(std::move(from), formats::global(), options);
+}
+/// \}
+
+/// \{
+/// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts, using \a fmts (by default
+/// \c jsonv::formats::global()) and \a options.
+///
+/// \a source is anything which converts to \c std::string_view: a string literal, a \c std::string, a
+/// \c std::string_view. Note what that means for a C++ string: it is JSON text to be parsed, not a JSON string, so
+/// <tt>extract<std::string>(R"("fire")")</tt> is \c "fire" and <tt>extract<std::string>("fire")</tt> is a parse
+/// failure. Wrap it in a \c value -- <tt>extract<std::string>(value("fire"))</tt> -- to mean the string.
+///
+/// A \c std::string rvalue is taken over for the call and freed when it returns, so views of it are refused, as for a
+/// tree materialised during extraction (see \c extraction_context::source_is_temporary). Every other source is read
+/// where it is, without copying, and a \c std::string_view extracted from it points into it.
+///
+/// This reads the whole document, exactly as the \c reader overloads do given a fresh \c reader.
+///
+/// \throws extraction_error if \a source is not valid JSON, the value could not be extracted, or something follows it.
+/// \throws std::invalid_argument if \a parse_opts asks for a \c parse_options::max_structure_depth beyond the limit,
+///                               as \c jsonv::parse does.
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&&              source,
+          const formats&         fmts    = formats::global(),
+          const extract_options& options = extract_options()
+         )
+{
+    return detail::extract_text<T>(std::forward<TSource>(source), parse_options::create_default(), fmts, options);
+}
+
+/// Extract a C++ value from JSON \a source text using \c jsonv::formats::global() and the provided \a options.
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&& source, const extract_options& options)
+{
+    return detail::extract_text<T>(std::forward<TSource>(source),
+                                   parse_options::create_default(),
+                                   formats::global(),
+                                   options
+                                  );
+}
+
+/// Extract a C++ value from JSON \a source text parsed with \a parse_opts, using \a fmts and \a options.
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&&              source,
+          const parse_options&   parse_opts,
+          const formats&         fmts    = formats::global(),
+          const extract_options& options = extract_options()
+         )
+{
+    return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, fmts, options);
+}
+
+/// Extract a C++ value from JSON \a source text parsed with \a parse_opts, using \c jsonv::formats::global() and the
+/// provided \a options.
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&& source, const parse_options& parse_opts, const extract_options& options)
+{
+    return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, formats::global(), options);
+}
+/// \}
 
 /// \}
 

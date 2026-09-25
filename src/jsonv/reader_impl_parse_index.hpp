@@ -30,6 +30,8 @@ public:
 
     virtual bool good() const override;
 
+    virtual void validate() const override;
+
     virtual std::optional<ast_node> load_current() const override;
 
     virtual std::optional<path> load_current_path() const override;
@@ -61,6 +63,8 @@ public:
     explicit impl_parse_index_owning(std::string&& source, const parse_options& options);
 
     virtual ~impl_parse_index_owning() noexcept override;
+
+    virtual bool owns_source() const noexcept override;
 };
 
 }

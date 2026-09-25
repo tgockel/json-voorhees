@@ -80,6 +80,22 @@ bool reader::good() const
         return false;
 }
 
+void reader::validate() const
+{
+    if (_impl)
+        _impl->validate();
+    else
+        throw std::invalid_argument("reader instance has been moved-from");
+}
+
+bool reader::owns_source() const noexcept
+{
+    if (_impl)
+        return _impl->owns_source();
+    else
+        return false;
+}
+
 std::expected<void, ast_node_type> reader::expect(ast_node_type type) const
 {
     return current().expect(type);

@@ -955,7 +955,8 @@ TEST(extract_problems_survive_the_value_bridge)
 
     try
     {
-        (void) cxt.extract_sub<unassociated>(val, "o");
+        extraction_context::path_scope scope(cxt, std::string_view("o"));
+        (void) cxt.extract<unassociated>(val.at("o"));
         ensure(!"extraction_error was not thrown");
     }
     catch (const extraction_error& err)
@@ -1731,6 +1732,467 @@ TEST(extract_context_carries_its_options)
     ensure(collector.recover());
     (void) collector.problem(jsonv::path(), "second");
     ensure(!collector.recover());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// jsonv::extract entry points                                                                                        //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace
+{
+
+/// The node an extractor was handed on entry, so a test can check it was never `document_start`.
+struct entry_probe
+{
+    ast_node_type type;
+};
+
+formats probe_formats()
+{
+    static auto instance = make_extractor([] (reader& from) -> entry_probe
+                                          {
+                                              entry_probe out{ from.current().type() };
+                                              (void) from.next_value();
+                                              return out;
+                                          });
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_extractor(&instance);
+    return out;
+}
+
+/// Counts the instances alive, so a test can see that an object built and then refused was destroyed.
+struct live_counted
+{
+    static inline int live = 0;
+
+    live_counted()                    { ++live; }
+    live_counted(const live_counted&) { ++live; }
+    live_counted(live_counted&&)      { ++live; }
+    ~live_counted()                   { --live; }
+};
+
+/// Builds a \c live_counted and, breaking the rule an extractor is held to, leaves the cursor on the value it read.
+/// That is what makes the whole-document check fail only once there is an object to destroy.
+formats lazy_live_counted_formats()
+{
+    static auto instance = make_extractor([] (reader&) -> live_counted { return live_counted(); });
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_extractor(&instance);
+    return out;
+}
+
+formats view_holder_formats()
+{
+    static formats instance = formats_builder()
+                                  .type<view_holder>()
+                                      .member("s", &view_holder::s)
+                                  .register_container<std::vector<std::string_view>>()
+                              .compose_checked(formats::defaults());
+    return instance;
+}
+
+/// Long enough that no small-string buffer holds it, so a view which outlived its storage reads freed heap memory --
+/// which is what ASan catches.
+constexpr std::string_view long_text = "a string long enough to need the heap rather than the small-string buffer";
+
+std::string quoted(std::string_view text)
+{
+    return "\"" + std::string(text) + "\"";
+}
+
+/// Run \a extract_and_read, which extracts a view of a source freed when the extraction returns and then reads it,
+/// and check the extraction refused rather than handing the view back.
+template <typename FExtractAndRead>
+void ensure_view_refused(const FExtractAndRead& extract_and_read)
+{
+    try
+    {
+        extract_and_read();
+        ensure(!"a view of a source freed on return was not refused");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure(err.problems().at(0).message().find("std::string_view") != std::string::npos);
+    }
+}
+
+/// What \c jsonv::parse says is wrong with \a text.
+std::string parse_error_of(std::string_view text, const parse_options& options = parse_options())
+{
+    try
+    {
+        (void) parse(text, options);
+    }
+    catch (const parse_error& ex)
+    {
+        return ex.what();
+    }
+
+    ensure(!"parse_error was not thrown");
+    return std::string();
+}
+
+/// Run \a extract, which extracts from text that did not parse, and check it reported \a expected -- what the parse
+/// said was wrong -- as the one problem, with the \c parse_error as its cause. A \c parse_error escaping instead fails
+/// the test, since it is not caught here.
+template <typename FExtract>
+void ensure_parse_failure(const std::string& expected, const FExtract& extract)
+{
+    try
+    {
+        extract();
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+
+        const auto& problem = err.problems().at(0);
+        ensure(problem.message().find(expected) != std::string::npos);
+        ensure(problem.message().find("Read node of type") == std::string::npos);
+        ensure_throws(parse_error, (std::rethrow_exception(problem.nested_ptr()), 0));
+    }
+}
+
+}
+
+TEST(extract_entry_points_accept_every_source)
+{
+    // Most of what this checks is that each call compiles and is unambiguous. A C++ string also reaches
+    // `extract(const value&)`, through a user-defined conversion, so the text overloads have to win outright.
+    const char*           c_string   = "5";
+    std::string           text       = "5";
+    const std::string     const_text = "5";
+    std::string_view      view       = text;
+    const formats         fmts       = formats::defaults();
+    const parse_options   popts      = parse_options::create_default();
+    const extract_options eopts      = extract_options::create_default();
+
+    ensure_eq(5, extract<std::int32_t>("5"));
+    ensure_eq(5, extract<std::int32_t>(c_string));
+    ensure_eq(5, extract<std::int32_t>(text));
+    ensure_eq(5, extract<std::int32_t>(const_text));
+    ensure_eq(5, extract<std::int32_t>(std::string("5")));
+    ensure_eq(5, extract<std::int32_t>(view));
+
+    ensure_eq(5, extract<std::int32_t>(view, fmts));
+    ensure_eq(5, extract<std::int32_t>(view, eopts));
+    ensure_eq(5, extract<std::int32_t>(view, fmts, eopts));
+    ensure_eq(5, extract<std::int32_t>(view, popts));
+    ensure_eq(5, extract<std::int32_t>(view, popts, fmts));
+    ensure_eq(5, extract<std::int32_t>(view, popts, eopts));
+    ensure_eq(5, extract<std::int32_t>(view, popts, fmts, eopts));
+    ensure_eq(5, extract<std::int32_t>(std::string("5"), popts, fmts, eopts));
+
+    {
+        reader rdr("5");
+        ensure_eq(5, extract<std::int32_t>(rdr));
+    }
+    {
+        reader rdr("5");
+        ensure_eq(5, extract<std::int32_t>(rdr, fmts));
+    }
+    {
+        reader rdr("5");
+        ensure_eq(5, extract<std::int32_t>(rdr, eopts));
+    }
+    {
+        reader rdr("5");
+        ensure_eq(5, extract<std::int32_t>(rdr, fmts, eopts));
+    }
+    ensure_eq(5, extract<std::int32_t>(reader("5")));
+    ensure_eq(5, extract<std::int32_t>(reader("5"), fmts));
+    ensure_eq(5, extract<std::int32_t>(reader("5"), eopts));
+    ensure_eq(5, extract<std::int32_t>(reader("5"), fmts, eopts));
+}
+
+TEST(extract_entry_points_accept_every_source_for_a_dsl_type)
+{
+    const std::string doc      = R"({ "a": 1, "b": 2, "c": 3 })";
+    const triple      expected = { 1, 2, 3 };
+    const formats     fmts     = triple_formats();
+
+    ensure_eq(expected, extract<triple>(doc, fmts));
+    ensure_eq(expected, extract<triple>(std::string(doc), fmts));
+    ensure_eq(expected, extract<triple>(doc.c_str(), fmts));
+    ensure_eq(expected, extract<triple>(doc, parse_options(), fmts));
+    ensure_eq(expected, extract<triple>(doc, fmts, extract_options()));
+    ensure_eq(expected, extract<triple>(doc, parse_options(), fmts, extract_options()));
+    ensure_eq(expected, extract<triple>(reader(doc), fmts));
+    ensure_eq(expected, extract<triple>(reader(doc), fmts, extract_options()));
+    {
+        reader rdr(doc);
+        ensure_eq(expected, extract<triple>(rdr, fmts));
+    }
+
+    // The shapes which take no `formats` use the global one.
+    formats::set_global(triple_formats());
+    auto reset_global_on_exit = jsonv::detail::on_scope_exit([] { formats::reset_global(); });
+
+    ensure_eq(expected, extract<triple>(doc));
+    ensure_eq(expected, extract<triple>(doc, extract_options()));
+    ensure_eq(expected, extract<triple>(doc, parse_options()));
+    ensure_eq(expected, extract<triple>(doc, parse_options(), extract_options()));
+    ensure_eq(expected, extract<triple>(reader(doc)));
+    ensure_eq(expected, extract<triple>(reader(doc), extract_options()));
+    {
+        reader rdr(doc);
+        ensure_eq(expected, extract<triple>(rdr, extract_options()));
+    }
+}
+
+TEST(extract_a_cpp_string_is_json_text)
+{
+    ensure_eq("fire", extract<std::string>(R"("fire")"));
+    ensure_throws(extraction_error, extract<std::string>("fire"));
+
+    // To mean the JSON string, say so.
+    ensure_eq("fire", extract<std::string>(value("fire")));
+
+    // Anything which is not a string still converts to a `value`, as it always has.
+    ensure_eq(5, extract<std::int64_t>(5));
+    ensure(extract<bool>(true));
+    ensure_eq(4.5, extract<double>(4.5));
+}
+
+TEST(extract_steps_onto_the_value_exactly_once)
+{
+    // An extractor is never handed `document_start`, whichever entry point it was reached through, and the caller
+    // does not have to step off it first.
+    const formats fmts = probe_formats();
+
+    ensure(extract<entry_probe>("5", fmts).type == ast_node_type::integer);
+    ensure(extract<entry_probe>(std::string("5"), fmts).type == ast_node_type::integer);
+    ensure(extract<entry_probe>(reader("5"), fmts).type == ast_node_type::integer);
+    ensure(extract<entry_probe>(reader::from_value(value(5)), fmts).type == ast_node_type::integer);
+    ensure(extract<entry_probe>(value(5), fmts).type == ast_node_type::integer);
+
+    reader rdr("5");
+    ensure(extract<entry_probe>(rdr, fmts).type == ast_node_type::integer);
+
+    // The whole document was read, and the reader is left on its end.
+    ensure(rdr.good());
+    ensure(rdr.current().type() == ast_node_type::document_end);
+
+    ensure_eq(5, extract<std::int32_t>(reader("5")));
+}
+
+TEST(extract_from_a_positioned_reader_reads_one_value)
+{
+    // A reader the caller has already moved is not a whole document: the value under the cursor is extracted and the
+    // cursor left one past it, whatever surrounds it -- which is what lets a caller walk an array element by element.
+    const formats fmts = probe_formats();
+
+    reader rdr = open("[ 7, 8 ]");
+    (void) rdr.next_token();
+
+    ensure(extract<entry_probe>(rdr, fmts).type == ast_node_type::integer);
+    ensure_eq(8, extract<std::int64_t>(rdr));
+    ensure(rdr.current().type() == ast_node_type::array_end);
+
+    // Stepped onto the value by hand, it is not stepped over a second time.
+    ensure_eq(5, extract<std::int64_t>(open("5")));
+}
+
+TEST(extract_malformed_text_reports_the_parse_failure)
+{
+    for (std::string_view text : { "[ 1, 2", "5 x", R"({ "a": })" })
+    {
+        const std::string expected = parse_error_of(text);
+
+        ensure_parse_failure(expected, [&] { (void) extract<value>(text); });
+        ensure_parse_failure(expected, [&] { (void) extract<value>(std::string(text)); });
+        ensure_parse_failure(expected, [&] { (void) extract<value>(reader(text)); });
+        ensure_parse_failure(expected, [&] { reader rdr(text); (void) extract<value>(rdr); });
+        ensure_parse_failure(expected, [&] { (void) extract<triple>(text, triple_formats()); });
+    }
+}
+
+TEST(extract_reports_a_parse_which_failed_before_the_document_began)
+{
+    // A `max_structure_depth` of 0 refuses the document itself, so the parse fails before writing `document_start`
+    // and the tape is a lone `error` node -- nothing an entry point would recognise as the start of a document.
+    const parse_options options  = parse_options().max_structure_depth(0);
+    const std::string   expected = parse_error_of("5", options);
+
+    ensure_parse_failure(expected, [&] { (void) extract<std::int64_t>("5", options); });
+    ensure_parse_failure(expected, [&] { reader rdr("5", options); (void) extract<std::int64_t>(rdr); });
+}
+
+TEST(extract_from_a_reader_positioned_on_a_parse_failure_reports_it)
+{
+    // Part-way through a document there is no `document_start` to validate at, but a cursor on the `error` node has
+    // nothing to extract either. What the parse said is more use than what an extractor expected to find instead.
+    reader rdr("[ 1, x ]");
+    (void) rdr.next_token();
+    (void) rdr.next_token();
+    (void) rdr.next_token();
+    ensure(rdr.current().type() == ast_node_type::error);
+
+    ensure_parse_failure(parse_error_of("[ 1, x ]"), [&] { (void) extract<std::int64_t>(rdr); });
+}
+
+TEST(extract_converts_text_as_the_value_category_it_was_given)
+{
+    // The constraint accepts whatever converts to `std::string_view` as the argument was passed, so the conversion has
+    // to be made that way too: a type may convert only as an rvalue, or to different text as each.
+    struct rvalue_only_text
+    {
+        operator std::string_view() && { return "5"; }
+    };
+
+    struct text_by_category
+    {
+        operator std::string_view() const& { return "1"; }
+        operator std::string_view() &&     { return "2"; }
+    };
+
+    ensure_eq(5, extract<std::int32_t>(rvalue_only_text{}));
+
+    text_by_category named;
+    ensure_eq(1, extract<std::int32_t>(named));
+    ensure_eq(2, extract<std::int32_t>(text_by_category{}));
+}
+
+TEST(extract_refuses_text_after_the_value)
+{
+    // The parser lets trailing text through after a top-level scalar, so something has to notice that the document did
+    // not end where the value did. `extract<std::int64_t>(parse("5 6"))` never allowed it either.
+    ensure_throws(extraction_error, extract<std::int64_t>("5 6"));
+    ensure_throws(extraction_error, extract<std::int64_t>(reader("5 6")));
+}
+
+TEST(extract_refuses_an_extractor_which_leaves_its_value_unread)
+{
+    // The same check is what catches an extractor breaking the rule it is held to -- here, one which reads nothing --
+    // and by then it has built an object, which has to be destroyed on the way out.
+    const formats fmts = lazy_live_counted_formats();
+
+    for (const auto& run : { +[] (const formats& f) { (void) extract<live_counted>("5", f); },
+                             +[] (const formats& f) { (void) extract<live_counted>(value(5), f); },
+                           })
+    {
+        try
+        {
+            run(fmts);
+            ensure(!"extraction_error was not thrown");
+        }
+        catch (const extraction_error& err)
+        {
+            ensure_eq(1U, err.problems().size());
+            ensure(err.problems().at(0).message().find("end of document") != std::string::npos);
+        }
+
+        ensure_eq(0, live_counted::live);
+    }
+}
+
+TEST(extract_refuses_views_of_a_source_it_was_handed)
+{
+    // A source handed over to extraction is freed when the call returns, so a view of it would dangle immediately. If
+    // one got through, reading it is a use-after-free for ASan to report rather than a test which quietly passes.
+    const std::string document = quoted(long_text);
+    const std::string object   = R"({ "s": )" + document + " }";
+    const std::string array    = "[ " + document + " ]";
+
+    ensure_view_refused([&] { ensure_eq(long_text, extract<std::string_view>(std::string(document))); });
+    ensure_view_refused([&] { ensure_eq(long_text, extract<view_holder>(std::string(object), view_holder_formats()).s); });
+    ensure_view_refused([&]
+                        {
+                            auto views = extract<std::vector<std::string_view>>(std::string(array),
+                                                                                view_holder_formats()
+                                                                               );
+                            ensure_eq(long_text, views.at(0));
+                        });
+
+    // The same through a reader which owns what it reads and dies with the call.
+    ensure_view_refused([&] { ensure_eq(long_text, extract<std::string_view>(reader(std::string(document)))); });
+    ensure_view_refused([&]
+                        {
+                            auto view = extract<std::string_view>(reader::from_value(value(std::string(long_text))));
+                            ensure_eq(long_text, view);
+                        });
+
+    // A copy is fine.
+    ensure_eq(long_text, extract<std::string>(std::string(document)));
+}
+
+TEST(extract_views_a_source_the_caller_keeps)
+{
+    const std::string document = quoted(long_text);
+    const std::string object   = R"({ "s": )" + document + " }";
+
+    auto inside = [] (const std::string& source, std::string_view view)
+                  {
+                      return view.data() >= source.data() && view.data() + view.size() <= source.data() + source.size();
+                  };
+
+    ensure(inside(document, extract<std::string_view>(std::string_view(document))));
+    ensure(inside(document, extract<std::string_view>(document)));
+    ensure(inside(document, extract<std::string_view>(reader(std::string_view(document)))));
+    ensure(inside(object, extract<view_holder>(object, view_holder_formats()).s));
+
+    // An owning reader the caller holds outlives the call, so views of it are the caller's to keep valid.
+    reader owning{ std::string(document) };
+    ensure_eq(long_text, extract<std::string_view>(owning));
+}
+
+TEST(extract_honours_parse_options)
+{
+    // Comments are allowed unless turned off, so turning them off is the non-default worth checking.
+    ensure_eq(5, extract<std::int64_t>("/* c */ 5"));
+    ensure_throws(extraction_error, extract<std::int64_t>("/* c */ 5", parse_options().comments(false)));
+
+    try
+    {
+        (void) extract<std::int64_t>("5", parse_options().require_document(true));
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+        ensure(err.problems().at(0).message().find("Could not parse JSON") != std::string::npos);
+    }
+
+    const triple expected = { 1, 2, 3 };
+    ensure_eq(expected, extract<triple>(R"(/* c */ { "a": 1, "b": 2, "c": 3 })", parse_options(), triple_formats()));
+
+    // Both sets of options at once, each doing its own job.
+    try
+    {
+        (void) extract<triple>(R"(/* c */ { "a": "x", "b": "y", "c": 3 })",
+                               parse_options(),
+                               triple_formats(),
+                               collecting()
+                              );
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(std::string(".a .b"), problem_paths(err));
+    }
+}
+
+TEST(extract_value_round_trips_through_every_source)
+{
+    const std::string text     = R"({ "i": 5, "a": [ 1, 2.5, "three", null, true ], "o": { "x": {} } })";
+    const value       expected = parse(text);
+
+    ensure_eq(expected, extract<value>(text));
+    ensure_eq(expected, extract<value>(std::string(text)));
+    ensure_eq(expected, extract<value>(reader(text)));
+    ensure_eq(expected, extract<value>(reader::from_value(expected)));
+    ensure_eq(expected, extract<value>(expected));
+    {
+        reader rdr(text);
+        ensure_eq(expected, extract<value>(rdr));
+    }
+
+    // The spelling through a parsed `value` and the one straight from text agree for a DSL type as well.
+    const std::string doc = R"({ "a": 1, "b": 2, "c": 3 })";
+    ensure_eq(extract<triple>(parse(doc), triple_formats()), extract<triple>(doc, triple_formats()));
 }
 
 }

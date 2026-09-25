@@ -39,6 +39,11 @@ bool reader::impl_parse_index::good() const
     return _current != _index.end();
 }
 
+void reader::impl_parse_index::validate() const
+{
+    _index.validate();
+}
+
 std::optional<ast_node> reader::impl_parse_index::load_current() const
 {
     if (good())
@@ -158,5 +163,10 @@ reader::impl_parse_index_owning::impl_parse_index_owning(std::string&& source, c
 { }
 
 reader::impl_parse_index_owning::~impl_parse_index_owning() noexcept = default;
+
+bool reader::impl_parse_index_owning::owns_source() const noexcept
+{
+    return true;
+}
 
 }

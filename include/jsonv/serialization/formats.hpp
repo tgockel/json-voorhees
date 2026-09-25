@@ -173,7 +173,8 @@ public:
     /// A \c std::string_view is extracted as a view of the source rather than a copy, so the source has to outlive
     /// it: the caller's \c value for an in-memory extraction, the JSON text for a \c reader over one. A string the
     /// source spelt with escape sequences has no decoded form in it to view and is refused, as is one belonging to a
-    /// tree the pipeline materialised and is about to free -- see \c extraction_context::source_is_temporary.
+    /// source which is freed when extraction finishes -- a tree the pipeline materialised, or text handed to
+    /// \c jsonv::extract to own. See \c extraction_context::source_is_temporary.
     ///
     /// \note
     /// This function actually returns a \e copy of the default \c formats, so modifications do not affect the actual
