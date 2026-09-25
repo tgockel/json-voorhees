@@ -74,18 +74,19 @@ JSONV_NODISCARD JSONV_PUBLIC std::vector<value> coerce_array(const value& from);
 **/
 JSONV_NODISCARD JSONV_PUBLIC std::string coerce_string(const value& from);
 
-/** Coerce \a from into an integer. If \a from is a \c decimal lower than the minimum of \c std::int64_t or higher than
- *  the maximum of \c std::int64_t, it is clamped to the lowest or highest value, respectively.
- *  
+/** Coerce \a from into an integer. A \c decimal is truncated toward zero. If \a from is a \c decimal lower than the
+ *  minimum of \c std::int64_t or higher than the maximum of \c std::int64_t, it is clamped to the lowest or highest
+ *  value, respectively. A NaN \c decimal coerces to \c 0.
+ *
  *  \returns
  *   \c kind is... | Rules
  *   ------------- | -------------------------------------------------
  *   \c null       | throws \c kind_error
  *   \c object     | throws \c kind_error
  *   \c array      | throws \c kind_error
- *   \c string     | \c parse(from.as_string()).as_integer()
+ *   \c string     | \c coerce_integer(parse(from.as_string())) if it parses as a number; otherwise throws \c kind_error
  *   \c integer    | \c from.as_integer()
- *   \c decimal    | \c std::int64_t(from.as_decimal())
+ *   \c decimal    | \c from.as_decimal(), truncated and clamped as above
  *   \c boolean    | \c from.as_boolean() ? 1 : 0
 **/
 JSONV_NODISCARD JSONV_PUBLIC std::int64_t coerce_integer(const value& from);
