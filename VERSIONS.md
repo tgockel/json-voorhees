@@ -114,7 +114,10 @@
        all (#211).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
-       saving time and memory
+       saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,
+       extracting a `std::vector` of DSL-described records from the text takes a little over half as long as `parse`
+       followed by `extract` from the result, and a type which reads two of each record's nine members takes under a
+       quarter as long, since the members it skips are never built (#234).
      - `extract_options::on_error` and `max_failures` are now honoured. Both have been documented since the type was
        introduced and neither was ever consumed: `extraction_context` held no `extract_options`, so there was nowhere
        to pass one, and the only reader of the type was `parse_index::extract_tree` for `on_duplicate_key`. The

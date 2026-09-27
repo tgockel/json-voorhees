@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
 #
-# Build Release, run parse_index benchmarks, print a table with means.
+# Build Release, run benchmark rows (parse_index by default), print a table of medians.
 #
 # Usage:
-#   scripts/perf-bench.sh                # one trial per input
-#   scripts/perf-bench.sh -n 3           # three trials per input (medians shown)
-#   scripts/perf-bench.sh -f canada      # restrict to inputs whose filename contains 'canada'
+#   scripts/perf-bench.sh                          # parse_index rows, one trial each
+#   scripts/perf-bench.sh -n 3                     # three trials per row (medians shown)
+#   scripts/perf-bench.sh -f parse_index/canada    # rows under benchmark/parse_index/canada
+#   scripts/perf-bench.sh -f extract               # every extraction row
+#   scripts/perf-bench.sh -f extract/citm          # extraction rows over citm_catalog.json
+#
+# -f is read from just after "benchmark/", so it names the group of rows before the
+# input: "-f canada" matches nothing, and a filter which matches nothing is an error.
 #
 # Notes:
 #   - canada.json (2.2 MB) is the only input large enough for stable numbers at the
@@ -14,8 +19,13 @@
 #     measurements.
 #   - The "parse_index/" rows time stage 1 alone (tape build). The "string/" and
 #     "ifstream/" rows time the full parse() including extract to jsonv::value.
-#     parse_index is only ~11% of full parse() on canada.json — see
+#     parse_index is only ~9% of full parse() on canada.json — see
 #     .agents/perf-baseline.txt for context.
+#   - The "extract/<case>/<pipeline>" rows time extraction to a C++ type three ways
+#     over the same input: "parse_then_extract" is parse() to a jsonv::value and
+#     then extract from that, "from_text" extracts off the parse index without a
+#     value, and "from_value" extracts from a value parsed before the clock starts.
+#     They run 10 iterations rather than 100, to keep the check target quick.
 #
 set -euo pipefail
 
@@ -43,7 +53,7 @@ cmake --build build -j --target jsonv-tests >/dev/null
 
 filter_arg="benchmark/parse_index/"
 if [ -n "$filter" ]; then
-    filter_arg="benchmark/parse_index/${filter}"
+    filter_arg="benchmark/${filter}"
 fi
 
 tmp="$(mktemp)"
@@ -63,6 +73,11 @@ for ((t=1; t<=trials; t++)); do
           ' \
         >> "$tmp"
 done
+
+if [ ! -s "$tmp" ]; then
+    echo "no benchmark rows match '${filter_arg}'" >&2
+    exit 1
+fi
 
 # Aggregate: median (or only value) per benchmark name.
 awk '
@@ -90,7 +105,7 @@ END {
         }
         median = (cnt % 2 == 1) ? sorted[(cnt+1)/2] : (sorted[cnt/2] + sorted[cnt/2+1]) / 2.0
         spread = sorted[cnt] - sorted[1]
-        printf "%-50s  median=%9.4f ms  spread=%8.4f ms  (n=%d)\n", name, median, spread, cnt
+        printf "%-60s  median=%9.4f ms  spread=%8.4f ms  (n=%d)\n", name, median, spread, cnt
     }
 }
 ' "$tmp" | sort
