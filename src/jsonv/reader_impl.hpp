@@ -22,9 +22,18 @@ namespace jsonv
 class JSONV_LOCAL reader::impl
 {
 public:
-    explicit impl();
+    /// \param value_backed Whether this source walks an in-memory \c value. See \c value_backed.
+    explicit impl(bool value_backed = false);
 
     virtual ~impl() noexcept;
+
+    /// Does this source walk an in-memory \c value? Only such a source has an answer to \c borrowed_value, or one to
+    /// \c current_type that is cheaper than loading the node. Knowing it up front is what lets a reader over text skip
+    /// both of those virtual calls on every node, rather than make them to be told there is nothing to gain.
+    bool value_backed() const noexcept
+    {
+        return _value_backed;
+    }
 
     virtual bool good() const = 0;
 
@@ -35,6 +44,9 @@ public:
     virtual bool owns_source() const noexcept;
 
     const ast_node& current() const;
+
+    /// \see reader::current_type
+    ast_node_type current_type() const;
 
     const path& current_path() const;
 
@@ -56,6 +68,14 @@ protected:
     /// Attempt to load the current token. If there is no token to load, return \c nullopt.
     virtual std::optional<ast_node> load_current() const = 0;
 
+    /// Get the type of the token \c load_current would load. This is only asked of a \c value_backed source, and only
+    /// while \c current is not already cached. Such a source synthesises its nodes' text, so it should answer from
+    /// its own state instead -- and must give the same answer \c load_current would. The default loads the node and
+    /// asks it.
+    ///
+    /// \throws std::logic_error if there is no token to load, which is what \c current throws for the same reason.
+    virtual ast_node_type load_current_type() const;
+
     virtual std::optional<path> load_current_path() const = 0;
 
     virtual bool next_token_impl() noexcept = 0;
@@ -74,6 +94,7 @@ protected:
     void mark_dirty();
 
 private:
+    const bool                      _value_backed;
     mutable bool                    _current_dirty;
     mutable std::optional<ast_node> _current;
     mutable bool                    _current_path_dirty;

@@ -85,6 +85,10 @@
        to ask one what was wrong with the rest. A reader over a `value` has nothing to parse and never throws. Also
        added `reader::owns_source`, which is `true` for a reader made from a `std::string` rvalue or by
        `from_value(value&&)` -- the two which keep their source alive only as long as the reader (#232).
+     - Added `reader::current_type`, which is `current().type()` without the node. A reader over a `value` has to
+       synthesise token text before it can hand out an `ast_node` for a number, a string or a key, and a loop asking
+       only whether it has reached the `]` has no use for it. `reader::expect` now asks this way, as do the built-in
+       adapters and the serialization builder (#238).
      - Added `parse_index::iterator::skip_subtree`, which steps over a whole object or array in constant time.
        The index already recorded where each structure ends when it parsed the matching close token, but
        nothing surfaced it, so skipping a value meant walking every node inside it.
@@ -152,6 +156,13 @@
        extracting a `std::vector` of DSL-described records from the text takes a little over half as long as `parse`
        followed by `extract` from the result, and a type which reads two of each record's nine members takes under a
        quarter as long, since the members it skips are never built (#234).
+     - Extracting from an in-memory `value` no longer formats every number into text. A reader over a `value`
+       synthesised a token for each scalar as soon as anything asked what it was on, which `container_adapter` and the
+       builder's member loop did for every element, and the extractors then either ignored the text -- a `double` was
+       already read from the `value` -- or parsed it straight back. They now ask `reader::current_type` and read the
+       lent `value`, so the token is built only for an extractor which asks for the node itself. Extracting the
+       coordinates of `canada.json` from a parsed `value` takes about a sixth less time, which puts it below
+       extracting them from the text, and `parse` followed by `extract` gains the same few milliseconds (#238).
      - `extract_options::on_error` and `max_failures` are now honoured. Both have been documented since the type was
        introduced and neither was ever consumed: `extraction_context` held no `extract_options`, so there was nowhere
        to pass one, and the only reader of the type was `parse_index::extract_tree` for `on_duplicate_key`. The

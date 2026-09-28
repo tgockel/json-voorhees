@@ -72,13 +72,13 @@ protected:
                 // should have been. Saying the array never closed is more use than letting the extraction below
                 // report it as a mismatch against a node type no element can have, and there is nothing after it to
                 // recover into.
-                if (auto type = from.current().type();
+                if (auto type = from.current_type();
                     type == ast_node_type::document_end || type == ast_node_type::error)
                 {
                     return context.problem(context.problem_path(from), "Unterminated array");
                 }
 
-                if (from.current().type() == ast_node_type::array_end)
+                if (from.current_type() == ast_node_type::array_end)
                 {
                     (void) from.next_token();
                     closed = true;
@@ -138,7 +138,7 @@ protected:
             {
                 while (from.good())
                 {
-                    auto type = from.current().type();
+                    auto type = from.current_type();
                     if (type == ast_node_type::array_end)
                     {
                         (void) from.next_token();

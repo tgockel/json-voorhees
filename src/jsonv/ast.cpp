@@ -261,26 +261,37 @@ double ast_node::decimal::value() const
 // ast_node                                                                                                           //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::expected<void, ast_node_type> ast_node::expect(ast_node_type expected_type) const
+std::expected<void, ast_node_type> expect_node_type(ast_node_type found_type, ast_node_type expected_type)
 {
-    if (auto found_type = type(); found_type == expected_type)
+    if (found_type == expected_type)
         return {};
     else
         return std::unexpected(found_type);
 }
 
-std::expected<void, ast_node_type> ast_node::expect(std::initializer_list<ast_node_type> expected_types) const
+std::expected<void, ast_node_type> expect_node_type(ast_node_type                        found_type,
+                                                    std::initializer_list<ast_node_type> expected_types
+                                                   )
 {
     if (expected_types.size() == 0U)
         throw std::invalid_argument("Cannot expect 0 types");
     else if (expected_types.size() == 1U)
-        return expect(*expected_types.begin());
+        return expect_node_type(found_type, *expected_types.begin());
 
-    auto found_type = type();
     if (std::find(expected_types.begin(), expected_types.end(), found_type) != expected_types.end())
         return {};
     else
         return std::unexpected(found_type);
+}
+
+std::expected<void, ast_node_type> ast_node::expect(ast_node_type expected_type) const
+{
+    return expect_node_type(type(), expected_type);
+}
+
+std::expected<void, ast_node_type> ast_node::expect(std::initializer_list<ast_node_type> expected_types) const
+{
+    return expect_node_type(type(), expected_types);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

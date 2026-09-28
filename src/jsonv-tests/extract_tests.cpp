@@ -342,7 +342,7 @@ protected:
         unnamed_triple out;
 
         (void) from.next_token();
-        while (from.good() && from.current().type() != ast_node_type::object_end)
+        while (from.good() && from.current_type() != ast_node_type::object_end)
         {
             auto key = from.current().as<ast_node::key_canonical>().value();
             if (!from.next_token())
@@ -405,7 +405,7 @@ protected:
         (void) from.next_token();
         while (from.good())
         {
-            if (from.current().type() == ast_node_type::array_end)
+            if (from.current_type() == ast_node_type::array_end)
             {
                 (void) from.next_token();
                 return out;
@@ -445,6 +445,7 @@ const formats& path_cost_formats()
                                     .member(long_c, &named_triple::c)
                                 .register_container<std::vector<named_triple>>()
                                 .register_container<std::vector<std::int64_t>>()
+                                .register_container<std::vector<double>>()
                             .compose_checked(formats::defaults());
 
             formats out = formats::compose({ named });
@@ -463,6 +464,16 @@ value integers(std::size_t count)
     value out = array();
     for (std::size_t idx = 0U; idx < count; ++idx)
         out.push_back(std::int64_t(idx));
+
+    return out;
+}
+
+/// An array of \a count decimals, none of them integral, so that each one formats to a token of some length.
+value decimals(std::size_t count)
+{
+    value out = array();
+    for (std::size_t idx = 0U; idx < count; ++idx)
+        out.push_back(double(idx) + 0.123456789);
 
     return out;
 }
@@ -759,6 +770,23 @@ TEST(extract_member_naming_costs_nothing)
     const std::size_t unnamed = extraction_cost<std::vector<unnamed_triple>>(source);
 
     ensure_eq(unnamed, named);
+}
+
+TEST(extract_numbers_from_a_value_synthesise_no_tokens)
+{
+    // A value-backed reader has to format a number into its arena before it can hand out an `ast_node` for it --
+    // which the extractors then ignore (a `double`) or parse straight back (an integer). Nothing between a `value`
+    // and a container of numbers needs more than the node's type, so four thousand elements have to cost what four
+    // do. Before #238 the arena grew a chunk for every few hundred numbers.
+    (void) extraction_cost<std::vector<std::int64_t>>(integers(4U));
+    (void) extraction_cost<std::vector<double>>(decimals(4U));
+
+    ensure_eq(extraction_cost<std::vector<std::int64_t>>(integers(4U)),
+              extraction_cost<std::vector<std::int64_t>>(integers(4096U))
+             );
+    ensure_eq(extraction_cost<std::vector<double>>(decimals(4U)),
+              extraction_cost<std::vector<double>>(decimals(4096U))
+             );
 }
 
 TEST(extract_path_tracking_does_not_grow_with_the_base_path)

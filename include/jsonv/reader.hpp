@@ -58,7 +58,7 @@ class value;
 ///         return std::nullopt;
 ///
 ///     my_object out;
-///     while (from.good() && from.current().type() != jsonv::ast_node_type::object_end)
+///     while (from.good() && from.current_type() != jsonv::ast_node_type::object_end)
 ///     {
 ///         // Keys arrive canonical or escaped, depending on whether the source used escape sequences.
 ///         if (!from.expect({ jsonv::ast_node_type::key_canonical, jsonv::ast_node_type::key_escaped }))
@@ -179,6 +179,16 @@ public:
     /// \throws std::logic_error if this instance is not \c good, or std::invalid_argument if it has been moved-from.
     JSONV_NODISCARD
     const ast_node& current() const;
+
+    /// Get the type of the \c current AST node, which is always \c current().type().
+    ///
+    /// Use this where the type is all that is wanted -- checking for the `]` which ends an array, say. A reader over a
+    /// \c value has to synthesise token text for a number, a string or a key before it can hand out an \c ast_node,
+    /// and answering this does not.
+    ///
+    /// \throws std::logic_error if this instance is not \c good, or std::invalid_argument if it has been moved-from.
+    JSONV_NODISCARD
+    ast_node_type current_type() const;
 
     /// \{
     /// Check that the \c current AST node has the given \a type or is one of the expected \a types.
@@ -310,7 +320,7 @@ public:
     ///     if (!from.next_token())
     ///         return std::nullopt;
     ///
-    ///     while (from.good() && from.current().type() != jsonv::ast_node_type::object_end)
+    ///     while (from.good() && from.current_type() != jsonv::ast_node_type::object_end)
     ///     {
     ///         if (!from.expect({ jsonv::ast_node_type::key_canonical, jsonv::ast_node_type::key_escaped }))
     ///             return std::nullopt;

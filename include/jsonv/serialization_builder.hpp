@@ -700,7 +700,7 @@ inline bool current_is_null(const reader& from)
     if (const value* lent = from.current_value())
         return lent->kind() == jsonv::kind::null;
     else
-        return from.good() && from.current().type() == ast_node_type::literal_null;
+        return from.good() && from.current_type() == ast_node_type::literal_null;
 }
 
 /// The answer \c member_adapter::extract_key_rank gives for a key which names no member.
@@ -1343,7 +1343,7 @@ private:
             {
                 while (from.good())
                 {
-                    auto type = from.current().type();
+                    auto type = from.current_type();
 
                     if (type == ast_node_type::document_end || type == ast_node_type::error)
                     {
@@ -1675,7 +1675,7 @@ private:
         {
             while (from.good())
             {
-                auto type = from.current().type();
+                auto type = from.current_type();
                 if (  type == ast_node_type::object_end
                    || type == ast_node_type::document_end
                    || type == ast_node_type::error

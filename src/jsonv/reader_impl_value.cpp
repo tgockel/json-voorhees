@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cstring>
 #include <iterator>
+#include <stdexcept>
 #include <utility>
 
 #include "detail.hpp"
@@ -122,6 +123,7 @@ constexpr bool is_structure(jsonv::kind k) noexcept
 }
 
 reader::impl_value::impl_value(const value& source) noexcept :
+        reader::impl(true),
         _root(&source),
         _position(position::document_start),
         _close_type(ast_node_type::document_end)
@@ -251,60 +253,101 @@ bool reader::impl_value::close_frame() noexcept
     return true;
 }
 
-ast_node reader::impl_value::load_value_node(const value& source) const
+ast_node_type reader::impl_value::value_node_type(const value& source)
 {
     switch (source.kind())
     {
     case jsonv::kind::object:
-        return ast_node(std::in_place_type<ast_node::object_begin>, token_object_begin, source.size());
+        return ast_node_type::object_begin;
     case jsonv::kind::array:
-        return ast_node(std::in_place_type<ast_node::array_begin>, token_array_begin, source.size());
-    case jsonv::kind::null:
-        return ast_node(std::in_place_type<ast_node::literal_null>, token_null);
+        return ast_node_type::array_begin;
     case jsonv::kind::boolean:
-        if (source.as_boolean())
-            return ast_node(std::in_place_type<ast_node::literal_true>, token_true);
-        else
-            return ast_node(std::in_place_type<ast_node::literal_false>, token_false);
+        return source.as_boolean() ? ast_node_type::literal_true : ast_node_type::literal_false;
     case jsonv::kind::string:
+        // A `value`'s string bytes are already decoded, so there is never an escape sequence to report.
+        return ast_node_type::string_canonical;
+    case jsonv::kind::integer:
+        return ast_node_type::integer;
+    case jsonv::kind::decimal:
+        // A non-finite `double` has no JSON representation. `null` is what the encoder writes for one, so a
+        // value-sourced reader and an encoded document agree about what a NaN looks like.
+        return std::isfinite(source.as_decimal()) ? ast_node_type::decimal : ast_node_type::literal_null;
+    case jsonv::kind::null:
+    default:
+        return ast_node_type::literal_null;
+    }
+}
+
+ast_node reader::impl_value::load_value_node(const value& source) const
+{
+    // Switching on `value_node_type` rather than `kind` is what keeps `current` and `current_type` from disagreeing
+    // about a NaN, since only one of them decides what one is.
+    switch (value_node_type(source))
     {
-        // A `value`'s string bytes are already decoded, so this is always the canonical node type and no escape
-        // decoding ever runs on this path. Note that a string containing a `"` therefore produces a token which is
-        // not well-formed JSON on its own -- that is safe only because nothing re-lexes it, and the canonical
-        // `detail::string_from_token` strips exactly the outer two bytes.
+    case ast_node_type::object_begin:
+        return ast_node(std::in_place_type<ast_node::object_begin>, token_object_begin, source.size());
+    case ast_node_type::array_begin:
+        return ast_node(std::in_place_type<ast_node::array_begin>, token_array_begin, source.size());
+    case ast_node_type::literal_true:
+        return ast_node(std::in_place_type<ast_node::literal_true>, token_true);
+    case ast_node_type::literal_false:
+        return ast_node(std::in_place_type<ast_node::literal_false>, token_false);
+    case ast_node_type::string_canonical:
+    {
+        // Note that a string containing a `"` produces a token which is not well-formed JSON on its own -- that is
+        // safe only because nothing re-lexes it, and the canonical `detail::string_from_token` strips exactly the
+        // outer two bytes.
         auto text = _arena.intern_quoted(source.as_string());
         return ast_node(std::in_place_type<ast_node::string_canonical>, text.data(), text.size());
     }
-    case jsonv::kind::integer:
+    case ast_node_type::integer:
     {
         char buffer[number_token_max];
-        if (auto text = format_integer(source.as_integer(), buffer))
-        {
-            auto token = _arena.intern(*text);
-            return ast_node(std::in_place_type<ast_node::integer>, token.data(), token.size());
-        }
-        break;
+        auto text = format_integer(source.as_integer(), buffer);
+        if (!text)
+            break;
+
+        auto token = _arena.intern(*text);
+        return ast_node(std::in_place_type<ast_node::integer>, token.data(), token.size());
     }
-    case jsonv::kind::decimal:
+    case ast_node_type::decimal:
     {
-        auto decimal = source.as_decimal();
-        if (std::isfinite(decimal))
-        {
-            char buffer[number_token_max];
-            if (auto text = format_decimal(decimal, buffer))
-            {
-                auto token = _arena.intern(*text);
-                return ast_node(std::in_place_type<ast_node::decimal>, token.data(), token.size());
-            }
-        }
-        break;
+        char buffer[number_token_max];
+        auto text = format_decimal(source.as_decimal(), buffer);
+        if (!text)
+            break;
+
+        auto token = _arena.intern(*text);
+        return ast_node(std::in_place_type<ast_node::decimal>, token.data(), token.size());
     }
+    default:
+        return ast_node(std::in_place_type<ast_node::literal_null>, token_null);
     }
 
-    // A number with no JSON representation. That is reachable for a non-finite `double` and, in principle, for a
-    // `to_chars` failure which `number_token_max` makes impossible. `null` is what the encoder writes for the former,
-    // so a value-sourced reader and an encoded document agree about what a NaN looks like.
-    return ast_node(std::in_place_type<ast_node::literal_null>, token_null);
+    // A `to_chars` failure, which `number_token_max` makes impossible. Falling back to some other node would leave
+    // `current_type` naming a number that `current` does not hold.
+    throw std::logic_error("Could not format a number as a JSON token");
+}
+
+ast_node_type reader::impl_value::load_current_type() const
+{
+    switch (_position)
+    {
+    case position::document_start:
+        return ast_node_type::document_start;
+    case position::at_value:
+        return value_node_type(current_value());
+    case position::at_key:
+        return ast_node_type::key_canonical;
+    case position::at_close:
+        return _close_type;
+    case position::document_end:
+        return ast_node_type::document_end;
+    case position::exhausted:
+    default:
+        // There is no token, and `current` is what says so.
+        return current().type();
+    }
 }
 
 std::optional<ast_node> reader::impl_value::load_current() const

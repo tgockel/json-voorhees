@@ -830,9 +830,26 @@ TEST(reader_expect_on_exhausted_reader_throws_logic_error)
         ;
 
     ensure(!reader.good());
+    ensure_throws(std::logic_error, reader.current_type());
     ensure_throws(std::logic_error, reader.expect(jsonv::ast_node_type::integer));
     ensure_throws(std::logic_error, reader.expect({ jsonv::ast_node_type::integer }));
     ensure_throws(std::logic_error, reader.current_as<jsonv::ast_node::integer>());
+
+    // Exhausted is the more fundamental mistake, so it is the one reported when the caller has also expected nothing.
+    ensure_throws(std::logic_error, reader.expect({}));
+}
+
+/// A value-backed reader answers `current_type` from its cursor rather than from a node, so running out has its own
+/// path there -- which has to end in the same exception `current` throws.
+TEST(reader_from_value_current_type_on_exhausted_reader_throws_logic_error)
+{
+    auto reader = jsonv::reader::from_value(jsonv::value(5));
+    while (reader.next_token())
+        ;
+
+    ensure(!reader.good());
+    ensure_throws(std::logic_error, reader.current_type());
+    ensure_throws(std::logic_error, reader.expect(jsonv::ast_node_type::integer));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -905,6 +922,7 @@ TEST(reader_moved_from_source_throws_invalid_argument)
 
     ensure(!src.good());
     ensure_throws(std::invalid_argument, src.current());
+    ensure_throws(std::invalid_argument, src.current_type());
     ensure_throws(std::invalid_argument, src.current_path());
     ensure_throws(std::invalid_argument, src.expect(jsonv::ast_node_type::integer));
     ensure_throws(std::invalid_argument, src.expect({ jsonv::ast_node_type::integer }));
@@ -958,7 +976,7 @@ std::optional<my_object> extract_my_object(jsonv::reader& from)
         return std::nullopt;
 
     my_object out;
-    while (from.good() && from.current().type() != jsonv::ast_node_type::object_end)
+    while (from.good() && from.current_type() != jsonv::ast_node_type::object_end)
     {
         // Keys arrive canonical or escaped, depending on whether the source used escape sequences.
         if (!from.expect({ jsonv::ast_node_type::key_canonical, jsonv::ast_node_type::key_escaped }))
@@ -998,7 +1016,7 @@ std::optional<std::int64_t> find_a(jsonv::reader& from)
     if (!from.next_token())
         return std::nullopt;
 
-    while (from.good() && from.current().type() != jsonv::ast_node_type::object_end)
+    while (from.good() && from.current_type() != jsonv::ast_node_type::object_end)
     {
         if (!from.expect({ jsonv::ast_node_type::key_canonical, jsonv::ast_node_type::key_escaped }))
             return std::nullopt;
@@ -1178,8 +1196,15 @@ static void ensure_value_walk_matches_text(const jsonv::value& source,
 
     for (std::size_t idx = 0U; ; ++idx)
     {
+        // Asked before `current`, which caches the node and would answer `current_type` from that. On a value-backed
+        // reader this is the path that reads the cursor instead of synthesising the token.
+        auto text_type  = from_text.current_type();
+        auto value_type = from_value.current_type();
+
         JSONV_READER_TESTS_LOG(std::endl << "[" << idx << "] " << from_text.current().type());
 
+        ensure_eq(from_text.current().type(),  text_type);
+        ensure_eq(from_value.current().type(), value_type);
         ensure_eq(expected_type(from_text.current().type(), walk_source::value), from_value.current().type());
         ensure_eq(node_payload(from_text.current()),                             node_payload(from_value.current()));
 
@@ -1381,6 +1406,8 @@ TEST(reader_from_value_non_finite_decimal_is_null)
 
         auto reader = jsonv::reader::from_value(value);
         ensure(reader.next_token());
+        // Asked first, so it is answered from the cursor rather than from a node already built.
+        ensure_eq(jsonv::ast_node_type::literal_null, reader.current_type());
         ensure_eq(jsonv::ast_node_type::literal_null, reader.current().type());
 
         // ...which is what the text path does too.

@@ -50,7 +50,7 @@ protected:
         // extractors follow for the same reason.
         const value* lent = from.current_value();
         bool         none = lent ? lent->kind() == jsonv::kind::null
-                                 : from.current().type() == ast_node_type::literal_null;
+                                 : from.current_type() == ast_node_type::literal_null;
 
         // Everything past here steps the cursor before it builds anything, so a `TOptional` which refuses -- its
         // default constructor for the `null` case, its converting one for the other -- fails with the value behind

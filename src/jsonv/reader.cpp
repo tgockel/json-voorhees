@@ -13,6 +13,7 @@
 
 #include <stdexcept>
 
+#include "detail.hpp"
 #include "reader_impl.hpp"
 #include "reader_impl_parse_index.hpp"
 #include "reader_impl_value.hpp"
@@ -98,12 +99,15 @@ bool reader::owns_source() const noexcept
 
 std::expected<void, ast_node_type> reader::expect(ast_node_type type) const
 {
-    return current().expect(type);
+    return expect_node_type(current_type(), type);
 }
 
 std::expected<void, ast_node_type> reader::expect(std::initializer_list<ast_node_type> types) const
 {
-    return current().expect(types);
+    // `current_type` first: a reader which is not `good` is the more fundamental mistake, so it is the one reported
+    // when a caller has made both.
+    auto found = current_type();
+    return expect_node_type(found, types);
 }
 
 const ast_node& reader::current() const
@@ -114,9 +118,18 @@ const ast_node& reader::current() const
         throw std::invalid_argument("reader instance has been moved-from");
 }
 
-const value* reader::current_value() const noexcept
+ast_node_type reader::current_type() const
 {
     if (_impl)
+        return _impl->current_type();
+    else
+        throw std::invalid_argument("reader instance has been moved-from");
+}
+
+const value* reader::current_value() const noexcept
+{
+    // Asked on every scalar an extractor reads, so a reader over text answers without the virtual call.
+    if (_impl && _impl->value_backed())
         return _impl->borrowed_value();
     else
         return nullptr;

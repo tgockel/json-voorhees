@@ -19,7 +19,8 @@ namespace jsonv
 // reader::impl                                                                                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-reader::impl::impl() :
+reader::impl::impl(bool value_backed) :
+        _value_backed(value_backed),
         _current_dirty(true),
         _current_path_dirty(true)
 { }
@@ -48,6 +49,21 @@ const ast_node& reader::impl::current() const
         return *_current;
     else
         throw std::logic_error("Cannot get current -- did `next` or `skip` return false?");
+}
+
+ast_node_type reader::impl::current_type() const
+{
+    // A tape hands out a node for the cost of decoding it, so a reader over text goes straight to one. Only a source
+    // which would have to synthesise the node's text has a cheaper answer, and a cached node is cheaper still.
+    if (_current_dirty && _value_backed)
+        return load_current_type();
+    else
+        return current().type();
+}
+
+ast_node_type reader::impl::load_current_type() const
+{
+    return current().type();
 }
 
 const value* reader::impl::borrowed_value() const noexcept
@@ -97,23 +113,23 @@ bool reader::impl::next_value()
 
 bool reader::impl::next_key()
 {
-    ast_node_type current_type;
+    ast_node_type type;
     try
     {
-        current_type = current().type();
+        type = current_type();
     }
     catch (...)
     {
         return false;
     }
 
-    if (  current_type != ast_node_type::key_canonical
-       && current_type != ast_node_type::key_escaped
-       && current_type != ast_node_type::object_begin
+    if (  type != ast_node_type::key_canonical
+       && type != ast_node_type::key_escaped
+       && type != ast_node_type::object_begin
        )
     {
         std::ostringstream ss;
-        ss << "Cannot call next_key for non-key AST node type " << current().type();
+        ss << "Cannot call next_key for non-key AST node type " << type;
         throw std::invalid_argument(std::move(ss).str());
     }
 
@@ -129,7 +145,7 @@ bool reader::impl::next_structure_impl() noexcept
         return false;
 
     // If we start at the end of a structure, then just go to the next thing
-    if (auto tok = current().type();
+    if (auto tok = current_type();
         tok == ast_node_type::object_end || tok == ast_node_type::array_end
        )
     {
@@ -139,7 +155,7 @@ bool reader::impl::next_structure_impl() noexcept
     std::size_t depth = 1U;
     while (next_token())
     {
-        auto tok = current().type();
+        auto tok = current_type();
         if (tok == ast_node_type::object_end || tok == ast_node_type::array_end)
         {
             --depth;
@@ -165,7 +181,7 @@ bool reader::impl::next_key_impl() noexcept
     if (!next_token())
         return false;
 
-    if (auto tok = current().type();
+    if (auto tok = current_type();
         (  tok == ast_node_type::key_canonical
         || tok == ast_node_type::key_escaped
         || tok == ast_node_type::object_end
@@ -178,7 +194,7 @@ bool reader::impl::next_key_impl() noexcept
     std::size_t depth = 0U;
     do
     {
-        auto tok = current().type();
+        auto tok = current_type();
         if (tok == ast_node_type::object_end || tok == ast_node_type::array_end || tok == ast_node_type::document_end)
         {
             --depth;

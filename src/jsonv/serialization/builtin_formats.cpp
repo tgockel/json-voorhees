@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <exception>
 #include <expected>
+#include <locale>
 #include <sstream>
 #include <string>
 #include <optional>
@@ -66,7 +67,7 @@ std::unexpected<ast_node_type> problem_from_exception(extraction_context& contex
 JSONV_NODISCARD
 std::unexpected<ast_node_type> problem_wrong_type(extraction_context& context, reader& from, std::string_view wanted)
 {
-    auto               found = from.current().type();
+    auto               found = from.current_type();
     std::ostringstream os;
 
     os << "Read node of type " << describe(found) << " when expecting " << wanted;
@@ -83,9 +84,14 @@ std::unexpected<ast_node_type> problem_wrong_type(extraction_context& context, r
 JSONV_NODISCARD
 std::expected<std::string, ast_node_type> read_string(extraction_context& context, reader& from)
 {
+    // A lent `value` holds the decoded string already. The token a value-backed reader would synthesise for it is a
+    // quoted copy in its arena, which this would only copy again.
+    if (const value* lent = from.current_value())
+        return lent->as_string();
+
     try
     {
-        if (from.current().type() == ast_node_type::string_canonical)
+        if (from.current_type() == ast_node_type::string_canonical)
             return std::string(from.current().as<ast_node::string_canonical>().value());
         else
             return from.current().as<ast_node::string_escaped>().value();
@@ -143,6 +149,21 @@ std::expected<double, ast_node_type> read_decimal(extraction_context& context, r
     }
 }
 
+/// Record that the integer \a literal does not fit in a \c T. Every route to an integer words it the same way, so the
+/// message does not depend on whether the number was read from text or from a \c value.
+template <typename T, typename TLiteral>
+JSONV_NODISCARD
+std::unexpected<ast_node_type> problem_out_of_range(extraction_context& context, reader& from, const TLiteral& literal)
+{
+    std::ostringstream os;
+
+    // A stream starts out in the global locale, which may group digits. Text arrives here as the token it was spelt
+    // with, so a number from a `value` has to be spelt the same way -- `1000`, never `1,000`.
+    os.imbue(std::locale::classic());
+    os << "Integer " << literal << " is out of range for " << demangle(typeid(T).name());
+    return context.problem(context.problem_path(from), std::move(os).str());
+}
+
 /// Read the integer token the reader is on as a \c T, which is where the built-ins' range policy lives.
 ///
 /// \c std::from_chars reads the token against the destination type directly, so a literal too large for it is a
@@ -153,6 +174,17 @@ template <typename T>
 JSONV_NODISCARD
 std::expected<T, ast_node_type> read_integer(extraction_context& context, reader& from)
 {
+    // A lent `value` already holds the number as a `std::int64_t`, which is all a value-backed reader's token is a
+    // rendering of -- so this is the check `from_chars` would make of that token, without formatting it to find out.
+    if (const value* lent = from.current_value())
+    {
+        auto wide = lent->as_integer();
+        if (std::in_range<T>(wide))
+            return static_cast<T>(wide);
+        else
+            return problem_out_of_range<T>(context, from, wide);
+    }
+
     auto token = from.current().token_raw();
     T    out{};
 
@@ -160,9 +192,7 @@ std::expected<T, ast_node_type> read_integer(extraction_context& context, reader
     if (result.ec == std::errc() && result.ptr == token.data() + token.size())
         return out;
 
-    std::ostringstream os;
-    os << "Integer " << token << " is out of range for " << demangle(typeid(T).name());
-    return context.problem(context.problem_path(from), std::move(os).str());
+    return problem_out_of_range<T>(context, from, token);
 }
 
 /// Is the value the reader is on the empty one of its kind? This is all \c coerce_boolean needs to know about a
@@ -246,7 +276,7 @@ std::expected<std::string_view, ast_node_type> extract_string_view(extraction_co
         // in the reader's arena and dies with the reader.
         out = borrowed->as_string_view();
     }
-    else if (from.current().type() == ast_node_type::string_canonical)
+    else if (from.current_type() == ast_node_type::string_canonical)
     {
         // Text-backed and canonical: the token is the string, so this views the source document directly.
         out = from.current().as<ast_node::string_canonical>().value();
@@ -270,7 +300,7 @@ std::expected<bool, ast_node_type> extract_boolean(extraction_context& context, 
     if (!matched)
         return std::unexpected(matched.error());
 
-    bool out = from.current().type() == ast_node_type::literal_true;
+    bool out = from.current_type() == ast_node_type::literal_true;
     (void) from.next_token();
     return out;
 }
@@ -448,7 +478,7 @@ std::expected<std::string, ast_node_type> coerce_extract_string(extraction_conte
     if (auto lent = coerce_lent_value(context, from, coerce_string))
         return *std::move(lent);
 
-    switch (from.current().type())
+    switch (from.current_type())
     {
     case ast_node_type::string_canonical:
     case ast_node_type::string_escaped:
@@ -481,7 +511,7 @@ std::expected<bool, ast_node_type> coerce_extract_boolean(extraction_context& co
         return *std::move(lent);
 
     bool out = false;
-    switch (from.current().type())
+    switch (from.current_type())
     {
     case ast_node_type::literal_null:
     case ast_node_type::literal_false:
@@ -556,11 +586,7 @@ JSONV_NODISCARD
 std::expected<T, ast_node_type> narrow_checked(extraction_context& context, reader& from, std::int64_t wide)
 {
     if (!std::in_range<T>(wide))
-    {
-        std::ostringstream os;
-        os << "Integer " << wide << " is out of range for " << demangle(typeid(T).name());
-        return context.problem(context.problem_path(from), std::move(os).str());
-    }
+        return problem_out_of_range<T>(context, from, wide);
 
     // Everything `coerce_integer` reads is a single token, so this is `next_value` by another name.
     (void) from.next_token();
@@ -582,7 +608,7 @@ std::expected<T, ast_node_type> coerce_extract_integer(extraction_context& conte
     }
 
     std::expected<std::int64_t, ast_node_type> wide;
-    switch (from.current().type())
+    switch (from.current_type())
     {
     case ast_node_type::integer:
     {
@@ -624,7 +650,7 @@ std::expected<double, ast_node_type> coerce_extract_decimal(extraction_context& 
         return *std::move(lent);
 
     std::expected<double, ast_node_type> out;
-    switch (from.current().type())
+    switch (from.current_type())
     {
     case ast_node_type::integer:
     case ast_node_type::decimal:

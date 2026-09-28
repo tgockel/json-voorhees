@@ -47,6 +47,17 @@ std::optional<std::string_view> format_decimal(double value, char* buffer);
 std::optional<std::string_view> format_integer(std::int64_t value, char* buffer);
 /// \}
 
+/// \{
+/// \c ast_node::expect asked of a node type rather than a node. \c reader::expect answers through here with
+/// \c reader::current_type, which a value-backed reader can give without synthesising the node's token text.
+///
+/// \throws std::invalid_argument if \a expected_types is empty.
+std::expected<void, ast_node_type> expect_node_type(ast_node_type found_type, ast_node_type expected_type);
+std::expected<void, ast_node_type> expect_node_type(ast_node_type                        found_type,
+                                                    std::initializer_list<ast_node_type> expected_types
+                                                   );
+/// \}
+
 /// The \c value an integer token is read as -- the single definition of it for everything which builds a \c value
 /// from JSON text, which is \c parse and a \c reader over text. A literal from 2^63 through 2^64-1 keeps its bits as
 /// \c ast_node::integer::value() does, and one beyond the range of 64 bits altogether is the nearest \c double.

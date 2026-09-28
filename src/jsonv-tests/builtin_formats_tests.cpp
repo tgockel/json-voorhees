@@ -24,6 +24,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <locale>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -69,6 +71,65 @@ extraction_error::problem refused(std::string_view source, const formats& fmts =
     ensure_eq(1U, cxt.problems().size());
     return cxt.problems().at(0);
 }
+
+/// Check that \a source is refused as a \c T with the same problem whether it is read from the JSON text or from the
+/// \c value the text parses to.
+///
+/// A value-backed reader lends its \c std::int64_t rather than formatting it into a token for \c from_chars to parse
+/// back, so the range check runs on the number rather than on its text. Nothing in the problem may show which.
+template <typename T>
+void check_refused_alike(std::string_view source, const formats& fmts = formats::defaults())
+{
+    auto from_text = refused<T>(source, fmts);
+
+    extraction_context cxt(fmts);
+    auto               rdr = reader::from_value(parse(source));
+    (void) rdr.next_token();
+
+    ensure(!cxt.extract<T>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(from_text.message(), cxt.problems().at(0).message());
+    ensure_eq(from_text.path(),    cxt.problems().at(0).path());
+}
+
+/// Digits grouped in threes with a `,`, which a stream applies to every number inserted into it while this is part of
+/// its locale.
+class grouping_numpunct final :
+        public std::numpunct<char>
+{
+protected:
+    virtual char do_thousands_sep() const override
+    {
+        return ',';
+    }
+
+    virtual std::string do_grouping() const override
+    {
+        return "\3";
+    }
+};
+
+/// Make \c grouping_numpunct part of the global locale for as long as this lives, which is what every stream built in
+/// the meantime starts out with. Restored on the way out however that happens, so that a failure part-way through a
+/// test does not leave every test after it running under a different locale.
+class global_grouping_locale final
+{
+public:
+    global_grouping_locale() :
+            _previous(std::locale::global(std::locale(std::locale::classic(), new grouping_numpunct)))
+    { }
+
+    global_grouping_locale(const global_grouping_locale&)            = delete;
+    global_grouping_locale& operator=(const global_grouping_locale&) = delete;
+
+    ~global_grouping_locale() noexcept
+    {
+        std::locale::global(_previous);
+    }
+
+private:
+    std::locale _previous;
+};
 
 bool mentions(const extraction_error::problem& problem, std::string_view text)
 {
@@ -182,6 +243,35 @@ TEST(builtin_integer_from_a_value_reads_what_the_value_holds)
 
     // Read from the text, the literal says what it says.
     ensure_eq(std::numeric_limits<std::uint64_t>::max(), extracted<std::uint64_t>("18446744073709551615"));
+}
+
+TEST(builtin_integer_out_of_range_reads_the_same_from_a_value)
+{
+    check_refused_alike<std::uint8_t>("300");
+    check_refused_alike<std::int8_t>("-129");
+    check_refused_alike<std::uint32_t>("-1");
+    check_refused_alike<std::uint64_t>("-9223372036854775808");
+}
+
+TEST(builtin_integer_out_of_range_reads_the_same_under_a_grouping_locale)
+{
+    // A number inserted into the stream a message is built in picks up the global locale's digit grouping, where the
+    // text path writes the token as the document spelt it. A value-sourced message which inserted its `std::int64_t`
+    // would read `1,000` for a document which said `1000`.
+    global_grouping_locale grouping;
+
+    // The facet really is in effect, or nothing below proves anything.
+    std::ostringstream probe;
+    probe << 1000;
+    ensure_eq(std::string("1,000"), probe.str());
+
+    check_refused_alike<std::uint8_t>("1000");
+    check_refused_alike<std::int16_t>("-40000");
+    check_refused_alike<std::uint64_t>("-9223372036854775808");
+
+    // `formats::coerce` gets there by a different route from a `value`, narrowing what `coerce_integer` produced.
+    check_refused_alike<std::uint8_t>("1000", formats::coerce());
+    check_refused_alike<std::uint64_t>("-9223372036854775808", formats::coerce());
 }
 
 TEST(builtin_decimal_from_decimal_and_integer)

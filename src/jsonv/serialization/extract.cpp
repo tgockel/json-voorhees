@@ -325,7 +325,7 @@ static path enclosing_path(const reader& from) noexcept
     {
         if (from.good())
         {
-            auto type        = from.current().type();
+            auto type        = from.current_type();
             on_closing_token = type == ast_node_type::object_end
                             || type == ast_node_type::array_end
                             || type == ast_node_type::document_end;
@@ -587,7 +587,7 @@ void detail::extract_entry(extraction_context&   context,
 
     // Decided once and then trusted by all three of the steps which depend on it -- validating, stepping onto the
     // value, and requiring nothing after it -- so they cannot disagree about whether this is a whole document.
-    const auto entry_type     = from.good() ? std::optional(from.current().type()) : std::nullopt;
+    const auto entry_type     = from.good() ? std::optional(from.current_type()) : std::nullopt;
     const bool whole_document = entry_type == ast_node_type::document_start;
 
     // An `error` node under the cursor means the parse failed there, so there is no value to extract whether or not the
@@ -625,7 +625,7 @@ void detail::extract_entry(extraction_context&   context,
     // There is an object in `into` from here on, so every way out but success destroys it.
     auto discard = on_scope_exit([&] { destroy(into); });
 
-    if (from.good() && from.current().type() == ast_node_type::document_end)
+    if (from.good() && from.current_type() == ast_node_type::document_end)
     {
         discard.release();
         return;
@@ -679,7 +679,7 @@ static void finish_structure(reader& from, ast_node_type close)
 {
     while (from.good())
     {
-        auto type = from.current().type();
+        auto type = from.current_type();
         if (type == close)
         {
             (void) from.next_token();
@@ -704,7 +704,7 @@ static value read_object(reader& from)
         value out = object();
         while (from.good())
         {
-            if (from.current().type() == ast_node_type::object_end)
+            if (from.current_type() == ast_node_type::object_end)
             {
                 // One past the `}` -- the contract every caller of read_value is promised.
                 (void) from.next_token();
@@ -744,7 +744,7 @@ static value read_array(reader& from)
         value out = array();
         while (from.good())
         {
-            if (from.current().type() == ast_node_type::array_end)
+            if (from.current_type() == ast_node_type::array_end)
             {
                 (void) from.next_token();
                 return out;
@@ -847,7 +847,7 @@ detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& 
         _committed(false),
         _uncaught_on_entry(std::uncaught_exceptions())
 {
-    if (from.good() && from.current().type() == ast_node_type::document_start)
+    if (from.good() && from.current_type() == ast_node_type::document_start)
         (void) from.next_token();
 
     if (const value* lent = from.current_value())
@@ -855,7 +855,7 @@ detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& 
         // The reader is walking a tree which already exists, so hand out the node itself and leave the cursor on it.
         _borrowed = lent;
     }
-    else if (from.good() && is_scalar(from.current().type()))
+    else if (from.good() && is_scalar(from.current_type()))
     {
         // One token is the whole value, so it can be read without moving.
         _owned        = read_scalar(from.current());
@@ -934,7 +934,7 @@ void detail::borrowed_subtree::commit()
 
 value read_value(reader& from)
 {
-    if (from.good() && from.current().type() == ast_node_type::document_start)
+    if (from.good() && from.current_type() == ast_node_type::document_start)
         (void) from.next_token();
 
     if (!from.good())
@@ -945,14 +945,14 @@ value read_value(reader& from)
 
 value read_value(extraction_context& context, reader& from)
 {
-    if (from.good() && from.current().type() == ast_node_type::document_start)
+    if (from.good() && from.current_type() == ast_node_type::document_start)
         (void) from.next_token();
 
     // A scalar is converted before the cursor steps over it, and a structure is stepped into before anything which can
     // fail, so whether a failure leaves the value behind the cursor is exactly whether it was a structure.
     const bool structure = from.good()
-                        && (  from.current().type() == ast_node_type::object_begin
-                           || from.current().type() == ast_node_type::array_begin
+                        && (  from.current_type() == ast_node_type::object_begin
+                           || from.current_type() == ast_node_type::array_begin
                            );
     try
     {

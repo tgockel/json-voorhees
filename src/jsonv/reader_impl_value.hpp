@@ -33,7 +33,8 @@ namespace jsonv
 ///
 /// So this is a bump allocator over chunks which are never reused or freed while it lives. Only numbers, strings and
 /// keys need it -- every other token is a view into a static string -- and the base memoizes \c load_current, so it
-/// grows by at most one token per node actually visited. A walk which skips a subtree never pays for it.
+/// grows by at most one token per node whose \c current is asked for. A walk which skips a subtree, or which only
+/// asks \c current_type, never pays for it.
 class JSONV_LOCAL reader_token_arena final
 {
 public:
@@ -75,6 +76,10 @@ public:
     virtual bool good() const override;
 
     virtual std::optional<ast_node> load_current() const override;
+
+    /// Answered from the cursor, so that asking what is next -- a `]`, another number -- does not format a number or
+    /// copy a string into the arena only for nobody to read it.
+    virtual ast_node_type load_current_type() const override;
 
     virtual std::optional<path> load_current_path() const override;
 
@@ -119,6 +124,9 @@ private:
     /// The value the cursor is on in \c position::at_value. With no frames that is the root, since the root is the
     /// only value not inside a container.
     const value& current_value() const noexcept;
+
+    /// The type of the node \c load_value_node builds for \a source, decided without building it.
+    static ast_node_type value_node_type(const value& source);
 
     /// Build the node for \a source, synthesising its token text into the arena if it needs any.
     ast_node load_value_node(const value& source) const;
