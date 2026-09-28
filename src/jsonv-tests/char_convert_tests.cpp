@@ -212,6 +212,14 @@ TEST(string_encode_passthrough_only_passes_well_formed_utf8)
     ensure_eq("\\u00c0\\u0080",               string_encode_static("\xc0\x80",         false));
     ensure_eq("\\u00ed\\u00a0\\u0080",        string_encode_static("\xed\xa0\x80",     false));
     ensure_eq("\\u00f5\\u0080\\u0080\\u0080", string_encode_static("\xf5\x80\x80\x80", false));
+
+    // A lone ASCII byte is well-formed UTF-8 too, but JSON requires the controls to be escaped, and `utf8_strict`
+    // refuses DEL as well, so none of them is passed through (#273).
+    ensure_eq("\\u0000", string_encode_static(std::string(1, '\0'), false));
+    ensure_eq("\\u0001", string_encode_static("\x01",               false));
+    ensure_eq("\\u001f", string_encode_static("\x1f",               false));
+    ensure_eq("\\u007f", string_encode_static("\x7f",               false));
+    ensure_eq("\\n",     string_encode_static("\n",                 false));
 }
 
 TEST(string_decode_rejects_ill_formed_utf8)

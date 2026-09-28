@@ -165,8 +165,10 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
                     code = char32_t(current) & 0xff;
                 }
 
-                // if the input string is valid UTF-8, let it pass through
-                if (valid_utf8 && !ensure_ascii)
+                // Without `ensure_ascii`, a well-formed multi-byte sequence passes through as it is. A single byte only
+                // gets this far if it is an ASCII control or DEL, and those are escaped either way: JSON requires it
+                // of the controls, and `utf8_strict` refuses DEL too.
+                if (valid_utf8 && length > 1 && !ensure_ascii)
                 {
                     stream.write(&current, length);
                 }
