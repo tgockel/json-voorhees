@@ -375,29 +375,35 @@ TEST_PARSE(literal)
 
 TEST_PARSE(comments_invalid_leading_slash_then_bogus)
 {
-    ensure_throws(parse_error, parse("{}/1"));
+    ensure_throws(parse_error, parse("{}/1", parse_options().comments(true)));
 }
 
 TEST_PARSE(malformed_comment_complete)
 {
-    ensure_throws(parse_error, parse("/1"));
+    ensure_throws(parse_error, parse("/1", parse_options().comments(true)));
 }
 
 TEST_PARSE(malformed_comment_in_object)
 {
-    ensure_throws(parse_error, parse(R"({"a": ////////"b"})"));
+    ensure_throws(parse_error, parse(R"({"a": ////////"b"})", parse_options().comments(true)));
 }
 
 TEST_PARSE(comment_in_object)
 {
-    value val = parse(R"({"a": /* yo */"b"})");
+    value val = parse(R"({"a": /* yo */"b"})", parse_options().comments(true));
     ensure_eq(object({ { "a", "b" } }), val);
 }
 
 TEST_PARSE(comment_in_array)
 {
-    value val = parse(R"(["a", /* yo */"b"])");
+    value val = parse(R"(["a", /* yo */"b"])", parse_options().comments(true));
     ensure_eq(array({ "a", "b" }), val);
+}
+
+TEST_PARSE(comment_rejected_by_default)
+{
+    ensure_throws(parse_error, parse(R"({"a": /* yo */"b"})"));
+    ensure_throws(parse_error, parse(R"(["a", /* yo */"b"])"));
 }
 
 TEST_PARSE(invalid_utf8_input)

@@ -30,15 +30,14 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     const std::string_view text(reinterpret_cast<const char*>(data), size);
 
     // Each of these reaches branches the others do not: `create_strict` switches on utf8_strict *and* drops the depth
-    // limit to 20, requires a document at the top level, and disallows comments; the third isolates the utf8_strict
-    // printability check in `match_string` from those other three changes; the fourth isolates comments, which are
-    // accepted by default.
+    // limit to 20 and requires a document at the top level; the third isolates the utf8_strict printability check in
+    // `match_string` from those other two changes; the fourth isolates comments, which every other one refuses.
     const jsonv::parse_options options[] =
         {
             jsonv::parse_options::create_default(),
             jsonv::parse_options::create_strict(),
             jsonv::parse_options().string_encoding(jsonv::parse_options::encoding::utf8_strict),
-            jsonv::parse_options().comments(false),
+            jsonv::parse_options().comments(true),
         };
 
     for (const auto& opts : options)

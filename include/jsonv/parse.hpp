@@ -150,7 +150,8 @@ public:
     /// \{
     /// Are JSON comments allowed? While there is no official syntax for JSON comments, this uses the de-facto standard
     /// of ECMAScript-style block comments: `/* comment */`. If this is enabled, comments are treated exactly like
-    /// whitespace.
+    /// whitespace. This is off by default, since RFC 8259 has no comments and a conforming parser rejects them; turn
+    /// it on for configuration files and other input written in that dialect.
     JSONV_NODISCARD
     bool           comments() const { return _comments; }
     parse_options& comments(bool);
@@ -163,7 +164,7 @@ private:
     std::optional<size_type> _max_struct_depth = std::nullopt;
     bool                _require_document = false;
     bool                _complete_parse   = true;
-    bool                _comments         = true;
+    bool                _comments         = false;
 };
 
 /// \{

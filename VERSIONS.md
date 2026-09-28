@@ -107,6 +107,12 @@
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
        (things like allowing ECMAScript-style block comments `/* ... */`) and extraction-specific options and errors
        (things like what to do if an object has the same key).
+     - `parse_options` refuses comments by default. RFC 8259 has no comments, but a default-constructed
+       `parse_options` accepted `/* ... */` anywhere whitespace may go, so `parse`, `parse_index::parse`, a `reader`
+       over text and `extract<T>` from text all read a dialect of JSON unless told otherwise. They now read the
+       standard, and `parse_options().comments(true)` is how to read configuration files and other input which
+       uses comments. This is a behavioural break for anyone relying on the old default: text with a comment in it
+       which used to parse now fails to. `create_strict()` refused comments already and is unchanged (#186).
      - Fixed `match_string` passing a raw `char` to `std::isxdigit` when validating the four hex digits of a `\u`
        escape, and `compare_icase` doing the same with `std::tolower`. Both classifiers are defined only over
        `unsigned char` values and `EOF`, so a byte at or above `0x80` -- negative in a signed `char` -- was

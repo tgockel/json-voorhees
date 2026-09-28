@@ -17,7 +17,7 @@ lit_true="true"
 lit_false="false"
 lit_null="null"
 
-# Comments -- accepted by default (parse_options::comments)
+# Comments -- off by default, so these only parse where a target turns on parse_options::comments
 comment_open="/*"
 comment_close="*/"
 comment_empty="/**/"

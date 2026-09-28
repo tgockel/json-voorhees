@@ -57,9 +57,10 @@ TEST(parse_unicode_invalid_surrogates)
 static constexpr auto k_utf8        = jsonv::parse_options::encoding::utf8;
 static constexpr auto k_utf8_strict = jsonv::parse_options::encoding::utf8_strict;
 
+/// Comments are on so that a string behind one is still reached, rather than the parse stopping at the `/`.
 static jsonv::parse_options options_for(jsonv::parse_options::encoding encoding)
 {
-    return jsonv::parse_options().string_encoding(encoding);
+    return jsonv::parse_options().string_encoding(encoding).comments(true);
 }
 
 /// `utf8_strict` differs from `utf8` only in refusing unprintable ASCII, so UTF-8 conformance has to hold in both. A

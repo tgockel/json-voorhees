@@ -2260,9 +2260,9 @@ TEST(extract_views_a_source_the_caller_keeps)
 
 TEST(extract_honours_parse_options)
 {
-    // Comments are allowed unless turned off, so turning them off is the non-default worth checking.
-    ensure_eq(5, extract<std::int64_t>("/* c */ 5"));
-    ensure_throws(extraction_error, extract<std::int64_t>("/* c */ 5", parse_options().comments(false)));
+    // Comments are refused unless turned on, so turning them on is the non-default worth checking.
+    ensure_throws(extraction_error, extract<std::int64_t>("/* c */ 5"));
+    ensure_eq(5, extract<std::int64_t>("/* c */ 5", parse_options().comments(true)));
 
     try
     {
@@ -2276,13 +2276,15 @@ TEST(extract_honours_parse_options)
     }
 
     const triple expected = { 1, 2, 3 };
-    ensure_eq(expected, extract<triple>(R"(/* c */ { "a": 1, "b": 2, "c": 3 })", parse_options(), triple_formats()));
+    ensure_eq(expected,
+              extract<triple>(R"(/* c */ { "a": 1, "b": 2, "c": 3 })", parse_options().comments(true), triple_formats())
+             );
 
     // Both sets of options at once, each doing its own job.
     try
     {
         (void) extract<triple>(R"(/* c */ { "a": "x", "b": "y", "c": 3 })",
-                               parse_options(),
+                               parse_options().comments(true),
                                triple_formats(),
                                collecting()
                               );

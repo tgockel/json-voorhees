@@ -85,7 +85,7 @@ def main():
     write("top_level_string.json", b'"a bare string is a document when require_document is off"')
     write("top_level_number.json", b"-12.5e3")
 
-    # Comments are accepted by default, which is easy to forget.
+    # Comments are off by default, so this only parses where a target turns on parse_options::comments.
     write("comments.json", b'{/* c */ "a": /* c */ [1, 2] /* c */ }')
 
     for path in sorted(OUT.iterdir()):

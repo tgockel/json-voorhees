@@ -65,10 +65,13 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
     // is why nothing here may outlive the call.
     const std::string_view text(reinterpret_cast<const char*>(data), size);
 
+    // Comments are off by default, but turning them on lets through more of what the mutator makes -- including
+    // malformed bytes inside a comment, which must not stop a bad string after it being refused. Our own encoding
+    // never writes a comment, so reading it back uses the defaults.
     jsonv::value original;
     try
     {
-        original = jsonv::parse(text);
+        original = jsonv::parse(text, jsonv::parse_options().comments(true));
     }
     catch (const std::exception&)
     {

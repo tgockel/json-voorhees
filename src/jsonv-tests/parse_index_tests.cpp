@@ -11,6 +11,7 @@
 #include "filesystem_util.hpp"
 
 #include <jsonv/ast.hpp>
+#include <jsonv/parse.hpp>
 #include <jsonv/parse_index.hpp>
 
 #include <cstddef>
@@ -21,9 +22,12 @@
 #include <vector>
 
 template <typename TNode>
-TNode parse_single(std::string_view src, std::string_view expected)
+TNode parse_single(std::string_view            src,
+                   std::string_view            expected,
+                   const jsonv::parse_options& options = jsonv::parse_options()
+                  )
 {
-    auto ast = jsonv::parse_index::parse(src);
+    auto ast = jsonv::parse_index::parse(src, options);
     ensure_eq(to_string(ast), expected);
 
     auto iter = ast.begin();
@@ -108,7 +112,10 @@ TEST(ast_parse_nothing)
 
 TEST(ast_parse_comment)
 {
-    parse_single<jsonv::ast_node::literal_null>("null /* <- still null */ ", "^n$");
+    parse_single<jsonv::ast_node::literal_null>("null /* <- still null */ ",
+                                                "^n$",
+                                                jsonv::parse_options().comments(true)
+                                               );
 }
 
 TEST(ast_empty_array)
