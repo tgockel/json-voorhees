@@ -136,7 +136,10 @@
        has it. `ast_node::integer::value()` has no `double` to give and throws `std::invalid_argument` instead, and
        so does `parse` for a literal no `double` holds either, as it already did for `1e400`. A literal from 2^63
        through `UINT64_MAX` still keeps its bits as a negative `std::int64_t`. `coerce_integer` of a string holding
-       one of these now clamps as it does for the same number written as a decimal (#206).
+       one of these now clamps as it does for the same number written as a decimal. A string holding a number with no
+       finite `double` at all -- that long an integer, or `1e400` -- is one `can_coerce` answers `false` for and
+       `coerce_integer` and `coerce_decimal` refuse with `kind_error`, rather than letting out the
+       `std::invalid_argument` `parse` throws for it (#206).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

@@ -15,6 +15,7 @@
 
 #include <cmath>
 #include <limits>
+#include <stdexcept>
 
 #include "detail/fallthrough.hpp"
 
@@ -139,6 +140,11 @@ std::int64_t coerce_integer(const value& from)
         }
         catch (const parse_error&)
         { }
+        catch (const std::invalid_argument&)
+        {
+            // A number with no representation at all -- `1e400`, or an integer literal too long for a `double` to
+            // round -- is no more a number this can interpret than text which failed to parse.
+        }
         throw kind_error(std::string("Could not interpret string ") + to_string(from) + " as an integer.");
     case kind::null:
     case kind::object:
@@ -166,6 +172,11 @@ double coerce_decimal(const value& from)
         }
         catch (const parse_error&)
         { }
+        catch (const std::invalid_argument&)
+        {
+            // A number with no representation at all -- `1e400`, or an integer literal too long for a `double` to
+            // round -- is no more a number this can interpret than text which failed to parse.
+        }
         throw kind_error(std::string("Could not interpret string ") + to_string(from) + " as a decimal.");
     case kind::null:
     case kind::object:

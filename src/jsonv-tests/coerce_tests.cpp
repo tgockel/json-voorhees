@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <limits>
+#include <string>
 
 namespace jsonv_test
 {
@@ -179,6 +180,19 @@ TEST(coerce_integer_string_integer_beyond_64_bits_clamps)
 {
     ensure_eq(std::numeric_limits<std::int64_t>::max(), coerce_integer("18446744074709551600"));
     ensure_eq(std::numeric_limits<std::int64_t>::min(), coerce_integer("-99999999999999999999999"));
+}
+
+// A number with no finite `double` either is not one a string can be coerced to, and `can_coerce` says so rather than
+// letting out what `parse` throws for it.
+TEST(coerce_string_number_beyond_double_is_not_coercible)
+{
+    for (const std::string& text : { std::string(400, '9'), std::string("1e400") })
+    {
+        ensure_throws(kind_error, coerce_integer(value(text)));
+        ensure_throws(kind_error, coerce_decimal(value(text)));
+        ensure(!can_coerce(value(text), kind::integer));
+        ensure(!can_coerce(value(text), kind::decimal));
+    }
 }
 
 // Below that, a string only reaches the decimal clamp in decimal form -- an integer literal past int64 max keeps

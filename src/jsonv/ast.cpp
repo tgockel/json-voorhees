@@ -220,13 +220,15 @@ value integer_node_value(const ast_node::integer& node)
         // JSON puts no bound on an integer, so a literal too large for 64 bits is still a number and has a nearest
         // `double`. Keeping it as a decimal rather than refusing the document is what the `double` extractor already
         // does with the same token, and the kind is what tells a caller who asks for `as_integer` that it was not one.
-        // A magnitude with no finite `double` either is refused by `decimal::value`.
-        return ast_node::decimal(characters.data(), characters.size()).value();
+        // An integer token cannot underflow, so the only failure left is a magnitude with no finite `double` either.
+        auto   end = characters.data() + characters.size();
+        double approx{};
+        auto   result = fast_float::from_chars(characters.data(), end, approx, fast_float::chars_format::general);
+        if (result.ptr == end && result.ec == std::errc{})
+            return approx;
     }
-    else
-    {
-        throw make_failed_numeric_extract(node, "integer");
-    }
+
+    throw make_failed_numeric_extract(node, "integer");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -158,8 +158,16 @@ TEST_PARSE(number_integer_beyond_64_bits_is_decimal)
     ensure(mixed.at(0).kind() == kind::integer);
     ensure(mixed.at(1).kind() == kind::decimal);
 
-    // A magnitude past what a `double` holds is refused just as `1e10000` is.
-    ensure_throws(std::invalid_argument, parse(std::string(400, '9')));
+    // A magnitude past what a `double` holds is refused just as `1e10000` is -- as the integer it was written as.
+    try
+    {
+        (void) parse(std::string(400, '9'));
+        ensure(!"std::invalid_argument was not thrown");
+    }
+    catch (const std::invalid_argument& ex)
+    {
+        ensure(std::string_view(ex.what()).starts_with("Failed to extract integer"));
+    }
 }
 
 TEST_PARSE(number_integer_node_beyond_64_bits_throws)
