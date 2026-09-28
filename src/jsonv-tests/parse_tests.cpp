@@ -9,6 +9,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
 
+#include <jsonv/ast.hpp>
 #include <jsonv/parse.hpp>
 
 #include <cmath>
@@ -16,6 +17,7 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 
 using namespace jsonv;
@@ -104,6 +106,15 @@ TEST_PARSE(number_integer_slow_path_stops_at_view_end_negative)
              );
 }
 
+TEST_PARSE(number_integer_slow_path_stops_at_view_end_at_uint64_max)
+{
+    // `UINT64_MAX` with another digit after the view. Reading that digit would put the magnitude beyond 64 bits, which
+    // used to saturate to `UINT64_MAX` anyway and hide the overrun; now it would come back as a decimal.
+    value result = parse_prefix("184467440737095516159", 20);
+    ensure(result.kind() == kind::integer);
+    ensure_eq(std::int64_t(-1), result.as_integer());
+}
+
 TEST_PARSE(number_integer_at_end_of_input)
 {
     // The same tokens with nothing after them at all -- the case that read past the allocation.
@@ -119,6 +130,43 @@ TEST_PARSE(number_integer_boundaries)
     // 2^63 fits in a uint64 and is stored with its bits intact, which reads back as INT64_MIN.
     ensure_eq(std::numeric_limits<std::int64_t>::min(), parse("9223372036854775808").as_integer());
     ensure_eq(std::int64_t(-1),                         parse("18446744073709551615").as_integer());
+}
+
+TEST_PARSE(number_integer_beyond_64_bits_is_decimal)
+{
+    // There are no bits to keep for these, so they are the nearest `double` rather than the bound they used to be
+    // saturated to -- which made `18446744073709551616` indistinguishable from `UINT64_MAX` (#206). Each expectation
+    // is the same digits as a C++ literal, which the compiler rounds correctly.
+    value just_past = parse("18446744073709551616");
+    ensure(just_past.kind() == kind::decimal);
+    ensure_eq(18446744073709551616.0, just_past.as_decimal());
+    ensure_throws(kind_error, just_past.as_integer());
+
+    value far_past = parse("12345678901234567890123");
+    ensure(far_past.kind() == kind::decimal);
+    ensure_eq(12345678901234567890123.0, far_past.as_decimal());
+
+    value just_below = parse("-9223372036854775809");
+    ensure(just_below.kind() == kind::decimal);
+    ensure_eq(-9223372036854775809.0, just_below.as_decimal());
+
+    value far_below = parse("-99999999999999999999999");
+    ensure(far_below.kind() == kind::decimal);
+    ensure_eq(-99999999999999999999999.0, far_below.as_decimal());
+
+    value mixed = parse("[1, 18446744073709551616]");
+    ensure(mixed.at(0).kind() == kind::integer);
+    ensure(mixed.at(1).kind() == kind::decimal);
+
+    // A magnitude past what a `double` holds is refused just as `1e10000` is.
+    ensure_throws(std::invalid_argument, parse(std::string(400, '9')));
+}
+
+TEST_PARSE(number_integer_node_beyond_64_bits_throws)
+{
+    // The node's own accessor returns a `std::int64_t`, so it has no `double` to fall back on.
+    for (std::string_view token : { "18446744073709551616", "-9223372036854775809" })
+        ensure_throws(std::invalid_argument, ast_node::integer(token.data(), token.size()).value());
 }
 
 static const value simple_obj = object({ { "foo", 4 },

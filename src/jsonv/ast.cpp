@@ -17,7 +17,7 @@
 #include <charconv>
 #include <cstdlib>
 #include <cstring>
-#include <limits>
+#include <expected>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
@@ -26,6 +26,7 @@
 #include <system_error>
 
 #include "char_convert.hpp"
+#include "detail.hpp"
 #include "detail/fast_float/fast_float.h"
 
 namespace jsonv
@@ -144,11 +145,12 @@ static inline std::uint64_t parse_unsigned_integer_swar(const char* p, const cha
     return result;
 }
 
-std::int64_t ast_node::integer::value() const
+// Parse an integer token, which the parser has already matched against the JSON grammar. Fails with
+// `std::errc::result_out_of_range` for a magnitude no 64-bit integer holds.
+static std::expected<std::int64_t, std::errc> parse_integer_token(std::string_view characters) noexcept
 {
-    auto characters = token_raw();
-    auto begin      = characters.data();
-    auto end        = characters.data() + characters.size();
+    auto begin = characters.data();
+    auto end   = characters.data() + characters.size();
 
     const bool negative          = (*begin == '-');
     const auto magnitude_begin   = negative ? begin + 1 : begin;
@@ -156,10 +158,9 @@ std::int64_t ast_node::integer::value() const
 
     // SWAR fast path is safe when the magnitude provably fits without overflowing int64 (negative
     // path) or uint64 (positive path):
-    //   - negative magnitudes >= 19 digits may exceed |INT64_MIN|, where strtoll clamps to LLONG_MIN
-    //   - positive magnitudes >= 20 digits may exceed UINT64_MAX, where strtoull clamps to ULLONG_MAX
-    // Fall back to the strto* slow path in those corners so the existing overflow semantics are
-    // preserved bit-for-bit.
+    //   - negative magnitudes >= 19 digits may exceed |INT64_MIN|
+    //   - positive magnitudes >= 20 digits may exceed UINT64_MAX
+    // Fall back to the `from_chars` slow path in those corners, which reports the ones that do.
     const std::size_t swar_limit = negative ? 18 : 19;
     if (magnitude_digits <= swar_limit)
     {
@@ -173,20 +174,11 @@ std::int64_t ast_node::integer::value() const
     // NUL-terminated. The `strto*` functions scan until they hit a non-digit, so for a token at the
     // very end of the input they read past the end of the buffer. `from_chars` takes an explicit
     // end pointer instead.
-    //
-    // The out-of-range results below reproduce what `strto*` saturation used to yield, since
-    // neither `errno` nor the clamped return value was ever inspected. See issue #206.
+    std::from_chars_result result;
+    std::int64_t           out{};
     if (negative)
     {
-        std::int64_t val{};
-        auto result = std::from_chars(begin, end, val);
-        if (result.ptr == end)
-        {
-            if (result.ec == std::errc{})
-                return val;
-            else if (result.ec == std::errc::result_out_of_range)
-                return std::numeric_limits<std::int64_t>::min();
-        }
+        result = std::from_chars(begin, end, out);
     }
     else
     {
@@ -195,16 +187,46 @@ std::int64_t ast_node::integer::value() const
         // store the bits properly, but the onus is on the user to know the particular key was in the
         // overflow range.
         std::uint64_t val{};
-        auto result = std::from_chars(begin, end, val);
-        if (result.ptr == end)
-        {
-            if (result.ec == std::errc{})
-                return static_cast<std::int64_t>(val);
-            else if (result.ec == std::errc::result_out_of_range)
-                return static_cast<std::int64_t>(std::numeric_limits<std::uint64_t>::max());
-        }
+        result = std::from_chars(begin, end, val);
+        out    = static_cast<std::int64_t>(val);
     }
-    throw make_failed_numeric_extract(*this, "integer");
+
+    if (result.ec != std::errc{})
+        return std::unexpected(result.ec);
+    else if (result.ptr != end)
+        return std::unexpected(std::errc::invalid_argument);
+    else
+        return out;
+}
+
+std::int64_t ast_node::integer::value() const
+{
+    if (auto val = parse_integer_token(token_raw()))
+        return *val;
+    else
+        throw make_failed_numeric_extract(*this, "integer");
+}
+
+value integer_node_value(const ast_node::integer& node)
+{
+    auto characters = node.token_raw();
+    auto val        = parse_integer_token(characters);
+    if (val)
+    {
+        return *val;
+    }
+    else if (val.error() == std::errc::result_out_of_range)
+    {
+        // JSON puts no bound on an integer, so a literal too large for 64 bits is still a number and has a nearest
+        // `double`. Keeping it as a decimal rather than refusing the document is what the `double` extractor already
+        // does with the same token, and the kind is what tells a caller who asks for `as_integer` that it was not one.
+        // A magnitude with no finite `double` either is refused by `decimal::value`.
+        return ast_node::decimal(characters.data(), characters.size()).value();
+    }
+    else
+    {
+        throw make_failed_numeric_extract(node, "integer");
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

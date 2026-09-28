@@ -167,7 +167,7 @@ public:
     /// type is built from.
     ///
     /// Range is the one place the built-ins are stricter than those accessors. An integer literal which does not fit
-    /// the destination is reported as a problem rather than saturated to \c std::int64_t and then wrapped into it, so
+    /// the destination is reported as a problem rather than read as a \c std::int64_t and then wrapped into it, so
     /// \c 999 is not a \c std::uint8_t and \c -1 is not a \c std::uint64_t.
     ///
     /// A \c std::string_view is extracted as a view of the source rather than a copy, so the source has to outlive

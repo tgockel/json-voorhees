@@ -1452,6 +1452,19 @@ TEST(extract_value_and_text_sources_agree)
     ensure_eq(parse(source), *cxt.extract<value>(rdr));
 }
 
+TEST(extract_value_and_text_sources_agree_beyond_64_bits)
+{
+    // A reader over text builds a `value` from an integer token without going through `parse`, so it has to make the
+    // same choice for a literal no 64-bit integer holds (#206).
+    const std::string source = "[18446744073709551615, 18446744073709551616, -99999999999999999999999]";
+
+    const value extracted = extract<value>(source);
+    ensure_eq(parse(source), extracted);
+    ensure(extracted.at(0).kind() == kind::integer);
+    ensure(extracted.at(1).kind() == kind::decimal);
+    ensure(extracted.at(2).kind() == kind::decimal);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // extract_options::on_error and max_failures                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

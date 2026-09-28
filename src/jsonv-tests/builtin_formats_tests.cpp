@@ -153,8 +153,8 @@ TEST(builtin_integer_widths)
 
 TEST(builtin_integer_out_of_range_is_reported_rather_than_wrapped)
 {
-    // The whole point of reading the token against the destination: `ast_node::integer::value()` saturates a literal
-    // it cannot hold, and a narrowing conversion then wraps that silently into something which looks like a number
+    // The whole point of reading the token against the destination: `ast_node::integer::value()` yields a
+    // `std::int64_t`, and a narrowing conversion then wraps that silently into something which looks like a number
     // the document contained.
     ensure(mentions(refused<std::uint8_t>("999"), "out of range"));
     ensure(mentions(refused<std::int8_t>("200"), "out of range"));
@@ -168,9 +168,9 @@ TEST(builtin_integer_out_of_range_is_reported_rather_than_wrapped)
 
 TEST(builtin_integer_from_a_value_reads_what_the_value_holds)
 {
-    // A `value` holds integers as `std::int64_t`, so a literal outside that range was already saturated when the
-    // document was parsed. That is #206 and not something an extractor can undo -- what it can do is stop presenting
-    // the saturated number as the one the document contained.
+    // A `value` holds integers as `std::int64_t`, so a literal from 2^63 through 2^64-1 was wrapped into the negatives
+    // when the document was parsed -- its bits kept, its sign lost. That is not something an extractor can undo; what
+    // it can do is stop presenting the wrapped number as the one the document contained.
     ensure_eq(std::int64_t(-1), parse("18446744073709551615").as_integer());
     ensure_throws(extraction_error, extract<std::uint64_t>(parse("18446744073709551615")));
 
@@ -213,8 +213,7 @@ TEST(builtin_decimal_keeps_seventeen_significant_digits)
     ensure_eq(1.2345678901234567, extracted<double>("1.2345678901234567"));
     ensure_eq(2.2250738585072014e-308, extracted<double>("2.2250738585072014e-308"));
 
-    // An integer token beyond `std::int64_t` still rounds to the nearest `double` rather than to the bound
-    // `ast_node::integer::value()` would saturate to.
+    // An integer token beyond 64 bits rounds to the nearest `double`, which is also what `parse` makes of it.
     ensure_eq(1.2345678901234568e22, extracted<double>("12345678901234567890123"));
 }
 

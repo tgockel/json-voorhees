@@ -173,7 +173,15 @@ TEST(coerce_integer_string_decimal_clamp_min)
     ensure_eq(std::numeric_limits<std::int64_t>::min(), coerce_integer("-18446744074709551600.0"));
 }
 
-// A string only reaches the decimal clamp in decimal form -- an integer literal past int64 max keeps
+// An integer literal beyond 64 bits altogether is a decimal to the parser (see parse_tests.cpp), so it clamps just
+// as its ".0" spelling above does. It used to be saturated before this saw it, which made the maximum `-1` (#206).
+TEST(coerce_integer_string_integer_beyond_64_bits_clamps)
+{
+    ensure_eq(std::numeric_limits<std::int64_t>::max(), coerce_integer("18446744074709551600"));
+    ensure_eq(std::numeric_limits<std::int64_t>::min(), coerce_integer("-99999999999999999999999"));
+}
+
+// Below that, a string only reaches the decimal clamp in decimal form -- an integer literal past int64 max keeps
 // its uint64 bits in the parser instead (see parse_tests.cpp) -- hence the ".0".
 TEST(coerce_integer_string_decimal_clamp_max_boundary)
 {

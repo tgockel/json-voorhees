@@ -128,6 +128,15 @@
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to
        treat a lone ASCII byte as well-formed UTF-8 and write U+0000 through U+001F out raw, which is not JSON
        (#163, #273).
+     - Fixed an integer literal beyond the range of 64 bits parsing as the bound it was clamped to. A magnitude above
+       `UINT64_MAX` saturated to that value and one below `INT64_MIN` to that one, so `18446744073709551616` and
+       `12345678901234567890123` both parsed to `-1` -- indistinguishable from `18446744073709551615` -- with nothing
+       to say the number had been lost. `parse` now reads such a literal as the nearest `double`, which is what the
+       `double` extractor already made of it, so it is a `kind::decimal`: `as_integer` refuses it and `as_decimal`
+       has it. `ast_node::integer::value()` has no `double` to give and throws `std::invalid_argument` instead, and
+       so does `parse` for a literal no `double` holds either, as it already did for `1e400`. A literal from 2^63
+       through `UINT64_MAX` still keeps its bits as a negative `std::int64_t`. `coerce_integer` of a string holding
+       one of these now clamps as it does for the same number written as a decimal (#206).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,
@@ -158,7 +167,7 @@
        resolves the three `TODO(#150)` markers in `ast.cpp`: the extractors own the policy, and the nodes keep the
        mechanism they always had (#229).
      - Integer extraction reports a literal which does not fit the destination instead of wrapping it. It read
-       through `ast_node::integer::value()`, which saturates to the bound of `std::int64_t`, and then narrowed that
+       through `ast_node::integer::value()`, which saturated to the bound of `std::int64_t`, and then narrowed that
        result modularly, so `extract<std::uint8_t>` of `999` produced `231` and `extract<std::int8_t>` of `200`
        produced `-56`. The token is now read against the destination type directly, so both are reported failures
        naming the literal and the type it did not fit. A negative literal is likewise out of range for an unsigned
@@ -168,11 +177,11 @@
        no longer round-trips. The document said `-1`, every other JSON reader sees `-1`, and reading it back as
        `18446744073709551615` was two mistakes cancelling.
      - `double` and `float` read the number token with the decimal node's parser, which accepts the integer grammar
-       as a subset, so an integer literal beyond `std::int64_t` rounds to the nearest `double` rather than to the
-       bound the integer accessor saturates to.
+       as a subset, so an integer literal beyond `std::int64_t` rounds to the nearest `double` rather than being
+       wrapped or refused as it is by the integer accessor.
      - All of the above is about what the *source text* says. Extracting from an in-memory `value` reads what the
-       `value` holds, which for a literal outside `std::int64_t` is already the saturated number `parse` recorded --
-       that is #206, and `value::as_integer` and `ast_node::integer::value()` are unchanged here (#229).
+       `value` holds, which for a literal from 2^63 through `UINT64_MAX` is the wrapped, negative number `parse`
+       recorded (#229).
      - `extraction_context::problem_path` is public. An extractor which rejects a value for a reason other than its
        node type -- a number outside the range of what it builds, say -- wants the answer `expect` and `current_as`
        already report through, and had no way to ask for it. Relatedly, a mismatch naming several acceptable node

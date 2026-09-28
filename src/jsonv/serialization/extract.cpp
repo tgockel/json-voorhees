@@ -10,6 +10,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/serialization/extract.hpp>
 #include <jsonv/demangle.hpp>
+#include <jsonv/detail.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
 
@@ -732,7 +733,7 @@ static value read_scalar(const ast_node& node)
     case ast_node_type::literal_false:
         return value(false);
     case ast_node_type::integer:
-        return value(node.as<ast_node::integer>().value());
+        return integer_node_value(node.as<ast_node::integer>());
     case ast_node_type::decimal:
         return value(node.as<ast_node::decimal>().value());
     default:

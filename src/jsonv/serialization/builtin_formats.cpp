@@ -121,8 +121,8 @@ std::expected<void, ast_node_type> expect_number(extraction_context& context, re
 /// Read the number the reader is on as a \c double, having established with \ref expect_number that it is one.
 ///
 /// An integer token is also a well-formed decimal token, so the decimal node's parser reads either. Going by way of
-/// \c ast_node::integer::value() would round a magnitude beyond \c std::int64_t to that type's bound rather than to
-/// the nearest \c double.
+/// \c ast_node::integer::value() would wrap a magnitude beyond \c std::int64_t into the negatives, or refuse one
+/// beyond \c std::uint64_t, rather than round it to the nearest \c double.
 JSONV_NODISCARD
 std::expected<double, ast_node_type> read_decimal(extraction_context& context, reader& from)
 {
@@ -146,9 +146,9 @@ std::expected<double, ast_node_type> read_decimal(extraction_context& context, r
 /// Read the integer token the reader is on as a \c T, which is where the built-ins' range policy lives.
 ///
 /// \c std::from_chars reads the token against the destination type directly, so a literal too large for it is a
-/// reported failure rather than the bound \c ast_node::integer::value() saturates to and the modular wrap a narrowing
-/// conversion would then apply to that. A negative literal is likewise out of range for an unsigned \c T rather than
-/// its two's-complement reinterpretation.
+/// reported failure rather than the \c std::int64_t \c ast_node::integer::value() yields and the modular wrap a
+/// narrowing conversion would then apply to that. A negative literal is likewise out of range for an unsigned \c T
+/// rather than its two's-complement reinterpretation.
 template <typename T>
 JSONV_NODISCARD
 std::expected<T, ast_node_type> read_integer(extraction_context& context, reader& from)

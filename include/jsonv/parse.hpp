@@ -179,10 +179,15 @@ private:
 /// \param extract_options Options specific to extraction -- transforming the AST into a \c jsonv::value. If
 ///                        unspecified, this is \c extract_options::create_default().
 ///
+/// An integer literal beyond the range of 64 bits is read as the nearest \c double, so it is a \c kind::decimal. One
+/// from 2^63 through 2^64-1 keeps its bits and reads back as a negative \c kind::integer (see
+/// \c ast_node::integer::value).
+///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
 ///  or stray literals. Errors of this category are described as an offset into \a input.
 /// \throws extract_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
 ///  object with duplicate keys (note that the default \c jsonv::formats does not throw for this case).
+/// \throws std::invalid_argument if a number literal has no finite \c double to round to, such as \c 1e400.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::string_view            input,
             const parse_options&   parse_options,
@@ -209,10 +214,15 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_o
 /// \param extract_options Options specific to extraction -- transforming the AST into a \c jsonv::value. If
 ///                        unspecified, this is \c extract_options::create_default().
 ///
+/// An integer literal beyond the range of 64 bits is read as the nearest \c double, so it is a \c kind::decimal. One
+/// from 2^63 through 2^64-1 keeps its bits and reads back as a negative \c kind::integer (see
+/// \c ast_node::integer::value).
+///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
 ///  or stray literals. Errors of this category are described as an offset into \a input.
 /// \throws extract_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
 ///  object with duplicate keys (note that the default \c jsonv::formats does not throw for this case).
+/// \throws std::invalid_argument if a number literal has no finite \c double to round to, such as \c 1e400.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::istream&          input,
             const parse_options&   parse_options,

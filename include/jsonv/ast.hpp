@@ -406,6 +406,11 @@ public:
     public:
         using basic_dynamic_size_token<integer, ast_node_type::integer>::basic_dynamic_size_token;
 
+        /// Get the literal as an \c std::int64_t. A literal from 2^63 through 2^64-1 is stored with its bits intact,
+        /// so it reads back negative -- the onus is on the caller to know a particular key is in that range.
+        ///
+        /// \throws std::invalid_argument if the literal is outside that range altogether, where there are no bits to
+        ///  keep. \c parse reads such a literal as the nearest \c double instead.
         JSONV_NODISCARD
         std::int64_t value() const;
     };

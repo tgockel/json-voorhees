@@ -9,6 +9,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
+#include <jsonv/ast.hpp>
 #include <jsonv/value.hpp>
 #include <optional>
 #include <string_view>
@@ -45,5 +46,12 @@ inline constexpr std::size_t number_token_max = 64U;
 std::optional<std::string_view> format_decimal(double value, char* buffer);
 std::optional<std::string_view> format_integer(std::int64_t value, char* buffer);
 /// \}
+
+/// The \c value an integer token is read as -- the single definition of it for everything which builds a \c value
+/// from JSON text, which is \c parse and a \c reader over text. A literal from 2^63 through 2^64-1 keeps its bits as
+/// \c ast_node::integer::value() does, and one beyond the range of 64 bits altogether is the nearest \c double.
+///
+/// \throws std::invalid_argument if the literal has no finite \c double to round to either.
+value integer_node_value(const ast_node::integer& node);
 
 }

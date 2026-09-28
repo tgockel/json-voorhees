@@ -19,6 +19,7 @@
 #include <sstream>
 #include <utility>
 
+#include "detail.hpp"
 #include "detail/architecture.hpp"
 #include "detail/fallthrough.hpp"
 #include "detail/match/number.hpp"
@@ -1107,7 +1108,7 @@ value extract_single(parse_index::const_iterator& iter,
         {
             [&](const ast_node::object_begin&)       -> value { return extract_object(*&iter, last, options); },
             [&](const ast_node::array_begin&)        -> value { return extract_array(*&iter, last, options); },
-            [&](const ast_node::integer& x)          -> value { return x.value(); },
+            [&](const ast_node::integer& x)          -> value { return integer_node_value(x); },
             [&](const ast_node::decimal& x)          -> value { return x.value(); },
             [&](const ast_node::string_canonical& x) -> value { return x.value(); },
             [&](const ast_node::string_escaped& x)   -> value { return x.value(); },
