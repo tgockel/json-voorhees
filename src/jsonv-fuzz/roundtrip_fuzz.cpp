@@ -34,6 +34,10 @@ namespace
 /// all of them through, but the encoder decodes each sequence to a codepoint and re-emits it canonically, so the value
 /// legitimately changes across a round trip -- `["\xc0\x80"]` encodes to `["\u0000"]`, two bytes becoming one.
 ///
+/// Anything malformed is stepped over rather than answered for. `match_string` refuses a truncated sequence, a stray
+/// continuation byte and a `0xFE` or `0xFF` lead, so none of them belongs in a string the parser produced. One which
+/// got there anyway would be a parser bug rather than #207, and the oracle should be left to find it.
+///
 /// \note
 /// Delete this along with the round-trip caller once #207 is fixed and the parser rejects these inputs outright.
 bool has_non_canonical_utf8(std::string_view text) noexcept
@@ -55,21 +59,30 @@ bool has_non_canonical_utf8(std::string_view text) noexcept
         if ((lead & 0xe0u) == 0xc0u)      { length = 2; codepoint = lead & 0x1fu; }
         else if ((lead & 0xf0u) == 0xe0u) { length = 3; codepoint = lead & 0x0fu; }
         else if ((lead & 0xf8u) == 0xf0u) { length = 4; codepoint = lead & 0x07u; }
-        else
+        else if (lead >= 0xf8u && lead <= 0xfdu)
         {
-            // A 5- or 6-byte lead, or a stray continuation byte. `match_string` accepts the former.
+            // A 5- or 6-byte lead, which `match_string` accepts.
             return true;
         }
+        else
+        {
+            // A stray continuation byte, or 0xFE or 0xFF.
+            ++idx;
+            continue;
+        }
 
-        if (idx + length > text.size())
-            return false;   // Truncated; the parser rejects it, so it never reaches the oracle.
-
-        for (std::size_t offset = 1; offset < length; ++offset)
+        bool well_formed = idx + length <= text.size();
+        for (std::size_t offset = 1; well_formed && offset < length; ++offset)
         {
             const auto next = static_cast<unsigned char>(text[idx + offset]);
-            if (!is_continuation(next))
-                return false;   // Malformed; rejected by the parser.
-            codepoint = (codepoint << 6) | (next & 0x3fu);
+            well_formed = is_continuation(next);
+            codepoint   = (codepoint << 6) | (next & 0x3fu);
+        }
+
+        if (!well_formed)
+        {
+            ++idx;
+            continue;
         }
 
         static constexpr std::uint32_t minimum[] = { 0, 0, 0x80, 0x800, 0x10000 };
@@ -84,6 +97,39 @@ bool has_non_canonical_utf8(std::string_view text) noexcept
     }
 
     return false;
+}
+
+/// Does any string in \a val, key or value, hold a sequence \c has_non_canonical_utf8 describes?
+///
+/// This asks about the parsed value rather than the input text, because the value is what the encoder sees. The text
+/// can hold bytes which never reach it: a comment is skipped without its contents being validated, so it can hold
+/// anything at all, malformed sequences included, and none of it says anything about the round trip.
+///
+/// \note
+/// Delete this along with \c has_non_canonical_utf8 once #207 is fixed.
+bool value_has_non_canonical_utf8(const jsonv::value& val)
+{
+    switch (val.kind())
+    {
+    case jsonv::kind::string:
+        return has_non_canonical_utf8(val.as_string());
+    case jsonv::kind::array:
+        for (const jsonv::value& element : val.as_array())
+        {
+            if (value_has_non_canonical_utf8(element))
+                return true;
+        }
+        return false;
+    case jsonv::kind::object:
+        for (const auto& [key, element] : val.as_object())
+        {
+            if (has_non_canonical_utf8(key) || value_has_non_canonical_utf8(element))
+                return true;
+        }
+        return false;
+    default:
+        return false;
+    }
 }
 
 /// Report a violated invariant and abort.
@@ -147,8 +193,12 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
         // then rejects (`["\xed\xa0\x80"]` becomes `["\ud800"]`). Both are issue #207 -- the parser
         // should never have accepted the input -- rather than defects in the round trip itself.
         //
-        // Remove this, and `has_non_canonical_utf8` with it, once #207 lands.
-        if (has_non_canonical_utf8(text))
+        // This reads the parsed value rather than the input text. A comment is skipped without being validated, so the
+        // text can hold malformed bytes which the parser never refused, ahead of a string which is non-canonical --
+        // `[/*\xd6\xd0*/"\xfc\x80\x80\x80\x80\x80"]` parses -- and nothing in a comment reaches the encoder anyway.
+        //
+        // Remove this, with `value_has_non_canonical_utf8` and `has_non_canonical_utf8`, once #207 lands.
+        if (value_has_non_canonical_utf8(original))
             return 0;
 
         const jsonv::value reparsed  = jsonv::parse(encoded);

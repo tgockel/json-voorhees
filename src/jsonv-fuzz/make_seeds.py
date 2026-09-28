@@ -41,6 +41,9 @@ def main():
     write("utf8_overlong.json", b'["' + b"\xc0\x80" + b'"]')
     write("utf8_surrogate.json", b'["' + b"\xed\xa0\x80" + b'"]')
     write("utf8_above_max.json", b'["' + b"\xf5\x80\x80\x80" + b'"]')
+    # A comment's contents are not validated, so malformed bytes can sit in front of one of the above. The round-trip
+    # oracle's filter used to scan the text and stop at them, which let the string after them through.
+    write("utf8_six_byte_after_comment.json", b"[/*" + b"\xd6\xd0" + b'*/"' + b"\xfc\x80\x80\x80\x80\x80" + b'"]')
 
     # Valid UTF-8 across all four sequence lengths, which must keep working.
     write("utf8_valid_mixed.json", b'["ascii", "\xc3\xa9", "\xe2\x82\xac", "\xf0\x9f\x98\x80"]')
