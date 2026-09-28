@@ -194,7 +194,7 @@ bool is_zero_integer(const ast_node& node)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 JSONV_NODISCARD
-std::expected<value, ast_node_type> extract_value(reader& from)
+std::expected<value, ast_node_type> extract_value(extraction_context& context, reader& from)
 {
     // A value-backed reader is already holding the tree, so copy what it lends rather than rebuilding one token at a
     // time -- which would also drop what a `value` can hold and JSON cannot, such as a non-finite `kind::decimal`.
@@ -205,7 +205,7 @@ std::expected<value, ast_node_type> extract_value(reader& from)
         return out;
     }
 
-    return read_value(from);
+    return read_value(context, from);
 }
 
 JSONV_NODISCARD
@@ -468,7 +468,7 @@ std::expected<std::string, ast_node_type> coerce_extract_string(extraction_conte
     case ast_node_type::array_begin:
         // Anything which is not a string coerces by way of its JSON encoding, which is what `coerce_string` does.
         // Reading the subtree back out is the price of an object or an array; a scalar costs one `value`.
-        return to_string(read_value(from));
+        return to_string(read_value(context, from));
     default:
         return problem_wrong_type(context, from, "a value");
     }

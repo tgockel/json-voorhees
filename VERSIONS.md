@@ -157,6 +157,14 @@
        asked by the loop rather than decided for it. `max_failures` is the threshold extraction stops at rather than
        a cap on the reported list -- a failure which reports several problems at once is taken whole -- and a limit
        of `0` or `1` makes the first problem the last, which is `fail_immediately` in all but name (#227).
+     - Fixed `collect_all` losing everything after a structure which failed to read out of text. Materialising a
+       structure -- for the `value` extractor, for an adapter on the `value` bridge, or for `coerce` to turn into a
+       string -- walks the cursor into it, and a scalar inside which could not be read, such as a number no `double`
+       holds or an escape which does not decode, left the cursor there. The array around it then took the
+       structure's own close for its own, so every element after it went unread and unreported. `read_value` now
+       walks the rest of a structure which fails part-way through, leaving the cursor one past it as success does,
+       and the new `read_value(extraction_context&, reader&)` also tells the context that the value is behind the
+       cursor, so a composite recovering from it resumes at the next sibling. The built-in extractors use it.
      - The built-in extractors in `formats::defaults` and `formats::coerce` now read the AST node the reader is
        sitting on instead of a `value` materialised for them, which is what makes the claim above true: these are the
        leaves of every extraction, so this is where the middle man stops being allocated. Extracting a `std::string`

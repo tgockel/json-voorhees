@@ -1,5 +1,5 @@
 /** \file
- *  Counting the heap allocations a region of code performs.
+ *  Counting the heap allocations a region of code performs, and failing one of them on purpose.
  *
  *  Copyright (c) 2026 by Travis Gockel. All rights reserved.
  *
@@ -77,6 +77,23 @@ public:
 
 private:
     std::size_t _mark;
+};
+
+/** Makes one allocation fail while it is alive: the \a nth from its creation, counting from 1, throws
+ *  \c std::bad_alloc -- or returns null, for the \c std::nothrow forms. It disarms once it fires or when this goes
+ *  away, whichever comes first, so an allocation it never reached cannot fail somewhere unrelated later. Only one can
+ *  be armed at a time.
+ *
+ *  This is for reaching a failure which no input can produce, to check what is left behind when it happens.
+**/
+class failing_allocation
+{
+public:
+    explicit failing_allocation(std::size_t nth = 1U) noexcept;
+    ~failing_allocation() noexcept;
+
+    failing_allocation(const failing_allocation&)            = delete;
+    failing_allocation& operator=(const failing_allocation&) = delete;
 };
 
 }

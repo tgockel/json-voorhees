@@ -667,33 +667,68 @@ static std::string read_key(const reader& from)
     }
 }
 
-static value read_object(reader& from)
+/// Step \a from over what is left of a structure which failed to read part-way through, up to and including its
+/// \a close token -- which is where success would have left the cursor. A position inside the structure means nothing
+/// to whoever recovers from the failure: a container resuming from there would take the structure's own close for its
+/// own, and lose every sibling after it.
+///
+/// Stepping over whole children with \c reader::next_value is what makes the only close this can stop on its own; on
+/// an object's key it is \c reader::next_token, which lands on the key's value. A truncated tape has no close to find,
+/// so this stops on the end of the document instead.
+static void finish_structure(reader& from, ast_node_type close)
 {
-    value out = object();
-
-    // Step off the `{` and onto the first key, or onto the `}` of an empty object.
-    (void) from.next_token();
     while (from.good())
     {
-        if (from.current().type() == ast_node_type::object_end)
+        auto type = from.current().type();
+        if (type == close)
         {
-            // One past the `}` -- the contract every caller of read_value is promised.
             (void) from.next_token();
-            return out;
+            return;
+        }
+        else if (type == ast_node_type::document_end || type == ast_node_type::error)
+        {
+            return;
         }
 
-        std::string key = read_key(from);
-        if (!from.next_token())
-            break;
+        (void) from.next_value();
+    }
+}
 
-        // read_value_impl leaves the cursor on the next key or on the `}`, so this loop never advances itself.
-        value member = read_value_impl(from);
+static value read_object(reader& from)
+{
+    // Step off the `{` and onto the first key, or onto the `}` of an empty object -- before anything which can fail,
+    // so that a failure always has the object to finish walking rather than still in front of the cursor.
+    (void) from.next_token();
+    try
+    {
+        value out = object();
+        while (from.good())
+        {
+            if (from.current().type() == ast_node_type::object_end)
+            {
+                // One past the `}` -- the contract every caller of read_value is promised.
+                (void) from.next_token();
+                return out;
+            }
 
-        // Assignment rather than `insert`, which keeps the *first* of a duplicated key. `parse_index::extract_tree`
-        // defaults to `duplicate_key_action::replace`, and a reader disagreeing with `parse` about which of
-        // `{"x":1,"x":2}` survives would make extracting from text and extracting from the parsed tree select
-        // different data.
-        out[std::move(key)] = std::move(member);
+            std::string key = read_key(from);
+            if (!from.next_token())
+                break;
+
+            // read_value_impl leaves the cursor on the next key or on the `}`, so this loop never advances itself.
+            value member = read_value_impl(from);
+
+            // Assignment rather than `insert`, which keeps the *first* of a duplicated key. `parse_index::extract_tree`
+            // defaults to `duplicate_key_action::replace`, and a reader disagreeing with `parse` about which of
+            // `{"x":1,"x":2}` survives would make extracting from text and extracting from the parsed tree select
+            // different data.
+            out[std::move(key)] = std::move(member);
+        }
+    }
+    catch (...)
+    {
+        finish_structure(from, ast_node_type::object_end);
+        throw;
     }
 
     throw extraction_error(jsonv::path(), "Unterminated object");
@@ -701,20 +736,28 @@ static value read_object(reader& from)
 
 static value read_array(reader& from)
 {
-    value out = array();
-
-    // Step off the `[` and onto the first element, or onto the `]` of an empty array.
+    // Step off the `[` and onto the first element, or onto the `]` of an empty array -- before anything which can
+    // fail, for the same reason as in `read_object`.
     (void) from.next_token();
-    while (from.good())
+    try
     {
-        if (from.current().type() == ast_node_type::array_end)
+        value out = array();
+        while (from.good())
         {
-            (void) from.next_token();
-            return out;
-        }
+            if (from.current().type() == ast_node_type::array_end)
+            {
+                (void) from.next_token();
+                return out;
+            }
 
-        // read_value_impl leaves the cursor on the next element or on the `]`, so this loop never advances itself.
-        out.push_back(read_value_impl(from));
+            // read_value_impl leaves the cursor on the next element or on the `]`, so this loop never advances itself.
+            out.push_back(read_value_impl(from));
+        }
+    }
+    catch (...)
+    {
+        finish_structure(from, ast_node_type::array_end);
+        throw;
     }
 
     throw extraction_error(jsonv::path(), "Unterminated array");
@@ -826,7 +869,10 @@ detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& 
         // through 09 remove it for text by giving these adapters a reader of their own. Noting the position up front
         // instead would mean building a path before every successful extraction, which on a text-backed reader
         // rescans from the start of the document and turns a streaming loop quadratic.
-        _owned        = read_value(from);
+        //
+        // A structure which fails to materialise is walked past all the same, and with no object constructed there is
+        // no destructor to say so -- which is why this is the overload that tells the context.
+        _owned        = read_value(context, from);
         _materialised = true;
         _advanced     = true;
     }
@@ -895,6 +941,29 @@ value read_value(reader& from)
         throw extraction_error(jsonv::path(), "Unexpected end of input while reading a value");
 
     return read_value_impl(from);
+}
+
+value read_value(extraction_context& context, reader& from)
+{
+    if (from.good() && from.current().type() == ast_node_type::document_start)
+        (void) from.next_token();
+
+    // A scalar is converted before the cursor steps over it, and a structure is stepped into before anything which can
+    // fail, so whether a failure leaves the value behind the cursor is exactly whether it was a structure.
+    const bool structure = from.good()
+                        && (  from.current().type() == ast_node_type::object_begin
+                           || from.current().type() == ast_node_type::array_begin
+                           );
+    try
+    {
+        return read_value(from);
+    }
+    catch (...)
+    {
+        if (structure)
+            context.note_value_consumed(from);
+        throw;
+    }
 }
 
 }

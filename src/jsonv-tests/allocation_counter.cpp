@@ -15,9 +15,17 @@ namespace
 /// Constant-initialized, so it is already zero when the first allocation of process startup runs through here.
 std::size_t allocation_count = 0U;
 
+/// The value `allocation_count` takes on the allocation which is to fail, or zero when none is armed -- which never
+/// matches, since the count is at least one by the time it is compared.
+std::size_t fail_at = 0U;
+
 void* counted_allocate(std::size_t size) noexcept
 {
-    ++allocation_count;
+    if (++allocation_count == fail_at)
+    {
+        fail_at = 0U;
+        return nullptr;
+    }
 
     // Two live objects must never share an address, so a zero-sized request still has to get somewhere distinct.
     return std::malloc(size ? size : 1U);
@@ -39,6 +47,16 @@ namespace jsonv_test
 std::size_t total_allocations() noexcept
 {
     return allocation_count;
+}
+
+failing_allocation::failing_allocation(std::size_t nth) noexcept
+{
+    fail_at = allocation_count + nth;
+}
+
+failing_allocation::~failing_allocation() noexcept
+{
+    fail_at = 0U;
 }
 
 }

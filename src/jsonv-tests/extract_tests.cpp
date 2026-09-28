@@ -858,6 +858,60 @@ TEST(extract_read_value_lands_one_past_an_object_member)
     ensure_eq(std::string("b"), std::string(rdr.current().as<ast_node::key_canonical>().value()));
 }
 
+TEST(extract_read_value_failure_lands_one_past_the_structure)
+{
+    // A structure which fails part-way through is walked to its end anyway. Left inside it, the cursor would have the
+    // next closing token belong to the structure, and whatever recovers from the failure would take it for its own.
+    auto check = [](std::string_view source)
+                 {
+                     auto rdr = open(source);
+                     (void) rdr.next_token();
+
+                     ensure_throws(std::invalid_argument, read_value(rdr));
+
+                     ensure(rdr.good());
+                     ensure(rdr.current().type() == ast_node_type::integer);
+                     ensure_eq(99, rdr.current().as<ast_node::integer>().value());
+                 };
+
+    check("[ [ 1e400 ], 99 ]");
+    check(R"([ [ 1, 1e400, [ 2 ], { "a": 3 } ], 99 ])");
+    check(R"([ { "a": { "b": [ 1e400, 2 ] }, "c": [] }, 99 ])");
+
+    // A scalar is converted before it is stepped over, so one which fails is still under the cursor.
+    auto rdr = open("[ 1e400, 99 ]");
+    (void) rdr.next_token();
+    ensure_throws(std::invalid_argument, read_value(rdr));
+    ensure(rdr.current().type() == ast_node_type::decimal);
+}
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+TEST(extract_read_value_failing_to_start_a_structure_still_passes_it)
+{
+    // The first thing reading a structure costs is the empty `value` it is read into. The overload taking a context
+    // says a structure which failed is behind the cursor, which is what a composite recovering from it relies on to
+    // skip it -- so a failure that early has to leave it behind as well, or the same child is read again as the next.
+    for (std::string_view source : { "[ [ 1 ], 2 ]", R"([ { "a": 1 }, 2 ])" })
+    {
+        extraction_context cxt(formats::defaults());
+        auto               rdr = open(source);
+        (void) rdr.next_token();   // onto the child
+
+        {
+            jsonv_test::failing_allocation fail;
+            ensure_throws(std::bad_alloc, read_value(cxt, rdr));
+        }
+
+        cxt.skip_failed_value(rdr);
+        ensure(rdr.good());
+        ensure(rdr.current().type() == ast_node_type::integer);
+        ensure_eq(2, rdr.current().as<ast_node::integer>().value());
+    }
+}
+
+#endif
+
 TEST(extract_read_value_lands_one_past_on_a_value_sourced_reader)
 {
     // `reader::impl_value` walks a tree and `reader::impl_parse_index` walks a tape; they implement stepping
@@ -1551,6 +1605,58 @@ TEST(extract_collect_all_resumes_after_a_bridged_element_over_text)
     ensure_eq(2U, cxt.problems().size());
     ensure_eq(path::create("[0].a"), cxt.problems().at(0).path());
     ensure_eq(path::create("[2].a"), cxt.problems().at(1).path());
+}
+
+/// The paths a `collect_all` extraction of a `T` out of \a source reports, which must be a failure.
+template <typename T>
+std::string collected_problem_paths(const std::string& source, const formats& fmts)
+{
+    try
+    {
+        (void) extract<T>(source, fmts, collecting());
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        return problem_paths(err);
+    }
+
+    return std::string();
+}
+
+TEST(extract_collect_all_resumes_after_a_structure_which_failed_to_read)
+{
+    // Materialising a structure out of text walks the cursor into it, so a scalar inside which cannot be read -- a
+    // number no `double` holds, an escape which does not decode -- used to leave the cursor there. The array holding
+    // the structure then took the structure's own close for its own, and every element after it went unread.
+    const std::string source = R"([ [ 1e400 ], [ 1 ], { "k": [ "\uD800" ] }, [ )"
+                             + std::string(400, '9')
+                             + " ], [ 2 ] ]";
+
+    // Each of the extractors which materialise a structure: the one for `value` itself, the `value` bridge, and
+    // `coerce`'s way of turning a structure into a string.
+    ensure_eq(std::string("[0] [2] [3]"),
+              collected_problem_paths<std::vector<value>>(
+                  source,
+                  formats_builder().register_container<std::vector<value>>().compose_checked(formats::defaults())
+              )
+             );
+    ensure_eq(std::string("[0] [2]"),
+              collected_problem_paths<std::vector<bridged_triple>>(
+                  R"([ { "a": 1e400, "b": 2, "c": 3 },
+                       { "a": 1,     "b": 2, "c": 3 },
+                       { "a": [ "\uD800" ], "b": 2, "c": 3 },
+                       { "a": 1,     "b": 2, "c": 3 }
+                     ])",
+                  formats_builder().register_container<std::vector<bridged_triple>>().compose_checked(bridged_formats())
+              )
+             );
+    ensure_eq(std::string("[0] [2] [3]"),
+              collected_problem_paths<std::vector<std::string>>(
+                  source,
+                  formats_builder().register_container<std::vector<std::string>>().compose_checked(formats::coerce())
+              )
+             );
 }
 
 TEST(extract_collect_all_records_a_nested_failure_exactly_once)

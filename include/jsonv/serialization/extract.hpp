@@ -677,10 +677,22 @@ private:
 /// This is the bridge which lets adapters written against the older \c value -based interface keep working while the
 /// surrounding pipeline runs against a streaming \c reader.
 ///
+/// A structure which fails part-way through is still stepped over, so \a from is left one past it just as success
+/// would have left it; a scalar which fails leaves \a from on it. An extractor which lets the failure of a structure
+/// out has to say that the value is behind the cursor, or a composite recovering from it steps over the following
+/// sibling as well -- which is what the overload taking an \c extraction_context is for.
+///
 /// \throws extraction_error if \a from is not positioned on a value or the document ends part-way through one.
+/// \throws std::invalid_argument if a number has no finite \c double to round to, such as \c 1e400.
+/// \throws parse_error if a string holds an escape which does not decode, such as an unpaired `\uD800`.
 ///
 /// \see value_adapter_for
 JSONV_NODISCARD JSONV_PUBLIC value read_value(reader& from);
+
+/// \ref read_value for an extractor. When a structure fails, which leaves the cursor past it, this also says so to
+/// \a context with \c extraction_context::note_value_consumed -- which is what lets a composite recovering from the
+/// failure resume at the next sibling rather than one sibling too far.
+JSONV_NODISCARD JSONV_PUBLIC value read_value(extraction_context& context, reader& from);
 
 namespace detail
 {
