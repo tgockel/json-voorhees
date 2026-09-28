@@ -164,6 +164,7 @@ This is generally considered the most compatible option, as (hopefully) every tr
 can gracefully transmit ASCII character sequences without molestation.
 The drawback to this route is a needlessly lengthened resultant encoding if all components of the
 pipeline gracefully deal with UTF-8.
+If they do, `jsonv::ostream_encoder::ensure_ascii(false)` writes well-formed UTF-8 out as it is.
 
 F.A.Q.
 ------

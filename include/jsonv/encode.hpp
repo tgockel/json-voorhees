@@ -150,11 +150,13 @@ public:
     /** If set to true (the default), then all non-ASCII characters in strings will be replaced with their numeric
      *  encodings. Since JSON allows for encoded text to be contained in a document, this is inefficient if you have
      *  many non-ASCII characters. If you know that your decoding side can properly handle UTF-8 encoding, then you
-     *  should turn this on.
-     *  
+     *  should turn this off, and well-formed UTF-8 will be written out as it is. An \c ostream_pretty_encoder follows
+     *  this setting too.
+     *
      *  \note
-     *  This functionality cannot be used to passthrough malformed UTF-8 encoded strings. If a given string is invalid
-     *  UTF-8, it will still get replaced with a numeric encoding.
+     *  This functionality cannot be used to passthrough malformed UTF-8 encoded strings or control characters. If a
+     *  given string is invalid UTF-8, it will still get replaced with a numeric encoding, and so will any character
+     *  JSON requires to be escaped.
     **/
     void ensure_ascii(bool value);
     

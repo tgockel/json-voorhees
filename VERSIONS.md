@@ -123,6 +123,11 @@
        malformed input. The wide-string conversions agree with it: `as_wstring` now refuses an overlong encoding,
        and a `std::wstring` holding an unpaired low surrogate throws `std::range_error` when made into a `value` or
        used as a key, rather than being stored as a surrogate's UTF-8 bytes (#207).
+     - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
+       UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
+       and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to
+       treat a lone ASCII byte as well-formed UTF-8 and write U+0000 through U+001F out raw, which is not JSON
+       (#163, #273).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

@@ -213,4 +213,61 @@ TEST(encode_invalid_utf8_uses_replacement_for_ill_formed_sequences)
     }
 }
 
+/// Encode \a val through an \c ostream_encoder with \c ensure_ascii set to \a ensure_ascii.
+static std::string encode_with_ensure_ascii(const jsonv::value& val, bool ensure_ascii)
+{
+    std::ostringstream ss;
+    jsonv::ostream_encoder encoder(ss);
+    encoder.ensure_ascii(ensure_ascii);
+    encoder.encode(val);
+    return ss.str();
+}
+
+TEST(encode_ensure_ascii_off_passes_utf8_through)
+{
+    // A 2 byte sequence, and a 4 byte one from outside the BMP.
+    const std::string  text = "Travis G\xc3\xb6" "ckel \xf0\x9f\x98\x80";
+    const jsonv::value val  = text;
+
+    const std::string raw = encode_with_ensure_ascii(val, false);
+    ensure_eq(raw, "\"" + text + "\"");
+    ensure_eq(val, jsonv::parse(raw));
+
+    const std::string escaped = encode_with_ensure_ascii(val, true);
+    ensure_eq(escaped, "\"Travis G\\u00f6ckel \\ud83d\\ude00\"");
+    ensure_eq(val, jsonv::parse(escaped));
+
+    // The pretty encoder writes strings through `ostream_encoder`, so it follows the same setting.
+    std::ostringstream pretty;
+    jsonv::ostream_pretty_encoder pretty_encoder(pretty);
+    pretty_encoder.ensure_ascii(false);
+    pretty_encoder.encode(jsonv::array({ val }));
+    ensure(pretty.str().find(text) != std::string::npos);
+    ensure_eq(jsonv::array({ val }), jsonv::parse(pretty.str()));
+}
+
+TEST(encode_ensure_ascii_off_still_escapes_controls_and_malformed_utf8)
+{
+    // Only well-formed multi-byte UTF-8 goes through as it is. The output has to stay JSON, so controls are escaped
+    // (#273), and malformed bytes are replaced one at a time just as they are with `ensure_ascii` on (#207).
+    const std::string raw = encode_with_ensure_ascii(jsonv::value("a\x01" "b\x7f" "c\xc0\x80"), false);
+    ensure_eq(raw, "\"a\\u0001b\\u007fc\\u00c0\\u0080\"");
+
+    const auto strict = jsonv::parse_options().string_encoding(jsonv::parse_options::encoding::utf8_strict);
+    ensure(jsonv::parse(raw, strict).kind() == jsonv::kind::string);
+}
+
+TEST(encode_ensure_ascii_can_be_turned_back_on)
+{
+    const jsonv::value val = "G\xc3\xb6" "ckel";
+
+    std::ostringstream ss;
+    jsonv::ostream_encoder encoder(ss);
+    encoder.ensure_ascii(false);
+    encoder.encode(val);
+    encoder.ensure_ascii(true);
+    encoder.encode(val);
+    ensure_eq(ss.str(), "\"G\xc3\xb6" "ckel\"\"G\\u00f6ckel\"");
+}
+
 }
