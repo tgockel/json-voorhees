@@ -120,7 +120,9 @@
        and the encoder now share one definition of well-formed UTF-8, so the encoder no longer rewrites an
        ill-formed string into a different one (`\xc0\x80` as `\u0000`) or into one the parser refuses
        (`\xed\xa0\x80` as `\ud800`); it replaces each byte with a numeric escape, as it already did for other
-       malformed input (#207).
+       malformed input. The wide-string conversions agree with it: `as_wstring` now refuses an overlong encoding,
+       and a `std::wstring` holding an unpaired low surrogate throws `std::range_error` when made into a `value` or
+       used as a key, rather than being stored as a surrogate's UTF-8 bytes (#207).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

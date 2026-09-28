@@ -458,12 +458,15 @@ public:
 
     /// Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
     /// UTF-8 encoded string.
+    ///
+    /// \throws std::range_error if \a value is not valid UTF-16, such as when it holds an unpaired surrogate.
     value(const std::wstring& value);
 
     /** Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
      *  UTF-8 encoded string.
      *
      *  \param value The value to create with. This must be null-terminated.
+     *  \throws std::range_error if \a value is not valid UTF-16, such as when it holds an unpaired surrogate.
     **/
     value(const wchar_t* value);
 

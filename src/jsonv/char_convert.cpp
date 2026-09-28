@@ -458,12 +458,9 @@ static std::size_t utf16_length_of_utf8(std::string_view source) noexcept
         if ((b & 0xc0U) != 0x80U)
             ++units;
 
-        // ...and a code point outside the BMP needs a surrogate pair. Lead bytes 0xf1-0xf7 always decode outside
-        // it, but 0xf0 only does so when its continuation is 0x90 or greater -- below that the sequence is an
-        // overlong encoding of a BMP code point, which the conversion loop accepts.
-        if (b > 0xf0U)
-            ++units;
-        else if (b == 0xf0U && idx + 1U < source.size() && static_cast<unsigned char>(source[idx + 1U]) >= 0x90U)
+        // ...and a code point outside the BMP needs a surrogate pair. Every sequence the conversion loop accepts
+        // with a lead byte of 0xf0 or above decodes outside it, since anything shorter would be an overlong encoding.
+        if (b >= 0xf0U)
             ++units;
     }
 
@@ -532,6 +529,11 @@ std::wstring convert_to_wide(std::string_view source)
             codepoint = (codepoint << 6) | (in_c & 0x3fU);
         }
 
+        // The smallest code point each sequence length may encode -- anything below has a shorter encoding.
+        static constexpr char32_t shortest_form_minimum[] = { 0x0U, 0x80U, 0x800U, 0x10000U };
+        if (codepoint < shortest_form_minimum[steps])
+            throw std::range_error("Invalid UTF-8: overlong encoding");
+
         if (codepoint >= 0xd800U && codepoint <= 0xdfffU)
             throw std::range_error("Invalid UTF-8: surrogate code point is not a Unicode character");
 
@@ -568,7 +570,7 @@ static std::size_t utf8_length_of_utf16(const wchar_t* source_data, std::size_t 
         auto c = unit_at(idx++);
 
         // A high surrogate followed by a low one is a single code point needing 4 bytes. Everything else stands on
-        // its own -- a lone low surrogate included, since the conversion loop takes those as ordinary code points.
+        // its own -- a lone low surrogate included, which the conversion loop rejects, so over-counting it is fine.
         if ((c & 0xfc00U) == 0xd800U && idx < source_size && (unit_at(idx) & 0xfc00U) == 0xdc00U)
         {
             bytes += 4U;
@@ -599,8 +601,14 @@ static std::string convert_to_narrow(const wchar_t* source_data, std::size_t sou
         char32_t codepoint;
         auto     c         = next_source();
 
+        // A low surrogate with no high one in front of it. Encoding it on its own would produce the UTF-8 bytes of a
+        // surrogate, which is not well-formed UTF-8 and which the parser would refuse to read back.
+        if ((c & 0xfc00U) == 0xdc00U)
+        {
+            throw std::range_error("Invalid UTF-16: unpaired low surrogate");
+        }
         // normal
-        if ((c & 0xfc00U) != 0xd800U)
+        else if ((c & 0xfc00U) != 0xd800U)
         {
             codepoint = c;
         }

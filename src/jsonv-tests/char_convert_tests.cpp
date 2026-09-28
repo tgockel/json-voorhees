@@ -313,12 +313,21 @@ TEST(convert_to_wide_invalid)
     JSONV_TEST_ENSURE_WIDE_THROWS("\xe2\x28\xa1");           // sequence is not continued
     JSONV_TEST_ENSURE_WIDE_THROWS("\xed\xa0\x80");           // surrogate encoded directly as UTF-8
     JSONV_TEST_ENSURE_WIDE_THROWS("\xf7\xbf\xbf\xbf");       // U+1FFFFF, past U+10FFFF
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xc0\x80");               // overlong 2 byte encoding of U+0000
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xe0\x80\x80");           // overlong 3 byte encoding of U+0000
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xf0\x80\x80\x80");       // overlong 4 byte encoding of U+0000
+    JSONV_TEST_ENSURE_WIDE_THROWS("\xf0\x8f\xbf\xbf");       // overlong 4 byte encoding of U+FFFF
 }
 
 TEST(convert_to_narrow_invalid)
 {
     ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xd800) }));
     ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xd800), L'A' }));
+
+    // A lone low surrogate would come out as the UTF-8 bytes of a surrogate, which the parser refuses.
+    ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xdc00) }));
+    ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xdc00), L'A' }));
+    ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ L'A', wchar_t(0xdfff) }));
 }
 
 TEST(convert_to_wide_reports_the_leftmost_error)
@@ -336,18 +345,6 @@ TEST(convert_to_wide_reports_the_leftmost_error)
                   std::string(ex.what())
                  );
     }
-}
-
-TEST(convert_malformed_but_accepted_input_is_unchanged)
-{
-    // Neither of these is well-formed, but both are accepted today and both are inputs the reservation counters
-    // have to special-case. Pin the behaviour so the counters cannot quietly start rejecting or mis-sizing them.
-
-    // An overlong 4 byte encoding of U+0000 -- one code unit, not the surrogate pair the lead byte suggests.
-    ensure_wide_eq(std::wstring(1, wchar_t(0)), jsonv::detail::convert_to_wide("\xf0\x80\x80\x80"));
-
-    // A lone *low* surrogate passes the high-surrogate test and is encoded as an ordinary code point.
-    ensure_eq("\xed\xb0\x80", jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xdc00) }));
 }
 
 TEST(convert_large_input_does_not_exhaust_the_stack)
