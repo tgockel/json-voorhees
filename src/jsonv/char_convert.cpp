@@ -24,6 +24,7 @@
 
 #include "detail/fixed_map.hpp"
 #include "detail/is_print.hpp"
+#include "detail/utf8.hpp"
 
 namespace jsonv
 {
@@ -90,99 +91,17 @@ static bool needs_unicode_escaping(char c)
         || !is_print(c);
 }
 
-static constexpr bool char_bitmatch(char c, char pos, char neg)
+/** The codepoint encoded by the \a length bytes at \a seq, which must be a sequence \c utf8_sequence_length allows. **/
+static char32_t utf8_decode(const char* seq, unsigned length)
 {
-    using u8 = unsigned char;
+    // The bits of the lead byte which belong to the codepoint, by sequence length.
+    static constexpr unsigned char lead_masks[] = { 0x00U, 0x7fU, 0x1fU, 0x0fU, 0x07U };
 
-    // NOTE(tgockel, 2018-06-04): The use of casting should not be needed here. However, GCC 8.1.0 seems to have a
-    // bug in the optimizer that causes this function to erroneously return `true` in some cases (specifically, with
-    // `char_bitmatch('\xf0', '\xc0', '\x20')`, but not if you call the function directly). It is possible this issue
-    // (https://github.com/tgockel/json-voorhees/issues/108) has been misdiagnosed, but the behavior only happens on
-    // GCC 8.1.0 and only with -O3. This also fixes the problem, even though it logically should not change anything
-    // (https://stackoverflow.com/questions/50671485/bitwise-operations-on-signed-chars).
-    return (u8(c) & u8(pos)) == u8(pos)
-        && !(u8(c) & u8(neg));
-}
+    char32_t code = static_cast<unsigned char>(seq[0]) & lead_masks[length];
+    for (unsigned idx = 1; idx < length; ++idx)
+        code = (code << 6) | (static_cast<unsigned char>(seq[idx]) & 0x3fU);
 
-/** Tests if \a c is a valid UTF-8 sequence continuation. **/
-static bool is_utf8_sequence_continuation(char c)
-{
-    return char_bitmatch(c, '\x80', '\x40');
-}
-
-template <typename FOnError>
-static void utf8_extract_info(char c, unsigned& length, char& bitmask, const FOnError& on_error)
-{
-    if (!(c & '\x80'))
-    {
-        length = 1;
-        bitmask = '\x7f';
-    }
-    else if (char_bitmatch(c, '\xc0', '\x20'))
-    {
-        length = 2;
-        bitmask = '\x1f';
-    }
-    else if (char_bitmatch(c, '\xe0', '\x10'))
-    {
-        length = 3;
-        bitmask = '\x0f';
-    }
-    else if (char_bitmatch(c, '\xf0', '\x08'))
-    {
-        length = 4;
-        bitmask = '\x07';
-    }
-    else if (char_bitmatch(c, '\xf8', '\x04'))
-    {
-        length = 5;
-        bitmask = '\x03';
-    }
-    else if (char_bitmatch(c, '\xfc', '\x02'))
-    {
-        length = 6;
-        bitmask = '\x01';
-    }
-    else
-    {
-        // This is not an acceptable/valid UTF8 string.  A failure here means I can't trust or don't understand the
-        // source encoding.
-        on_error(c);
-        // In release mode, we'll spit out *potentially* garbage JSON.
-        length = 1;
-        bitmask = '\x7f';
-    }
-}
-
-static bool utf8_extract_info(char c, unsigned& length, char& bitmask)
-{
-    bool rc = true;
-    utf8_extract_info(c, length, bitmask, [&rc] (char) { rc = false; });
-    return rc;
-}
-
-static bool utf8_extract_code(const char* c, unsigned length, char bitmask, char32_t& num)
-{
-    const char submask = '\x3f';
-
-    num = char32_t(*c & bitmask);
-    ++c;
-
-    for (unsigned i = 1; i < length; ++i, ++c)
-    {
-        if (char_bitmatch(*c, '\x80', '\x40'))
-        {
-            num = char32_t(num << 6);
-            num = char32_t(num | (*c & submask));
-        }
-        else
-        {
-            // bad encoding -- let the caller know
-            return false;
-        }
-    }
-
-    return true;
+    return code;
 }
 
 static const char hex_codes[] = "0123456789abcdef";
@@ -223,9 +142,8 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
         }
         else
         {
-            unsigned length;
-            char bitmask;
-            bool valid_utf8 = utf8_extract_info(current, length, bitmask);
+            unsigned length = utf8_sequence_length(&current, source.data() + source_size);
+            const bool valid_utf8 = length != 0;
 
             if (!needs_unicode_escaping(current))
             {
@@ -234,13 +152,15 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
             else
             {
                 char32_t code;
-                if (!valid_utf8
-                   || idx + length > source_size
-                   || !utf8_extract_code(&current, length, bitmask, code)
-                   )
+                if (valid_utf8)
                 {
-                    // Invalid UTF-8 encoding -- we're either at the end of the string or the bytes were not a valid
-                    // UTF-8 sequence. In either case, we will drop in a numeric encoding (\u00NN) for the bytes.
+                    code = utf8_decode(&current, length);
+                }
+                else
+                {
+                    // Invalid UTF-8 encoding -- we're either at the end of the string or the bytes were not a
+                    // well-formed UTF-8 sequence. In either case, we will drop in a numeric encoding (\u00NN) for the
+                    // byte and carry on from the next one.
                     length = 1;
                     code = char32_t(current) & 0xff;
                 }
@@ -352,20 +272,13 @@ static void utf8_sequence_info(char32_t val, std::size_t* length, char* first)
         *length = 3;
         *first = char('\xe0' | ('\x0f' & (val >> 12)));
     }
-    else if (val < 0x00200000U)
-    {
-        *length = 4;
-        *first = char('\xf0' | ('\x07' & (val >> 18)));
-    }
-    else if (val < 0x04000000U)
-    {
-        *length = 5;
-        *first = char('\xf8' | ('\x03' & (val >> 24)));
-    }
     else
     {
-        *length = 6;
-        *first = char('\xfc' | char('\x01' & (val >> 30)));
+        // Every caller hands over a `\u` escape or a combined surrogate pair, neither of which can reach past the
+        // U+10FFFF ceiling, so the 5- and 6-byte forms RFC 3629 removed are never needed.
+        assert(val <= 0x0010ffffU);
+        *length = 4;
+        *first = char('\xf0' | ('\x07' & (val >> 18)));
     }
 }
 
@@ -423,142 +336,94 @@ std::string string_decode(std::string_view source)
     std::string output;
     output.reserve(source.size()); // OPTIMIZATION: Reserve a more appropriate size
     const char* last_pushed_src = source.data();
-    size_type utf8_sequence_start = 0;
-    unsigned remaining_utf8_sequence = 0;
 
     for (size_type idx = 0; idx < source.size(); /* incremented inline */)
     {
         const char& current = source[idx];
-        if (remaining_utf8_sequence == 0)
+        if (current == '\\')
         {
-            if (current == '\\')
+            output.append(last_pushed_src, source.data()+idx);
+
+            const char& next = source[idx + 1];
+            if (const char* replacement = find_decoding(next))
             {
-                output.append(last_pushed_src, source.data()+idx);
+                output += *replacement;
+                idx += 2;
+            }
+            else if (next == 'u')
+            {
+                if (idx + 6 > source.size())
+                    throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
+                uint16_t hexval = from_hex(&source[idx + 2], idx + 2);
 
-                const char& next = source[idx + 1];
-                if (const char* replacement = find_decoding(next))
+                if (hexval < 0xd800U || hexval > 0xdfffU)
                 {
-                    output += *replacement;
-                    idx += 2;
+                    utf8_append_code(output, hexval);
+
+                    idx += 6;
                 }
-                else if (next == 'u')
-                {
-                    if (idx + 6 > source.size())
-                        throw decode_error(idx, "unterminated Unicode escape sequence (must have 4 hex characters)");
-                    uint16_t hexval = from_hex(&source[idx + 2], idx + 2);
-
-                    if (hexval < 0xd800U || hexval > 0xdfffU)
-                    {
-                        utf8_append_code(output, hexval);
-
-                        idx += 6;
-                    }
-                    // numeric encoding is in U+d800 - U+dfff with UTF-8 output, so deal with surrogate pairing...
-                    else
-                    {
-                        auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
-                        if (  idx + 12 > source.size()
-                           || idx +  8 > source.size()
-                           || source[idx + 6] != '\\'
-                           || source[idx + 7] != 'u'
-                           )
-                            throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
-                        uint16_t hexlowval = from_hex(&source[idx + 8], idx + 8);
-                        char32_t codepoint;
-                        if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
-                            throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
-
-                        utf8_append_code(output, codepoint);
-
-                        idx += 12;
-                    }
-                }
+                // numeric encoding is in U+d800 - U+dfff with UTF-8 output, so deal with surrogate pairing...
                 else
                 {
-                    throw decode_error(idx, std::string("Unknown escape character: ") + next);
-                    //output += '?'; Maybe better solution if we don't want to throw
-                    //++idx;
-                }
+                    auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
+                    if (  idx + 12 > source.size()
+                       || idx +  8 > source.size()
+                       || source[idx + 6] != '\\'
+                       || source[idx + 7] != 'u'
+                       )
+                        throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
+                    uint16_t hexlowval = from_hex(&source[idx + 8], idx + 8);
+                    char32_t codepoint;
+                    if (!utf16_combine_surrogates(hexval, hexlowval, &codepoint))
+                        throw decode_error(idx, std::string("unpaired high surrogate (") + surrogateString() + ")");
 
-                last_pushed_src = source.data() + idx;
+                    utf8_append_code(output, codepoint);
+
+                    idx += 12;
+                }
             }
             else
             {
-                unsigned utf8_length;
-                char utf8_bitmask;
-                utf8_extract_info(current,
-                                  utf8_length,
-                                  utf8_bitmask,
-                                  [&idx] (char x)
-                                  {
-                                      std::ostringstream os;
-                                      os << "Invalid UTF-8 code point: \\x"
-                                         << std::hex << std::setw(2) << static_cast<int>(x) << std::dec << '.';
-                                      throw decode_error(idx, os.str());
-                                  }
-                                 );
+                throw decode_error(idx, std::string("Unknown escape character: ") + next);
+                //output += '?'; Maybe better solution if we don't want to throw
+                //++idx;
+            }
 
-                if (utf8_length > 1)
-                {
-                    utf8_sequence_start = idx;
-                    remaining_utf8_sequence = utf8_length - 1;
-                    ++idx;
-                }
-                else if (require_printable && !is_print(current)) JSONV_UNLIKELY
-                {
-                    std::ostringstream os;
-                    os << "Unprintable character found in input: ";
-                    switch (current)
-                    {
-                    case '\t': os << "\\t (tab)"; break;
-                    case '\b': os << "\\b (backspace)"; break;
-                    case '\f': os << "\\f (formfeed)"; break;
-                    case '\n': os << "\\n (newline)"; break;
-                    case '\r': os << "\\r (carriage return)"; break;
-                    default:   os << "\\x" << std::hex << std::setw(2) << static_cast<int>(current) << std::dec; break;
-                    }
-                    throw decode_error(idx, os.str());
-                }
-                else
-                {
-                    ++idx;
-                }
-            }
+            last_pushed_src = source.data() + idx;
         }
-        // remaining_utf8_sequence > 0
-        else
+        else if (current & '\x80')
         {
-            if (is_utf8_sequence_continuation(current))
+            if (auto utf8_length = utf8_sequence_length(&current, source.data() + source.size()))
             {
-                ++idx;
-                --remaining_utf8_sequence;
+                idx += utf8_length;
             }
-            // not on a UTF8 continuation, even though we should be...
             else JSONV_UNLIKELY
             {
                 std::ostringstream os;
-                os << "Invalid UTF-8 multi-byte sequence in source: \"";
-                for (size_type pos = utf8_sequence_start; pos <= idx; ++pos)
-                    os << "\\x" << std::setw(2) << std::hex << static_cast<int>(source[pos]);
-                os << std::dec << "\". ";
-                os << "The sequence should continue for " << remaining_utf8_sequence
-                   << " character" << (remaining_utf8_sequence == 1 ? "" : "s");
+                os << "Invalid UTF-8 sequence beginning with \\x"
+                   << std::hex << std::setfill('0') << std::setw(2) << unsigned(static_cast<unsigned char>(current));
                 throw decode_error(idx, os.str());
             }
         }
-    }
-
-    if (remaining_utf8_sequence > 0) JSONV_UNLIKELY
-    {
-        std::ostringstream os;
-        os << "unterminated UTF-8 sequence at end of string: \"";
-        os << std::hex;
-        for (size_type idx = utf8_sequence_start; idx < source.size(); ++idx)
+        else if (require_printable && !is_print(current)) JSONV_UNLIKELY
         {
-            os << "\\x" << std::setfill('0') << std::setw(2) << unsigned(int(source[idx]));
+            std::ostringstream os;
+            os << "Unprintable character found in input: ";
+            switch (current)
+            {
+            case '\t': os << "\\t (tab)"; break;
+            case '\b': os << "\\b (backspace)"; break;
+            case '\f': os << "\\f (formfeed)"; break;
+            case '\n': os << "\\n (newline)"; break;
+            case '\r': os << "\\r (carriage return)"; break;
+            default:   os << "\\x" << std::hex << std::setw(2) << static_cast<int>(current) << std::dec; break;
+            }
+            throw decode_error(idx, os.str());
         }
-        os << '\"';
-        throw decode_error(utf8_sequence_start, os.str());
+        else
+        {
+            ++idx;
+        }
     }
 
     output.append(last_pushed_src, source.data() + source.size());
@@ -585,8 +450,8 @@ static std::size_t utf16_length_of_utf8(std::string_view source) noexcept
 
     for (std::size_t idx = 0; idx < source.size(); ++idx)
     {
-        // NOTE(tgockel): `char` is signed here, so these comparisons must be made on an `unsigned char`. See the
-        // note on `char_bitmatch` above for what signed `char` bit tests have cost us before.
+        // NOTE(tgockel): `char` is signed here, so these comparisons must be made on an `unsigned char`. See issue
+        // #108 for what signed `char` bit tests have cost us before.
         auto b = static_cast<unsigned char>(source[idx]);
 
         // Every byte which is not a sequence continuation starts a code point...

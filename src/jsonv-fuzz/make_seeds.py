@@ -35,14 +35,14 @@ def main():
     write("depth_exceeded.json", b"[" * 200 + b"1" + b"]" * 200)
     write("depth_mixed.json", b'{"a":' * 60 + b"1" + b"}" * 60)
 
-    # UTF-8 conformance cases (issue #207). These parse today; after that fix they must be rejected.
+    # UTF-8 conformance cases (issue #207). Every one of these is ill-formed and the parser must reject it.
     write("utf8_five_byte.json", b'["' + b"\xf8\x80\x80\x80\x80" + b'"]')
     write("utf8_six_byte.json", b'["' + b"\xfc\x80\x80\x80\x80\x80" + b'"]')
     write("utf8_overlong.json", b'["' + b"\xc0\x80" + b'"]')
     write("utf8_surrogate.json", b'["' + b"\xed\xa0\x80" + b'"]')
     write("utf8_above_max.json", b'["' + b"\xf5\x80\x80\x80" + b'"]')
-    # A comment's contents are not validated, so malformed bytes can sit in front of one of the above. The round-trip
-    # oracle's filter used to scan the text and stop at them, which let the string after them through.
+    # A comment's contents are not validated, so malformed bytes can sit in front of one of the above. The string
+    # after them must still be rejected.
     write("utf8_six_byte_after_comment.json", b"[/*" + b"\xd6\xd0" + b'*/"' + b"\xfc\x80\x80\x80\x80\x80" + b'"]')
 
     # Valid UTF-8 across all four sequence lengths, which must keep working.

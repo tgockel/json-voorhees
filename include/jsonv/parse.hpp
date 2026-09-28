@@ -68,13 +68,16 @@ public:
     /** The encoding format for strings. **/
     enum class encoding
     {
-        /// Default UTF-8 encoding scheme.
+        /// Default UTF-8 encoding scheme. Strings must be well-formed UTF-8 as Unicode defines it, which is the same
+        /// as RFC 3629: every sequence is at most 4 bytes long and is the shortest encoding of its codepoint, and no
+        /// codepoint is a UTF-16 surrogate (U+D800 through U+DFFF) or above U+10FFFF. A string which breaks any of
+        /// these is a \c parse_error, as is an escape sequence naming an unpaired surrogate.
         ///
         /// \see http://www.unicode.org/versions/Unicode6.2.0/ch03.pdf#G7404
         utf8,
-        /// Like \c utf8, but check that there are no unprintable characters in the input stream (see \c std::isprint).
-        /// To contrast this with \c utf8, this mode will reject things such as the \c tab and \c newline characters,
-        /// while this will reject them.
+        /// Like \c utf8, but also reject unprintable ASCII characters in strings (see \c std::isprint). Where \c utf8
+        /// accepts a raw \c tab or \c newline character inside a string, this mode rejects it. UTF-8 validation is
+        /// identical in both modes -- the extra strictness is about ASCII control characters only.
         utf8_strict,
     };
 

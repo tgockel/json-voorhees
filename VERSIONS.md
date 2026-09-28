@@ -112,6 +112,15 @@
        `unsigned char` values and `EOF`, so a byte at or above `0x80` -- negative in a signed `char` -- was
        undefined behaviour on the way in. Malformed input is now rejected rather than reaching the classifier at
        all (#211).
+     - Fixed the parser accepting ill-formed UTF-8 in strings: the 5- and 6-byte forms RFC 3629 removed, overlong
+       encodings such as `\xc0\x80` for U+0000, UTF-16 surrogates written as raw bytes, and codepoints above
+       U+10FFFF. `match_string` checked only that a lead byte was followed by the right number of continuation
+       bytes, so `"\xed\xa0\x80"` parsed while `"\ud800"` -- the same codepoint, escaped -- did not. Nor did
+       `utf8_strict` help, since its only extra check is for unprintable ASCII. The parser, the string decoder
+       and the encoder now share one definition of well-formed UTF-8, so the encoder no longer rewrites an
+       ill-formed string into a different one (`\xc0\x80` as `\u0000`) or into one the parser refuses
+       (`\xed\xa0\x80` as `\ud800`); it replaces each byte with a numeric escape, as it already did for other
+       malformed input (#207).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

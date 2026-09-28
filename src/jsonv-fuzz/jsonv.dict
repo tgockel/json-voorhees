@@ -56,7 +56,7 @@ esc_surrogate_pair="\\ud83d\\ude00"
 esc_bad_surrogate="\\ud800"
 esc_max_bmp="\\uffff"
 
-# Multi-byte UTF-8 lead bytes, including the forms that should not be legal (issue #207)
+# Multi-byte UTF-8 lead bytes, including the ill-formed ones the parser rejects (issue #207)
 utf8_two="\xc3\xa9"
 utf8_three="\xe2\x82\xac"
 utf8_four="\xf0\x9f\x98\x80"

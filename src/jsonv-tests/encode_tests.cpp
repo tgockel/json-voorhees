@@ -20,6 +20,7 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace jsonv_test
 {
@@ -188,6 +189,28 @@ TEST(encode_invalid_utf8_uses_replacement_at_end)
     jsonv::value val = "\xe8";
     std::string output = jsonv::to_string(val);
     ensure_eq(output, "\"\\u00e8\"");
+}
+
+TEST(encode_invalid_utf8_uses_replacement_for_ill_formed_sequences)
+{
+    // Each of these has every continuation byte in place, so the encoder used to decode it and write out the codepoint:
+    // an overlong U+0000 came out as `\u0000`, changing the value, and a raw surrogate came out as `\ud800`, which the
+    // parser refuses. None of them is well-formed UTF-8, so each byte is now replaced on its own like any other
+    // malformed input, and the output parses (#207).
+    const std::pair<const char*, const char*> cases[] =
+        {
+            { "N\xc0\x80X",             "\"N\\u00c0\\u0080X\""                     },
+            { "N\xed\xa0\x80X",         "\"N\\u00ed\\u00a0\\u0080X\""               },
+            { "N\xf5\x80\x80\x80X",     "\"N\\u00f5\\u0080\\u0080\\u0080X\""         },
+            { "N\xf8\x80\x80\x80\x80X", "\"N\\u00f8\\u0080\\u0080\\u0080\\u0080X\"" },
+        };
+
+    for (const auto& [input, expected] : cases)
+    {
+        std::string output = jsonv::to_string(jsonv::value(input));
+        ensure_eq(output, expected);
+        ensure(jsonv::parse(output).kind() == jsonv::kind::string);
+    }
 }
 
 }

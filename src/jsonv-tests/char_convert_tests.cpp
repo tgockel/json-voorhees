@@ -184,10 +184,10 @@ TEST(string_decode_blns_94)
                           R"(\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f")");
 }
 
-static std::string string_encode_static(const std::string& source)
+static std::string string_encode_static(const std::string& source, bool ensure_ascii = true)
 {
     std::ostringstream ss;
-    jsonv::detail::string_encode(ss, source);
+    jsonv::detail::string_encode(ss, source, ensure_ascii);
     return ss.str();
 }
 
@@ -199,19 +199,38 @@ TEST(string_encode_surrogates_valid)
     JSONV_TEST_SURROGATE_PAIRS(JSONV_TEST_GEN_ENCODE_EQ)
 }
 
-TEST(string_decode_long_utf8_sequences)
+TEST(string_encode_passthrough_only_passes_well_formed_utf8)
 {
-    // A couple of very long, but valid UTF-8 sequences
-    string_decode_static("\xf8\x80\x80\x80\x80");
-    string_decode_static("\xfc\x80\x80\x80\x80\x80");
+    // Without `ensure_ascii`, well-formed UTF-8 is written out as it came, all the way up to U+10FFFF...
+    ensure_eq("\xc2\x80",         string_encode_static("\xc2\x80",         false));
+    ensure_eq("\xef\xbf\xbf",     string_encode_static("\xef\xbf\xbf",     false));
+    ensure_eq("\xf4\x8f\xbf\xbf", string_encode_static("\xf4\x8f\xbf\xbf", false));
+
+    // ...but nothing else is. A valid lead byte used to be enough to get a byte written out raw, even when the sequence
+    // it began was broken, and so were an overlong encoding, a surrogate and a codepoint above U+10FFFF (#207).
+    ensure_eq("\\u00c3(",                     string_encode_static("\xc3(",            false));
+    ensure_eq("\\u00c0\\u0080",               string_encode_static("\xc0\x80",         false));
+    ensure_eq("\\u00ed\\u00a0\\u0080",        string_encode_static("\xed\xa0\x80",     false));
+    ensure_eq("\\u00f5\\u0080\\u0080\\u0080", string_encode_static("\xf5\x80\x80\x80", false));
+}
+
+TEST(string_decode_rejects_ill_formed_utf8)
+{
+    // Every continuation byte is in place in each of these; what is wrong is the codepoint they spell or how they
+    // spell it (issue #207).
+    ensure_throws(decode_error, string_decode_static("\xf8\x80\x80\x80\x80"));     // 5 byte form, removed by RFC 3629
+    ensure_throws(decode_error, string_decode_static("\xfc\x80\x80\x80\x80\x80")); // 6 byte form, likewise
+    ensure_throws(decode_error, string_decode_static("\xc0\x80"));                 // overlong U+0000
+    ensure_throws(decode_error, string_decode_static("\xed\xa0\x80"));             // U+D800, a surrogate
+    ensure_throws(decode_error, string_decode_static("\xf5\x80\x80\x80"));         // U+140000, above U+10FFFF
 }
 
 TEST(string_decode_short_utf8_sequence)
 {
     ensure_throws(decode_error, string_decode_static("\x80 is not 1 byte long"));
-    ensure_throws(decode_error, string_decode_static("\xc0 is not 2 bytes long"));
-    ensure_throws(decode_error, string_decode_static("\xe0\x80 is not 3 bytes long"));
-    ensure_throws(decode_error, string_decode_static("\xf0\x80 is not 4 bytes long"));
+    ensure_throws(decode_error, string_decode_static("\xc3 is not 2 bytes long"));
+    ensure_throws(decode_error, string_decode_static("\xe2\x82 is not 3 bytes long"));
+    ensure_throws(decode_error, string_decode_static("\xf0\x9f\x98 is not 4 bytes long"));
 }
 
 TEST(string_decode_invalid_utf8_start)

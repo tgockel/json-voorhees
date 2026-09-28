@@ -12,6 +12,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/detail/is_print.hpp>
 #include <jsonv/detail/architecture.hpp>
+#include <jsonv/detail/utf8.hpp>
 
 #include <cassert>
 #include <cctype>
@@ -47,58 +48,6 @@ static bool is_valid_escape(char c)
     case 'u': // <- note that `u` must be handled in a special case
     default:
         return false;
-    }
-}
-
-static constexpr bool char_bitmatch(char c, char pos, char neg)
-{
-    using u8 = unsigned char;
-
-    // NOTE(tgockel, 2018-06-04): The use of casting should not be needed here. However, GCC 8.1.0 seems to have a
-    // bug in the optimizer that causes this function to erroneously return `true` in some cases (specifically, with
-    // `char_bitmatch('\xf0', '\xc0', '\x20')`, but not if you call the function directly). It is possible this issue
-    // (https://github.com/tgockel/json-voorhees/issues/108) has been misdiagnosed, but the behavior only happens on
-    // GCC 8.1.0 and only with -O3. This also fixes the problem, even though it logically should not change anything
-    // (https://stackoverflow.com/questions/50671485/bitwise-operations-on-signed-chars).
-    return (u8(c) & u8(pos)) == u8(pos)
-        && !(u8(c) & u8(neg));
-}
-
-/// Tests if \a c is a valid UTF-8 sequence continuation.
-static constexpr bool is_utf8_sequence_continuation(char c)
-{
-    return char_bitmatch(c, '\x80', '\x40');
-}
-
-static unsigned utf8_length(char c)
-{
-    if (char_bitmatch(c, '\xc0', '\x20'))
-    {
-        JSONV_LIKELY
-        return 2U;
-    }
-    else if (char_bitmatch(c, '\xe0', '\x10'))
-    {
-        return 3U;
-    }
-    else if (char_bitmatch(c, '\xf0', '\x08'))
-    {
-        return 4U;
-    }
-    else if (char_bitmatch(c, '\xf8', '\x04'))
-    {
-        return 5U;
-    }
-    else if (char_bitmatch(c, '\xfc', '\x02'))
-    {
-        return 6U;
-    }
-    else
-    {
-        JSONV_UNLIKELY
-        // This is not an acceptable/valid UTF-8 string. A failure here means I can't trust or don't understand the
-        // source encoding.
-        return 0U;
     }
 }
 
@@ -323,29 +272,15 @@ match_string_result match_string(const char* iter, const char* end, const parse_
             ++iter;
             ++length;
         }
-        else if (auto utf_seq_length = utf8_length(*iter))
+        else if (auto utf_seq_length = utf8_sequence_length(iter, end))
         {
-            if (iter + utf_seq_length > end)
-            {
-                return match_string_result::create_unmatched(length);
-            }
-            else
-            {
-                for (unsigned offset = 1U; offset < utf_seq_length; ++offset)
-                {
-                    if (!is_utf8_sequence_continuation(iter[offset]))
-                    {
-                        JSONV_UNLIKELY
-                        return match_string_result::create_unmatched(length + offset);
-                    }
-                }
-
-                iter   += utf_seq_length;
-                length += utf_seq_length;
-            }
+            iter   += utf_seq_length;
+            length += utf_seq_length;
         }
         else
         {
+            // Not well-formed UTF-8: a stray continuation byte, a truncated sequence, or one which encodes an overlong
+            // form, a surrogate or a codepoint above U+10FFFF.
             return match_string_result::create_unmatched(length);
         }
     }
