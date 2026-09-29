@@ -65,7 +65,8 @@ public:
                                      key,
                                      [this] (const value_type& x, const key_type& k) { return _cmp(x.first, k); }
                                     );
-        if (!_cmp(key, iter->first))
+        // `lower_bound` gives `end()` for a key which sorts after every one in the table, and that has no key to read
+        if (iter != this->end() && !_cmp(key, iter->first))
             return iter;
         else
             return this->end();

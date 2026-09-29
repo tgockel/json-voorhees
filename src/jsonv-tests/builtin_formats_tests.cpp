@@ -10,6 +10,7 @@
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "allocation_counter.hpp"
+#include "locale_util.hpp"
 #include "test.hpp"
 
 #include <jsonv/ast.hpp>
@@ -24,7 +25,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
-#include <locale>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -91,45 +91,6 @@ void check_refused_alike(std::string_view source, const formats& fmts = formats:
     ensure_eq(from_text.message(), cxt.problems().at(0).message());
     ensure_eq(from_text.path(),    cxt.problems().at(0).path());
 }
-
-/// Digits grouped in threes with a `,`, which a stream applies to every number inserted into it while this is part of
-/// its locale.
-class grouping_numpunct final :
-        public std::numpunct<char>
-{
-protected:
-    virtual char do_thousands_sep() const override
-    {
-        return ',';
-    }
-
-    virtual std::string do_grouping() const override
-    {
-        return "\3";
-    }
-};
-
-/// Make \c grouping_numpunct part of the global locale for as long as this lives, which is what every stream built in
-/// the meantime starts out with. Restored on the way out however that happens, so that a failure part-way through a
-/// test does not leave every test after it running under a different locale.
-class global_grouping_locale final
-{
-public:
-    global_grouping_locale() :
-            _previous(std::locale::global(std::locale(std::locale::classic(), new grouping_numpunct)))
-    { }
-
-    global_grouping_locale(const global_grouping_locale&)            = delete;
-    global_grouping_locale& operator=(const global_grouping_locale&) = delete;
-
-    ~global_grouping_locale() noexcept
-    {
-        std::locale::global(_previous);
-    }
-
-private:
-    std::locale _previous;
-};
 
 bool mentions(const extraction_error::problem& problem, std::string_view text)
 {

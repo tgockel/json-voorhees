@@ -166,6 +166,18 @@
        and the control characters must be escaped; the encoder only wrote `\/` because it shared one table of escapes
        with the decoder. The decoder still reads `\/`. Encoded text containing a `/` changes, but it means the same
        thing to any JSON parser.
+     - Fixed `to_string(path)` writing paths `path::create` could not read back, or read back as a different path. A key
+       in brackets was written without escaping, so `a"b` came out as unparseable `["a"b"]` and `a\b` as `["a\b"]`,
+       which reads back as `a`, a backspace and `b`. Keys are now written as JSON strings, with well-formed UTF-8 left
+       as it is. The choice between `.key` and `["key"]` now follows the parser's identifier grammar rather than
+       `std::isalnum`, so a key starting with a digit (`["123"]`, which was `.123`) gets brackets and one with `_` or
+       `$` (`._id`, which was `["_id"]`) no longer needs them. That also stops passing a possibly negative `char` to
+       `std::isalnum`. An array index is written without the stream's digit grouping, which could make `[1000]` into
+       `[1,000]`, and `path::create` refuses an index too large for `std::size_t` with `std::invalid_argument` rather
+       than saturating it. `path::create(to_string(p)) == p` now holds for every path whose keys are well-formed UTF-8.
+       Also fixed the escape lookup behind the encoder and decoder reading one entry past the end of its table for a
+       character which sorts after every escape, such as any lowercase letter being encoded or the `u` of a `\u`
+       escape being decoded. What it read was never used, so no output changes (#194).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

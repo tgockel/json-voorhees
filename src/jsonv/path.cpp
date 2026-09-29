@@ -15,16 +15,129 @@
 #include <jsonv/detail/match/string.hpp>
 #include <jsonv/char_convert.hpp>
 
-#include <algorithm>
 #include <optional>
 #include <cassert>
-#include <cctype>
+#include <charconv>
+#include <iterator>
+#include <limits>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <system_error>
 
 namespace jsonv
 {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// path Parsing Details                                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace detail
+{
+
+enum class path_match_result : char
+{
+    simple_object = '.',
+    brace         = '[',
+    invalid       = '\x00',
+};
+
+static std::optional<std::string_view> match_simple_string(const char* begin, const char* end)
+{
+    auto length     = std::size_t(0U);
+    auto max_length = std::size_t(end - begin);
+
+    auto current = [&] ()
+                   {
+                       if (length < max_length)
+                           return begin[length];
+                       else
+                           return '\0';
+                   };
+
+    // R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)"
+    char c = current();
+    if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$'))
+        ++length;
+    else
+        return std::nullopt;
+
+    while (true)
+    {
+        c = current();
+        if (c == '\0')
+            return std::string_view(begin, length);
+        else if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$') || ('0' <= c && c <= '9'))
+            ++length;
+        else
+            return std::string_view(begin, length);
+    }
+}
+
+/// Attempt to match a path.
+///
+/// \param input The input to match
+/// \param[out] match_contents The full contents of a match
+static path_match_result path_match(std::string_view input, std::string_view& match_contents)
+{
+    if (input.length() < 2U)
+        return path_match_result::invalid;
+
+    switch (input.at(0))
+    {
+    case '.':
+        if (auto result = match_simple_string(input.data() + 1, input.data() + input.size()))
+        {
+            match_contents = input.substr(0, result->length() + 1);
+            return path_match_result::simple_object;
+        }
+        else
+        {
+            return path_match_result::invalid;
+        }
+    case '[':
+        if (input.size() < 2U)
+            return path_match_result::invalid;
+
+        if (input[1] == '\"')
+        {
+            static const parse_options match_options = parse_options::create_strict();
+            if (auto result = match_string(input.data() + 1, input.data() + input.size(), match_options))
+            {
+                if (input.length() == result.length + 1U || input.at(1 + result.length) != ']')
+                    return path_match_result::invalid;
+                match_contents = input.substr(0, result.length + 2U);
+                return path_match_result::brace;
+            }
+            else
+            {
+                return path_match_result::invalid;
+            }
+        }
+        else if (input[1] >= '0' && input[1] <= '9')
+        {
+            if (auto result = match_number(input.data() + 1, input.data() + input.size()); result && !result.decimal)
+            {
+                if (input.length() == result.length + 1U || input.at(1 + result.length) != ']')
+                    return path_match_result::invalid;
+                match_contents = input.substr(0, result.length + 2U);
+                return path_match_result::brace;
+            }
+            else
+            {
+                return path_match_result::invalid;
+            }
+        }
+        else
+        {
+            return path_match_result::invalid;
+        }
+    default:
+        return path_match_result::invalid;
+    }
+}
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // path_element                                                                                                       //
@@ -216,13 +329,25 @@ static std::ostream& stream_path_element(std::ostream& os, const path_element& e
     switch (elem.kind())
     {
     case path_element_kind::array_index:
-        return os << '[' << elem.index() << ']';
+    {
+        // Not `os << elem.index()`, which groups the digits if the stream's locale does, and `[1,000]` is not a path
+        char buffer[std::numeric_limits<std::size_t>::digits10 + 1];
+        auto result = std::to_chars(std::begin(buffer), std::end(buffer), elem.index());
+        os << '[';
+        os.write(buffer, result.ptr - buffer);
+        return os << ']';
+    }
     case path_element_kind::object_key:
-        // if any of the elements is not alphanumeric (or it is an empty string), use the [] notation
-        if (elem.key().empty() || std::any_of(begin(elem.key()), end(elem.key()), [] (char c) { return !std::isalnum(c); }))
-            return os << "[\"" << elem.key() << "\"]";
+    {
+        // Written the way `path::create` reads it back: `.key` if the whole key is an identifier, or else as a JSON
+        // string in brackets. Well-formed UTF-8 passes through unescaped.
+        const std::string& key    = elem.key();
+        auto               simple = detail::match_simple_string(key.data(), key.data() + key.size());
+        if (simple && simple->size() == key.size())
+            return os << '.' << key;
         else
-            return os << '.' << elem.key();
+            return stream_escaped_string(os << '[', key, false) << ']';
+    }
     default:
         return os << "path_element(invalid:" << elem.kind() << ")";
     }
@@ -238,117 +363,6 @@ std::string to_string(const path_element& val)
     std::ostringstream os;
     os << val;
     return os.str();
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// path Parsing Details                                                                                               //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace detail
-{
-
-enum class path_match_result : char
-{
-    simple_object = '.',
-    brace         = '[',
-    invalid       = '\x00',
-};
-
-static std::optional<std::string_view> match_simple_string(const char* begin, const char* end)
-{
-    auto length     = std::size_t(0U);
-    auto max_length = std::size_t(end - begin);
-
-    auto current = [&] ()
-                   {
-                       if (length < max_length)
-                           return begin[length];
-                       else
-                           return '\0';
-                   };
-
-    // R"(^[a-zA-Z_$][a-zA-Z0-9_$]*)"
-    char c = current();
-    if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$'))
-        ++length;
-    else
-        return std::nullopt;
-
-    while (true)
-    {
-        c = current();
-        if (c == '\0')
-            return std::string_view(begin, length);
-        else if (('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || (c == '_') || (c == '$') || ('0' <= c && c <= '9'))
-            ++length;
-        else
-            return std::string_view(begin, length);
-    }
-}
-
-/// Attempt to match a path.
-///
-/// \param input The input to match
-/// \param[out] match_contents The full contents of a match
-static path_match_result path_match(std::string_view input, std::string_view& match_contents)
-{
-    if (input.length() < 2U)
-        return path_match_result::invalid;
-
-    switch (input.at(0))
-    {
-    case '.':
-        if (auto result = match_simple_string(input.data() + 1, input.data() + input.size()))
-        {
-            match_contents = input.substr(0, result->length() + 1);
-            return path_match_result::simple_object;
-        }
-        else
-        {
-            return path_match_result::invalid;
-        }
-    case '[':
-        if (input.size() < 2U)
-            return path_match_result::invalid;
-
-        if (input[1] == '\"')
-        {
-            static const parse_options match_options = parse_options::create_strict();
-            if (auto result = match_string(input.data() + 1, input.data() + input.size(), match_options))
-            {
-                if (input.length() == result.length + 1U || input.at(1 + result.length) != ']')
-                    return path_match_result::invalid;
-                match_contents = input.substr(0, result.length + 2U);
-                return path_match_result::brace;
-            }
-            else
-            {
-                return path_match_result::invalid;
-            }
-        }
-        else if (input[1] >= '0' && input[1] <= '9')
-        {
-            if (auto result = match_number(input.data() + 1, input.data() + input.size()); result && !result.decimal)
-            {
-                if (input.length() == result.length + 1U || input.at(1 + result.length) != ']')
-                    return path_match_result::invalid;
-                match_contents = input.substr(0, result.length + 2U);
-                return path_match_result::brace;
-            }
-            else
-            {
-                return path_match_result::invalid;
-            }
-        }
-        else
-        {
-            return path_match_result::invalid;
-        }
-    default:
-        return path_match_result::invalid;
-    }
-}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -382,11 +396,11 @@ path::~path() noexcept = default;
 
 static std::size_t extract_size_t(std::string_view src)
 {
-    auto  src_end  = src.data() + src.size();
-    char* scan_end = nullptr;
-    auto  val      = std::strtoull(src.data(), &scan_end, 10);
+    auto        src_end = src.data() + src.size();
+    std::size_t val;
+    auto        result  = std::from_chars(src.data(), src_end, val);
 
-    if (scan_end == src_end)
+    if (result.ec == std::errc() && result.ptr == src_end)
         return val;
     else
         throw std::invalid_argument(std::string("Could not extract integer from \"") + std::string(src) + "\"");

@@ -95,7 +95,8 @@ public:
     /// Create a \c path from a string definition. The syntax of this is ECMAScript's syntax for selecting elements, so
     /// <tt>path::create(".foo.bar[1]")</tt> is equivalent to <tt>path({ "foo", "bar", 1 })</tt>.
     ///
-    /// \throws std::invalid_argument if the \a specification is not valid.
+    /// \throws std::invalid_argument if the \a specification is not valid, including an array index too large for a
+    ///                               \c std::size_t.
     JSONV_NODISCARD
     static path create(std::string_view specification);
 
@@ -116,8 +117,18 @@ public:
     path& operator+=(path_element elem);
 };
 
-JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path&);
+/// \{
+/// Write \a val in the syntax \c path::create reads. An object key which is an identifier (matching
+/// <tt>[a-zA-Z_$][a-zA-Z0-9_$]*</tt>) is written as <tt>.key</tt> and any other key as a JSON string in brackets, like
+/// <tt>["a b"]</tt>. Well-formed UTF-8 in a key is written as it is. An array index is written as <tt>[N]</tt> whatever
+/// the stream's locale, and the empty path as <tt>.</tt>.
+///
+/// So <tt>path::create(to_string(p)) == p</tt> for every path whose keys are well-formed UTF-8. A key which is not has
+/// each ill-formed byte written as a <tt>\\u00NN</tt> escape, and that reads back as the codepoint U+00NN rather than
+/// the byte.
+JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path& val);
 
-JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const path&);
+JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const path& val);
+/// \}
 
 }

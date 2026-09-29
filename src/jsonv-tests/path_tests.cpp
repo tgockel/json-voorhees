@@ -10,6 +10,7 @@
 **/
 #include "test.hpp"
 #include "filesystem_util.hpp"
+#include "locale_util.hpp"
 
 #include <jsonv/algorithm.hpp>
 #include <jsonv/parse.hpp>
@@ -17,6 +18,8 @@
 #include <jsonv/value.hpp>
 
 #include <fstream>
+#include <limits>
+#include <string>
 
 namespace jsonv_test
 {
@@ -232,6 +235,70 @@ TEST(path_combines)
     ensure_eq(goal, a + b);
     a += b;
     ensure_eq(goal, a);
+}
+
+TEST(path_to_string_round_trips)
+{
+    const std::string keys[] =
+    {
+        "abc", "_", "$", "_a$1",
+        // Not identifiers, so these need brackets
+        "123", "1a", "", "a b", "a.b", "a[0]", "]", "[\"x\"]",
+        // Characters a JSON string has to escape, and a backslash which only looks like an escape
+        "a\"b", "a\\b", "a/b", "\\u0041", "\t\n\b\f\r", std::string("a\0b", 3), "\x01", "\x7f",
+        // Well-formed UTF-8 of each length
+        "\xc3\xa9", "\xe6\x97\xa5\xe6\x9c\xac", "\xf0\x9f\x98\x80",
+    };
+
+    for (const std::string& key : keys)
+    {
+        const path p({ key });
+        ensure_eq(p, path::create(to_string(p)));
+
+        const path q({ "a", key, 1000, key });
+        ensure_eq(q, path::create(to_string(q)));
+    }
+
+    const path indices({ std::size_t(0), std::numeric_limits<std::size_t>::max() });
+    ensure_eq(indices, path::create(to_string(indices)));
+}
+
+TEST(path_to_string_forms)
+{
+    ensure_eq(".abc",                  to_string(path({ "abc" })));
+    ensure_eq("._a$1",                 to_string(path({ "_a$1" })));
+    ensure_eq(".$",                    to_string(path({ "$" })));
+    ensure_eq(R"(["123"])",            to_string(path({ "123" })));
+    ensure_eq(R"([""])",               to_string(path({ "" })));
+    ensure_eq(R"(["a b"])",            to_string(path({ "a b" })));
+    ensure_eq(R"(["a\"b"])",           to_string(path({ "a\"b" })));
+    ensure_eq(R"(["a\\b"])",           to_string(path({ "a\\b" })));
+    ensure_eq(R"(["a/b"])",            to_string(path({ "a/b" })));
+    ensure_eq(R"(["\u0001"])",         to_string(path({ "\x01" })));
+    ensure_eq("[\"\xc3\xa9\"]",        to_string(path({ "\xc3\xa9" })));
+    ensure_eq(R"(.a[1000]["b c"][0])", to_string(path({ "a", 1000, "b c", 0 })));
+}
+
+TEST(path_to_string_ignores_locale)
+{
+    global_grouping_locale grouping;
+
+    const path p({ "a", 1000, 1234567 });
+    ensure_eq(".a[1000][1234567]", to_string(p));
+    ensure_eq(p, path::create(to_string(p)));
+}
+
+TEST(path_parse_index_overflow)
+{
+    const std::string max = std::to_string(std::numeric_limits<std::size_t>::max());
+    ensure_eq(path({ std::numeric_limits<std::size_t>::max() }), path::create("[" + max + "]"));
+
+    // The largest `size_t` ends in a 5 whether it has 32 bits or 64, so this is one more than it
+    std::string over = max;
+    ++over.back();
+    ensure_throws(std::invalid_argument, path::create("[" + over + "]"));
+    ensure_throws(std::invalid_argument, path::create("[" + max + "0]"));
+    ensure_throws(std::invalid_argument, path::create("[99999999999999999999999]"));
 }
 
 }
