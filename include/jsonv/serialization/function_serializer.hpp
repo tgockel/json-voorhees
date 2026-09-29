@@ -14,6 +14,10 @@
 
 #include "serializer_for.hpp"
 
+#include <concepts>
+#include <type_traits>
+#include <utility>
+
 namespace jsonv
 {
 
@@ -25,7 +29,10 @@ class function_serializer :
         public serializer_for<T>
 {
 public:
+    // Constrained so that copying from a non-const lvalue reaches the copy constructor, which this would otherwise
+    // beat as the better match.
     template <typename FUToJson>
+        requires (!std::same_as<std::remove_cvref_t<FUToJson>, function_serializer>)
     explicit function_serializer(FUToJson&& to_json_) :
             _to_json(std::forward<FUToJson>(to_json_))
     { }

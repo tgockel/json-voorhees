@@ -427,6 +427,10 @@
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a
        buffer was read beyond it (#188).
+     - Fixed copying a `function_extractor` or `function_serializer` from a non-const lvalue failing to compile. Their
+       constructor taking the wrapped function by forwarding reference was a better match than the copy constructor,
+       so the copy tried to build the function out of the adapter. The constructor now refuses the adapter's own type
+       (#188).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC

@@ -254,6 +254,26 @@ TEST(extractor_throws_random_thing)
     ensure_throws(extraction_error, cxt.extract<unassociated>(val.at("a")));
 }
 
+// For a non-const lvalue, a constructor taking a forwarding reference is a better match than the copy constructor. Left
+// unconstrained, copying an adapter tried to build the wrapped function from the adapter and did not compile.
+TEST(function_adapters_copy_from_non_const)
+{
+    auto extract_fn = [] (const value& from) { return from.as_integer() + 1; };
+    function_extractor<std::int64_t, decltype(extract_fn)> extractor(extract_fn);
+    function_extractor<std::int64_t, decltype(extract_fn)> extractor_copy(extractor);
+
+    auto serialize_fn = [] (const serialization_context&, const std::int64_t& from) { return value(from + 1); };
+    function_serializer<std::int64_t, decltype(serialize_fn)> serializer(serialize_fn);
+    function_serializer<std::int64_t, decltype(serialize_fn)> serializer_copy(serializer);
+
+    formats locals;
+    locals.register_extractor(&extractor_copy);
+    locals.register_serializer(&serializer_copy);
+
+    ensure_eq(8, extraction_context(locals).extract<std::int64_t>(value(7)));
+    ensure_eq(value(8), serialization_context(locals).to_json(std::int64_t(7)));
+}
+
 TEST(serialize_basics)
 {
     serialization_context cxt(formats::defaults());

@@ -14,7 +14,9 @@
 
 #include "extractor_for.hpp"
 
+#include <concepts>
 #include <expected>
+#include <type_traits>
 #include <utility>
 
 namespace jsonv
@@ -32,7 +34,10 @@ class function_extractor :
         public extractor_for<T>
 {
 public:
+    // Constrained so that copying from a non-const lvalue reaches the copy constructor, which this would otherwise
+    // beat as the better match.
     template <typename FUExtract>
+        requires (!std::same_as<std::remove_cvref_t<FUExtract>, function_extractor>)
     explicit function_extractor(FUExtract&& func) :
             _func(std::forward<FUExtract>(func))
     { }
