@@ -43,6 +43,11 @@ TEST(string_decode_sigils)
     ensure_eq("\t\b\f\n\r", string_decode_static("\\t\\b\\f\\n\\r"));
 }
 
+TEST(string_decode_solidus)
+{
+    ensure_eq("a/b", string_decode_static("a\\/b"));
+}
+
 TEST(string_decode_utf_one_char)
 {
     ensure_eq("\xe2\x98\xa2", string_decode_static("\\u2622"));
@@ -189,6 +194,13 @@ static std::string string_encode_static(const std::string& source, bool ensure_a
     std::ostringstream ss;
     jsonv::detail::string_encode(ss, source, ensure_ascii);
     return ss.str();
+}
+
+TEST(string_encode_leaves_solidus)
+{
+    // `\/` is a JSON escape the decoder has to take, but a solidus needs no escaping.
+    ensure_eq("a/b", string_encode_static("a/b"));
+    ensure_eq("</script>", string_encode_static("</script>", false));
 }
 
 TEST(string_encode_surrogates_valid)

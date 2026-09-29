@@ -162,6 +162,10 @@
        integer string from 2^63 through `UINT64_MAX` is now treated as a number too large for `std::int64_t`, like any
        other: `coerce_integer` clamps it to the maximum and `coerce_decimal` returns its nearest `double`. Both used to
        see the negative `std::int64_t` the parser keeps its bits in, so `"18446744073709551615"` coerced to `-1` (#193).
+     - The encoder writes `/` as it is rather than as `\/`. RFC 8259 allows the escape, but only a quote, a backslash
+       and the control characters must be escaped; the encoder only wrote `\/` because it shared one table of escapes
+       with the decoder. The decoder still reads `\/`. Encoded text containing a `/` changes, but it means the same
+       thing to any JSON parser.
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

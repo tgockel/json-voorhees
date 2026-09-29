@@ -39,36 +39,46 @@ decode_error::decode_error(size_type offset, const std::string& message):
 decode_error::~decode_error() noexcept
 { }
 
-#define ESCAPES_LIST(item) \
+/** The short escapes the encoder writes. **/
+#define ENCODED_ESCAPES_LIST(item) \
     item('\b', 'b')  \
     item('\f', 'f')  \
     item('\n', 'n')  \
     item('\r', 'r')  \
     item('\t', 't')  \
     item('\\', '\\') \
-    item('/',  '/')  \
     item('\"', '\"') \
 
+/** The short escapes the decoder reads: the ones the encoder writes, and \c \\/. RFC 8259 lets a string spell a solidus
+ *  that way, so the decoder has to understand it. Nothing requires it, though -- only a quote, a backslash and the
+ *  control characters must be escaped -- so the encoder writes \c / as it is.
+**/
+#define ESCAPES_LIST(item) \
+    ENCODED_ESCAPES_LIST(item) \
+    item('/',  '/')  \
+
 #define TUPLE_PLUS_1_GEN(a, b) +1
-typedef detail::fixed_map<char, char, ESCAPES_LIST(TUPLE_PLUS_1_GEN)> converter_map;
+typedef detail::fixed_map<char, char, ENCODED_ESCAPES_LIST(TUPLE_PLUS_1_GEN)> encode_converter_map;
+typedef detail::fixed_map<char, char, ESCAPES_LIST(TUPLE_PLUS_1_GEN)>         decode_converter_map;
 
 /** These entries are sorted by the numeric value of the ASCII character (\c less_entry_cpp).
  *
  *  \note
- *  The encode and decode map must be in a different order (even though they contain the same data) because the ASCII
- *  representations of escape sequences are not in the same order as the characters they are escaping.
+ *  The encode and decode map must be in a different order (even though they share most of their data) because the
+ *  ASCII representations of escape sequences are not in the same order as the characters they are escaping.
 **/
 #define TUPLE_FIRST_SECOND(a, b) { a, b },
-const converter_map encode_map = { ESCAPES_LIST(TUPLE_FIRST_SECOND) };
+const encode_converter_map encode_map = { ENCODED_ESCAPES_LIST(TUPLE_FIRST_SECOND) };
 
 /** These entries are sorted by the character value of the escape sequence (\c less_entry_json).
 **/
 #define TUPLE_SECOND_FIRST(a, b) { b, a },
-const converter_map decode_map = { ESCAPES_LIST(TUPLE_SECOND_FIRST) };
+const decode_converter_map decode_map = { ESCAPES_LIST(TUPLE_SECOND_FIRST) };
 
-const char* find(const converter_map& source, char key)
+template <typename TConverterMap>
+const char* find(const TConverterMap& source, char key)
 {
-    converter_map::const_iterator iter = source.find(key);
+    typename TConverterMap::const_iterator iter = source.find(key);
     if (iter != source.end())
         return &iter->second;
     else
