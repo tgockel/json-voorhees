@@ -199,7 +199,7 @@ void ostream_pretty_encoder::write_prefix()
 
 void ostream_pretty_encoder::write_eol()
 {
-    output() << std::endl;
+    output() << '\n';
     for (std::size_t x = 0; x < _indent; ++x)
         output() << ' ';
 }

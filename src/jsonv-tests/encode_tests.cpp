@@ -52,6 +52,28 @@ TEST(encode_pretty_print)
     encoder.encode(val);
 }
 
+// The stream is the caller's, so when its contents reach wherever they are going is too. A flush per line makes pretty
+// output to a file or socket cost a write per line.
+TEST(encode_pretty_does_not_flush)
+{
+    struct sync_counting_buf : std::stringbuf
+    {
+        int syncs = 0;
+
+        int sync() override
+        {
+            ++syncs;
+            return std::stringbuf::sync();
+        }
+    };
+
+    sync_counting_buf buf;
+    std::ostream      os(&buf);
+    jsonv::ostream_pretty_encoder(os).encode(jsonv::parse(k_some_json));
+    ensure(buf.str().find('\n') != std::string::npos);
+    ensure_eq(0, buf.syncs);
+}
+
 TEST(encode_nan)
 {
     auto val = jsonv::parse(k_some_json);

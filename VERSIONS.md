@@ -178,6 +178,9 @@
        Also fixed the escape lookup behind the encoder and decoder reading one entry past the end of its table for a
        character which sorts after every escape, such as any lowercase letter being encoded or the `u` of a `\u`
        escape being decoded. What it read was never used, so no output changes (#194).
+     - `ostream_pretty_encoder` no longer flushes its stream at the end of every line. It wrote line breaks with
+       `std::endl`, so pretty output to a file or a socket paid for a write per line. The output itself is unchanged;
+       flush the stream yourself if you need it to have arrived (#188).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,
