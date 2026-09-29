@@ -10,17 +10,121 @@
 **/
 #include <jsonv/coerce.hpp>
 #include <jsonv/algorithm.hpp>
-#include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
 
+#include <charconv>
 #include <cmath>
 #include <limits>
-#include <stdexcept>
+#include <optional>
+#include <string_view>
+#include <system_error>
 
 #include "detail/fallthrough.hpp"
+#include "detail/fast_float/fast_float.h"
+#include "detail/match/number.hpp"
 
 namespace jsonv
 {
+
+namespace
+{
+
+// A number spelt the way JSON spells one, with the whitespace that may surround it already trimmed off.
+struct number_token
+{
+    std::string_view text;
+    bool             decimal;
+};
+
+// The number `source` holds, if all it holds is one JSON number and the whitespace JSON allows around a value. This is
+// the parser's own grammar for a number, but applied here rather than by `parse`, so nothing `parse_options` can switch
+// on -- comments, most obviously -- is allowed in. It is also what keeps out the spellings the conversions below would
+// take and JSON does not: `fast_float` reads `inf` and `nan`, and `from_chars` reads a leading zero.
+std::optional<number_token> match_number_token(std::string_view source)
+{
+    constexpr std::string_view whitespace = " \t\n\r";
+
+    auto first = source.find_first_not_of(whitespace);
+    if (first == std::string_view::npos)
+        return std::nullopt;
+
+    auto last = source.find_last_not_of(whitespace);
+    auto text = source.substr(first, last - first + 1);
+
+    auto matched = detail::match_number(text.data(), text.data() + text.size());
+    if (matched && matched.length == text.size())
+        return number_token{ text, matched.decimal };
+    else
+        return std::nullopt;
+}
+
+// The nearest `double` to `token`, which has already matched the JSON number grammar. A magnitude which underflows to
+// zero is zero, as it is to `parse`; one with no finite `double` at all -- `1e400` -- is not a number this can give.
+std::optional<double> decimal_from_token(std::string_view token)
+{
+    auto   end = token.data() + token.size();
+    double out{};
+    auto   result = fast_float::from_chars(token.data(), end, out, fast_float::chars_format::general);
+    if (  result.ptr == end
+       && (  result.ec == std::errc{}
+          || (result.ec == std::errc::result_out_of_range && out == 0.0)
+          )
+       )
+        return out;
+    else
+        return std::nullopt;
+}
+
+std::int64_t integer_from_decimal(double src)
+{
+    // Converting a double that does not fit the destination type is undefined behavior rather
+    // than a saturating conversion, so the value has to be range-checked first. The upper test
+    // is `>=` because `double(int64_t max)` rounds up to 2^63, one past the largest
+    // representable int64_t; the lower bound is -2^63 exactly, so `<=` there is only belt and
+    // braces. NaN compares false against everything and has no meaningful clamp, so it gets 0.
+    if (std::isnan(src))
+        return 0;
+    else if (src >= double(std::numeric_limits<std::int64_t>::max()))
+        return std::numeric_limits<std::int64_t>::max();
+    else if (src <= double(std::numeric_limits<std::int64_t>::min()))
+        return std::numeric_limits<std::int64_t>::min();
+    else
+        return std::int64_t(src);
+}
+
+// The integer `source` holds, if it holds a JSON number. One which fits in an `std::int64_t` is read exactly; any other
+// -- a decimal, or an integer too large for 64 bits -- goes by way of its nearest `double`, which is truncated and
+// clamped just as a `kind::decimal` is.
+std::optional<std::int64_t> integer_from_string(std::string_view source)
+{
+    auto token = match_number_token(source);
+    if (!token)
+        return std::nullopt;
+
+    if (!token->decimal)
+    {
+        auto         end = token->text.data() + token->text.size();
+        std::int64_t out{};
+        auto         result = std::from_chars(token->text.data(), end, out);
+        if (result.ec == std::errc{} && result.ptr == end)
+            return out;
+    }
+
+    if (auto approx = decimal_from_token(token->text))
+        return integer_from_decimal(*approx);
+    else
+        return std::nullopt;
+}
+
+std::optional<double> decimal_from_string(std::string_view source)
+{
+    if (auto token = match_number_token(source))
+        return decimal_from_token(token->text);
+    else
+        return std::nullopt;
+}
+
+}
 
 bool can_coerce(const kind& from, const kind& to)
 {
@@ -115,37 +219,12 @@ std::int64_t coerce_integer(const value& from)
     case kind::integer:
         return from.as_integer();
     case kind::decimal:
-    {
-        // Converting a double that does not fit the destination type is undefined behavior rather
-        // than a saturating conversion, so the value has to be range-checked first. The upper test
-        // is `>=` because `double(int64_t max)` rounds up to 2^63, one past the largest
-        // representable int64_t; the lower bound is -2^63 exactly, so `<=` there is only belt and
-        // braces. NaN compares false against everything and has no meaningful clamp, so it gets 0.
-        const double src = from.as_decimal();
-        if (std::isnan(src))
-            return 0;
-        else if (src >= double(std::numeric_limits<std::int64_t>::max()))
-            return std::numeric_limits<std::int64_t>::max();
-        else if (src <= double(std::numeric_limits<std::int64_t>::min()))
-            return std::numeric_limits<std::int64_t>::min();
-        else
-            return std::int64_t(src);
-    }
+        return integer_from_decimal(from.as_decimal());
     case kind::string:
-        try
-        {
-            value x = parse(from.as_string());
-            if (x.kind() == kind::integer || x.kind() == kind::decimal || x.kind() == kind::null)
-                return coerce_integer(x);
-        }
-        catch (const parse_error&)
-        { }
-        catch (const std::invalid_argument&)
-        {
-            // A number with no representation at all -- `1e400`, or an integer literal too long for a `double` to
-            // round -- is no more a number this can interpret than text which failed to parse.
-        }
-        throw kind_error(std::string("Could not interpret string ") + to_string(from) + " as an integer.");
+        if (auto out = integer_from_string(from.as_string_view()))
+            return *out;
+        else
+            throw kind_error(std::string("Could not interpret string ") + to_string(from) + " as an integer.");
     case kind::null:
     case kind::object:
     case kind::array:
@@ -164,20 +243,10 @@ double coerce_decimal(const value& from)
     case kind::decimal:
         return from.as_decimal();
     case kind::string:
-        try
-        {
-            value x = parse(from.as_string());
-            if (x.kind() == kind::integer || x.kind() == kind::decimal || x.kind() == kind::null)
-                return x.as_decimal();
-        }
-        catch (const parse_error&)
-        { }
-        catch (const std::invalid_argument&)
-        {
-            // A number with no representation at all -- `1e400`, or an integer literal too long for a `double` to
-            // round -- is no more a number this can interpret than text which failed to parse.
-        }
-        throw kind_error(std::string("Could not interpret string ") + to_string(from) + " as a decimal.");
+        if (auto out = decimal_from_string(from.as_string_view()))
+            return *out;
+        else
+            throw kind_error(std::string("Could not interpret string ") + to_string(from) + " as a decimal.");
     case kind::null:
     case kind::object:
     case kind::array:

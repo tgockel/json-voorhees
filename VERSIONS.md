@@ -156,6 +156,12 @@
        finite `double` at all -- that long an integer, or `1e400` -- is one `can_coerce` answers `false` for and
        `coerce_integer` and `coerce_decimal` refuse with `kind_error`, rather than letting out the
        `std::invalid_argument` `parse` throws for it (#206).
+     - `coerce_integer` and `coerce_decimal` now read a string as a number directly rather than handing it to `parse`,
+       so `parse_options` no longer decides what a string may say. It has to hold a single RFC 8259 number, optionally
+       surrounded by JSON whitespace, and nothing else, so a comment is refused however `parse_options` is set. An
+       integer string from 2^63 through `UINT64_MAX` is now treated as a number too large for `std::int64_t`, like any
+       other: `coerce_integer` clamps it to the maximum and `coerce_decimal` returns its nearest `double`. Both used to
+       see the negative `std::int64_t` the parser keeps its bits in, so `"18446744073709551615"` coerced to `-1` (#193).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

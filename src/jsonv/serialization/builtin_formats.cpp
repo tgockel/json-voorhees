@@ -431,10 +431,8 @@ auto coerce_checked(extraction_context& context, reader& from, const value& sour
 
 /// Run one of the \c coerce_X functions over the string the reader is on, which is how a string reaches a number.
 ///
-/// This is the one coercion which cannot be answered from the token: what the string says has to be read as JSON in
-/// its own right, which is what \c coerce_integer and \c coerce_decimal have always done with it. Issue #193 is about
-/// replacing that with a direct numeric scan, which changes what a string is allowed to say, so it is left to be
-/// decided on its own.
+/// This is the one coercion which cannot be answered from the token: the string has to be decoded and read as a number,
+/// and what counts as a number there is for \c coerce_integer and \c coerce_decimal to say.
 template <typename FCoerce>
 JSONV_NODISCARD
 auto coerce_from_string(extraction_context& context, reader& from, const FCoerce& coerce)

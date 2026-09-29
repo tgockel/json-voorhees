@@ -78,13 +78,19 @@ JSONV_NODISCARD JSONV_PUBLIC std::string coerce_string(const value& from);
  *  minimum of \c std::int64_t or higher than the maximum of \c std::int64_t, it is clamped to the lowest or highest
  *  value, respectively. A NaN \c decimal coerces to \c 0.
  *
+ *  A \c string coerces if it holds a single JSON number (the RFC 8259 grammar), optionally surrounded by JSON whitespace
+ *  (space, tab, line feed and carriage return), and nothing else. This is independent of \c parse_options: a comment,
+ *  a leading \c +, a hexadecimal number, \c Infinity, \c NaN and \c null are all refused. An integer which fits in an
+ *  \c std::int64_t is returned exactly. Any other number is read as its nearest \c double and then truncated and
+ *  clamped as a \c decimal is. A number too large for any finite \c double, such as \c 1e400, is refused.
+ *
  *  \returns
  *   \c kind is... | Rules
  *   ------------- | -------------------------------------------------
  *   \c null       | throws \c kind_error
  *   \c object     | throws \c kind_error
  *   \c array      | throws \c kind_error
- *   \c string     | \c coerce_integer(parse(from.as_string())) if it parses as a number; otherwise throws \c kind_error
+ *   \c string     | the number it holds, as above; otherwise throws \c kind_error
  *   \c integer    | \c from.as_integer()
  *   \c decimal    | \c from.as_decimal(), truncated and clamped as above
  *   \c boolean    | \c from.as_boolean() ? 1 : 0
@@ -92,14 +98,18 @@ JSONV_NODISCARD JSONV_PUBLIC std::string coerce_string(const value& from);
 JSONV_NODISCARD JSONV_PUBLIC std::int64_t coerce_integer(const value& from);
 
 /** Coerce \a from into a \c double.
- *  
+ *
+ *  A \c string is accepted under the same rules as \c coerce_integer and is read as its nearest \c double. A number too
+ *  small in magnitude for a \c double becomes zero; one too large for any finite \c double, such as \c 1e400, is
+ *  refused.
+ *
  *  \returns
  *   \c kind is... | Rules
  *   ------------- | -------------------------------------------------
  *   \c null       | throws \c kind_error
  *   \c object     | throws \c kind_error
  *   \c array      | throws \c kind_error
- *   \c string     | \c parse(from.as_string()).as_decimal()
+ *   \c string     | the number it holds, as above; otherwise throws \c kind_error
  *   \c integer    | \c from.as_decimal()
  *   \c decimal    | \c from.as_decimal()
  *   \c boolean    | \c from.as_boolean() ? 1.0 : 0.0

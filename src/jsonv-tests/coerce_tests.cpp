@@ -195,8 +195,6 @@ TEST(coerce_string_number_beyond_double_is_not_coercible)
     }
 }
 
-// Below that, a string only reaches the decimal clamp in decimal form -- an integer literal past int64 max keeps
-// its uint64 bits in the parser instead (see parse_tests.cpp) -- hence the ".0".
 TEST(coerce_integer_string_decimal_clamp_max_boundary)
 {
     ensure_eq(std::numeric_limits<std::int64_t>::max(), coerce_integer("9223372036854775808.0"));
@@ -205,6 +203,82 @@ TEST(coerce_integer_string_decimal_clamp_max_boundary)
 TEST(coerce_integer_string_decimal_min_boundary)
 {
     ensure_eq(std::numeric_limits<std::int64_t>::min(), coerce_integer("-9223372036854775808.0"));
+}
+
+// An integer literal from 2^63 through UINT64_MAX keeps its bits as a negative int64 in the parser (see
+// parse_tests.cpp), which is what coercing a string used to see. It is a number past int64 max like any other (#193).
+TEST(coerce_integer_string_integer_past_int64_clamps)
+{
+    ensure_eq(std::numeric_limits<std::int64_t>::max(), coerce_integer("9223372036854775807"));
+    ensure_eq(std::numeric_limits<std::int64_t>::min(), coerce_integer("-9223372036854775808"));
+
+    ensure_eq(std::numeric_limits<std::int64_t>::max(), coerce_integer("9223372036854775808"));
+    ensure_eq(std::numeric_limits<std::int64_t>::max(), coerce_integer("18446744073709551615"));
+    ensure_eq(std::numeric_limits<std::int64_t>::min(), coerce_integer("-9223372036854775809"));
+}
+
+TEST(coerce_decimal_string_integer_past_int64)
+{
+    ensure_eq(18446744073709551615.0, coerce_decimal("18446744073709551615"));
+    ensure_eq(9223372036854775808.0, coerce_decimal("9223372036854775808"));
+}
+
+TEST(coerce_string_exponent)
+{
+    ensure_eq(1000, coerce_integer("1e3"));
+    ensure_eq(-25, coerce_integer("-2.5E+1"));
+    ensure_eq(1000.0, coerce_decimal("1e3"));
+    ensure_eq(-25.0, coerce_decimal("-2.5E+1"));
+}
+
+// A magnitude too small for a `double` is zero, as it is to `parse`.
+TEST(coerce_string_underflow_is_zero)
+{
+    ensure_eq(0, coerce_integer("1e-400"));
+    ensure_eq(0.0, coerce_decimal("1e-400"));
+}
+
+TEST(coerce_string_surrounding_whitespace)
+{
+    ensure_eq(5, coerce_integer("  5  "));
+    ensure_eq(7, coerce_integer("\t\r\n7.5\n"));
+    ensure_eq(5.0, coerce_decimal("  5  "));
+    ensure_eq(7.5, coerce_decimal("\t\r\n7.5\n"));
+
+    // Only what JSON calls whitespace, and not a string which is nothing else.
+    for (const char* text : { "", "   ", "\f5", "5\v" })
+    {
+        ensure_throws(kind_error, coerce_integer(text));
+        ensure_throws(kind_error, coerce_decimal(text));
+        ensure(!can_coerce(text, kind::integer));
+        ensure(!can_coerce(text, kind::decimal));
+    }
+}
+
+// A string holds a number or it does not, whatever `parse_options` would let a document get away with (#193).
+TEST(coerce_string_comment_is_not_a_number)
+{
+    for (const char* text : { "5 /* c */", "/* c */ 5", "5 // c" })
+    {
+        ensure_throws(kind_error, coerce_integer(text));
+        ensure_throws(kind_error, coerce_decimal(text));
+        ensure(!can_coerce(text, kind::integer));
+        ensure(!can_coerce(text, kind::decimal));
+    }
+}
+
+// These are all spellings a C++ numeric conversion would take -- `fast_float` reads `inf` and `nan`, `from_chars` a
+// leading zero -- and JSON would not.
+TEST(coerce_string_only_json_numbers)
+{
+    for (const char* text : { "+5", "05", "-05", ".5", "5.", "1e", "1e+", "0x10", "inf", "-inf", "Infinity", "nan",
+                              "NaN", "5 6", "-", "true" })
+    {
+        ensure_throws(kind_error, coerce_integer(text));
+        ensure_throws(kind_error, coerce_decimal(text));
+        ensure(!can_coerce(text, kind::integer));
+        ensure(!can_coerce(text, kind::decimal));
+    }
 }
 
 TEST(coerce_decimal_null)
