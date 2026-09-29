@@ -15,8 +15,10 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <new>
 #include <sstream>
+#include <stdexcept>
 #include <utility>
 
 #include "detail.hpp"
@@ -144,6 +146,19 @@ struct JSONV_LOCAL parse_index::impl final
     ast_error     first_error_code;  //!< The code of the first-encountered error
     std::uint64_t first_error_index; //!< The index of the first error encountered in parsing.
 
+    /// Bytes to hold the header, \a capacity slots and the sentinel slot after them.
+    ///
+    /// \throws std::length_error if that many bytes cannot be represented in a \c std::size_t.
+    static std::size_t allocation_size(std::uint64_t capacity)
+    {
+        constexpr std::size_t max_capacity =
+            (std::numeric_limits<std::size_t>::max() - sizeof(impl)) / sizeof(std::uint64_t) - 1U;
+        if (capacity > max_capacity)
+            throw std::length_error("parse_index buffer capacity is too large");
+
+        return sizeof(impl) + (static_cast<std::size_t>(capacity) + 1U) * sizeof(std::uint64_t);
+    }
+
     static impl* allocate(std::size_t capacity)
     {
         if (capacity < 16U)
@@ -152,7 +167,7 @@ struct JSONV_LOCAL parse_index::impl final
         // One slot past `capacity` is reserved as a sentinel so that `&data(data_size)` -- the address
         // `end()` reports -- is always inside the allocation, even when the tape fills exactly.
         // `data_capacity` deliberately excludes it, so nothing can push into it.
-        auto alloc_sz = sizeof(impl) + (capacity + 1) * sizeof(std::uint64_t);
+        auto alloc_sz = allocation_size(capacity);
         if (void* p = std::malloc(alloc_sz))
         {
             auto out = reinterpret_cast<impl*>(p);
@@ -187,8 +202,11 @@ struct JSONV_LOCAL parse_index::impl final
     {
         // NOTE: Doubling the data capacity will always grow enough to hold a complete code size, as the minimum size
         // can hold the largest code size.
+        //
+        // `data_capacity` passed `allocation_size` to get here, which bounds it far below `2^63`, so doubling it cannot
+        // wrap; `allocation_size` then rejects the doubled capacity if its size is unrepresentable.
         auto new_capacity = self->data_capacity * 2;
-        auto new_alloc_sz = sizeof(impl) + (new_capacity + 1) * sizeof(std::uint64_t);
+        auto new_alloc_sz = allocation_size(new_capacity);
 
         auto new_self = static_cast<impl*>(std::realloc(self, new_alloc_sz));
         if (!new_self)

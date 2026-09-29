@@ -16,6 +16,8 @@
 
 #include <cstddef>
 #include <fstream>
+#include <initializer_list>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
@@ -153,6 +155,17 @@ TEST(ast_iterate_to_end_across_buffer_capacities)
 
         ensure_eq(8U, count);
     }
+}
+
+// The buffer's size in bytes is computed from the requested capacity. One too large for that to fit in a `size_t` used
+// to wrap to a small allocation which still claimed the whole capacity, so the first write ran off its end -- and for
+// `max / 8 - 1`, the allocation was smaller than the header itself.
+TEST(ast_parse_rejects_unrepresentable_buffer_capacity)
+{
+    constexpr auto max = std::numeric_limits<std::size_t>::max();
+
+    for (std::size_t capacity : { max, max / 8U + 1U, max / 8U, max / 8U - 1U })
+        ensure_throws(std::length_error, jsonv::parse_index::parse("[]", capacity));
 }
 
 TEST(ast_object_empty)

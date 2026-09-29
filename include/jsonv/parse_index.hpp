@@ -125,6 +125,9 @@ public:
     /// \param initial_buffer_capacity
     ///     The initial capacity of the underlying buffer. By default (\c nullopt), this will size the buffer according
     ///     to the length of the \a src string.
+    ///
+    /// \throws std::length_error if \a initial_buffer_capacity is too large for the buffer's size in bytes to be
+    ///  represented in a \c std::size_t.
     JSONV_NODISCARD
     static parse_index parse(std::string_view           src,
                              const parse_options&       options,

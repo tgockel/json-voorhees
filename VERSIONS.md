@@ -106,6 +106,12 @@
        `[ 1, 2`) and one which closed but was followed by trailing input (`[]x`) produced an
        `object_begin`/`array_begin` whose `element_count()` read indeterminate memory. Passing that count to
        `extract_tree` could reserve an arbitrary amount of memory.
+     - Fixed `parse_index::parse` under-allocating its buffer for an `initial_buffer_capacity` near `SIZE_MAX`. The
+       size in bytes wrapped, so a small allocation claimed the whole requested capacity and the first write ran off
+       its end; for some values the allocation was smaller than the buffer's own header, and writing that corrupted
+       the heap before parsing began. A capacity whose size cannot be represented now throws `std::length_error`, as
+       `std::vector::reserve` does past `max_size()`. One which can be represented but not allocated still throws
+       `std::bad_alloc` (#221).
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
