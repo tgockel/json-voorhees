@@ -31,8 +31,10 @@ static std::string demangle_impl(std::string_view source)
 {
     #if JSONV_HAS_CXXABI
     namespace cxxabi = __cxxabiv1;
+    // `__cxa_demangle` reads up to a terminator, which a view does not promise to end at.
+    std::string terminated(source);
     int status;
-    char* demangled = cxxabi::__cxa_demangle(source.data(), nullptr, nullptr, &status);
+    char* demangled = cxxabi::__cxa_demangle(terminated.c_str(), nullptr, nullptr, &status);
     if (demangled)
     {
         auto cleanup = detail::on_scope_exit([demangled] { std::free(demangled); });

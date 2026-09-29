@@ -25,6 +25,15 @@ TEST(demangle_types)
     (void) jsonv::demangle("_ZN20garbage");
 }
 
+// The view stops short of the buffer's last character, so there is no terminator where it ends. A demangler which reads
+// to the terminator sees the trailing `x` and gives up on a name it would otherwise have understood.
+TEST(demangle_unterminated_view)
+{
+    std::string      buffer = std::string(typeid(int).name()) + "x";
+    std::string_view source(buffer.data(), buffer.size() - 1U);
+    ensure_eq(jsonv::demangle(typeid(int).name()), jsonv::demangle(source));
+}
+
 TEST(demangle_set_reset)
 {
     jsonv::set_demangle_function(nullptr);

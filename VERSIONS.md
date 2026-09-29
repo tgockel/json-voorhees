@@ -420,6 +420,10 @@
        which only `extract_sub` used, and `extraction_context::extract(const std::type_info&, const value&, void*)`,
        since an extraction refused after it has built its object -- something after the value -- has to destroy
        that object, and a caller of the `void*` form had no way to let it (#232).
+     - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
+       `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
+       along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a
+       buffer was read beyond it (#188).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC
