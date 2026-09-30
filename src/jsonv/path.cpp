@@ -462,7 +462,7 @@ path& path::operator+=(path_element elem)
 path path::operator+(path_element elem) const
 {
     path clone(*this);
-    clone += elem;
+    clone += std::move(elem);
     return clone;
 }
 

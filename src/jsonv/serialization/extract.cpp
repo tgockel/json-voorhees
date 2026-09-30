@@ -106,7 +106,7 @@ static std::string make_extraction_error_errmsg(const extraction_error::problem_
 
         for (const auto& problem : problems)
         {
-            os << std::endl;
+            os << '\n';
             os << " -";
             write_problem(problem);
         }
@@ -270,8 +270,9 @@ extraction_context::extraction_context(jsonv::formats                fmt,
                                        const void*                   userdata,
                                        extract_options               options
                                       ) :
-        context(std::move(fmt), std::move(ver), userdata),
-        _options(std::move(options)),
+        // Neither `formats` nor `extract_options` can be moved yet (#286).
+        context(std::move(fmt), ver, userdata), // NOLINT(performance-move-const-arg)
+        _options(std::move(options)),           // NOLINT(performance-move-const-arg)
         _base_path(std::move(p))
 { }
 
@@ -301,7 +302,7 @@ static path safe_current_path(const reader& from) noexcept
         if (from.good())
             return from.current_path();
     }
-    catch (...)
+    catch (...) // NOLINT(bugprone-empty-catch): no path is the answer when asking fails
     { }
 
     return path();
@@ -331,7 +332,7 @@ static path enclosing_path(const reader& from) noexcept
                             || type == ast_node_type::document_end;
         }
     }
-    catch (...)
+    catch (...) // NOLINT(bugprone-empty-catch): not knowing means dropping the last element, as for a member
     { }
 
     if (!on_closing_token)
@@ -418,7 +419,7 @@ void extraction_context::note_value_consumed(const reader& from) noexcept
         {
             _failure_path.emplace();
         }
-        catch (...)
+        catch (...) // NOLINT(bugprone-empty-catch): nothing is left to fall back on
         { }
     }
 }
@@ -916,7 +917,7 @@ detail::borrowed_subtree::~borrowed_subtree() noexcept
         {
             _context->_failure_path.emplace();
         }
-        catch (...)
+        catch (...) // NOLINT(bugprone-empty-catch): nothing is left to fall back on
         { }
     }
 }

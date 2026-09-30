@@ -51,6 +51,29 @@ whole object, not that buffer, so a read past the end of a short source lands in
 object and goes unreported. The fuzzers are what check those guards, because libFuzzer hands over an
 allocation sized to the input exactly.
 
+### clang-tidy
+
+CI runs [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) over the library sources on every
+push and pull request, and any finding fails the job. It reads compiler flags from the
+`compile_commands.json` that every Makefile or Ninja build writes. CI uses clang-tidy 19, which is
+also the oldest release that works. A newer one will run, but may report checks 19 doesn't have.
+
+```bash
+$> cmake -S . -B build-tidy -G Ninja \
+       -DCMAKE_BUILD_TYPE=Debug \
+       -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+$> run-clang-tidy -p build-tidy -quiet '/src/jsonv/'
+```
+
+The checks are in `.clang-tidy`. They are the bug-finding families (`bugprone-*`, `clang-analyzer-*`
+and `performance-*`), minus a few whose findings here were all deliberate, with a comment for each.
+The tests are not checked, and neither is the vendored `src/jsonv/detail/fast_float`.
+
+When a finding is wrong, suppress it where it happens with `// NOLINT(check-name)` or
+`// NOLINTNEXTLINE(check-name)`, together with a comment saying why the code is right. If it is
+right but the fix belongs somewhere else, reference the issue tracking that fix. Turning a check off
+in `.clang-tidy` is for checks with nothing useful to say anywhere in the library.
+
 ### Fuzzing
 
 The parser is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html), which ships with Clang.

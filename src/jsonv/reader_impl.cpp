@@ -137,6 +137,9 @@ bool reader::impl::next_key()
     return next_key_impl();
 }
 
+// `current_type` throws only for a reader with no current node. Every call here follows a check that there is one:
+// `good()` or a `next_token()` which returned `true`.
+// NOLINTNEXTLINE(bugprone-exception-escape)
 bool reader::impl::next_structure_impl() noexcept
 {
     // `current` throws when the reader is not `good`, which would escape this `noexcept` function and terminate. An
@@ -176,6 +179,8 @@ bool reader::impl::next_structure_impl() noexcept
     return false;
 }
 
+// As for `next_structure_impl`: every `current_type` follows a `next_token()` which returned `true`.
+// NOLINTNEXTLINE(bugprone-exception-escape)
 bool reader::impl::next_key_impl() noexcept
 {
     if (!next_token())

@@ -12,6 +12,7 @@
 
 #include <jsonv/config.hpp>
 
+#include <type_traits>
 #include <utility>
 
 namespace jsonv::detail
@@ -26,7 +27,7 @@ public:
             _responsible(true)
     { }
 
-    scope_exit_invoker(scope_exit_invoker&& src) :
+    scope_exit_invoker(scope_exit_invoker&& src) noexcept(std::is_nothrow_move_constructible_v<Function>) :
             _func(std::move(src._func)),
             _responsible(src._responsible)
     {

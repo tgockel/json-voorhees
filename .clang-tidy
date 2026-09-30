@@ -1,0 +1,35 @@
+# CI runs these checks over the library sources and fails on any finding; see CONTRIBUTING.md. The list is meant to find
+# bugs, so the stylistic families (`modernize-*`, `readability-*`) are left out on purpose.
+#
+# Turned off from the families below:
+#
+# - bugprone-easily-swappable-parameters: fires on nearly every function with two parameters of one type.
+# - bugprone-branch-clone: every hit is a branch kept apart because it means something different -- a class of UTF-8
+#   lead byte, a reader position -- and merging them would hide that.
+# - bugprone-crtp-constructor-accessibility: the AST node types stack their CRTP bases, so the class which constructs a
+#   base is the next layer up, not the `TSelf` the check wants befriended.
+# - performance-enum-size: shrinking a public enum's underlying type changes the ABI to save a few bytes.
+# - clang-analyzer-optin.core.EnumCastOutOfRange: reports every combination a bitmask enum's `operator&` builds. The one
+#   hit is in fast_float, and excluding its header does not hide it, since the path starts in our code.
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  performance-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-branch-clone,
+  -bugprone-crtp-constructor-accessibility,
+  -performance-enum-size,
+  -clang-analyzer-optin.core.EnumCastOutOfRange
+WarningsAsErrors: '*'
+# Public and private headers alike, apart from the vendored fast_float.
+HeaderFilterRegex: '/(include|src)/jsonv/'
+ExcludeHeaderFilterRegex: '/src/jsonv/detail/fast_float/'
+CheckOptions:
+  # A cast to `void` is how this code says a result is discarded on purpose.
+  bugprone-unused-return-value.AllowCastToVoid: true
+  # These take the end of the range as a pointer instead of a size.
+  bugprone-suspicious-stringview-data-usage.AllowedCallees: '::std::from_chars;::fast_float::from_chars'
+  # Iterators are passed by value by convention. `formats` and `extract_options` are sink parameters which get copied
+  # because neither type can be moved yet (#286).
+  performance-unnecessary-value-param.AllowedTypes: 'iterator$;^::jsonv::formats$;^::jsonv::extract_options$'

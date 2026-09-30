@@ -254,7 +254,7 @@ public:
     /// Create an instance with the default options.
     extract_options() noexcept;
 
-    ~extract_options() noexcept;
+    ~extract_options() noexcept; // NOLINT(performance-trivially-destructible): see #286
 
     /// Create a default set of options.
     JSONV_NODISCARD
@@ -759,7 +759,7 @@ std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_
                          if constexpr (is_expected_v<std::remove_cvref_t<decltype(result)>>)
                          {
                              if (result)
-                                 return std::move(result).value();
+                                 return std::forward<decltype(result)>(result).value();
                              else
                                  return std::unexpected(result.error());
                          }
@@ -904,7 +904,7 @@ T extract_text(TSource&&              source,
     extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
     if constexpr (std::is_same_v<TSource, std::string>)
     {
-        reader from(std::move(source), parse_opts);
+        reader from(std::forward<TSource>(source), parse_opts);
         return extract_entry<T>(context, from, source_lifetime::extraction);
     }
     else

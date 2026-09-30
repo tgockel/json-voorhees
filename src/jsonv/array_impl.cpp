@@ -150,7 +150,7 @@ void value::assign(size_type count, const value& val)
 void value::assign(std::initializer_list<value> items)
 {
     check_type(jsonv::kind::array, kind());
-    _data.array->_values.assign(std::move(items));
+    _data.array->_values.assign(items);
 }
 
 void value::reserve(size_type count)

@@ -159,6 +159,41 @@ jobs:
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
         run: ./build/jsonv-tests
 
+  clang-tidy:
+    name: clang-tidy (ubuntu-24.04, clang)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      # clang-tidy parses with the Clang it was built from, so it has the same problem as the compiler: 18, the
+      # ubuntu-24.04 default, cannot see `std::expected`. See the build-linux-clang job for the full reasoning. 19 is
+      # also the first release to read `ExcludeHeaderFilterRegex`, which is what keeps fast_float out of the report.
+      - name: Install Clang and clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-19 clang-tidy-19
+
+      - name: Report clang-tidy version
+        run: clang-tidy-19 --version
+
+      # Configuring is enough. Nothing is generated at build time, so `compile_commands.json` is all clang-tidy needs.
+      # Debug keeps `assert` alive: the analyzer takes an assertion as a fact, and without one it would explore paths
+      # the code has already ruled out.
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_COMPILER=clang-19
+          -DCMAKE_CXX_COMPILER=clang++-19
+
+      # The check list and its exceptions are in `.clang-tidy`, which makes every finding an error. The file regex
+      # keeps the run to the library's sources should the tests ever be configured here too.
+      - name: Run clang-tidy
+        run: run-clang-tidy-19 -p build -quiet '/src/jsonv/'
+
   packages:
     name: Packages (${{ matrix.format }})
     runs-on: ubuntu-24.04

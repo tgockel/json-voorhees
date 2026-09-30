@@ -203,7 +203,7 @@ TValueRef walk_path(TValueRef&&               current,
                    )
 {
     if (first == last)
-        return current;
+        return current; // NOLINT(bugprone-return-const-ref-from-parameter): a node of the tree, never a temporary
 
     const path_element& elem = *first;
     switch (elem.kind())

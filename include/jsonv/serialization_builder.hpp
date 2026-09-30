@@ -1773,7 +1773,7 @@ public:
     template <typename TSub>
     polymorphic_adapter_builder& subtype(std::function<bool (const value&)> discriminator)
     {
-        return subtype<TSub>([discriminator] (extraction_context&, const value& val)
+        return subtype<TSub>([discriminator = std::move(discriminator)] (extraction_context&, const value& val)
                              {
                                  return discriminator(val);
                              }

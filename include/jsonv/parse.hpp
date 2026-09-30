@@ -91,7 +91,7 @@ public:
     /// Create an instance with the default options.
     parse_options();
 
-    ~parse_options() noexcept;
+    ~parse_options() noexcept; // NOLINT(performance-trivially-destructible): see #286
 
     /// Create a parser with the default options -- this is the same result as the default constructor, but might be
     /// helpful if you like to be more explicit.

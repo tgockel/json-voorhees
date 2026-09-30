@@ -128,6 +128,9 @@ bool reader::impl_parse_index::next_token_impl() noexcept
     return _current != _index.end();
 }
 
+// `skip_subtree` throws for a token which does not open a structure and `operator*` for one it does not recognise. Only
+// an opener is skipped, and every token on a tape from `parse` is one `operator*` recognises.
+// NOLINTNEXTLINE(bugprone-exception-escape)
 bool reader::impl_parse_index::next_value_impl() noexcept
 {
     if (_current == _index.end())

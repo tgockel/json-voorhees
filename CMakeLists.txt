@@ -51,6 +51,10 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# clang-tidy and editors read the compile flags from `compile_commands.json`. Generators other than Makefiles and Ninja
+# ignore this.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(JSONV_BUILD_TESTS
        "Should the unit test library get built?"
        OFF

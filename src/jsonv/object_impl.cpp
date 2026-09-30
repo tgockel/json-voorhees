@@ -83,14 +83,14 @@ value object()
 value object(std::initializer_list<std::pair<std::string, value>> source)
 {
     value x = object();
-    x.insert(std::move(source));
+    x.insert(source);
     return x;
 }
 
 value object(std::initializer_list<std::pair<std::wstring, value>> source)
 {
     value x = object();
-    x.insert(std::move(source));
+    x.insert(source);
     return x;
 }
 
@@ -244,8 +244,8 @@ std::pair<value::object_iterator, bool> value::insert(std::pair<std::wstring, va
 void value::insert(std::initializer_list<std::pair<std::string, value>> items)
 {
     check_type(jsonv::kind::object, kind());
-    for (auto& pair : items)
-         _data.object->_values.insert(std::move(pair));
+    for (const auto& pair : items)
+         _data.object->_values.insert(pair);
 }
 
 void value::insert(std::initializer_list<std::pair<std::wstring, value>> items)
@@ -302,6 +302,9 @@ std::pair<value::object_iterator, bool> value::emplace(const std::wstring& key, 
     return emplace(detail::convert_to_narrow(key), std::move(val));
 }
 
+// `val` is moved into the map. clang-tidy 19 does not follow the move through `try_emplace`'s parameter pack, where it
+// does through `insert_or_assign`'s single parameter.
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 std::pair<value::object_iterator, bool> value::try_emplace(const std::string& key, value val)
 {
     check_type(jsonv::kind::object, kind());

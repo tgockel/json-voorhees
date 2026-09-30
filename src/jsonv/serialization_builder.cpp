@@ -58,7 +58,7 @@ void formats_builder::check_references_impl(const formats& searching, const std:
         for (const auto& failed_info : failed_types)
         {
             std::type_index type = std::get<0>(failed_info);
-            os << std::endl << " - " << demangle(type.name());
+            os << "\n - " << demangle(type.name());
             const auto& referencing_types = _referenced_types.at(type);
             if (!referencing_types.empty())
             {
@@ -166,12 +166,14 @@ formats_builder& formats_builder_dsl::check_references(const std::string& name)
 
 formats formats_builder_dsl::compose_checked(formats other, const std::string& name)
 {
-    return owner->compose_checked(std::move(other), name);
+    return owner->compose_checked(std::move(other), name); // NOLINT(performance-move-const-arg): see #286
 }
 
+// The builder's overload takes the list by `const&`, so it is copied again (#287).
+// NOLINTNEXTLINE(performance-unnecessary-value-param)
 formats formats_builder_dsl::compose_checked(std::vector<formats> others, const std::string& name)
 {
-    return owner->compose_checked(std::move(others), name);
+    return owner->compose_checked(std::move(others), name); // NOLINT(performance-move-const-arg): see #287
 }
 
 formats_builder& formats_builder_dsl::on_duplicate_type(duplicate_type_action action) noexcept

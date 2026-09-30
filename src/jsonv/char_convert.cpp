@@ -57,7 +57,7 @@ decode_error::~decode_error() noexcept
     ENCODED_ESCAPES_LIST(item) \
     item('/',  '/')  \
 
-#define TUPLE_PLUS_1_GEN(a, b) +1
+#define TUPLE_PLUS_1_GEN(a, b) +1 // NOLINT(bugprone-macro-parentheses): each expansion is one term of a sum
 typedef detail::fixed_map<char, char, ENCODED_ESCAPES_LIST(TUPLE_PLUS_1_GEN)> encode_converter_map;
 typedef detail::fixed_map<char, char, ESCAPES_LIST(TUPLE_PLUS_1_GEN)>         decode_converter_map;
 

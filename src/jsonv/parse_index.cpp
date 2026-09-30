@@ -76,6 +76,8 @@ static inline std::pair<ast_node_type, const char*> decode_ast_node_position(std
     static_assert(sizeof prefix <= sizeof src);
 
     auto ptr = std::uintptr_t(src >> 8) | prefix;
+    // The tape keeps source positions as integers, so this is where they turn back into pointers.
+    // NOLINTNEXTLINE(performance-no-int-to-ptr)
     return { ast_node_type_from_coded(src), reinterpret_cast<const char*>(ptr) };
 }
 
@@ -405,7 +407,8 @@ void parse_index::impl::parse_literal(impl*&        self,
 
 void parse_index::impl::parse(impl*& self, std::string_view src, const parse_options& options)
 {
-    if (options.max_structure_depth() && *options.max_structure_depth() > parse_options::k::max_structure_depth)
+    const std::size_t max_depth = options.max_structure_depth().value_or(parse_options::k::max_structure_depth);
+    if (max_depth > parse_options::k::max_structure_depth)
         throw std::invalid_argument("parse_options::max_structure_depth too large");
 
     enum class container_state
@@ -429,7 +432,6 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
     };
 
     structure_state structure[parse_options::k::max_structure_depth];
-    std::size_t     max_depth = options.max_structure_depth().value_or(parse_options::k::max_structure_depth);
     std::size_t     depth     = 0;
     ast_node_type   container = ast_node_type::error;
     container_state state     = container_state::none;

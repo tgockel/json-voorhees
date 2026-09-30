@@ -93,7 +93,8 @@ public:
         if (!_serialization_actions.emplace(tidx, std::make_tuple(key, expected_value, action)).second)
             throw duplicate_type_error("polymorphic_adapter subtype", std::type_index(typeid(T)));
 
-        match_predicate op = [key, expected_value] (extraction_context&, const value& value)
+        match_predicate op = [key = std::move(key), expected_value = std::move(expected_value)]
+                             (extraction_context&, const value& value)
                              {
                                  if (!value.is_object())
                                      return false;
@@ -101,7 +102,7 @@ public:
                                  return iter != value.end_object()
                                      && iter->second == expected_value;
                              };
-        return add_subtype<T>(op);
+        return add_subtype<T>(std::move(op));
     }
 
     /// \{
