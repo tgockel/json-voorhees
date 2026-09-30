@@ -149,10 +149,10 @@ public:
             return *this;
         }
 
-        basic_array_iterator operator++(int) const
+        basic_array_iterator operator++(int)
         {
             basic_array_iterator clone = *this;
-            ++clone;
+            ++*this;
             return clone;
         }
 
@@ -162,10 +162,10 @@ public:
             return *this;
         }
 
-        basic_array_iterator operator--(int) const
+        basic_array_iterator operator--(int)
         {
             basic_array_iterator clone = *this;
-            --clone;
+            --*this;
             return clone;
         }
 
@@ -330,10 +330,10 @@ public:
             return *this;
         }
 
-        basic_object_iterator operator++(int) const
+        basic_object_iterator operator++(int)
         {
             basic_object_iterator clone(*this);
-            clone.increment();
+            increment();
             return clone;
         }
 
@@ -343,10 +343,10 @@ public:
             return *this;
         }
 
-        basic_object_iterator operator--(int) const
+        basic_object_iterator operator--(int)
         {
             basic_object_iterator clone(*this);
-            clone.decrement();
+            decrement();
             return clone;
         }
 

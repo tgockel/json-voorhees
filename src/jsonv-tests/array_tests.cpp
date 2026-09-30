@@ -79,6 +79,49 @@ TEST(array_view_iter_assign)
     }
 }
 
+TEST(array_iter_postfix_increment)
+{
+    using namespace jsonv;
+
+    value arr = array({ 0, 1 });
+
+    auto check = [](auto iter, auto last)
+    {
+        auto prev = iter++;
+        ensure_eq(prev->as_integer(), 0);
+        ensure_eq(iter->as_integer(), 1);
+        prev = iter++;
+        ensure_eq(prev->as_integer(), 1);
+        ensure(iter == last);
+    };
+    check(arr.begin_array(), arr.end_array());
+
+    const value& carr = arr;
+    check(carr.begin_array(), carr.end_array());
+}
+
+TEST(array_iter_postfix_decrement)
+{
+    using namespace jsonv;
+
+    value arr = array({ 0, 1 });
+
+    auto check = [](auto iter)
+    {
+        auto last = iter;
+        auto prev = iter--;
+        ensure(prev == last);
+        ensure_eq(iter->as_integer(), 1);
+        prev = iter--;
+        ensure_eq(prev->as_integer(), 1);
+        ensure_eq(iter->as_integer(), 0);
+    };
+    check(arr.end_array());
+
+    const value& carr = arr;
+    check(carr.end_array());
+}
+
 TEST(array_erase_single)
 {
     using namespace jsonv;

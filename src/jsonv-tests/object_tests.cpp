@@ -63,6 +63,45 @@ TEST(object_view_reverse_iter)
     ensure(riter == obj.as_object().rend());
 }
 
+TEST(object_iter_postfix_increment)
+{
+    jsonv::value obj = jsonv::object({ { "a", 1 }, { "b", 2 } });
+
+    auto check = [](auto iter, auto last)
+    {
+        auto prev = iter++;
+        ensure_eq(prev->first, "a");
+        ensure_eq(iter->first, "b");
+        prev = iter++;
+        ensure_eq(prev->first, "b");
+        ensure(iter == last);
+    };
+    check(obj.begin_object(), obj.end_object());
+
+    const jsonv::value& cobj = obj;
+    check(cobj.begin_object(), cobj.end_object());
+}
+
+TEST(object_iter_postfix_decrement)
+{
+    jsonv::value obj = jsonv::object({ { "a", 1 }, { "b", 2 } });
+
+    auto check = [](auto iter)
+    {
+        auto last = iter;
+        auto prev = iter--;
+        ensure(prev == last);
+        ensure_eq(iter->first, "b");
+        prev = iter--;
+        ensure_eq(prev->first, "b");
+        ensure_eq(iter->first, "a");
+    };
+    check(obj.end_object());
+
+    const jsonv::value& cobj = obj;
+    check(cobj.end_object());
+}
+
 TEST(object_compare)
 {
     using namespace jsonv;
