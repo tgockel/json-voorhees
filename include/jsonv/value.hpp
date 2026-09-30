@@ -680,7 +680,9 @@ public:
      *   - array: compared lexicographically by elements (recursively following this same technique)
      *   - object: entries in the object are sorted and compared lexicographically, first by key then by value
      *
-     *  \returns -1 if this is less than other by the rules stated above; 0 if this is equal to other; 1 if otherwise.
+     *  \returns A negative number if this is less than other by the rules stated above; 0 if this is equal to other; a
+     *           positive number otherwise. Only the sign is meaningful: strings and object keys pass on the result of
+     *           \c std::string::compare, which need not be -1 or 1.
     **/
     JSONV_NODISCARD
     int compare(const value& other) const;
