@@ -642,13 +642,14 @@ public:
     /** Compares two JSON values for equality. Two JSON values are equal if and only if all of the following conditions
      *  apply:
      *
-     *   1. They have the same valid value for \c kind.
+     *   1. They have the same valid value for \c kind, where \c kind::integer and \c kind::decimal count as the same.
      *      - If \c kind is invalid (memory corruption), then two JSON values are \e not equal, even if they have been
      *        corrupted in the same way and even if they share \c this (a corrupt object is not equal to itself).
      *   2. The kind comparison is also equal:
      *      - Two null values are always equivalent.
      *      - string, integer and boolean follow the classic rules for their type.
      *      - decimals compare exactly, with signed zeros equal and all NaNs equal (see \c compare).
+     *      - an integer and a decimal are equal only when the decimal holds exactly that integer (see \c compare).
      *      - objects are equal if they have the same keys and values corresponding with the same key are also equal.
      *      - arrays are equal if they have the same length and the values at each index are also equal.
      *
@@ -669,10 +670,11 @@ public:
      *
      *   - null: less than everything but null, which it is equal to.
      *   - boolean: false is less than true.
-     *   - integer, decimal: compared by their numeric value. Comparisons between two integers do not cast, but comparison
-     *     between an integer and a decimal will coerce to decimal. Decimal comparison is exact, without an epsilon
-     *     tolerance. Signed zeros compare equal; infinities follow numeric order. All NaNs compare equal to each
-     *     other and greater than every non-NaN number, regardless of sign or payload.
+     *   - integer, decimal: compared by their exact numeric value. An integer is never converted to a decimal to
+     *     compare it with one, so \c 9007199254740993 is greater than the decimal \c 9007199254740992.0 even though
+     *     converting it would round to that decimal. Decimal comparison is exact, without an epsilon tolerance. Signed
+     *     zeros compare equal to each other and to the integer \c 0; infinities follow numeric order. All NaNs compare
+     *     equal to each other and greater than every other number, regardless of sign or payload.
      *   - string: compared lexicographically by character code (with basic char strings and non-ASCII encoding, this
      *     might lead to surprising results)
      *   - array: compared lexicographically by elements (recursively following this same technique)

@@ -16,7 +16,9 @@
 #include <jsonv/path.hpp>
 
 #include <cmath>
+#include <cstdint>
 #include <functional>
+#include <limits>
 
 namespace jsonv
 {
@@ -63,6 +65,36 @@ struct JSONV_PUBLIC compare_traits
         return a == b ?  0
              : a <  b ? -1
              :           1;
+    }
+
+    /** Compare the integer \a a with the decimal \a b by their exact numeric values. \a a is never converted to
+     *  \c double, which would round an integer past 2^53 onto a neighbor: \c 9007199254740993 is greater than the
+     *  decimal \c 9007199254740992.0, not equal to it. An integer equals a decimal only when the decimal holds exactly
+     *  that integer, so both signed zeros equal \c 0. Infinities follow numeric order and NaN is greater than every
+     *  integer, as in \c compare_decimals. \c compare calls this for both operand orders, reversing the sign of the
+     *  result when the decimal is on the left.
+    **/
+    JSONV_NODISCARD
+    static int compare_integer_decimal(std::int64_t a, double b)
+    {
+        // Every integer lies in [-2^63, 2^63), and both bounds are exact doubles. Settling any b outside them first
+        // keeps the cast below defined -- double(INT64_MAX) rounds up to 2^63, so it cannot serve as the upper bound.
+        constexpr double integer_min = static_cast<double>(std::numeric_limits<std::int64_t>::min());
+        constexpr double integer_end = -integer_min;
+        if (std::isnan(b) || b >= integer_end)
+            return -1;
+        if (b < integer_min)
+            return 1;
+
+        const double whole   = std::trunc(b);
+        const auto   b_whole = static_cast<std::int64_t>(whole);
+        if (a != b_whole)
+            return a < b_whole ? -1 : 1;
+
+        // Same integral part, so the fractional part decides.
+        return b == whole ?  0
+             : b >  whole ? -1
+             :               1;
     }
 
     /** Compare two decimal values exactly, without an epsilon tolerance. Signed zeros compare equal and
@@ -150,12 +182,20 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
     case jsonv::kind::boolean:
         return traits.compare_booleans(a.as_boolean(), b.as_boolean());
     case jsonv::kind::integer:
-        // b might be a decimal type, but if they are both integers, compare directly
+        // b might be a decimal, but the integer is never converted to one (see compare_traits::compare_integer_decimal)
         if (b.kind() == jsonv::kind::integer)
             return traits.compare_integers(a.as_integer(), b.as_integer());
-        // fall through
+        else
+            return traits.compare_integer_decimal(a.as_integer(), b.as_decimal());
     case jsonv::kind::decimal:
-        return traits.compare_decimals(a.as_decimal(), b.as_decimal());
+        if (b.kind() == jsonv::kind::integer)
+        {
+            // Reverse the sign rather than negate: custom traits may return INT_MIN, which has no negation.
+            int cmp = traits.compare_integer_decimal(b.as_integer(), a.as_decimal());
+            return cmp < 0 ? 1 : cmp > 0 ? -1 : 0;
+        }
+        else
+            return traits.compare_decimals(a.as_decimal(), b.as_decimal());
     case jsonv::kind::string:
         return traits.compare_strings(a.as_string(), b.as_string());
     case jsonv::kind::array:
@@ -192,7 +232,8 @@ int compare(const value& a, const value& b, const TCompareTraits& traits)
 
 /// Compare the values \a a and \a b with strict comparison traits.
 ///
-/// Decimal comparison follows the exact ordering defined by \c compare_traits::compare_decimals.
+/// Decimal comparison follows the exact ordering defined by \c compare_traits::compare_decimals. An integer and a
+/// decimal compare by exact numeric value, as defined by \c compare_traits::compare_integer_decimal.
 ///
 /// \see value::compare
 /// \see compare_icase

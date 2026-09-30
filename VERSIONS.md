@@ -17,6 +17,12 @@
        unordered container could hold both `2` and `2.0` as separate keys, and looking one up by the other missed;
        arrays and objects holding such numbers failed the same way. Both numeric kinds now hash through
        `as_decimal`, so an integer no longer hashes like `std::hash<std::int64_t>` of it (#198).
+     - Fixed comparison between an integer and a decimal converting the integer to `double`, which rounds past 2^53.
+       `9007199254740993` compared equal to `9007199254740992.0`, which compared equal to `9007199254740992`, while the
+       two integers differed -- so `std::set`, `std::map` and `std::sort` over mixed numbers lost their ordering
+       guarantees. The two now compare by exact numeric value through the new `compare_traits::compare_integer_decimal`.
+       A traits type passed to `compare` which does not derive from `compare_traits` must provide it, and a custom
+       `compare_decimals` no longer sees mixed pairs (#199).
      - Fixed `value::insert` deep-copying the pair it was handed instead of moving it, which made inserting into an
        object arbitrarily slower than assigning through `operator[]` as the inserted value grew (#152).
      - Fixed `value::insert(hint, node_handle)` ignoring its hint and walking the tree twice.

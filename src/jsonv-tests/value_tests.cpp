@@ -258,9 +258,9 @@ TEST(value_integer_decimal_zero_hashes_equal)
 
 TEST(value_integer_decimal_hash_exact_boundary)
 {
-    // Above 2^53 a double cannot hold every integer, and INT64_MAX rounds up to 2^63, which no int64 can hold. Whether
-    // an integer out here compares equal to a nearby decimal is #199's to decide. Whichever way it goes, the pairs
-    // which do compare equal must hash equal.
+    // Above 2^53 a double cannot hold every integer, and INT64_MAX rounds up to 2^63, which no int64 can hold. An
+    // integer out here equals only a decimal holding exactly that integer, so INT64_MAX equals no decimal at all
+    // (#199). The pairs which do compare equal must hash equal.
     const double inf = std::numeric_limits<double>::infinity();
     const std::int64_t exact = std::int64_t(1) << 53;
     const std::int64_t integers[] = { exact - 1, exact, exact + 1, exact + 2, -exact - 1,
