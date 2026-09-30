@@ -561,11 +561,12 @@ size_t hash<jsonv::value>::operator()(const jsonv::value& val) const noexcept
     case jsonv::kind::string:
         return std::hash<std::string>()(val.as_string());
     case jsonv::kind::integer:
-        return std::hash<std::int64_t>()(val.as_integer());
     case jsonv::kind::decimal:
         {
-            // All NaNs compare equal regardless of sign or payload (see compare_traits::compare_decimals), so they
-            // must hash to the same value -- otherwise equal keys could land in different unordered_map buckets.
+            // An integer compares equal to the decimal of the same number (see compare), so both kinds hash through
+            // as_decimal -- otherwise equal keys could land in different unordered_map buckets. Distinct integers past
+            // 2^53 which convert to the same double share a hash, which is allowed. All NaNs compare equal regardless
+            // of sign or payload (see compare_traits::compare_decimals), so they must share a hash too.
             const double d = val.as_decimal();
             return std::isnan(d) ? 0x7ff8000000000000ULL : std::hash<double>()(d);
         }

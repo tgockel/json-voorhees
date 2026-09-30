@@ -13,6 +13,10 @@
        is ordinary use. No ABI change (#190).
      - Fixed decimal comparison to use exact ordering instead of a non-transitive epsilon tolerance (#195).
        Signed zeros compare equal; all NaNs compare equal and sort after every non-NaN number.
+     - Fixed `std::hash<value>` giving different hashes to an integer and a decimal which compare equal. An
+       unordered container could hold both `2` and `2.0` as separate keys, and looking one up by the other missed;
+       arrays and objects holding such numbers failed the same way. Both numeric kinds now hash through
+       `as_decimal`, so an integer no longer hashes like `std::hash<std::int64_t>` of it (#198).
      - Fixed `value::insert` deep-copying the pair it was handed instead of moving it, which made inserting into an
        object arbitrarily slower than assigning through `operator[]` as the inserted value grew (#152).
      - Fixed `value::insert(hint, node_handle)` ignoring its hint and walking the tree twice.

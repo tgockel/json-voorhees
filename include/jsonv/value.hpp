@@ -1227,11 +1227,11 @@ namespace std
 {
 
 /// Explicit specialization of \c std::hash for \c jsonv::value types so you can store a \c value in an unordered
-/// container. Hashing results depend on the \c kind for the provided value -- most kinds directly use the hasher for
-/// their kind (hashing a \c jsonv::value for integer \c 5 should have the same hash value as directly hashing the same
-/// integer). For aggregate kinds \c array and \c object, hashing visits every sub-element recursively. This might be
-/// expensive, but is required when storing multiple values with similar layouts in the a set (which is the most common
-/// use case).
+/// container. Values which compare equal hash equal. Since an integer compares equal to the decimal of the same number,
+/// both \c kind::integer and \c kind::decimal hash through \c value::as_decimal: \c value(2) and \c value(2.0) share a
+/// hash, as do distinct integers past 2^53 which convert to the same \c double. All NaNs share a hash. For aggregate
+/// kinds \c array and \c object, hashing visits every sub-element recursively. This might be expensive, but is required
+/// when storing multiple values with similar layouts in a set (which is the most common use case).
 template <>
 struct JSONV_PUBLIC hash<jsonv::value>
 {

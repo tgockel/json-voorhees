@@ -18,6 +18,8 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 TEST(move_to_self)
 {
@@ -190,4 +192,110 @@ TEST(value_decimal_nan_nested_containers)
     std::unordered_map<jsonv::value, int> obj_map;
     obj_map.insert({ obj_a, 1 });
     ensure_eq(1U, obj_map.count(obj_b));
+}
+
+namespace
+{
+
+std::size_t hash_of(const jsonv::value& x)
+{
+    return std::hash<jsonv::value>()(x);
+}
+
+// If a and b compare equal, they must hash equal -- on their own, as the element of an array, and as the value of an
+// object member.
+void ensure_hash_follows_equality(const jsonv::value& a, const jsonv::value& b)
+{
+    const std::pair<jsonv::value, jsonv::value> spellings[] = {
+        { a, b },
+        { jsonv::array({ a }), jsonv::array({ b }) },
+        { jsonv::object({ { "n", a } }), jsonv::object({ { "n", b } }) },
+    };
+    for (const auto& [x, y] : spellings)
+        if (x == y)
+            ensure_eq(hash_of(x), hash_of(y));
+}
+
+// Pairs which compare equal, each spelling a number as a kind::integer on one side and a kind::decimal on the other.
+std::vector<std::pair<jsonv::value, jsonv::value>> mixed_numeric_pairs()
+{
+    return {
+        { 2, 2.0 },
+        { -2.0, -2 },
+        { 0, -0.0 },
+        { jsonv::array({ 1, 2 }), jsonv::array({ 1.0, 2.0 }) },
+        { jsonv::object({ { "n", 2 } }), jsonv::object({ { "n", 2.0 } }) },
+    };
+}
+
+}
+
+TEST(value_integer_decimal_hashes_equal)
+{
+    // Each of these is exact in binary64, so the integer and the decimal are the same number.
+    const std::int64_t exact = std::int64_t(1) << 53;
+    const std::int64_t integers[] = { 1, 2, -2, 1000000007, exact - 1, exact, -exact,
+                                      std::numeric_limits<std::int64_t>::min() };
+    for (std::int64_t i : integers)
+    {
+        const jsonv::value integer(i);
+        const jsonv::value decimal(static_cast<double>(i));
+        ensure_eq(integer, decimal);
+        ensure_hash_follows_equality(integer, decimal);
+    }
+}
+
+TEST(value_integer_decimal_zero_hashes_equal)
+{
+    const jsonv::value zeros[] = { 0, 0.0, -0.0 };
+    for (const jsonv::value& a : zeros)
+        for (const jsonv::value& b : zeros)
+        {
+            ensure_eq(a, b);
+            ensure_hash_follows_equality(a, b);
+        }
+}
+
+TEST(value_integer_decimal_hash_exact_boundary)
+{
+    // Above 2^53 a double cannot hold every integer, and INT64_MAX rounds up to 2^63, which no int64 can hold. Whether
+    // an integer out here compares equal to a nearby decimal is #199's to decide. Whichever way it goes, the pairs
+    // which do compare equal must hash equal.
+    const double inf = std::numeric_limits<double>::infinity();
+    const std::int64_t exact = std::int64_t(1) << 53;
+    const std::int64_t integers[] = { exact - 1, exact, exact + 1, exact + 2, -exact - 1,
+                                      std::numeric_limits<std::int64_t>::max(),
+                                      std::numeric_limits<std::int64_t>::min() };
+    for (std::int64_t i : integers)
+    {
+        const double d = static_cast<double>(i);
+        for (double near : { std::nextafter(d, -inf), d, std::nextafter(d, inf) })
+            ensure_hash_follows_equality(jsonv::value(i), jsonv::value(near));
+    }
+}
+
+TEST(value_integer_decimal_unordered_set)
+{
+    for (const auto& [a, b] : mixed_numeric_pairs())
+    {
+        std::unordered_set<jsonv::value> set = { a };
+        ensure(set.find(b) != set.end());
+        ensure_eq(1U, set.count(b));
+        ensure(!set.insert(b).second);
+        ensure_eq(1U, set.size());
+        ensure_eq(1U, set.erase(b));
+        ensure(set.empty());
+    }
+}
+
+TEST(value_integer_decimal_unordered_map)
+{
+    for (const auto& [a, b] : mixed_numeric_pairs())
+    {
+        std::unordered_map<jsonv::value, int> map;
+        map[a] = 1;
+        map[b] = 2;
+        ensure_eq(1U, map.size());
+        ensure_eq(2, map.at(a));
+    }
 }
