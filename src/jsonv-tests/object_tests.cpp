@@ -475,6 +475,33 @@ TEST(object_insert_node_handle_collision_keeps_handle)
     ensure_eq(handle.mapped(), jsonv::value(5));
 }
 
+// An empty handle has nothing to insert. Both overloads report that with end_object() and leave the object alone.
+TEST(object_insert_empty_node_handle_does_nothing)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 } });
+
+    jsonv::object_node_handle handle;
+    auto                      rc = obj.insert(std::move(handle));
+
+    ensure(!rc.inserted);
+    ensure(rc.position == obj.end_object());
+    ensure(handle.empty());
+    ensure_eq(obj, jsonv::object({ { "a", 5 } }));
+}
+
+// The hint is not end_object(), so handing it back would not pass for the documented result.
+TEST(object_insert_hint_empty_node_handle_does_nothing)
+{
+    jsonv::value obj = jsonv::object({ { "a", 5 } });
+
+    jsonv::object_node_handle handle;
+    auto                      iter = obj.insert(obj.begin_object(), std::move(handle));
+
+    ensure(iter == obj.end_object());
+    ensure(handle.empty());
+    ensure_eq(obj, jsonv::object({ { "a", 5 } }));
+}
+
 // The range insert hints at the end of the object, which is the right guess for an already-sorted source and a wrong
 // one otherwise. Both paths must produce the same contents.
 TEST(object_insert_range_from_sorted_map)
