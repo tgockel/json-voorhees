@@ -133,6 +133,11 @@
        standard, and `parse_options().comments(true)` is how to read configuration files and other input which
        uses comments. This is a behavioural break for anyone relying on the old default: text with a comment in it
        which used to parse now fails to. `create_strict()` refused comments already and is unchanged (#186).
+     - Fixed `parse_options::comments` refusing a comment in three places whitespace may go: before an object's key,
+       between a key and its `:`, and after the top-level object or array. `{/*c*/"a":1}` failed with "expected a
+       string" and `{} /*c*/` with "extra characters in input", while a comment beside a value parsed. Only the
+       parser's main loop skipped comments, and it reads a key, its `:` and whatever follows the document on its own.
+       A malformed comment in one of those places now reports "invalid comment block" (#280).
      - Fixed `match_string` passing a raw `char` to `std::isxdigit` when validating the four hex digits of a `\u`
        escape, and `compare_icase` doing the same with `std::tolower`. Both classifiers are defined only over
        `unsigned char` values and `EOF`, so a byte at or above `0x80` -- negative in a signed `char` -- was

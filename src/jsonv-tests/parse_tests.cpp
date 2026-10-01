@@ -13,6 +13,7 @@
 #include <jsonv/parse.hpp>
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <iostream>
 #include <limits>
@@ -400,10 +401,84 @@ TEST_PARSE(comment_in_array)
     ensure_eq(array({ "a", "b" }), val);
 }
 
+/// A document with comments where JSON allows whitespace, beside the same document without them. A comment beside a
+/// value was always skipped, but one before a key, before its `:` or after the top-level structure was refused, since
+/// the parser reads those positions ahead of its main loop.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/280
+struct commented_document
+{
+    std::string_view commented;
+    std::string_view plain;
+};
+
+static const commented_document commented_documents[] =
+    {
+        { R"({/*c*/"a":1})",                  R"({"a":1})"       },
+        { R"({"a"/*c*/:1})",                  R"({"a":1})"       },
+        { R"({"a":1,/*c*/"b":2})",            R"({"a":1,"b":2})" },
+        { R"({ /*c*/ })",                     R"({})"            },
+        { R"({}/*c*/)",                       R"({})"            },
+        { R"([] /*c*/)",                      R"([])"            },
+        { R"([{}] /*c*/)",                    R"([{}])"          },
+        { R"({"a":/*c*/1})",                  R"({"a":1})"       },
+        { R"({"a":1/*c*/})",                  R"({"a":1})"       },
+        { R"([{} /*c*/])",                    R"([{}])"          },
+        { R"(1 /*c*/)",                       R"(1)"             },
+        { R"({ /*a*/ /*b*/ "k" /*c*/ : 1 })", R"({"k":1})"       },
+        {
+            R"(/* settings */
+{
+    /* how many */
+    "count": 3,
+    "name": "x" /* trailing */
+}
+/* end */
+)",
+            R"({"count":3,"name":"x"})"
+        },
+    };
+
+TEST_PARSE(comment_wherever_whitespace_may_go)
+{
+    for (const auto& doc : commented_documents)
+        ensure_eq(parse(doc.plain), parse(doc.commented, parse_options().comments(true)));
+}
+
+TEST_PARSE(malformed_comment_where_whitespace_may_go)
+{
+    struct malformed
+    {
+        std::string_view src;
+        std::size_t      at;
+    };
+
+    for (const auto& [src, at] : { malformed{ R"({/*c "a":1})", 1U },
+                                   malformed{ R"({"a"/:1})", 4U },
+                                   malformed{ R"({"a":1,/ "b":2})", 7U },
+                                   malformed{ R"({} /*c)", 3U },
+                                 })
+    {
+        try
+        {
+            (void) parse(src, parse_options().comments(true));
+            ensure(!"parse_error was not thrown");
+        }
+        catch (const parse_error& ex)
+        {
+            ensure_eq(at, ex.character().value());
+            ensure(std::string_view(ex.what()).ends_with(to_string(ast_error::invalid_comment)));
+        }
+    }
+}
+
 TEST_PARSE(comment_rejected_by_default)
 {
     ensure_throws(parse_error, parse(R"({"a": /* yo */"b"})"));
     ensure_throws(parse_error, parse(R"(["a", /* yo */"b"])"));
+
+    for (const auto& doc : commented_documents)
+        ensure_throws(parse_error, parse(doc.commented));
 }
 
 TEST_PARSE(invalid_utf8_input)

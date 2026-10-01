@@ -455,6 +455,22 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             ++depth;
         };
 
+    // Skip what `options` treats as whitespace: JSON whitespace and, if they are on, comments. The main loop skips a
+    // comment only when it is about to read a token, so anything which reads ahead on its own has to use this.
+    auto fastforward_space = [&](const char*& location) JSONV_ALWAYS_INLINE
+        {
+            fastforward_whitespace(*&location, end);
+            while (options.comments() && location < end && *location == '/')
+            {
+                if (!fastforward_comment(*&location, end))
+                {
+                    JSONV_UNLIKELY
+                    throw push_error(self, ast_error::invalid_comment, begin, location);
+                }
+                fastforward_whitespace(*&location, end);
+            }
+        };
+
     auto push_back_out =
         [&](ast_node_type token, ast_node_type expected_open_token, const char* src_location) JSONV_ALWAYS_INLINE
         {
@@ -488,7 +504,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
                 if (depth == 1U)
                 {
                     ++src_location;
-                    fastforward_whitespace(*&src_location, end);
+                    fastforward_space(src_location);
                     if (src_location != end && *src_location)
                         throw push_error(self, ast_error::expected_eof, begin, src_location);
                 }
@@ -523,7 +539,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
 
     auto get_key = [&]() JSONV_ALWAYS_INLINE
         {
-            fastforward_whitespace(*&iter, end);
+            fastforward_space(iter);
             if (iter >= end)
                 throw push_error(self, ast_error::unexpected_eof, begin, iter);
             else if (*iter == '}')
@@ -531,7 +547,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
 
             get_string(ast_node_type::key_canonical, ast_node_type::key_escaped);
 
-            fastforward_whitespace(*&iter, end);
+            fastforward_space(iter);
             if (iter >= end)
                 throw push_error(self, ast_error::unexpected_eof, begin, iter);
 
