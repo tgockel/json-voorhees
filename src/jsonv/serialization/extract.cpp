@@ -15,6 +15,7 @@
 #include <jsonv/value.hpp>
 
 #include <algorithm>
+#include <cstddef>
 #include <exception>
 #include <optional>
 #include <sstream>
@@ -648,7 +649,8 @@ void detail::extract_entry(extraction_context&   context,
 // read_value                                                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static value read_value_impl(reader& from);
+/// \param depth How many structures enclose this value below where the read began.
+static value read_value_impl(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth);
 
 static std::string read_key(const reader& from)
 {
@@ -666,6 +668,60 @@ static std::string read_key(const reader& from)
         throw extraction_error(safe_current_path(from), std::move(os).str());
     }
     }
+}
+
+namespace
+{
+
+/// A key refused for repeating, part-way through reading a \c value. Its path is the reader's, which is the whole
+/// answer only for an extraction with no location of its own; so it also says how much of that path lies below where
+/// the read began, which is the part the reader is still right about. See \c relocate.
+class duplicate_key_error final :
+        public extraction_error
+{
+public:
+    explicit duplicate_key_error(jsonv::path where, std::string message, std::size_t below) noexcept :
+            extraction_error(std::move(where), std::move(message)),
+            _below(below)
+    { }
+
+    /// How many trailing elements of \c path lie below where the read began: the repeated key, and one for each
+    /// structure between it and the value the read started on.
+    JSONV_NODISCARD
+    std::size_t below() const noexcept { return _below; }
+
+private:
+    std::size_t _below;
+};
+
+}
+
+/// Refuse the object \a from is part-way through for repeating \a key, which \a from is on, \a depth structures below
+/// where the read began. The message is the one \c parse_index::extract_tree and the serialization builder DSL raise
+/// for the same document.
+[[noreturn]] static void throw_duplicate_key(const reader& from, std::string_view key, std::size_t depth)
+{
+    std::string message("Duplicate key in object: \"");
+    message.append(key);
+    message.append("\"");
+    throw duplicate_key_error(safe_current_path(from), std::move(message), depth + 1U);
+}
+
+/// Translate \a ex for \a context. Where the context has a location of its own -- a base path, or a scope saying where
+/// the extractor is -- that location is authoritative over the reader's, as \c extraction_context::problem_path has
+/// it, and only the part below where the read began is the reader's to add. With none, the reader's path stands.
+static extraction_error relocate(const extraction_context& context, const duplicate_key_error& ex)
+{
+    jsonv::path located = context.path();
+    if (located.empty())
+        return extraction_error(ex.path(), ex.problems().front().message());
+
+    const jsonv::path& found = ex.path();
+    const auto         below = static_cast<std::ptrdiff_t>(std::min(ex.below(), found.size()));
+    for (auto iter = found.end() - below; iter != found.end(); ++iter)
+        located += *iter;
+
+    return extraction_error(std::move(located), ex.problems().front().message());
 }
 
 /// Step \a from over what is left of a structure which failed to read part-way through, up to and including its
@@ -695,7 +751,7 @@ static void finish_structure(reader& from, ast_node_type close)
     }
 }
 
-static value read_object(reader& from)
+static value read_object(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth)
 {
     // Step off the `{` and onto the first key, or onto the `}` of an empty object -- before anything which can fail,
     // so that a failure always has the object to finish walking rather than still in front of the cursor.
@@ -713,11 +769,26 @@ static value read_object(reader& from)
             }
 
             std::string key = read_key(from);
+
+            // Settled while the cursor is still on the key, so a refusal names the key which repeated. The default
+            // keeps whichever value comes last, which the assignment below does without having to look first.
+            const bool repeated = on_duplicate != extract_options::duplicate_key_action::replace
+                               && out.count(key) != 0U;
+            if (repeated && on_duplicate == extract_options::duplicate_key_action::exception)
+                throw_duplicate_key(from, key, depth);
+
             if (!from.next_token())
                 break;
 
+            // Stepping over the repeat lands where reading it would have.
+            if (repeated)
+            {
+                (void) from.next_value();
+                continue;
+            }
+
             // read_value_impl leaves the cursor on the next key or on the `}`, so this loop never advances itself.
-            value member = read_value_impl(from);
+            value member = read_value_impl(from, on_duplicate, depth + 1U);
 
             // Assignment rather than `insert`, which keeps the *first* of a duplicated key. `parse_index::extract_tree`
             // defaults to `duplicate_key_action::replace`, and a reader disagreeing with `parse` about which of
@@ -735,7 +806,7 @@ static value read_object(reader& from)
     throw extraction_error(jsonv::path(), "Unterminated object");
 }
 
-static value read_array(reader& from)
+static value read_array(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth)
 {
     // Step off the `[` and onto the first element, or onto the `]` of an empty array -- before anything which can
     // fail, for the same reason as in `read_object`.
@@ -752,7 +823,7 @@ static value read_array(reader& from)
             }
 
             // read_value_impl leaves the cursor on the next element or on the `]`, so this loop never advances itself.
-            out.push_back(read_value_impl(from));
+            out.push_back(read_value_impl(from, on_duplicate, depth + 1U));
         }
     }
     catch (...)
@@ -785,15 +856,15 @@ static value read_scalar(const ast_node& node)
     }
 }
 
-static value read_value_impl(reader& from)
+static value read_value_impl(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth)
 {
     const auto& node = from.current();
     switch (node.type())
     {
     case ast_node_type::object_begin:
-        return read_object(from);
+        return read_object(from, on_duplicate, depth);
     case ast_node_type::array_begin:
-        return read_array(from);
+        return read_array(from, on_duplicate, depth);
     case ast_node_type::string_canonical:
     case ast_node_type::string_escaped:
     case ast_node_type::literal_true:
@@ -933,7 +1004,8 @@ void detail::borrowed_subtree::commit()
     }
 }
 
-value read_value(reader& from)
+/// \ref read_value, settling a repeated key by \a on_duplicate.
+static value read_value_settling(reader& from, extract_options::duplicate_key_action on_duplicate)
 {
     if (from.good() && from.current_type() == ast_node_type::document_start)
         (void) from.next_token();
@@ -941,7 +1013,12 @@ value read_value(reader& from)
     if (!from.good())
         throw extraction_error(jsonv::path(), "Unexpected end of input while reading a value");
 
-    return read_value_impl(from);
+    return read_value_impl(from, on_duplicate, 0U);
+}
+
+value read_value(reader& from)
+{
+    return read_value_settling(from, extract_options::duplicate_key_action::replace);
 }
 
 value read_value(extraction_context& context, reader& from)
@@ -957,7 +1034,13 @@ value read_value(extraction_context& context, reader& from)
                            );
     try
     {
-        return read_value(from);
+        return read_value_settling(from, context.options().on_duplicate_key());
+    }
+    catch (const duplicate_key_error& ex)
+    {
+        // Only an object refuses a repeated key, and it is walked to its end before the refusal gets out.
+        context.note_value_consumed(from);
+        throw relocate(context, ex);
     }
     catch (...)
     {

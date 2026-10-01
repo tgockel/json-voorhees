@@ -972,6 +972,155 @@ TEST(extract_read_value_rejects_a_non_value)
     ensure_throws(extraction_error, read_value(rdr));
 }
 
+TEST(extract_value_from_text_settles_a_repeated_key_like_parse)
+{
+    // `parse` settles a repeated key by `extract_options::on_duplicate_key`. Reading the same document through a
+    // reader has to agree, at every depth, or the two routes to one `value` hold different data. The repeat `ignore`
+    // passes over is stepped over whole, so the `1e400` in it is never read.
+    using action = extract_options::duplicate_key_action;
+
+    const std::string_view text = R"({ "x": { "a": 1, "a": 2 }, "y": [ { "b": 3, "b": [ 1e400 ] } ] })";
+    const std::string_view kept = R"({ "x": { "a": 1 }, "y": [ { "b": 3 } ] })";
+
+    auto options = extract_options::create_default().on_duplicate_key(action::ignore);
+
+    extraction_context cxt(formats::defaults(), std::nullopt, jsonv::path(), nullptr, options);
+    auto               rdr = open(text);
+
+    auto out = cxt.extract<value>(rdr);
+    ensure(cxt.problems().empty());
+    ensure_eq(parse(kept), *out);
+
+    const std::string_view replaced = R"({ "x": { "a": 1, "a": 2 }, "y": [ { "b": 3, "b": 4 } ] })";
+    for (auto on_duplicate : { action::replace, action::ignore })
+    {
+        auto settled = extract_options::create_default().on_duplicate_key(on_duplicate);
+
+        extraction_context settled_cxt(formats::defaults(), std::nullopt, jsonv::path(), nullptr, settled);
+        auto               settled_rdr = open(replaced);
+
+        auto settled_out = settled_cxt.extract<value>(settled_rdr);
+        ensure(settled_out.has_value());
+        ensure_eq(parse(replaced, parse_options(), settled), *settled_out);
+    }
+}
+
+TEST(extract_value_from_text_refuses_a_repeated_key_under_exception)
+{
+    // The message is the one `parse` and the serialization builder DSL use for the same document. It is placed at the
+    // key which repeated.
+    const std::string_view text    = R"({ "x": { "a": 1, "a": 2 } })";
+    auto                   options = extract_options::create_default()
+                                         .on_duplicate_key(extract_options::duplicate_key_action::exception);
+
+    extraction_context cxt(formats::defaults(), std::nullopt, jsonv::path(), nullptr, options);
+    auto               rdr = open(text);
+
+    ensure(!cxt.extract<value>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string(R"(Duplicate key in object: "a")"), cxt.problems().at(0).message());
+    ensure_eq(path::create(".x.a"), cxt.problems().at(0).path());
+
+    ensure_throws(extraction_error, parse(text, parse_options(), options));
+}
+
+TEST(extract_value_repeated_key_is_placed_where_the_context_says)
+{
+    // A context with a location of its own -- a base path, or a scope saying where the extractor is -- is authoritative
+    // over the reader's path, which only knows the fragment it was handed. The part below where the read began is
+    // still the reader's to say, which is what names the key.
+    const auto options = extract_options::create_default()
+                             .on_duplicate_key(extract_options::duplicate_key_action::exception);
+
+    auto placed = [&options] (std::string_view fragment, jsonv::path base, std::optional<std::string_view> scope)
+                  {
+                      extraction_context                            cxt(formats::defaults(),
+                                                                        std::nullopt,
+                                                                        std::move(base),
+                                                                        nullptr,
+                                                                        options
+                                                                       );
+                      std::optional<extraction_context::path_scope> named;
+                      if (scope)
+                          named.emplace(cxt, *scope);
+
+                      auto rdr = open(fragment);
+                      ensure(!cxt.extract<value>(rdr).has_value());
+                      ensure_eq(1U, cxt.problems().size());
+                      return cxt.problems().at(0).path();
+                  };
+
+    const std::string_view flat   = R"({ "a": 1, "a": 2 })";
+    const std::string_view nested = R"({ "x": [ 0, { "a": 1, "a": 2 } ] })";
+
+    ensure_eq(path::create(".payload.a"),       placed(flat,   path::create(".payload"), std::nullopt));
+    ensure_eq(path::create(".payload.x[1].a"),  placed(nested, path::create(".payload"), std::nullopt));
+    ensure_eq(path::create(".renamed.a"),       placed(flat,   jsonv::path(),            "renamed"));
+    ensure_eq(path::create(".renamed.x[1].a"),  placed(nested, jsonv::path(),            "renamed"));
+
+    // With no location of its own, the reader's path is the whole answer.
+    ensure_eq(path::create(".a"),               placed(flat,   jsonv::path(),            std::nullopt));
+    ensure_eq(path::create(".x[1].a"),          placed(nested, jsonv::path(),            std::nullopt));
+}
+
+TEST(extract_bridge_from_text_settles_a_repeated_key_by_the_options)
+{
+    // An adapter on the `value` bridge is handed the tree the bridge built, so whichever value of a repeated key that
+    // tree kept is the one the adapter sees.
+    using action = extract_options::duplicate_key_action;
+
+    const std::string_view text = R"({ "a": 1, "b": 2, "c": 3, "a": 4 })";
+    for (auto [on_duplicate, expected] : { std::pair(action::replace, std::int64_t(4)),
+                                           std::pair(action::ignore,  std::int64_t(1)),
+                                         }
+        )
+    {
+        auto options = extract_options::create_default().on_duplicate_key(on_duplicate);
+
+        extraction_context cxt(bridged_formats(), std::nullopt, jsonv::path(), nullptr, options);
+        auto               rdr = open(text);
+
+        auto out = cxt.extract<bridged_triple>(rdr);
+        ensure(out.has_value());
+        ensure_eq(expected, out->a);
+    }
+
+    auto options = extract_options::create_default().on_duplicate_key(action::exception);
+
+    extraction_context cxt(bridged_formats(), std::nullopt, jsonv::path(), nullptr, options);
+    auto               rdr = open(text);
+
+    ensure(!cxt.extract<bridged_triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string(R"(Duplicate key in object: "a")"), cxt.problems().at(0).message());
+
+    // Placed under the context's own location, as for any extractor reading a `value`.
+    extraction_context based_cxt(bridged_formats(), std::nullopt, path::create(".payload"), nullptr, options);
+    auto               based_rdr = open(text);
+
+    ensure(!based_cxt.extract<bridged_triple>(based_rdr).has_value());
+    ensure_eq(1U, based_cxt.problems().size());
+    ensure_eq(path::create(".payload.a"), based_cxt.problems().at(0).path());
+}
+
+TEST(extract_collect_all_resumes_after_a_repeated_key)
+{
+    // Refusing a repeated key fails part-way through an object, which is walked to its end before the failure gets
+    // out -- so a collecting container resumes at the next element, not inside the object and not one past it.
+    auto options = collecting();
+    options.on_duplicate_key(extract_options::duplicate_key_action::exception);
+
+    formats fmts = formats_builder().register_container<std::vector<value>>().compose_checked(formats::defaults());
+
+    extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    auto               rdr = open(R"([ { "a": 1, "a": 2 }, 5, { "b": 1, "b": 2 } ])");
+
+    ensure(!cxt.extract<std::vector<value>>(rdr).has_value());
+    ensure_eq(2U, cxt.problems().size());
+    ensure_eq(path::create("[0].a"), cxt.problems().at(0).path());
+    ensure_eq(path::create("[2].b"), cxt.problems().at(1).path());
+}
+
 namespace
 {
 

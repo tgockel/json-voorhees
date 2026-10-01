@@ -438,6 +438,14 @@
        which only `extract_sub` used, and `extraction_context::extract(const std::type_info&, const value&, void*)`,
        since an extraction refused after it has built its object -- something after the value -- has to destroy
        that object, and a caller of the `void*` form had no way to let it (#232).
+     - Extracting a `value` from JSON text settles a repeated key by `extract_options::on_duplicate_key`, as `parse`
+       does under the same options: `ignore` keeps the first value, and `exception` refuses the object with
+       `Duplicate key in object: "..."` placed at the key which repeated -- below the extraction's own base path or
+       scope where it has one, which outranks the reader's path as it does for any other problem. It kept the last
+       whatever the option said, so `extract<value>(text, options)` and `parse(text, parse_options(), options)`
+       disagreed under anything but the default. The same goes for an adapter on the `value` bridge, which is handed
+       the tree this builds, and for `read_value(extraction_context&, reader&)` generally; `read_value(reader&)` has no
+       options and still keeps the last (#263).
      - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a
