@@ -39,6 +39,16 @@ static void check_sort(const formats& fmts, string_list source, FJsonCmp json_cm
         throw std::logic_error("Sorting did not produce identical results");
 }
 
+/// Check \a json_cmp answers like \a str_cmp for every ordered pair from \a source. This includes each element paired
+/// with itself, which is the only pair the strict and non-strict predicates disagree on.
+template <typename FJsonCmp, typename FStrCmp>
+static void check_agrees(const string_list& source, FJsonCmp json_cmp, FStrCmp str_cmp)
+{
+    for (const auto& a : source)
+        for (const auto& b : source)
+            ensure_eq(json_cmp(value(a), value(b)), str_cmp(a, b));
+}
+
 TEST(functional_sort_strings)
 {
     formats fmts =
@@ -50,10 +60,20 @@ TEST(functional_sort_strings)
         });
     std::vector<std::string> source = { "fire", "wind", "water", "earth", "heart" };
     
-    check_sort(fmts, source, value_less(),          std::less<std::string>());
-    check_sort(fmts, source, value_less_equal(),    std::less_equal<std::string>());
-    check_sort(fmts, source, value_greater(),       std::greater<std::string>());
-    check_sort(fmts, source, value_greater_equal(), std::greater_equal<std::string>());
+    check_sort(fmts, source, value_less(),    std::less<std::string>());
+    check_sort(fmts, source, value_greater(), std::greater<std::string>());
+}
+
+TEST(functional_compare_strings)
+{
+    std::vector<std::string> source = { "fire", "wind", "water", "earth", "heart" };
+
+    check_agrees(source, value_equal_to(),      std::equal_to<std::string>());
+    check_agrees(source, value_not_equal_to(),  std::not_equal_to<std::string>());
+    check_agrees(source, value_less(),          std::less<std::string>());
+    check_agrees(source, value_less_equal(),    std::less_equal<std::string>());
+    check_agrees(source, value_greater(),       std::greater<std::string>());
+    check_agrees(source, value_greater_equal(), std::greater_equal<std::string>());
 }
 
 }
