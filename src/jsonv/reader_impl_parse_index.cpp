@@ -20,8 +20,14 @@ namespace jsonv
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 reader::impl_parse_index::impl_parse_index(parse_index source) :
-        _index(std::move(source)),
-        _current(_index.begin())
+        _owned(std::move(source)),
+        _index(&_owned),
+        _current(_owned.begin())
+{ }
+
+reader::impl_parse_index::impl_parse_index(const parse_index& index, parse_index::const_iterator current) noexcept :
+        _index(&index),
+        _current(current)
 { }
 
 reader::impl_parse_index::impl_parse_index(std::string_view source, const parse_options& options) :
@@ -36,12 +42,12 @@ reader::impl_parse_index::~impl_parse_index() noexcept = default;
 
 bool reader::impl_parse_index::good() const
 {
-    return _current != _index.end();
+    return _current != _index->end();
 }
 
 void reader::impl_parse_index::validate() const
 {
-    _index.validate();
+    _index->validate();
 }
 
 std::optional<ast_node> reader::impl_parse_index::load_current() const
@@ -114,18 +120,18 @@ static path build_current_path(parse_index::const_iterator begin, parse_index::c
 std::optional<path> reader::impl_parse_index::load_current_path() const
 {
     if (good())
-        return build_current_path(_index.begin(), _current);
+        return build_current_path(_index->begin(), _current);
     else
         return std::nullopt;
 }
 
 bool reader::impl_parse_index::next_token_impl() noexcept
 {
-    if (_current == _index.end())
+    if (_current == _index->end())
         return false;
 
     ++_current;
-    return _current != _index.end();
+    return _current != _index->end();
 }
 
 // `skip_subtree` throws for a token which does not open a structure and `operator*` for one it does not recognise. Only
@@ -133,7 +139,7 @@ bool reader::impl_parse_index::next_token_impl() noexcept
 // NOLINTNEXTLINE(bugprone-exception-escape)
 bool reader::impl_parse_index::next_value_impl() noexcept
 {
-    if (_current == _index.end())
+    if (_current == _index->end())
         return false;
 
     switch ((*_current).type())
@@ -148,7 +154,13 @@ bool reader::impl_parse_index::next_value_impl() noexcept
         return next_token_impl();
     }
 
-    return _current != _index.end();
+    return _current != _index->end();
+}
+
+std::unique_ptr<reader::impl> reader::impl_parse_index::lookahead() const
+{
+    // Not `make_unique`, which cannot reach the private constructor.
+    return std::unique_ptr<impl>(new impl_parse_index(*_index, _current));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

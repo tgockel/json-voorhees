@@ -28,6 +28,13 @@ class parse_options;
 class path;
 class value;
 
+namespace detail
+{
+
+class reader_lookahead;
+
+}
+
 /// \ingroup Serialization
 /// \{
 
@@ -424,6 +431,14 @@ private:
 
     template <typename TImpl, typename... TArgs>
     explicit reader(std::in_place_type_t<TImpl>, TArgs&&...);
+
+    explicit reader(std::unique_ptr<impl> impl) noexcept;
+
+    /// The library sometimes has to read ahead -- \c polymorphic_adapter has to find its discriminator before it knows
+    /// which type to extract. That is a second cursor on this reader's source rather than a rewind of this one, and it
+    /// is kept out of the public interface on purpose: promising it would commit every future source, including one
+    /// which streams, to supporting it.
+    friend class detail::reader_lookahead;
 
 private:
     std::unique_ptr<impl> _impl;

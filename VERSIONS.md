@@ -290,7 +290,7 @@
        there -- the count is bounded by what is on the tape even when the parse which produced it failed part-way
        through, which is what makes it safe to hand to `reserve`. This is a source break for anyone deriving from one
        of the three and overriding `create(extraction_context&, const value&)`: the base is now `adapter_for` and the
-       hook takes a `reader`. `polymorphic_adapter` and `enum_adapter` stay on the bridge for now (#230).
+       hook takes a `reader`. `polymorphic_adapter` followed in #236; `enum_adapter` stays on the bridge (#230).
      - `std::vector<std::string_view>` extracted from JSON text is a view of the source rather than a refusal. It was
        refused for a structural reason rather than a semantic one: the container materialised the whole array and
        every element then saw `extraction_context::source_is_temporary`, because a view of that temporary would name
@@ -446,6 +446,27 @@
        disagreed under anything but the default. The same goes for an adapter on the `value` bridge, which is handed
        the tree this builds, and for `read_value(extraction_context&, reader&)` generally; `read_value(reader&)` has no
        options and still keeps the last (#263).
+     - `polymorphic_adapter` reads the reader directly instead of a `value` materialised for it. Choosing a subtype
+       means looking at the value before extracting it, which a forward cursor cannot do by itself, so the
+       discriminators are shown the value through a second cursor on the same source -- the reader itself never moves
+       backward -- and the subtype they choose is then extracted from the reader. From JSON text, a subtype registered
+       with `add_subtype_keyed`, which is what the DSL's `subtype<T>(value)` registers, is shown only the members it
+       discriminates on, found by stepping over every other member whole; a document such a subtype matches is read
+       once however large it is and wherever the discriminator sits in it. A discriminator registered with
+       `add_subtype` can ask anything of the value, so the first time one of those has to be asked the subtree is
+       materialised for it, and listing the keyed subtypes first keeps any document they match from paying for that.
+       From a `value` every discriminator is shown that value, as before, and registration order still decides between
+       two which both match. What a discriminator is shown settles a repeated key by
+       `extract_options::on_duplicate_key` at every depth, as the DSL and, since #263, a `value` read from text do --
+       so the subtype chosen and the subtype built agree on what the document said (#236).
+     - A subtype chosen from JSON text reads the document rather than a copy of it. A `std::string_view` member is a
+       view of the source rather than a refusal, and a member a keyed subtype never reads can no longer fail it: the
+       bridge built the whole object before choosing, so a number with no finite `double` anywhere in it failed every
+       subtype. A document no discriminator matches is refused with the cursor still on it, and the message names it
+       as before -- unless naming it would mean reading something which cannot be read, in which case the message
+       stops at `No discriminators matched JSON value` rather than reporting that instead. This is a source break for
+       anyone deriving from `polymorphic_adapter` and overriding `create(extraction_context&, const value&)`: the base
+       is now `adapter_for` and the hook takes a `reader` (#236).
      - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a

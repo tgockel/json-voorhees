@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "../reader_impl.hpp"
 #include "describe.hpp"
 
 namespace jsonv
@@ -1048,6 +1049,93 @@ value read_value(extraction_context& context, reader& from)
             context.note_value_consumed(from);
         throw;
     }
+}
+
+value detail::peek_value(const extraction_context& context, const reader& from)
+{
+    reader probe = reader_lookahead::open(from);
+    try
+    {
+        return read_value_settling(probe, context.options().on_duplicate_key());
+    }
+    catch (const duplicate_key_error& ex)
+    {
+        throw relocate(context, ex);
+    }
+}
+
+value detail::peek_members(const extraction_context&                 context,
+                           const reader&                             from,
+                           const std::set<std::string, std::less<>>& keys
+                          )
+{
+    const auto on_duplicate = context.options().on_duplicate_key();
+
+    reader probe = reader_lookahead::open(from);
+    if (probe.good() && probe.current_type() == ast_node_type::document_start)
+        (void) probe.next_token();
+
+    if (!probe.good() || probe.current_type() != ast_node_type::object_begin)
+        return value();
+
+    value out = object();
+
+    // Onto the first key, or onto the `}` of an empty object. Anything other than a key from here on is that `}` or
+    // the end of a document which stopped part-way through, and either way there are no more members to find.
+    (void) probe.next_token();
+    try
+    {
+        while (probe.good() && (  probe.current_type() == ast_node_type::key_canonical
+                               || probe.current_type() == ast_node_type::key_escaped
+                               )
+              )
+        {
+            // Compared before it is copied, so a canonical key nobody asked for costs no allocation.
+            auto wanted = probe.current().visit_key([&] (const auto& k) -> std::optional<std::string>
+                                                    {
+                                                        auto name = k.value();
+                                                        if (keys.contains(name))
+                                                            return std::string(std::move(name));
+                                                        else
+                                                            return std::nullopt;
+                                                    }
+                                                   );
+
+            // A repeat is settled as `read_object` settles one, and on the key for the same reason. The object being
+            // walked is where the read began, so it is no structures deep.
+            const bool repeated = wanted
+                               && on_duplicate != extract_options::duplicate_key_action::replace
+                               && out.count(*wanted) != 0U;
+            if (repeated && on_duplicate == extract_options::duplicate_key_action::exception)
+                throw_duplicate_key(probe, *wanted, 0U);
+
+            // Onto the member's value, whether or not it is wanted. A document which ends here has nothing more to
+            // find.
+            if (  !probe.next_token()
+               || probe.current_type() == ast_node_type::document_end
+               || probe.current_type() == ast_node_type::error
+               )
+            {
+                break;
+            }
+
+            // `reader::next_key` would do for an unwanted member, but over text it walks every token of the value to
+            // find the next key. Stepping over the value itself jumps the whole subtree.
+            if (!wanted || repeated)
+            {
+                (void) probe.next_value();
+                continue;
+            }
+
+            // read_value_impl leaves the cursor on the next key or on the `}`, so this loop never advances itself.
+            out[*std::move(wanted)] = read_value_impl(probe, on_duplicate, 1U);
+        }
+    }
+    catch (const duplicate_key_error& ex)
+    {
+        throw relocate(context, ex);
+    }
+    return out;
 }
 
 }

@@ -30,6 +30,10 @@ reader::reader(std::in_place_type_t<TImpl>, TArgs&&... args) :
         _impl(std::make_unique<TImpl>(std::forward<TArgs>(args)...))
 { }
 
+reader::reader(std::unique_ptr<impl> impl) noexcept :
+        _impl(std::move(impl))
+{ }
+
 reader::reader(parse_index index) :
         reader(std::in_place_type<impl_parse_index>, std::move(index))
 { }
@@ -173,6 +177,18 @@ bool reader::next_key()
         return _impl->next_key();
     else
         return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// detail::reader_lookahead                                                                                           //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+reader detail::reader_lookahead::open(const reader& origin)
+{
+    if (origin._impl)
+        return reader(origin._impl->lookahead());
+    else
+        throw std::invalid_argument("reader instance has been moved-from");
 }
 
 }

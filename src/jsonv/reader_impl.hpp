@@ -14,6 +14,7 @@
 #include <jsonv/reader.hpp>
 #include <jsonv/value.hpp>
 
+#include <memory>
 #include <optional>
 
 namespace jsonv
@@ -64,6 +65,12 @@ public:
 
     bool next_key();
 
+    /// Create a second cursor on the node this one is on, which reads the same source without owning it and without
+    /// moving this one. It must not outlive this instance.
+    ///
+    /// \see detail::reader_lookahead
+    virtual std::unique_ptr<impl> lookahead() const = 0;
+
 protected:
     /// Attempt to load the current token. If there is no token to load, return \c nullopt.
     virtual std::optional<ast_node> load_current() const = 0;
@@ -100,5 +107,26 @@ private:
     mutable bool                    _current_path_dirty;
     mutable std::optional<path>     _current_path;
 };
+
+namespace detail
+{
+
+/// Read ahead of a \c reader without moving it.
+///
+/// A forward cursor cannot read one subtree twice, and some extractors need to: \c polymorphic_adapter has to find its
+/// discriminator, wherever in the object it is, before it knows which type to extract the object as. Rather than rewind
+/// the reader, which would make every position-keyed note an extraction leaves about it ambiguous, this opens a second
+/// one on the same node.
+class JSONV_LOCAL reader_lookahead final
+{
+public:
+    /// Create a reader on the node \a origin is on. It borrows \a origin's source -- even where \a origin owns it -- so
+    /// it must not outlive \a origin, although moving \a origin is fine.
+    ///
+    /// \throws std::invalid_argument if \a origin has been moved-from.
+    static reader open(const reader& origin);
+};
+
+}
 
 }

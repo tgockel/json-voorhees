@@ -129,6 +129,14 @@ reader::impl_value::impl_value(const value& source) noexcept :
         _close_type(ast_node_type::document_end)
 { }
 
+reader::impl_value::impl_value(lookahead_tag, const impl_value& origin) :
+        reader::impl(true),
+        _root(origin._root),
+        _stack(origin._stack),
+        _position(origin._position),
+        _close_type(origin._close_type)
+{ }
+
 reader::impl_value::~impl_value() noexcept = default;
 
 bool reader::impl_value::good() const
@@ -488,8 +496,16 @@ bool reader::impl_value::next_key_impl() noexcept
     return good();
 }
 
+std::unique_ptr<reader::impl> reader::impl_value::lookahead() const
+{
+    // Always a plain `impl_value`, even from an `impl_value_owning`: the copy borrows the tree its origin holds. The
+    // arena is not copied -- a token its origin synthesised stays valid for as long as the origin does, and the copy
+    // writes its own.
+    return std::unique_ptr<impl>(new impl_value(lookahead_tag(), *this));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// reader::impl_value_owning                                                                                          //
+// reader::impl_value_owning                                                                                         //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 reader::impl_value_owning::impl_value_owning(value&& source) :

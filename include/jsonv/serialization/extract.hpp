@@ -24,10 +24,12 @@
 #include <cstddef>
 #include <exception>
 #include <expected>
+#include <functional>
 #include <initializer_list>
 #include <memory>
 #include <new>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -43,6 +45,7 @@ namespace detail
 {
 
 class borrowed_subtree;
+class temporary_source_scope;
 
 /// Does the source an extraction reads from outlive it?
 enum class source_lifetime : unsigned char
@@ -633,6 +636,7 @@ public:
 private:
     friend class path_scope;
     friend class detail::borrowed_subtree;
+    friend class detail::temporary_source_scope;
 
     friend JSONV_PUBLIC void detail::extract_entry(extraction_context&   context,
                                                    const std::type_info& type,
@@ -705,6 +709,63 @@ JSONV_NODISCARD JSONV_PUBLIC value read_value(extraction_context& context, reade
 
 namespace detail
 {
+
+/// \ref read_value without moving \a from: the subtree under its cursor is read through a second cursor on the same
+/// source, which is what lets an extractor decide what to extract before extracting it.
+///
+/// \param context The extraction this is peeking for. What is peeked at is going to be read again for real, and the
+///                two have to agree about which value a repeated key has, so one is settled by \a context's
+///                \c extract_options::on_duplicate_key exactly as \ref read_value settles it for \a context -- and a
+///                refusal is placed where \a context says, as \ref read_value places one.
+///
+/// \throws Whatever \ref read_value throws for the same subtree, including for a repeated key under
+///  \c extract_options::duplicate_key_action::exception.
+JSONV_NODISCARD JSONV_PUBLIC value peek_value(const extraction_context& context, const reader& from);
+
+/// The members named in \a keys of the object under \a from's cursor, read without moving \a from and without reading
+/// any other member -- each of those is stepped over whole, which on a reader over text costs nothing however large it
+/// is.
+///
+/// \param context The extraction this is peeking for, as for \ref peek_value. Only the keys asked for are looked at, so
+///                only a repeat of one of those is settled -- or refused.
+///
+/// A document which ends part-way through the object gives back whatever was found before it ended.
+///
+/// \returns An object holding the members found; or \c null if \a from is not on an object.
+/// \throws Whatever \ref read_value throws for one of the members read, including for a repeat of one of \a keys
+///  under \c extract_options::duplicate_key_action::exception.
+JSONV_NODISCARD JSONV_PUBLIC value peek_members(const extraction_context&                 context,
+                                                const reader&                             from,
+                                                const std::set<std::string, std::less<>>& keys
+                                               );
+
+/// Say, for as long as this lives, that what is being extracted from is a temporary -- see
+/// \c extraction_context::source_is_temporary.
+///
+/// An extractor which builds a \c value and shows it to a callback has made exactly the temporary that question is
+/// about, and nothing the callback extracts from it can tell: \c extraction_context::extract(const value&) takes the
+/// \c value to be the caller's. \c polymorphic_adapter does this when it materialises a subtree read from JSON text
+/// for its discriminators.
+class temporary_source_scope
+{
+public:
+    explicit temporary_source_scope(extraction_context& context) noexcept :
+            _context(&context)
+    {
+        ++_context->_temporary_source_depth;
+    }
+
+    temporary_source_scope(const temporary_source_scope&)            = delete;
+    temporary_source_scope& operator=(const temporary_source_scope&) = delete;
+
+    ~temporary_source_scope() noexcept
+    {
+        --_context->_temporary_source_depth;
+    }
+
+private:
+    extraction_context* _context;
+};
 
 /// The subtree under a reader's cursor as a \c value, borrowed rather than copied when the reader can lend it.
 ///

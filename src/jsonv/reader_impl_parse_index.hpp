@@ -40,8 +40,18 @@ public:
 
     virtual bool next_value_impl() noexcept override;
 
+    virtual std::unique_ptr<impl> lookahead() const override;
+
 private:
-    parse_index                 _index;
+    /// A cursor over someone else's \a index, starting on \a current. See \c lookahead.
+    explicit impl_parse_index(const parse_index& index, parse_index::const_iterator current) noexcept;
+
+private:
+    /// The tape this reader parsed for itself. A lookahead reads its origin's and leaves this empty.
+    parse_index                 _owned;
+    /// The tape being read: \ref _owned, or the origin's for a lookahead, which must outlive it. Moving the \c reader
+    /// which holds either is fine, since the \c impl this points into does not move with it.
+    const parse_index*          _index;
     parse_index::const_iterator _current;
 };
 

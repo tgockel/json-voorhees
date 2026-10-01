@@ -11,7 +11,16 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/demangle.hpp>
+#include <jsonv/kind.hpp>
+#include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
+
+#include <expected>
+#include <functional>
+#include <optional>
+#include <set>
+#include <string>
+#include <utility>
 
 #include "adapter_for.hpp"
 
@@ -51,13 +60,23 @@ enum class keyed_subtype_action : unsigned char
 /// ]
 /// @endcode
 ///
+/// Choosing a subtype means looking at the value before extracting it, which a \c reader -- a forward cursor -- cannot
+/// do by itself. Each discriminator is shown as little of the value as answers it, read without moving the reader, and
+/// the subtype it picks is then extracted from the reader directly:
+///
+///  - From a \c value, every discriminator is shown that value. Nothing is copied.
+///  - From JSON text, one registered with \c add_subtype_keyed is shown an object holding only the discriminating
+///    members, found by stepping over every other member whole. One registered with \c add_subtype can ask anything
+///    of the value, so the first time one of those has to be asked the subtree is materialised for it. Registering
+///    the keyed subtypes first keeps a matching document from ever being materialised.
+///
 /// \tparam TPointer Some pointer-like type (likely \c unique_ptr or \c shared_ptr) you wish to extract values into. It
 ///                  must support \c operator*, an explicit conversion to \c bool, construction with a pointer to a
 ///                  subtype of what it contains and default construction.
 ///
 template <typename TPointer>
 class polymorphic_adapter :
-        public value_adapter_for<TPointer>
+        public adapter_for<TPointer>
 {
 public:
     using match_predicate = std::function<bool (extraction_context&, const value&)>;
@@ -72,12 +91,7 @@ public:
     template <typename T>
     void add_subtype(match_predicate pred)
     {
-        _subtype_ctors.emplace_back(std::move(pred),
-                                    [] (extraction_context& context, const value& value)
-                                    {
-                                        return TPointer(new T(context.extract<T>(value)));
-                                    }
-                                   );
+        emplace_subtype<T>(std::move(pred), false);
     }
 
     /// Add a subtype which can be transformed into \c TPointer which will be called if given a JSON \c value with
@@ -93,6 +107,9 @@ public:
         if (!_serialization_actions.emplace(tidx, std::make_tuple(key, expected_value, action)).second)
             throw duplicate_type_error("polymorphic_adapter subtype", std::type_index(typeid(T)));
 
+        // Recorded before the subtype, so a failure to record it cannot leave a keyed subtype whose key is never read.
+        _discriminator_keys.insert(key);
+
         match_predicate op = [key = std::move(key), expected_value = std::move(expected_value)]
                              (extraction_context&, const value& value)
                              {
@@ -102,7 +119,7 @@ public:
                                  return iter != value.end_object()
                                      && iter->second == expected_value;
                              };
-        return add_subtype<T>(std::move(op));
+        emplace_subtype<T>(std::move(op), true);
     }
 
     /// \{
@@ -136,26 +153,91 @@ public:
 
 protected:
     JSONV_NODISCARD
-    virtual TPointer create(extraction_context& context, const value& from) const override
+    virtual std::expected<TPointer, ast_node_type> create(extraction_context& context, reader& from) const override
     {
-        using std::begin;
-        using std::end;
+        // A value-backed reader renders a non-finite `kind::decimal` as `literal_null`, so where there is a `value` to
+        // ask, its `kind` decides -- the same rule `optional_adapter` follows for the same reason.
+        const value* lent = from.current_value();
+        if (_check_null_input && (lent ? lent->kind() == jsonv::kind::null
+                                       : from.current_type() == ast_node_type::literal_null
+                                 )
+           )
+        {
+            // The cursor steps before the pointer is built, so a `TPointer` which refuses to default-construct fails
+            // with the value behind it.
+            try
+            {
+                (void) from.next_token();
+                return TPointer();
+            }
+            catch (...)
+            {
+                context.note_value_consumed(from);
+                throw;
+            }
+        }
 
-        if (_check_null_input && from.is_null())
-            return TPointer();
+        // Each is read at most once, and only if some discriminator needs it. Neither moves `from`. Both settle a
+        // repeated key the way the subtype will when it reads the document, or the subtype chosen and the one built
+        // could disagree about what the discriminator said.
+        std::optional<value> members;
+        std::optional<value> whole;
+        auto subject = [&] (const subtype& sub) -> const value&
+                       {
+                           if (lent)
+                               return *lent;
 
-        auto iter = std::find_if(begin(_subtype_ctors), end(_subtype_ctors),
-                                 [&] (const std::pair<match_predicate, create_function>& pair)
-                                 {
-                                     return pair.first(context, from);
-                                 }
-                                );
-        if (iter != end(_subtype_ctors))
-            return iter->second(context, from);
-        else
-            throw extraction_error(context.path(),
-                                   std::string("No discriminators matched JSON value: ") + to_string(from)
-                                  );
+                           // A keyed discriminator reads one member, which the whole subtree has just as well as the
+                           // projection does -- so once the whole has been paid for, there is no reason to scan again.
+                           if (sub.keyed && !whole)
+                           {
+                               if (!members)
+                                   members.emplace(detail::peek_members(context, from, _discriminator_keys));
+                               return *members;
+                           }
+
+                           if (!whole)
+                               whole.emplace(detail::peek_value(context, from));
+                           return *whole;
+                       };
+
+        const subtype* chosen = nullptr;
+        {
+            // From text, a discriminator is shown a copy which dies with this call, so a view of anything in it would
+            // dangle. Saying so is what makes extracting one refuse, as it did when the bridge built that copy. From a
+            // `value` it is shown the caller's own tree, which a view may name.
+            std::optional<detail::temporary_source_scope> temporary;
+            if (!lent)
+                temporary.emplace(context);
+
+            for (const auto& sub : _subtypes)
+            {
+                if (sub.predicate(context, subject(sub)))
+                {
+                    chosen = &sub;
+                    break;
+                }
+            }
+        }
+
+        // Out of that scope, the chosen subtype reads the reader itself: a view it holds names the source rather than
+        // a temporary, and a position it takes from the reader is in the document rather than in a copy of it.
+        if (chosen)
+            return chosen->create(context, from);
+
+        // The cursor is still on the value, which is where a problem about it belongs and what whoever recovers from it
+        // expects to step over.
+        std::string message = "No discriminators matched JSON value";
+        try
+        {
+            const value& unmatched = lent  ? *lent
+                                   : whole ? *whole
+                                   :         whole.emplace(detail::peek_value(context, from));
+            message += ": " + to_string(unmatched);
+        }
+        catch (...) // NOLINT(bugprone-empty-catch): describing the failure must not replace it
+        { }
+        return context.problem(context.problem_path(from), std::move(message));
     }
 
     JSONV_NODISCARD
@@ -207,15 +289,55 @@ protected:
     }
 
 private:
-    using create_function = std::function<TPointer (extraction_context&, const value&)>;
+    using create_function = std::function<std::expected<TPointer, ast_node_type> (extraction_context&, reader&)>;
+
+    struct subtype
+    {
+        match_predicate predicate;
+        /// Does \ref predicate read nothing but a member named in \ref _discriminator_keys? If so it can be shown
+        /// \c detail::peek_members in place of the whole value.
+        bool            keyed;
+        create_function create;
+    };
+
+    template <typename T>
+    void emplace_subtype(match_predicate pred, bool keyed)
+    {
+        _subtypes.push_back(subtype{ std::move(pred),
+                                     keyed,
+                                     [] (extraction_context& context, reader& from)
+                                             -> std::expected<TPointer, ast_node_type>
+                                     {
+                                         // A failure `extract` reports is returned, not thrown. What can throw is
+                                         // everything after the cursor has stepped past the value: `extract` moving
+                                         // the `T` it built out to here, the allocation, and the move into it -- all
+                                         // of which fail with that value behind the cursor.
+                                         try
+                                         {
+                                             auto extracted = context.extract<T>(from);
+                                             if (!extracted)
+                                                 return std::unexpected(extracted.error());
+
+                                             return TPointer(new T(*std::move(extracted)));
+                                         }
+                                         catch (...)
+                                         {
+                                             context.note_value_consumed(from);
+                                             throw;
+                                         }
+                                     }
+                                   }
+                           );
+    }
 
 private:
     using serialization_action = std::tuple<std::string, value, keyed_subtype_action>;
 
-    std::vector<std::pair<match_predicate, create_function>> _subtype_ctors;
-    std::map<std::type_index, serialization_action>          _serialization_actions;
-    bool                                                     _check_null_input  = false;
-    bool                                                     _check_null_output = false;
+    std::vector<subtype>                            _subtypes;
+    std::set<std::string, std::less<>>              _discriminator_keys;
+    std::map<std::type_index, serialization_action> _serialization_actions;
+    bool                                            _check_null_input  = false;
+    bool                                            _check_null_output = false;
 };
 
 /// \}

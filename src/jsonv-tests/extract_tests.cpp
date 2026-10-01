@@ -25,12 +25,14 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
 #include <memory>
 #include <new>
+#include <set>
 #include <string>
 #include <string_view>
 #include <typeinfo>
@@ -181,8 +183,8 @@ formats batched_formats()
 
 /// A `std::int64_t` reached through the older `value`-based interface, reporting a mismatch the way every built-in
 /// did before they read the reader directly: by letting `value::as_integer` throw. The bridge is still how
-/// `container_adapter`, the DSL and the polymorphic adapters reach a value, so what it does with a failure is still
-/// worth pinning.
+/// `enum_adapter` and every adapter written against `value_adapter_for` reach a value, so what it does with a failure
+/// is still worth pinning.
 struct bridged_int
 {
     std::int64_t value;
@@ -212,8 +214,8 @@ struct view_holder
 
 /// Three members reached through the older `value`-based interface. Materialising the object is what walks the cursor
 /// past it and looking each member up by name is what needs the whole tree, so this is the shape the DSL had before it
-/// read the reader -- kept here because the bridge is still how `polymorphic_adapter` and `enum_adapter` reach a value,
-/// and what it does with a failure is still worth pinning.
+/// read the reader -- kept here because the bridge is still how `enum_adapter` and every adapter written against
+/// `value_adapter_for` reach a value, and what it does with a failure is still worth pinning.
 struct bridged_triple
 {
     std::int64_t a;
@@ -1124,6 +1126,220 @@ TEST(extract_collect_all_resumes_after_a_repeated_key)
 namespace
 {
 
+constexpr auto replace = extract_options::duplicate_key_action::replace;
+constexpr auto ignore  = extract_options::duplicate_key_action::ignore;
+
+/// A context to peek for, settling a repeated key by \a on_duplicate.
+extraction_context peeking(extract_options::duplicate_key_action on_duplicate)
+{
+    return extraction_context(formats::defaults(),
+                              std::nullopt,
+                              jsonv::path(),
+                              nullptr,
+                              extract_options::create_default().on_duplicate_key(on_duplicate)
+                             );
+}
+
+}
+
+TEST(extract_peek_value_leaves_the_reader_where_it_was)
+{
+    // Every kind of source, including the two which own what they read: the second cursor borrows that rather than
+    // copying it, and has to read the same thing the first would.
+    const std::string_view text = R"([ { "a": [ 1, 2 ], "b": "c" }, 99 ])";
+    const value            tree = parse(text);
+
+    std::vector<std::function<reader ()>> sources =
+        {
+            [&] { return reader(text); },
+            [&] { return reader(std::string(text)); },
+            [&] { return reader::from_value(tree); },
+            [&] { return reader::from_value(value(tree)); },
+        };
+
+    for (const auto& make : sources)
+    {
+        reader rdr = make();
+        (void) rdr.next_token();   // onto the `[`
+        (void) rdr.next_token();   // onto the `{`
+
+        ensure_eq(tree.at(0), detail::peek_value(peeking(replace), rdr));
+        ensure_eq(tree.at(0), detail::peek_value(peeking(replace), rdr));
+        ensure(rdr.current_type() == ast_node_type::object_begin);
+
+        // The reader itself goes on to read it all the same.
+        ensure_eq(tree.at(0), read_value(rdr));
+        ensure_eq(99, rdr.current().as<ast_node::integer>().value());
+    }
+}
+
+TEST(extract_peek_part_way_through_a_document)
+{
+    // A reader over a tree is a stack of frames as well as a position, and the second cursor needs all of it: the path
+    // to here, and where each enclosing structure goes next.
+    const std::string_view text = R"({ "x": [ 1, { "y": [ 2, 3 ] } ], "z": 4 })";
+    const value            tree = parse(text);
+
+    for (bool from_value : { false, true })
+    {
+        reader rdr = from_value ? reader::from_value(tree) : reader(text);
+        (void) rdr.next_token();   // onto the `{`
+        (void) rdr.next_token();   // onto "x"
+        (void) rdr.next_token();   // onto the `[`
+        (void) rdr.next_token();   // onto 1
+        (void) rdr.next_token();   // onto the inner `{`
+        (void) rdr.next_token();   // onto "y"
+        (void) rdr.next_token();   // onto the inner `[`
+
+        ensure_eq(parse("[ 2, 3 ]"), detail::peek_value(peeking(replace), rdr));
+        ensure_eq(path::create(".x[1].y"), rdr.current_path());
+
+        ensure_eq(parse("[ 2, 3 ]"), read_value(rdr));
+        ensure(rdr.current_type() == ast_node_type::object_end);
+        (void) rdr.next_token();
+        ensure(rdr.current_type() == ast_node_type::array_end);
+        (void) rdr.next_token();
+        ensure_eq(std::string("z"), rdr.current().visit_key([] (const auto& k) { return std::string(k.value()); }));
+    }
+}
+
+TEST(extract_peek_members_reads_only_what_was_asked_for)
+{
+    // Each `1e400` is something `read_value` refuses, so reaching any of them would throw. An escaped key is compared
+    // decoded, as `parse` would have it.
+    const std::string_view text = R"({ "blob": [ 1e400 ], "k": 1, "skip": 1e400, "\u006b": 2, "other": "x" })";
+    const std::set<std::string, std::less<>> keys = { "k", "other", "absent" };
+
+    reader rdr(text);
+    (void) rdr.next_token();   // onto the `{`
+
+    ensure_eq(parse(R"({ "k": 2, "other": "x" })"), detail::peek_members(peeking(replace), rdr, keys));
+    ensure(rdr.current_type() == ast_node_type::object_begin);
+
+    // Something which is not an object has no members to find.
+    for (std::string_view other : { "[ 1 ]", "5", "null" })
+    {
+        auto scalar = open(other);
+        ensure_eq(value(), detail::peek_members(peeking(replace), scalar, keys));
+    }
+
+    // A document which stops part-way through gives back what it had.
+    for (std::string_view truncated : { R"({ "k": 1, "blob": [ 1, 2)", R"({ "k": 1, "other":)" })
+    {
+        auto partial = open(truncated);
+        ensure_eq(parse(R"({ "k": 1 })"), detail::peek_members(peeking(replace), partial, keys));
+    }
+}
+
+TEST(extract_peek_keeps_the_repeated_key_the_reader_would)
+{
+    // A peek settles a repeated key as `read_value` settles one for an extractor under the same option: `ignore` keeps
+    // the first, `replace` the last, and `exception` refuses. The repeat which is not kept is stepped over, so a
+    // `1e400` in it is never read. `peek_members` only looks at the keys it was asked for, so a repeat of any other
+    // key goes unremarked.
+    const std::string_view text = R"({ "k": { "n": 1, "n": 2 }, "k": [ 1e400 ] })";
+    reader                 rdr(text);
+    (void) rdr.next_token();   // onto the `{`
+
+    ensure_eq(parse(R"({ "k": { "n": 1 } })"), detail::peek_members(peeking(ignore), rdr, { "k" }));
+    ensure_eq(parse(R"({ "k": { "n": 1 } })"), detail::peek_value(peeking(ignore), rdr));
+    ensure_throws(std::invalid_argument, detail::peek_members(peeking(replace), rdr, { "k" }));
+
+    const std::string_view last = R"({ "k": 1, "k": 2, "j": { "n": 1, "n": 2 } })";
+    reader                 last_rdr(last);
+    (void) last_rdr.next_token();   // onto the `{`
+
+    ensure_eq(parse(R"({ "k": 2 })"), detail::peek_members(peeking(replace), last_rdr, { "k" }));
+    ensure_eq(parse(R"({ "k": 2, "j": { "n": 2 } })"), detail::peek_value(peeking(replace), last_rdr));
+
+    constexpr auto exception = extract_options::duplicate_key_action::exception;
+    ensure_throws(extraction_error, detail::peek_members(peeking(exception), last_rdr, { "k" }));
+    ensure_throws(extraction_error, detail::peek_members(peeking(exception), last_rdr, { "j" }));
+    ensure_throws(extraction_error, detail::peek_value(peeking(exception), last_rdr));
+
+    const std::string_view elsewhere = R"({ "k": 1, "j": 2, "j": 3 })";
+    reader                 elsewhere_rdr(elsewhere);
+    (void) elsewhere_rdr.next_token();   // onto the `{`
+    ensure_eq(parse(R"({ "k": 1 })"), detail::peek_members(peeking(exception), elsewhere_rdr, { "k" }));
+}
+
+TEST(extract_peek_repeated_key_is_placed_where_the_context_says)
+{
+    // A refusal is placed as `read_value` places one: under the context's own location where it has one, followed by
+    // the part of the reader's path below where the peek began. With none, the reader's path is the answer.
+    const std::string_view text = R"({ "k": 1, "j": { "n": 1, "n": 2 }, "k": 2 })";
+    reader                 rdr(text);
+    (void) rdr.next_token();   // onto the `{`
+
+    auto refused_at = [&rdr] (const jsonv::path& base, auto peek) -> jsonv::path
+                      {
+                          extraction_context cxt(formats::defaults(),
+                                                 std::nullopt,
+                                                 base,
+                                                 nullptr,
+                                                 extract_options::create_default().on_duplicate_key(
+                                                     extract_options::duplicate_key_action::exception
+                                                 )
+                                                );
+                          try
+                          {
+                              (void) peek(cxt);
+                          }
+                          catch (const extraction_error& ex)
+                          {
+                              return ex.path();
+                          }
+                          ensure(false);
+                          return jsonv::path();
+                      };
+
+    auto members = [&rdr] (const extraction_context& cxt) { return detail::peek_members(cxt, rdr, { "k" }); };
+    auto nested  = [&rdr] (const extraction_context& cxt) { return detail::peek_members(cxt, rdr, { "j" }); };
+    auto whole   = [&rdr] (const extraction_context& cxt) { return detail::peek_value(cxt, rdr); };
+
+    ensure_eq(path::create(".payload.k"),   refused_at(path::create(".payload"), members));
+    ensure_eq(path::create(".payload.j.n"), refused_at(path::create(".payload"), nested));
+    ensure_eq(path::create(".payload.j.n"), refused_at(path::create(".payload"), whole));
+    ensure_eq(path::create(".k"),           refused_at(jsonv::path(),            members));
+    ensure_eq(path::create(".j.n"),         refused_at(jsonv::path(),            whole));
+}
+
+TEST(extract_peek_members_jumps_over_what_it_does_not_want)
+{
+    // A tape records where each structure ends, so stepping over one costs the same however large it is.
+    // `reader::next_key` walks every token of the value instead, which here is two orders of magnitude apart -- far
+    // enough that a generous absolute bound tells them apart without being sensitive to the machine.
+    const int elements = JSONV_DEBUG ? 20000 : 200000;
+    const int peeks    = 2000;
+
+    std::string document = R"({ "blob": [ )";
+    for (int idx = 0; idx < elements; ++idx)
+        document += "[ 1 ], ";
+    document += R"(0 ], "kind": "x" })";
+
+    reader rdr(document);
+    (void) rdr.next_token();   // onto the `{`
+
+    const std::set<std::string, std::less<>> keys = { "kind" };
+    const extraction_context                 cxt  = peeking(replace);
+
+    auto started = std::chrono::steady_clock::now();
+
+    std::size_t found = 0U;
+    for (int idx = 0; idx < peeks; ++idx)
+        found += detail::peek_members(cxt, rdr, keys).size();
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+                       std::chrono::steady_clock::now() - started
+                   ).count();
+
+    ensure_eq(std::size_t(peeks), found);
+    ensure_lt(elapsed, 5000);
+}
+
+namespace
+{
+
 struct nested_failure
 {
     std::string  first;
@@ -1414,8 +1630,8 @@ TEST(extract_string_view_under_a_bridged_composite_from_text_is_refused)
 {
     // The coverage the tests above gave up. A composite which still materialises is exactly where a view of the
     // materialised tree would dangle, and `source_is_temporary` is what an extractor asks to notice it. Neither the
-    // container nor the DSL creates that situation any anymore, so the composite is written against the `value`
-    // interface directly -- which is what `polymorphic_adapter` and `enum_adapter` still do.
+    // container, the DSL nor `polymorphic_adapter` creates that situation any more, so the composite is written
+    // against the `value` interface directly -- which is what `enum_adapter` still does.
     class view_holder_adapter final :
             public value_adapter_for<view_holder>
     {

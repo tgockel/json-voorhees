@@ -91,6 +91,8 @@ public:
 
     virtual bool next_key_impl() noexcept override;
 
+    virtual std::unique_ptr<impl> lookahead() const override;
+
 private:
     /// One open structure. The cursor is the member or element this frame is currently *on*, which is also what it
     /// contributes to \c current_path. The bounds are captured when the frame is pushed so that stepping it touches
@@ -119,6 +121,13 @@ private:
 protected:
     /// \see reader::current_value
     const value* borrowed_value() const noexcept override;
+
+private:
+    /// A cursor over the same tree as \a origin, on the node \a origin is on. See \c lookahead.
+    struct lookahead_tag
+    { };
+
+    explicit impl_value(lookahead_tag, const impl_value& origin);
 
 private:
     /// The value the cursor is on in \c position::at_value. With no frames that is the root, since the root is the
