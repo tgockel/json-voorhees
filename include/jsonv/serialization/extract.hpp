@@ -351,6 +351,7 @@ class JSONV_PUBLIC extraction_context :
         public context
 {
 public:
+    /// The problems recorded on a context, in the form an \c extraction_error carries them.
     using problem_list = extraction_error::problem_list;
 
     class path_scope;
@@ -361,8 +362,13 @@ public:
 
     /// Create a new instance using the given \a fmt, \a ver, \a p, \a userdata and \a options.
     ///
+    /// \param fmt The \c formats to find an \c extractor for each type in.
+    /// \param ver The version of the document being extracted, for extractors to read back with \c context::version.
+    ///            \c std::nullopt means no version was specified, which is not the same thing as version \c 0.0.
     /// \param p A path all reported problems are relative to. This is almost always empty -- it exists for extraction
     ///          of a document which is itself a fragment of some larger one.
+    /// \param userdata Arbitrary data for extractors to read back with \c context::user_data. It is not owned, so it
+    ///                 must outlive this instance.
     /// \param options What to do when something goes wrong. The default reports the first problem and stops; see
     ///                \c extract_options::on_error.
     explicit extraction_context(jsonv::formats                fmt,
@@ -612,8 +618,13 @@ public:
     class JSONV_PUBLIC path_scope
     {
     public:
+        /// Name the element at \a index of the array being extracted, on \a context.
         path_scope(extraction_context& context, std::size_t index) noexcept;
+
+        /// Name the member \a key of the object being extracted, on \a context. \a key is viewed rather than copied.
         path_scope(extraction_context& context, std::string_view key) noexcept;
+
+        /// Name \a elem on \a context, keeping a copy of it for as long as this scope lives.
         path_scope(extraction_context& context, path_element elem);
 
         path_scope(const path_scope&)            = delete;

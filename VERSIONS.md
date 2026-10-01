@@ -202,6 +202,43 @@
        extracting a `std::vector` of DSL-described records from the text takes a little over half as long as `parse`
        followed by `extract` from the result, and a type which reads two of each record's nine members takes under a
        quarter as long, since the members it skips are never built (#234).
+     - `extractor::extract` reads from a `reader` instead of a `value`. It is now
+       `extract(extraction_context&, reader&, void*) const` and returns `std::expected<void, ast_node_type>`: on success
+       the reader is left one past the value which was read, and on failure nothing has been built, what went wrong is
+       recorded on the context, and the `ast_node_type` carried is the type actually found when a mismatch was the
+       trouble. This is the interface everything else in this section is built on, and a source break for anything
+       implementing `extractor` directly -- `get_type` is also `noexcept` now, so an override has to be too.
+       `adapter_for<T>::create` and `extractor_for<T>::create` change the same way, taking
+       `(extraction_context&, reader&)` and returning `std::expected<T, ast_node_type>`. An adapter written against the
+       old `create(const extraction_context&, const value&)` keeps its body by deriving from the new
+       `value_adapter_for<T>` instead and dropping the `const` from its context: that `create` is handed the value read
+       into a `value`, and so keeps paying for the tree the reader exists to avoid (#226).
+     - `make_extractor`, `make_adapter` and `extractor_construction` take the reader forms alongside the old ones. A
+       function may be called as `(extraction_context&, reader&)` or `(reader&)` as well as
+       `(extraction_context&, const value&)` or `(const value&)`, and may return the extracted type or a `std::expected`
+       of it; an extracting constructor may take `(reader&, extraction_context&)` or `(reader&)` as well as the `value`
+       forms. The `value` forms are handed the subtree read into a `value` by the new `read_value` -- or, when the
+       reader was made by `reader::from_value`, the caller's own `value`, lent by the new `reader::current_value` -- so
+       they keep compiling and keep paying for the tree they always built. What a function extracts is deduced from what
+       it returns, so `make_extractor` and `make_adapter` are a single overload each (#226).
+     - `extraction_context` is mutable and no longer copyable: problems are recorded on it, through `problem`, and
+       recording one changes it. Everything which extracts through one therefore takes it by non-`const` reference --
+       an `extractor`, an extracting constructor, and the callbacks able to extract: `polymorphic_adapter`'s match
+       predicates and the serialization builder's `pre_extract`, `post_extract`, `on_extract_extra_keys`,
+       `default_value` and `type_default_value`. A callable which declares its context `const` still binds, and only has
+       to change if it extracts through it. `extraction_context::extract<T>(reader&)` reports failure by returning a
+       `std::expected` rather than by throwing, while `extract<T>(const value&)` still throws. `expect` and `current_as`
+       check the node a reader is on and record a mismatch with the "Read node of type X when expecting Y" message which
+       `reader::expect` no longer builds (#226).
+     - `serialization.hpp` is split into `serialization/formats.hpp`, `context.hpp`, `extract.hpp`, `serializer.hpp` and
+       `adapter.hpp`. It still includes all of them, so no `#include` has to change. In the move, `context_base` became
+       `context` -- the base of `extraction_context` and `serialization_context` -- and `context::version` returns
+       `const std::optional<jsonv::version>&`, with both contexts taking a `std::optional<jsonv::version>` which
+       defaults to `std::nullopt`. A default-constructed `jsonv::version` is `0.0`, and every caller had to know that it
+       meant "unspecified" rather than "version zero"; `std::nullopt` now says the first and `jsonv::version()` the
+       second. That is a behaviour change for a context created with `jsonv::version()` on purpose, which the
+       serialization builder's `since`, `until`, `after` and `before` now compare against `0.0` rather than treating as
+       unversioned (#225).
      - Extracting from an in-memory `value` no longer formats every number into text. A reader over a `value`
        synthesised a token for each scalar as soon as anything asked what it was on, which `container_adapter` and the
        builder's member loop did for every element, and the extractors then either ignored the text -- a `double` was
