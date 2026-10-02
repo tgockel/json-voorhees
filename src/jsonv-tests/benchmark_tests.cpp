@@ -19,11 +19,13 @@
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/value.hpp>
 
+#include <cstddef>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <random>
 #include <string>
 #include <utility>
 #include <vector>
@@ -286,6 +288,20 @@ struct canada_collection
     std::vector<canada_feature> features;
 };
 
+/// The state of a support ticket, which is what an enum-heavy document is full of. Half the spellings are past every
+/// small-string buffer, so a `value` built to hold one costs an allocation for its text as well as one for itself.
+enum class ticket_state
+{
+    open,
+    closed,
+    pending,
+    duplicate,
+    awaiting_customer_response,
+    escalated_to_engineering,
+    resolved_without_any_change,
+    waiting_on_third_party_vendor,
+};
+
 /// Built on first use from a `run_impl` rather than during static initialization, so a mistake in it fails the row
 /// which asked instead of the whole binary.
 const formats& extract_benchmark_formats()
@@ -325,6 +341,18 @@ const formats& extract_benchmark_formats()
                 .member("geometry", &canada_feature::geometry)
             .type<canada_collection>()
                 .member("features", &canada_collection::features)
+            .enum_type<ticket_state>("ticket_state",
+                                     {
+                                       { ticket_state::open,                          "open"                          },
+                                       { ticket_state::closed,                        "closed"                        },
+                                       { ticket_state::pending,                       "pending"                       },
+                                       { ticket_state::duplicate,                     "duplicate"                     },
+                                       { ticket_state::awaiting_customer_response,    "awaiting_customer_response"    },
+                                       { ticket_state::escalated_to_engineering,      "escalated_to_engineering"      },
+                                       { ticket_state::resolved_without_any_change,   "resolved_without_any_change"   },
+                                       { ticket_state::waiting_on_third_party_vendor, "waiting_on_third_party_vendor" },
+                                     }
+                                    )
             .register_optional<std::optional<std::string>>()
             .register_container<std::vector<std::int64_t>>()
             .register_container<std::vector<citm_price>>()
@@ -337,6 +365,7 @@ const formats& extract_benchmark_formats()
             .register_container<std::vector<std::vector<std::vector<double>>>>()
             .register_container<std::vector<canada_feature>>()
             .register_container<std::vector<std::string>>()
+            .register_container<std::vector<ticket_state>>()
         .compose_checked(formats::defaults())
         ;
 
@@ -389,6 +418,48 @@ std::string synthesize_strings(bool escaped)
                 out += text[idx];
             }
         }
+        out += '"';
+    }
+    out += ']';
+    return out;
+}
+
+/// What the enum case decodes to: 100000 ticket states, drawn from `std::minstd_rand` rather than taken in rotation so
+/// that no branch predictor learns the sequence and flatters the lookup. The engine's output is fixed by the standard,
+/// so every platform builds the same document.
+const std::vector<ticket_state>& benchmark_ticket_states()
+{
+    static const std::vector<ticket_state> instance = []
+        {
+            std::minstd_rand          pick;
+            std::vector<ticket_state> out;
+            for (std::size_t idx = 0U; idx < 100000U; ++idx)
+                out.push_back(static_cast<ticket_state>(pick() % 8U));
+            return out;
+        }();
+
+    return instance;
+}
+
+/// `benchmark_ticket_states` as a JSON array of their spellings, 1.95 MB of `string_canonical` nodes.
+std::string synthesize_ticket_states()
+{
+    // In the order of the enumerators, and the same spellings `extract_benchmark_formats` maps them from.
+    static const char* const spellings[] = { "open",
+                                             "closed",
+                                             "pending",
+                                             "duplicate",
+                                             "awaiting_customer_response",
+                                             "escalated_to_engineering",
+                                             "resolved_without_any_change",
+                                             "waiting_on_third_party_vendor",
+                                           };
+
+    std::string out = "[";
+    for (ticket_state state : benchmark_ticket_states())
+    {
+        out += out.size() == 1U ? "\"" : ",\"";
+        out += spellings[static_cast<std::size_t>(state)];
         out += '"';
     }
     out += ']';
@@ -476,6 +547,12 @@ void check_strings(const std::vector<std::string>& strings)
     ensure(strings == benchmark_strings());
 }
 
+void check_ticket_states(const std::vector<ticket_state>& states)
+{
+    ensure_eq(states.size(), benchmark_ticket_states().size());
+    ensure(states == benchmark_ticket_states());
+}
+
 enum class extract_pipeline
 {
     parse_then_extract,
@@ -549,6 +626,7 @@ public:
         add<canada_collection>("canada_coordinates", load_canada, check_canada);
         add<std::vector<std::string>>("strings_canonical", load_canonical_strings, check_strings);
         add<std::vector<std::string>>("strings_escaped", load_escaped_strings, check_strings);
+        add<std::vector<ticket_state>>("enum_strings", synthesize_ticket_states, check_ticket_states);
     }
 
 private:
