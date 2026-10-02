@@ -169,7 +169,28 @@ public:
     }
 
 public:
-    extractor_map::iterator insert_extractor(const extractor* ex, duplicate_type_action action)
+    /// What \c insert_extractor or \c insert_serializer did to the entry for one type, so that a registration which
+    /// fails further on can put the entry back as it found it. The iterator stays good because a registration changes
+    /// each map at most once and does nothing to that map afterward.
+    template <typename TMap>
+    struct insertion
+    {
+        TMap&                      entries;
+        typename TMap::iterator    entry;
+        /// What the entry held before, or null when the insertion added it. An \c ignore leaves the entry holding just
+        /// this, which is why reverting one changes nothing.
+        typename TMap::mapped_type previous;
+
+        void revert() noexcept
+        {
+            if (previous)
+                entry->second = previous;
+            else
+                entries.erase(entry);
+        }
+    };
+
+    insertion<extractor_map> insert_extractor(const extractor* ex, duplicate_type_action action)
     {
         std::type_index typeidx(ex->get_type());
         auto iter = extractors.find(typeidx);
@@ -179,28 +200,30 @@ public:
             {
                 throw duplicate_type_error("an extractor", typeidx);
             }
-            else if (duplicate_type_action::replace == action)
+
+            const extractor* previous = iter->second;
+            if (duplicate_type_action::replace == action)
             {
                 iter->second = ex;
             }
 
-            return iter;
+            return { extractors, iter, previous };
         }
         else
         {
-            return extractors.emplace(typeidx, ex).first;
+            return { extractors, extractors.emplace(typeidx, ex).first, nullptr };
         }
     }
 
     void insert_extractor(std::shared_ptr<const extractor> ex, duplicate_type_action action)
     {
-        auto iter = insert_extractor(ex.get(), action);
-        auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
+        auto inserted = insert_extractor(ex.get(), action);
+        auto rollback = detail::on_scope_exit([&inserted] { inserted.revert(); });
         owned_items.insert(std::move(ex));
         rollback.release();
     }
 
-    serializer_map::iterator insert_serializer(const serializer* ser, duplicate_type_action action)
+    insertion<serializer_map> insert_serializer(const serializer* ser, duplicate_type_action action)
     {
         std::type_index typeidx(ser->get_type());
         auto iter = serializers.find(typeidx);
@@ -210,41 +233,43 @@ public:
             {
                 throw duplicate_type_error("a serializer", typeidx);
             }
-            else if (duplicate_type_action::replace == action)
+
+            const serializer* previous = iter->second;
+            if (duplicate_type_action::replace == action)
             {
                 iter->second = ser;
             }
 
-            return iter;
+            return { serializers, iter, previous };
         }
         else
         {
-            return serializers.emplace(typeidx, ser).first;
+            return { serializers, serializers.emplace(typeidx, ser).first, nullptr };
         }
     }
 
     void insert_serializer(std::shared_ptr<const serializer> ser, duplicate_type_action action)
     {
-        auto iter = insert_serializer(ser.get(), action);
-        auto rollback = detail::on_scope_exit([this, &iter] { serializers.erase(iter); });
+        auto inserted = insert_serializer(ser.get(), action);
+        auto rollback = detail::on_scope_exit([&inserted] { inserted.revert(); });
         owned_items.insert(std::move(ser));
         rollback.release();
     }
 
     void insert_adapter(const adapter* adp, duplicate_type_action action)
     {
-        auto iter = insert_extractor(adp, action);
-        auto rollback = detail::on_scope_exit([this, &iter] { extractors.erase(iter); });
+        auto inserted = insert_extractor(adp, action);
+        auto rollback = detail::on_scope_exit([&inserted] { inserted.revert(); });
         insert_serializer(adp, action);
         rollback.release();
     }
 
     void insert_adapter(std::shared_ptr<const adapter> adp, duplicate_type_action action)
     {
-        auto iter_ex = insert_extractor(adp.get(), action);
-        auto rollback_ex = detail::on_scope_exit([this, &iter_ex] { extractors.erase(iter_ex); });
-        auto iter_ser = insert_serializer(adp.get(), action);
-        auto rollback_ser = detail::on_scope_exit([this, &iter_ser] { serializers.erase(iter_ser); });
+        auto inserted_ex = insert_extractor(adp.get(), action);
+        auto rollback_ex = detail::on_scope_exit([&inserted_ex] { inserted_ex.revert(); });
+        auto inserted_ser = insert_serializer(adp.get(), action);
+        auto rollback_ser = detail::on_scope_exit([&inserted_ser] { inserted_ser.revert(); });
         owned_items.insert(std::move(adp));
         rollback_ex.release();
         rollback_ser.release();

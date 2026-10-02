@@ -534,6 +534,16 @@
        constructor taking the wrapped function by forwarding reference was a better match than the copy constructor,
        so the copy tried to build the function out of the adapter. The constructor now refuses the adapter's own type
        (#188).
+     - Fixed a `formats` registration which fails taking the registrations it found down with it. Registering a shared
+       `extractor`, `serializer` or `adapter` changes the type's entry and then takes a share of the object, and when
+       taking the share ran out of memory the entry was erased whether or not the call had added it. Under
+       `duplicate_type_action::ignore` that deleted the mapping the call had been told to keep, under `replace` it
+       deleted the mapping rather than restoring the one it had replaced, and an adapter could lose its extractor and
+       its serializer both. Registering an adapter by pointer did the same to an extractor already there when adding
+       the serializer failed, and the serialization builder registers through both under `on_duplicate_type`. A caller
+       which caught the `std::bad_alloc` and carried on got `no_extractor` or `no_serializer` -- or, in a `formats`
+       composed over a base, the base's implementation without a word. A registration which throws now leaves the
+       `formats` as it found it (#244).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC
