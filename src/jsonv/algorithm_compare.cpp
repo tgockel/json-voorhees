@@ -9,9 +9,11 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include <jsonv/algorithm.hpp>
+#include <jsonv/functional.hpp>
 #include <jsonv/value.hpp>
 
 #include <cctype>
+#include <string_view>
 
 namespace jsonv
 {
@@ -24,8 +26,11 @@ int compare(const value& a, const value& b)
 struct compare_traits_icase :
         public compare_traits
 {
-    /** Compares strings a and b in a case-insensitive manner. It is not UTF-8 aware and I am not sure it needs to be. **/
-    static int compare_strings(const std::string& a, const std::string& b)
+    /** Compares strings a and b in a case-insensitive manner. It is not UTF-8 aware and I am not sure it needs to be.
+     *  Taking views is what lets \c detail::compare_text_icase share it, so a string looked up by its text folds
+     *  exactly as one held in a \c value does.
+    **/
+    static int compare_strings(std::string_view a, std::string_view b)
     {
         using std::begin;
         using std::end;
@@ -55,6 +60,23 @@ struct compare_traits_icase :
 int compare_icase(const value& a, const value& b)
 {
     return compare(a, b, compare_traits_icase());
+}
+
+int detail::compare_text(const value& a, std::string_view b)
+{
+    // `compare` asks the kinds first, and only two strings get as far as their text.
+    if (int kinds = compare_traits::compare_kinds(a.kind(), kind::string))
+        return kinds;
+    else
+        return a.as_string_view().compare(b);
+}
+
+int detail::compare_text_icase(const value& a, std::string_view b)
+{
+    if (int kinds = compare_traits_icase::compare_kinds(a.kind(), kind::string))
+        return kinds;
+    else
+        return compare_traits_icase::compare_strings(a.as_string_view(), b);
 }
 
 }

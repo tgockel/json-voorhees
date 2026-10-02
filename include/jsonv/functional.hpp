@@ -14,6 +14,7 @@
 #include <jsonv/config.hpp>
 
 #include <functional>
+#include <string_view>
 
 namespace jsonv
 {
@@ -78,5 +79,20 @@ using value_greater_equal       = basic_value_binary_predicate<value_compare,   
 using value_greater_equal_icase = basic_value_binary_predicate<value_compare_icase, std::greater_equal<int>>;
 
 /** \} **/
+
+namespace detail
+{
+
+/// Compare \a a with a \c kind::string holding \a b, exactly as \c compare would compare the two -- without building a
+/// \c value to hold \a b. Against any other kind the kinds alone decide, and against a string the text does.
+///
+/// This is how \c enum_adapter looks up a string read from JSON text in a table ordered by \c value_less, which is why
+/// it has to agree with \c compare on every pair rather than merely on equality.
+JSONV_NODISCARD JSONV_PUBLIC int compare_text(const value& a, std::string_view b);
+
+/// \c compare_text with the case folding of \c compare_icase, for a table ordered by \c value_less_icase.
+JSONV_NODISCARD JSONV_PUBLIC int compare_text_icase(const value& a, std::string_view b);
+
+}
 
 }

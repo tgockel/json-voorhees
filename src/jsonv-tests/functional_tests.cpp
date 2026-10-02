@@ -16,6 +16,8 @@
 #include <jsonv/serialization_builder.hpp>
 
 #include <algorithm>
+#include <cmath>
+#include <string>
 #include <vector>
 
 namespace jsonv_test
@@ -74,6 +76,55 @@ TEST(functional_compare_strings)
     check_agrees(source, value_less_equal(),    std::less_equal<std::string>());
     check_agrees(source, value_greater(),       std::greater<std::string>());
     check_agrees(source, value_greater_equal(), std::greater_equal<std::string>());
+}
+
+TEST(functional_text_comparison_agrees_with_the_value_ordering)
+{
+    // `enum_adapter` looks text up in a table ordered by `value_less` or `value_less_icase` without building a `value`
+    // to hold it. That is only sound if the text sorts exactly where such a `value` would -- against every kind, not
+    // only against other strings. Signs only: neither comparison promises a magnitude.
+    const std::vector<value> values = { null,
+                                        true,
+                                        false,
+                                        0,
+                                        -1,
+                                        2.5,
+                                        std::nan(""),
+                                        "",
+                                        "a",
+                                        "A",
+                                        "b",
+                                        "abc",
+                                        "ABD",
+                                        value(std::string("a\0b", 3U)),
+                                        "\xC3\xA9",
+                                        array(),
+                                        object(),
+                                      };
+    const std::vector<std::string> texts = { "",
+                                             "a",
+                                             "A",
+                                             "b",
+                                             "abc",
+                                             "abd",
+                                             "ABC",
+                                             std::string("a\0b", 3U),
+                                             std::string("a\0", 2U),
+                                             "\xC3\xA9",
+                                             "\xC3\x89",
+                                             "~",
+                                           };
+
+    auto sign = [] (int cmp) { return (cmp > 0) - (cmp < 0); };
+
+    for (const auto& val : values)
+    {
+        for (const auto& text : texts)
+        {
+            ensure_eq(sign(compare(val, value(text))),       sign(detail::compare_text(val, text)));
+            ensure_eq(sign(compare_icase(val, value(text))), sign(detail::compare_text_icase(val, text)));
+        }
+    }
 }
 
 }

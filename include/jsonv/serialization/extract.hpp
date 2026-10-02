@@ -722,7 +722,8 @@ namespace detail
 {
 
 /// \ref read_value without moving \a from: the subtree under its cursor is read through a second cursor on the same
-/// source, which is what lets an extractor decide what to extract before extracting it.
+/// source, which is what lets an extractor decide what to extract before extracting it. A scalar under a cursor over
+/// JSON text is read where it sits, since there is nothing to walk.
 ///
 /// \param context The extraction this is peeking for. What is peeked at is going to be read again for real, and the
 ///                two have to agree about which value a repeated key has, so one is settled by \a context's

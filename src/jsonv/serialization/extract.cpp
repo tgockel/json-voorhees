@@ -1053,6 +1053,13 @@ value read_value(extraction_context& context, reader& from)
 
 value detail::peek_value(const extraction_context& context, const reader& from)
 {
+    // A scalar is one token, which a reader over text can read where it sits -- opening a second cursor to read it
+    // costs an allocation, which is all looking up a number in an `enum_adapter` would otherwise pay. A value-backed
+    // reader would have to synthesise the node into the caller's arena to do the same, where it would stay for as long
+    // as that reader lives, so that one still reads through a second cursor.
+    if (!from.current_value() && from.good() && is_scalar(from.current_type()))
+        return read_scalar(from.current());
+
     reader probe = reader_lookahead::open(from);
     try
     {

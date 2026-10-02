@@ -327,7 +327,7 @@
        there -- the count is bounded by what is on the tape even when the parse which produced it failed part-way
        through, which is what makes it safe to hand to `reserve`. This is a source break for anyone deriving from one
        of the three and overriding `create(extraction_context&, const value&)`: the base is now `adapter_for` and the
-       hook takes a `reader`. `polymorphic_adapter` followed in #236; `enum_adapter` stays on the bridge (#230).
+       hook takes a `reader`. `polymorphic_adapter` followed in #236 and `enum_adapter` in #237 (#230).
      - `std::vector<std::string_view>` extracted from JSON text is a view of the source rather than a refusal. It was
        refused for a structural reason rather than a semantic one: the container materialised the whole array and
        every element then saw `extraction_context::source_is_temporary`, because a view of that temporary would name
@@ -504,6 +504,22 @@
        stops at `No discriminators matched JSON value` rather than reporting that instead. This is a source break for
        anyone deriving from `polymorphic_adapter` and overriding `create(extraction_context&, const value&)`: the base
        is now `adapter_for` and the hook takes a `reader` (#236).
+     - `enum_adapter` reads the reader directly instead of a `value` materialised for it. Under the library's own
+       orderings -- `std::less<value>`, `value_less` and `value_less_icase`, which are what `enum_type` and
+       `enum_type_icase` use -- a string read from JSON text is looked up by its text, so nothing is built to hold it;
+       one written with escapes is decoded first. A number, a boolean or `null` is read where it sits and builds
+       nothing either. Any other ordering can only be asked about a `value`, so it is still handed one. The
+       `benchmark/extract/enum_strings` rows measure it: 100000 ticket states extract from text in 21 ms rather than
+       37 ms, and from an existing `value` in 23 ms rather than 28 ms (#237).
+     - A value an `enum_adapter` has no mapping for is refused with the reader still on it, and the message now lists
+       every JSON value the mapping accepts, in the mapping's order:
+       `Invalid value for ring: "bogus" (expected one of "earth", "fire", "heart", "useless", "water", "wind")`. The
+       refusal is placed by `extraction_context::problem_path`, as every other is, so a reader positioned part-way
+       through a document reports where it is unless a scope or base path says otherwise -- the `value` bridge
+       reported the root. A `TEnum` whose move constructor throws no longer makes a collecting container skip the
+       value after it, as the bridge still does (#259). This is a source break for anyone deriving from `enum_adapter`
+       and overriding `create(extraction_context&, const value&)`: the base is now `adapter_for` and the hook takes a
+       `reader` (#237).
      - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a

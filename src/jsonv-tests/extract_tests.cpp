@@ -182,9 +182,8 @@ formats batched_formats()
 }
 
 /// A `std::int64_t` reached through the older `value`-based interface, reporting a mismatch the way every built-in
-/// did before they read the reader directly: by letting `value::as_integer` throw. The bridge is still how
-/// `enum_adapter` and every adapter written against `value_adapter_for` reach a value, so what it does with a failure
-/// is still worth pinning.
+/// did before they read the reader directly: by letting `value::as_integer` throw. The bridge is still how every
+/// adapter written against `value_adapter_for` reaches a value, so what it does with a failure is still worth pinning.
 struct bridged_int
 {
     std::int64_t value;
@@ -214,8 +213,8 @@ struct view_holder
 
 /// Three members reached through the older `value`-based interface. Materialising the object is what walks the cursor
 /// past it and looking each member up by name is what needs the whole tree, so this is the shape the DSL had before it
-/// read the reader -- kept here because the bridge is still how `enum_adapter` and every adapter written against
-/// `value_adapter_for` reach a value, and what it does with a failure is still worth pinning.
+/// read the reader -- kept here because the bridge is still how every adapter written against `value_adapter_for`
+/// reaches a value, and what it does with a failure is still worth pinning.
 struct bridged_triple
 {
     std::int64_t a;
@@ -1173,6 +1172,59 @@ TEST(extract_peek_value_leaves_the_reader_where_it_was)
     }
 }
 
+TEST(extract_peek_value_reads_a_scalar_where_it_sits)
+{
+    // A scalar is one token, so a reader over text reads it without opening a second cursor -- and what it reads has to
+    // be what reading it for real would, an escaped string and integers past 64 bits included.
+    for (std::string_view text : { R"("plain")",
+                                   R"("esc\u0061ped")",
+                                   "true",
+                                   "false",
+                                   "null",
+                                   "-12",
+                                   "4.5",
+                                   "18446744073709551615",
+                                   "18446744073709551616",
+                                 }
+        )
+    {
+        reader              rdr    = open(text);
+        const ast_node_type type   = rdr.current_type();
+        const value         peeked = detail::peek_value(peeking(replace), rdr);
+
+        ensure(rdr.current_type() == type);
+        ensure_eq(read_value(rdr), peeked);
+    }
+
+    // It refuses what reading it for real refuses, and leaves the reader on the value it refused.
+    {
+        reader rdr = open("1e400");
+        ensure_throws(std::invalid_argument, detail::peek_value(peeking(replace), rdr));
+        ensure(rdr.current_type() == ast_node_type::decimal);
+    }
+    {
+        reader rdr = open(R"("\uD800")");
+        ensure_throws(parse_error, detail::peek_value(peeking(replace), rdr));
+        ensure(rdr.current_type() == ast_node_type::string_escaped);
+    }
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+    // And one which is not a string costs nothing to peek at, which is what an `enum_adapter` mapping numbers pays.
+    for (std::string_view text : { "true", "null", "-12", "4.5" })
+    {
+        reader                   rdr = open(text);
+        const extraction_context cxt = peeking(replace);
+
+        allocation_counter allocations;
+        const value        peeked = detail::peek_value(cxt, rdr);
+        const std::size_t  cost   = allocations.count();
+
+        ensure_eq(0U, cost);
+        ensure_eq(parse(text), peeked);
+    }
+#endif
+}
+
 TEST(extract_peek_part_way_through_a_document)
 {
     // A reader over a tree is a stack of frames as well as a position, and the second cursor needs all of it: the path
@@ -1629,9 +1681,9 @@ TEST(extract_nested_string_view_from_text_points_at_the_source)
 TEST(extract_string_view_under_a_bridged_composite_from_text_is_refused)
 {
     // The coverage the tests above gave up. A composite which still materialises is exactly where a view of the
-    // materialised tree would dangle, and `source_is_temporary` is what an extractor asks to notice it. Neither the
-    // container, the DSL nor `polymorphic_adapter` creates that situation any more, so the composite is written
-    // against the `value` interface directly -- which is what `enum_adapter` still does.
+    // materialised tree would dangle, and `source_is_temporary` is what an extractor asks to notice it. Nothing in the
+    // library creates that situation any more, so the composite is written against the `value` interface directly, as
+    // an adapter outside it still may be.
     class view_holder_adapter final :
             public value_adapter_for<view_holder>
     {
