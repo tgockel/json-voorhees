@@ -116,6 +116,12 @@
        `[ 1, 2`) and one which closed but was followed by trailing input (`[]x`) produced an
        `object_begin`/`array_begin` whose `element_count()` read indeterminate memory. Passing that count to
        `extract_tree` could reserve an arbitrary amount of memory.
+     - Fixed a document which ends while an array or object is still open being reported as a mismatched close.
+       `[1, 2` failed with "mismatched closing character", although it holds no closing character at all, while `{`
+       failed with "input ended unexpectedly", so which of the two a truncated document got depended on where it was
+       cut. An extraction from one carried the same message. The parser closed the document before looking at what
+       was still open. It now reports `ast_error::unexpected_eof` at the end of the input, and the tape stops at the
+       `error` node rather than carrying a `document_end` for a document which never ended (#262).
      - Fixed `parse_index::parse` under-allocating its buffer for an `initial_buffer_capacity` near `SIZE_MAX`. The
        size in bytes wrapped, so a small allocation claimed the whole requested capacity and the first write ran off
        its end; for some values the allocation was smaller than the buffer's own header, and writing that corrupted

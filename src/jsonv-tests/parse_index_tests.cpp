@@ -217,6 +217,57 @@ TEST(ast_parse_object_with_numeric_keys)
     ensure_eq(to_string(ast), "^{!");
 }
 
+/// A document which runs out while an array or object is still open has ended early: nothing in it closed the wrong
+/// structure. The parser closed the document before looking at what was still open, and found that structure where
+/// the document's opener should be, so `[1, 2` reported `mismatched_close` -- at the end of an input with no closing
+/// character in it -- while `{` reported `unexpected_eof`. The tape kept a `document_end` for a document which never
+/// ended, too.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/262
+TEST(ast_parse_document_ending_inside_a_structure_is_unexpected_eof)
+{
+    struct
+    {
+        std::string_view src;
+        std::string_view tape;
+        jsonv::ast_error code;
+        std::size_t      at;
+    }
+    const cases[] =
+    {
+        { "[",          "^[!",    jsonv::ast_error::unexpected_eof,   1U },
+        { "[1, 2",      "^[ii!",  jsonv::ast_error::unexpected_eof,   5U },
+        { "[1, 2 ",     "^[ii!",  jsonv::ast_error::unexpected_eof,   6U },
+        { "[1,",        "^[i!",   jsonv::ast_error::unexpected_eof,   3U },
+        { R"({"a": 1)", "^{ki!",  jsonv::ast_error::unexpected_eof,   7U },
+        { R"({"a":)",   "^{k!",   jsonv::ast_error::unexpected_eof,   5U },
+        { "[[1]",       "^[[i]!", jsonv::ast_error::unexpected_eof,   4U },
+        { R"({"a": [)", "^{k[!",  jsonv::ast_error::unexpected_eof,   7U },
+        // `{` alone runs out of input while looking for a key, which always reported this.
+        { "{",          "^{!",    jsonv::ast_error::unexpected_eof,   1U },
+        // A close which really does not match its opener keeps its code.
+        { "[1}",        "^[i}!",  jsonv::ast_error::mismatched_close, 2U },
+        { "5]",         "^i]!",   jsonv::ast_error::mismatched_close, 1U },
+    };
+
+    for (const auto& c : cases)
+    {
+        auto ast = jsonv::parse_index::parse(c.src);
+        ensure_eq(c.tape, to_string(ast));
+
+        try
+        {
+            ast.validate();
+            ensure(!"parse_error was not thrown");
+        }
+        catch (const jsonv::parse_error& ex)
+        {
+            ensure_eq(c.at, ex.character().value());
+            ensure(std::string_view(ex.what()).ends_with(to_string(c.code)));
+        }
+    }
+}
+
 /// An opener reserves slots for its matching close token and its element count, but neither is known until that close
 /// token arrives. A failed parse must still leave them determinate, because `iterator::operator*` reads the element
 /// count unconditionally when it builds an `object_begin` or `array_begin`.

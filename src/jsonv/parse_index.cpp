@@ -670,6 +670,15 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
         }
     }
 
+    // Running out of input with an array or object still open is the input ending early. Closing the document here
+    // would push its `document_end` and then find that structure where the document's opener should be -- a
+    // mismatched close, reported for input with no closing character in it.
+    if (depth > 1U)
+    {
+        JSONV_UNLIKELY
+        throw push_error(self, ast_error::unexpected_eof, begin, iter);
+    }
+
     push_back_out(ast_node_type::document_end, ast_node_type::document_start, iter);
 
     if (options.require_document())
@@ -841,8 +850,8 @@ void parse_index::impl::close_unclosed_structures() noexcept
         case ast_node_type::document_end:
         case ast_node_type::object_end:
         case ast_node_type::array_end:
-            // Only a close token which actually matches its opener closes it. A document which ends mid-structure
-            // still gets a `document_end` appended, and that must not be mistaken for the inner structure closing.
+            // Only a close token which actually matches its opener closes it. One which does not, as in `[1}`, is
+            // still on the tape in front of the error it caused, and must not be mistaken for closing the `[`.
             if (depth > 0U
                 && ast_node_type_from_coded(data(open[depth - 1U].open_index)) == matching_open_token(type)
                )
