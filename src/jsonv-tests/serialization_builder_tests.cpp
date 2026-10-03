@@ -12,11 +12,15 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
+#include <jsonv/serialization/function_extractor.hpp>
 
 #include <array>
 #include <optional>
 #include <set>
 #include <sstream>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -1477,6 +1481,405 @@ TEST(serialization_builder_strict_duplicates_cover_unrecognised_keys)
     ensure(!cxt.extract<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string("Duplicate key in object: \"extra\""), cxt.problems().at(0).message());
+}
+
+namespace
+{
+
+/// A \c triple inside another object, for telling which of the two a hook was shown.
+struct wrapper
+{
+    triple       inner;
+    std::int64_t d;
+};
+
+/// A \c triple which refuses a negative \c a once it is built, quoting the object it was read from.
+formats refusing_triple_formats()
+{
+    static const formats instance =
+        formats_builder()
+            .type<triple>()
+                .member("a", &triple::a)
+                .member("b", &triple::b)
+                .member("c", &triple::c)
+                .post_extract([] (const extraction_context& context, triple&& out)
+                              {
+                                  if (out.a < 0)
+                                      throw std::invalid_argument("Negative a in "
+                                                                  + std::string(context.encoded_source())
+                                                                 );
+
+                                  return out;
+                              }
+                             )
+        .compose_checked(formats::defaults());
+
+    return instance;
+}
+
+/// The message of the problem extracting \a source as a \c triple through \c refusing_triple_formats raised.
+template <typename TSource>
+std::string refusal_message(const TSource& source)
+{
+    try
+    {
+        (void) extract<triple>(source, refusing_triple_formats());
+    }
+    catch (const extraction_error& err)
+    {
+        return err.problems().at(0).message();
+    }
+
+    ensure(!"extraction_error was not thrown");
+    return std::string();
+}
+
+}
+
+TEST(serialization_builder_post_extract_quotes_the_text_it_read)
+{
+    // Read from text, the object is quoted as it was written: the spacing it had, and the key no member claimed still
+    // in it, since what is quoted is the object's extent rather than what the walk kept of it. The whitespace around
+    // the object is the document's rather than the object's, so it is left out.
+    const std::string_view object = R"({"a":-1,  "extra" : [ 1, { "x": 2 } ],"b":2,"c":3   })";
+    const std::string      text   = "\n  " + std::string(object) + "  \n";
+
+    ensure_eq("Negative a in " + std::string(object), refusal_message(std::string_view(text)));
+}
+
+TEST(serialization_builder_post_extract_quotes_a_value_as_its_encoding)
+{
+    // A value has no text to view, so what is quoted is its encoding. That a reader over a value makes its `{` and `}`
+    // out of one static `{}` is why the extent of the object cannot simply be read off the two of them, as it is from
+    // text -- doing so would quote every object as `{}`.
+    const value source = object({ { "a", -1 }, { "b", 2 }, { "c", 3 }, { "extra", array({ 1, 2 }) } });
+
+    ensure_eq("Negative a in " + to_string(source), refusal_message(source));
+}
+
+TEST(serialization_builder_encoded_source_is_the_object_not_the_document)
+{
+    // The inner object's hook runs part-way through the walk of the outer one and is shown only its own object. The
+    // outer one's runs after the inner has returned and is shown the whole outer object again.
+    std::vector<std::string> seen;
+    auto record = [&seen] (const extraction_context& context) { seen.emplace_back(context.encoded_source()); };
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                        .post_extract([record] (const extraction_context& context, triple&& out)
+                                      {
+                                          record(context);
+                                          return out;
+                                      }
+                                     )
+                    .type<wrapper>()
+                        .member("inner", &wrapper::inner)
+                        .member("d",     &wrapper::d)
+                        .post_extract([record] (const extraction_context& context, wrapper&& out)
+                                      {
+                                          record(context);
+                                          return out;
+                                      }
+                                     )
+                  .compose_checked(formats::defaults());
+
+    const std::string_view inner = R"({ "c": 3, "a": 1,   "b": 2 })";
+    const std::string      outer = R"({ "d": 4, "inner": )" + std::string(inner) + R"(, "e": [ "unclaimed" ] })";
+
+    (void) extract<wrapper>(std::string_view(outer), fmt);
+    ensure_eq(2U, seen.size());
+    ensure_eq(std::string(inner), seen.at(0));
+    ensure_eq(outer, seen.at(1));
+
+    seen.clear();
+    const value tree = parse(outer);
+    (void) extract<wrapper>(tree, fmt);
+    ensure_eq(2U, seen.size());
+    ensure_eq(to_string(tree.at("inner")), seen.at(0));
+    ensure_eq(to_string(tree), seen.at(1));
+}
+
+TEST(serialization_builder_encoded_source_reaches_every_hook_after_the_walk)
+{
+    // The extra-keys handler and the default for a key which never arrived both run once the walk has reached the
+    // `}`, as `post_extract` does, so they are shown the object as well.
+    std::vector<std::string> seen;
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                            .default_value([&seen] (const extraction_context& context)
+                                           {
+                                               seen.emplace_back(context.encoded_source());
+                                               return std::int64_t(3);
+                                           }
+                                          )
+                        .on_extract_extra_keys([&seen] (const extraction_context& context, const std::set<std::string>&)
+                                               {
+                                                   seen.emplace_back(context.encoded_source());
+                                               }
+                                              )
+                  .compose_checked(formats::defaults());
+
+    const std::string_view text = R"({ "a": 1, "b": 2, "extra": true })";
+
+    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(text, fmt));
+    ensure_eq(2U, seen.size());
+    ensure_eq(std::string(text), seen.at(0));
+    ensure_eq(std::string(text), seen.at(1));
+}
+
+TEST(serialization_builder_encoded_source_is_empty_until_the_object_closes)
+{
+    // Until the walk reaches the `}` there is no whole object to quote, whichever source it is read from: not in
+    // `pre_extract`, and not in a member's `check_input` -- including one inside a nested object, whose enclosing
+    // object is no more finished than it is.
+    const extraction_context* current = nullptr;
+    std::vector<std::string>  seen;
+    auto record = [&current, &seen] { seen.emplace_back(current->encoded_source()); };
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .pre_extract([record] (const extraction_context&) { record(); })
+                        .member("a", &triple::a)
+                            .check_input([record] (const std::int64_t&) { record(); })
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                    .type<wrapper>()
+                        .pre_extract([record] (const extraction_context&) { record(); })
+                        .member("inner", &wrapper::inner)
+                        .member("d",     &wrapper::d)
+                            .check_input([record] (const std::int64_t&) { record(); })
+                  .compose_checked(formats::defaults());
+
+    const std::string_view text = R"({ "inner": { "a": 1, "b": 2, "c": 3 }, "d": 4 })";
+
+    for (bool from_text : { true, false })
+    {
+        extraction_context cxt(fmt);
+        current = &cxt;
+        seen.clear();
+
+        if (from_text)
+        {
+            auto rdr = open(text);
+            ensure(cxt.extract<wrapper>(rdr).has_value());
+        }
+        else
+        {
+            (void) cxt.extract<wrapper>(parse(text));
+        }
+
+        // Both `pre_extract`s, then the inner `check_input` and then the outer one.
+        ensure_eq(4U, seen.size());
+        for (const auto& source : seen)
+            ensure_eq(std::string(), source);
+
+        ensure(cxt.encoded_source().empty());
+    }
+
+    ensure(extraction_context().encoded_source().empty());
+}
+
+TEST(serialization_builder_encoded_source_hides_an_enclosing_object)
+{
+    // A hook is free to extract something else. That extraction's hooks are shown their own object or nothing, never
+    // the object whose hook started it -- and once it has returned, that object is shown again.
+    std::vector<std::string> seen;
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .pre_extract([&seen] (const extraction_context& context)
+                                     {
+                                         seen.emplace_back(context.encoded_source());
+                                     }
+                                    )
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                    .type<wrapper>()
+                        .member("d", &wrapper::d)
+                        .post_extract([&seen] (extraction_context& context, wrapper&& out)
+                                      {
+                                          seen.emplace_back(context.encoded_source());
+
+                                          auto rdr = open(R"({ "a": 1, "b": 2, "c": 3 })");
+                                          out.inner = context.extract<triple>(rdr).value();
+
+                                          seen.emplace_back(context.encoded_source());
+                                          return out;
+                                      }
+                                     )
+                  .compose_checked(formats::defaults());
+
+    const std::string_view text = R"({ "d": 4 })";
+
+    ensure_eq(triple({ 1, 2, 3 }), extract<wrapper>(text, fmt).inner);
+    ensure_eq(3U, seen.size());
+    ensure_eq(std::string(text), seen.at(0));
+    ensure_eq(std::string(),     seen.at(1));
+    ensure_eq(std::string(text), seen.at(2));
+}
+
+namespace
+{
+
+/// Extracted by a hand-written extractor rather than the DSL, keeping what \c encoded_source showed it.
+struct source_probe
+{
+    std::string seen;
+};
+
+}
+
+TEST(serialization_builder_encoded_source_hides_an_enclosing_object_from_any_extractor)
+{
+    // The DSL's adapter is not the only extractor a hook might start, and one written by hand makes no scope of its own
+    // to hide the enclosing object behind. It is shown nothing all the same, whether it is reached through a reader or
+    // through a `value` -- and once it has returned, the hook's own object is shown again.
+    static auto probe = make_extractor([] (extraction_context& context, reader& from) -> source_probe
+                                       {
+                                           (void) from.next_value();
+                                           return source_probe{ std::string(context.encoded_source()) };
+                                       });
+
+    std::vector<std::string> seen;
+
+    formats dsl = formats_builder()
+                    .type<wrapper>()
+                        .member("d", &wrapper::d)
+                        .post_extract([&seen] (extraction_context& context, wrapper&& out)
+                                      {
+                                          seen.emplace_back(context.encoded_source());
+
+                                          auto rdr = open("42");
+                                          seen.push_back(context.extract<source_probe>(rdr)->seen);
+                                          seen.push_back(context.extract<source_probe>(value(42)).seen);
+
+                                          seen.emplace_back(context.encoded_source());
+                                          return out;
+                                      }
+                                     )
+                  .compose_checked(formats::defaults());
+
+    formats fmt = formats::compose({ dsl });
+    fmt.register_extractor(&probe);
+
+    const std::string_view text = R"({ "d": 4 })";
+    const value            tree = parse(text);
+
+    for (bool from_text : { true, false })
+    {
+        seen.clear();
+        if (from_text)
+            (void) extract<wrapper>(text, fmt);
+        else
+            (void) extract<wrapper>(tree, fmt);
+
+        const std::string outer = from_text ? std::string(text) : to_string(tree);
+        ensure_eq(4U, seen.size());
+        ensure_eq(outer,         seen.at(0));
+        ensure_eq(std::string(), seen.at(1));
+        ensure_eq(std::string(), seen.at(2));
+        ensure_eq(outer,         seen.at(3));
+    }
+}
+
+TEST(serialization_builder_encoded_source_reaches_a_default_only_for_a_missing_key)
+{
+    // A default for a key which never arrived is taken after the walk, factory and setter both, and both can quote the
+    // object. One standing in for a `null` under `default_on_null` is taken as the walk meets the `null`, before there
+    // is a `}` -- as is the setter of a member whose key is there -- and is shown nothing.
+    const extraction_context* current = nullptr;
+    std::vector<std::string>  seen;
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member<std::int64_t>("c",
+                                              [] (const triple& x) -> const std::int64_t& { return x.c; },
+                                              [&current, &seen] (triple& x, std::int64_t&& c)
+                                              {
+                                                  seen.emplace_back(current->encoded_source());
+                                                  x.c = c;
+                                              }
+                                             )
+                            .default_value([&seen] (const extraction_context& context)
+                                           {
+                                               seen.emplace_back(context.encoded_source());
+                                               return std::int64_t(3);
+                                           }
+                                          )
+                            .default_on_null()
+                  .compose_checked(formats::defaults());
+
+    auto run = [&] (std::string_view text, bool from_text)
+               {
+                   extraction_context cxt(fmt);
+                   current = &cxt;
+                   seen.clear();
+
+                   if (from_text)
+                   {
+                       auto rdr = open(text);
+                       ensure(cxt.extract<triple>(rdr).has_value());
+                   }
+                   else
+                   {
+                       (void) cxt.extract<triple>(parse(text));
+                   }
+
+                   return seen;
+               };
+
+    const std::string_view missing = R"({ "a": 1, "b": 2 })";
+
+    for (bool from_text : { true, false })
+    {
+        const std::string quoted = from_text ? std::string(missing) : to_string(parse(missing));
+
+        // The factory, then the setter it hands its value to.
+        ensure(run(missing, from_text) == std::vector<std::string>({ quoted, quoted }));
+        ensure(run(R"({ "a": 1, "b": 2, "c": null })", from_text) == std::vector<std::string>({ "", "" }));
+        ensure(run(R"({ "a": 1, "b": 2, "c": 3 })", from_text) == std::vector<std::string>({ "" }));
+    }
+}
+
+TEST(serialization_builder_encoded_source_encodes_a_value_once)
+{
+    // Every hook of one object is shown the same encoding, rather than each paying to build its own. The second hook
+    // compares while the first one's view is still valid, which it is until the adapter returns.
+    const char* first = nullptr;
+    bool        same  = false;
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                        .post_extract([&first] (const extraction_context& context, triple&& out)
+                                      {
+                                          first = context.encoded_source().data();
+                                          return out;
+                                      }
+                                     )
+                        .post_extract([&first, &same] (const extraction_context& context, triple&& out)
+                                      {
+                                          same = context.encoded_source().data() == first;
+                                          return out;
+                                      }
+                                     )
+                  .compose_checked(formats::defaults());
+
+    (void) extract<triple>(object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }), fmt);
+    ensure(first != nullptr);
+    ensure(same);
 }
 
 }

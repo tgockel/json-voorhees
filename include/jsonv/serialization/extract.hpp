@@ -45,6 +45,7 @@ namespace detail
 {
 
 class borrowed_subtree;
+class encoded_source_scope;
 class temporary_source_scope;
 
 /// Does the source an extraction reads from outlive it?
@@ -450,6 +451,31 @@ public:
     JSONV_NODISCARD
     const std::string& source_name() const noexcept { return _source_name; }
 
+    /// Get the JSON of the object a type described with the serialization builder DSL is being extracted from, from its
+    /// \c { to its matching \c }. Where \ref source_name says which document a problem is in, this quotes the object it
+    /// is about, for the hooks which validate one to put in their message.
+    ///
+    /// It is only there once the walk has reached the object's \c }, which is to say for what runs after it:
+    /// \c on_extract_extra_keys, the \c default_value of a member whose key never arrived and the setter that default
+    /// is handed to, and \c post_extract. What runs during the walk is shown nothing: \c pre_extract, a member's
+    /// \c check_input and setter as its key is read, and a \c default_value standing in for a \c null under
+    /// \c default_on_null. Neither is anything a hook goes on to extract through \ref extract -- or through
+    /// \c jsonv::extract, which comes through it -- whichever extractor that reaches, nor anything outside DSL
+    /// extraction altogether. No object's source is empty -- the least of them is \c {} -- so an empty view always
+    /// means there is nothing to quote.
+    ///
+    /// An extractor reached around \ref extract, through \c formats::extract or by calling it directly, skips the
+    /// hiding along with everything else \ref extract does around the call, and is shown whatever is showing.
+    ///
+    /// Read from JSON text, this is a view of exactly what was written, whitespace, comments and keys no member claimed
+    /// included. Read from a \c value, there was never any text to view, so it is that value's compact encoding --
+    /// faithful to the JSON, but not necessarily the bytes anybody typed. It is encoded on the first call and kept for
+    /// the rest of that object's hooks, so an extraction which never asks never pays for it.
+    ///
+    /// \returns A view which is valid until the hook which asked for it returns.
+    JSONV_NODISCARD
+    std::string_view encoded_source() const;
+
     /// Get the path currently being extracted, as named by the live \ref path_scope guards.
     ///
     /// This is built on demand by walking the scope chain, so it is not free -- but nothing on a successful extraction
@@ -650,6 +676,9 @@ public:
     /// \c extractor::extract). An exception thrown while extracting is not propagated: it is recorded as a problem and
     /// reported as \c ast_node_type::error, except that an \c extraction_error from an adapter on the \c value bridge
     /// has its own problems folded onto this context instead.
+    ///
+    /// Called from a hook which can see \ref encoded_source, this hides it from everything the extraction runs, since
+    /// none of that is part of the object the hook is about.
     JSONV_NODISCARD
     std::expected<void, ast_node_type> extract(const std::type_info& type, reader& from, void* into);
 
@@ -713,6 +742,7 @@ public:
 private:
     friend class path_scope;
     friend class detail::borrowed_subtree;
+    friend class detail::encoded_source_scope;
     friend class detail::temporary_source_scope;
 
     friend JSONV_PUBLIC void detail::extract_entry(extraction_context&   context,
@@ -735,6 +765,9 @@ private:
     std::string       _source_name;
     const path_scope* _innermost              = nullptr;
     std::size_t       _temporary_source_depth = 0U;
+
+    /// The object \ref encoded_source quotes, if one is being extracted.
+    const detail::encoded_source_scope* _innermost_source = nullptr;
 
     /// Where to report the failure currently unwinding, left by a bridge which walked the cursor past the value which
     /// failed. A destructor runs before the handler which records the problem, so the location has to be worked out
@@ -844,6 +877,71 @@ public:
 
 private:
     extraction_context* _context;
+};
+
+/// Say, for as long as this lives, which object \c extraction_context::encoded_source quotes.
+///
+/// The serialization builder's adapter makes one for each object it extracts, which says nothing until \c close.
+/// \c extraction_context::extract makes one which is never closed around any extraction started while an object's
+/// source is showing -- by one of that object's hooks, extracting something else -- so that nothing the second
+/// extraction runs, whichever extractor runs it, is shown an object it is not part of.
+///
+/// Like a \c extraction_context::path_scope, this is linked into the context rather than copied into it, and it records
+/// the extent of its object rather than the text: that is what lets an extraction which never asks pay nothing.
+class encoded_source_scope
+{
+public:
+    explicit encoded_source_scope(extraction_context& context) noexcept :
+            _context(&context),
+            _parent(context._innermost_source)
+    {
+        context._innermost_source = this;
+    }
+
+    encoded_source_scope(const encoded_source_scope&)            = delete;
+    encoded_source_scope& operator=(const encoded_source_scope&) = delete;
+
+    ~encoded_source_scope() noexcept
+    {
+        _context->_innermost_source = _parent;
+    }
+
+    /// Note the object \a from is on the \a opened \c { of. The reader has to still be on it: a reader over a \c value
+    /// can only lend the value from there.
+    void open(const reader& from, const ast_node::object_begin& opened) noexcept
+    {
+        _tree = from.current_value();
+        if (!_tree)
+            _begin = opened.token_raw().data();
+    }
+
+    /// Note that \a from has reached the \c } of the object, so that it can be quoted from here on.
+    void close(const reader& from)
+    {
+        // Text only. A reader over a `value` synthesises its `{` and `}` out of one static string, where they sit side
+        // by side -- so the same arithmetic would not fail there, it would quietly quote every object as `{}`.
+        if (!_tree)
+        {
+            auto end = from.current().token_raw();
+            _text    = std::string_view(_begin, static_cast<std::size_t>(end.data() + end.size() - _begin));
+        }
+
+        _closed = true;
+    }
+
+private:
+    friend class jsonv::extraction_context;
+
+    extraction_context*         _context;
+    const encoded_source_scope* _parent;
+    const char*                 _begin  = nullptr;
+    const value*                _tree   = nullptr;
+    std::string_view            _text;
+    bool                        _closed = false;
+
+    /// The encoding of \c _tree, once something has asked for it. Not a bare `std::string`, since default-constructing
+    /// one is not free on every standard library and this is made for every object extracted.
+    mutable std::optional<std::string> _encoded;
 };
 
 /// The subtree under a reader's cursor as a \c value, borrowed rather than copied when the reader can lend it.

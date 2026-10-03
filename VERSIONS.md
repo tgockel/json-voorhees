@@ -403,6 +403,14 @@
        that removes -- most sharply a default computed from a sibling member, which has no workaround short of
        restructuring -- is tracked in #235; `post_extract` sees the whole object and is where such a default
        belongs today. `type_default_value` is unaffected: it took only the context already (#231).
+     - `extraction_context::encoded_source` quotes the object a DSL-described type is being extracted from, so a
+       `post_extract` which refuses the object can say which one it was. It is there for the hooks which run once the
+       walk reaches the object's `}` -- `on_extract_extra_keys` and the `default_value` of a member whose key never
+       arrived as well as `post_extract` -- and is empty anywhere else, including inside anything one of those hooks
+       goes on to extract through its context. Read from JSON text it is a view of exactly what was written; read from
+       a `value` it is that value's compact encoding, made the first time a hook asks, so an extraction which never
+       asks pays nothing for it from either. It is text to quote rather than a tree to query, which is still #235
+       (#134).
      - Finding the keys which claimed no member is now free. It used to be a second scan over the materialised
        object, registered as a `pre_extract` and comparing every key against every member; the walk now knows which
        keys those were because it is the thing which failed to place them. It is also no longer a `pre_extract`, so

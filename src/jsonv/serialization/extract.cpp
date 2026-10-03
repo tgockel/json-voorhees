@@ -316,6 +316,20 @@ path extraction_context::path() const
     return out;
 }
 
+std::string_view extraction_context::encoded_source() const
+{
+    const auto* scope = _innermost_source;
+    if (!scope || !scope->_closed)
+        return std::string_view();
+    else if (!scope->_tree)
+        return scope->_text;
+
+    if (!scope->_encoded)
+        scope->_encoded.emplace(to_string(*scope->_tree));
+
+    return *scope->_encoded;
+}
+
 /// The reader's path, or an empty one if asking for it fails.
 ///
 /// Building a path decodes the object keys along the way, and a key can be malformed -- an unpaired surrogate throws
@@ -560,6 +574,14 @@ std::expected<void, ast_node_type> extraction_context::extract(const std::type_i
     // call unwinds and is read by whoever recovers from the failure, which is after this returns. Bounding it to one
     // extraction is what keeps a note nobody collects from answering for an unrelated position later.
     _consumed_failed_value = nullptr;
+
+    // An object whose `}` has been reached can be quoted by its hooks, and a hook is free to extract something else
+    // through this context. Nothing that extraction runs is part of the object -- and the DSL's adapter is not the only
+    // extractor which might ask -- so it is shown nothing. Part-way through a walk there is no source showing to hide,
+    // since the innermost object has not reached its `}`, so the ordinary path pays for the test and no more.
+    std::optional<detail::encoded_source_scope> hide_source;
+    if (_innermost_source && _innermost_source->_closed)
+        hide_source.emplace(*this);
 
     try
     {

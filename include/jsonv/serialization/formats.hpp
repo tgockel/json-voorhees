@@ -244,6 +244,10 @@ public:
     /// \c extractor which performs the conversion. In general, this should not be used directly as it is quite painful
     /// to do so -- prefer \c extraction_context::extract or the free function \c jsonv::extract.
     ///
+    /// This only finds the \c extractor and calls it. What \c extraction_context::extract does around that call is
+    /// skipped: an exception is not recorded as a problem but propagates, and an extraction started from a hook which
+    /// can see \c extraction_context::encoded_source does not have it hidden.
+    ///
     /// \returns whatever the located \c extractor returned; see \c extractor::extract.
     ///
     /// \throws no_extractor if an \c extractor for \a type could not be found.

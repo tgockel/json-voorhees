@@ -314,6 +314,23 @@ struct named_triple
     std::int64_t c;
 };
 
+/// \c named_triple with a \c post_extract which validates the object without quoting it, as every one does on the
+/// success path.
+struct quiet_triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+};
+
+/// \c named_triple with a \c post_extract which quotes the object, which read from a \c value means encoding it.
+struct quoting_triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+};
+
 /// The same three members reached by an adapter which names nothing, so that comparing the two says what naming
 /// costs and nothing else. Everything else either one does -- the enclosing context, the key walk, the lookup, the
 /// container it lands in -- is identical and cancels.
@@ -324,7 +341,9 @@ struct unnamed_triple
     std::int64_t c;
 };
 
-/// The DSL's key loop with the `path_scope` taken out and not one other thing changed. It was written against the
+/// The DSL's key loop with the `path_scope` taken out and not one other thing changed -- bar the
+/// `encoded_source_scope`, which records where the object starts and ends and so has nothing to allocate either. It was
+/// written against the
 /// `value` interface while the DSL was, and had to follow it onto the reader: an adapter which materialises has a
 /// wholly different cost, so comparing one against the other would measure the materialisation and not the naming.
 class unnamed_triple_adapter final :
@@ -444,7 +463,31 @@ const formats& path_cost_formats()
                                     .member(long_a, &named_triple::a)
                                     .member(long_b, &named_triple::b)
                                     .member(long_c, &named_triple::c)
+                                .type<quiet_triple>()
+                                    .member(long_a, &quiet_triple::a)
+                                    .member(long_b, &quiet_triple::b)
+                                    .member(long_c, &quiet_triple::c)
+                                    .post_extract([] (const extraction_context&, quiet_triple&& out)
+                                                  {
+                                                      if (out.a < 0)
+                                                          throw std::invalid_argument("a must not be negative");
+
+                                                      return out;
+                                                  }
+                                                 )
+                                .type<quoting_triple>()
+                                    .member(long_a, &quoting_triple::a)
+                                    .member(long_b, &quoting_triple::b)
+                                    .member(long_c, &quoting_triple::c)
+                                    .post_extract([] (const extraction_context& context, quoting_triple&& out)
+                                                  {
+                                                      (void) context.encoded_source();
+                                                      return out;
+                                                  }
+                                                 )
                                 .register_container<std::vector<named_triple>>()
+                                .register_container<std::vector<quiet_triple>>()
+                                .register_container<std::vector<quoting_triple>>()
                                 .register_container<std::vector<std::int64_t>>()
                                 .register_container<std::vector<double>>()
                             .compose_checked(formats::defaults());
@@ -771,6 +814,25 @@ TEST(extract_member_naming_costs_nothing)
     const std::size_t unnamed = extraction_cost<std::vector<unnamed_triple>>(source);
 
     ensure_eq(unnamed, named);
+}
+
+TEST(extract_encoded_source_costs_nothing_unless_asked)
+{
+    // Read from a `value`, there is no text for `encoded_source` to view, so quoting an object means encoding it. That
+    // waits for a hook to ask: one which validates without quoting, which is what every hook does when nothing is
+    // wrong, costs what having no hook costs. The hook which does ask is what shows the comparison can see an encoding
+    // -- and it has to be dearer by one per object, since every one of them encodes past the small-string buffer. An
+    // encoding made for every object whether asked for or not would be in all three, and fail only that.
+    const value source = named_triples(16U);
+
+    (void) extraction_cost<std::vector<named_triple>>(source);
+    (void) extraction_cost<std::vector<quiet_triple>>(source);
+    (void) extraction_cost<std::vector<quoting_triple>>(source);
+
+    const std::size_t plain = extraction_cost<std::vector<named_triple>>(source);
+
+    ensure_eq(plain, extraction_cost<std::vector<quiet_triple>>(source));
+    ensure_le(plain + source.size(), extraction_cost<std::vector<quoting_triple>>(source));
 }
 
 TEST(extract_numbers_from_a_value_synthesise_no_tokens)

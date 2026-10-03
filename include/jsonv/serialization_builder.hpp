@@ -134,8 +134,13 @@ namespace jsonv
 /// something needs it. An \ref serialization_builder_dsl_ref_type_level_on_extract_extra_keys "on_extract_extra_keys"
 /// handler is handed the names of all of them once the walk is done. And an \c extract_options::on_duplicate_key of
 /// \c duplicate_key_action::exception remembers every key, claimed or not, so that the object is refused if one comes
-/// round again. The same forward walk is why no hook is handed the JSON being read: \c pre_extract runs before any of
-/// it has been, and by the time a default is wanted or \c post_extract runs, it has gone by.
+/// round again.
+///
+/// The same forward walk is why no hook is handed the JSON being read as a \c value to query: \c pre_extract runs
+/// before any of it has been, and by the time a default is wanted or \c post_extract runs, it has gone by. What the
+/// hooks which run after the walk can have is its text. Once the walk reaches the object's \c },
+/// \c extraction_context::encoded_source quotes the whole of it -- which is what a hook validating the object wants to
+/// put in its message. It is only ever worked out when asked for, so it costs a successful extraction nothing.
 ///
 /// \section Reference
 ///
@@ -410,8 +415,8 @@ namespace jsonv
 /// be called multiple times -- all functions will be called in the order they are provided.
 ///
 /// The source document is not among the arguments. Extraction walks the reader forward, so at the point this runs
-/// there is nothing read yet to hand over; see \ref serialization_builder_dsl_ref_type_level_post_extract for a hook
-/// which sees the finished object.
+/// there is nothing read yet to hand over, and \c extraction_context::encoded_source is empty; see
+/// \ref serialization_builder_dsl_ref_type_level_post_extract for a hook which sees the finished object.
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
 ///
@@ -420,6 +425,25 @@ namespace jsonv
 /// Call the given \a perform function after the \c extract operation. All functions will be called in the order they
 /// are provided. This allows validation methods to be called on the extracted object as part of extraction.
 /// Postprocessing functions are allowed to mutate the extracted object.
+///
+/// A validation which fails can quote the JSON the object was read from, through
+/// \c extraction_context::encoded_source:
+///
+/// \code
+///   .type<my_type>()
+///       .member("low",  &my_type::low)
+///       .member("high", &my_type::high)
+///       .post_extract([] (extraction_context& context, my_type&& out)
+///                     {
+///                         if (out.high < out.low)
+///                             throw std::invalid_argument("high is below low in "
+///                                                         + std::string(context.encoded_source())
+///                                                        );
+///
+///                         return std::move(out);
+///                     }
+///                    )
+/// \endcode
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_default_on_null type_default_on_null
 ///
@@ -450,7 +474,8 @@ namespace jsonv
 ///
 /// When extracting, perform some \a action if extra keys are provided. By default, extra keys are usually simply
 /// ignored, so this is useful if you wish to throw an exception (or anything you want). The \a action is handed the
-/// names of the keys which claimed no member; their values have already been stepped over unread.
+/// names of the keys which claimed no member; their values have already been stepped over unread, but the object they
+/// are in can still be quoted with \c extraction_context::encoded_source.
 ///
 /// \code
 ///   .type<my_type>()
@@ -548,7 +573,10 @@ namespace jsonv
 /// synthesize the value however it likes, but it is not handed the object being extracted: a missing key is only known
 /// to be missing once every key which was there has gone by, and the walk does not go back. A default which depends on
 /// the other members belongs in \ref serialization_builder_dsl_ref_type_level_post_extract, which sees the whole object
-/// once it is built.
+/// once it is built. The object's text is there to be quoted, by \c extraction_context::encoded_source, but not to be
+/// read members out of -- and only for a key which never arrived. A default standing in for a \c null under
+/// \ref serialization_builder_dsl_ref_member_level_default_on_null "default_on_null" is taken as the walk meets the
+/// \c null, before the object has a \c } to quote it to.
 ///
 /// \code
 ///  .member("x", &my_type::x)
@@ -1313,6 +1341,10 @@ private:
         JSONV_NODISCARD
         virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const override
         {
+            // Made before anything else runs, so that from here on this object is the one `encoded_source` answers
+            // for -- with nothing, until the walk reaches its `}`.
+            detail::encoded_source_scope source(context);
+
             if (_pre_extract)
                 _pre_extract(context);
 
@@ -1338,6 +1370,8 @@ private:
             auto opened = context.current_as<ast_node::object_begin>(from);
             if (!opened)
                 return std::unexpected(opened.error());
+
+            source.open(from, *opened);
 
             T                        out;
             detail::member_claim_set claims(_members.size());
@@ -1380,6 +1414,8 @@ private:
                         // cursor is on a closing token the reader still names this object rather than the sibling
                         // after it -- which is both where a failure out of that code belongs and where a caller
                         // recovering from it resumes, since `reader::next_value` on a `}` is a single step past it.
+                        // It is also the first point at which the whole object can be quoted.
+                        source.close(from);
                         closed = true;
                         break;
                     }
