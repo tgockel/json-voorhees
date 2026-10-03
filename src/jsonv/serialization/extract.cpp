@@ -86,8 +86,17 @@ static std::string make_extraction_error_errmsg(const extraction_error::problem_
     auto write_problem =
         [&](const extraction_error::problem& problem)
         {
-            if (!problem.path().empty())
+            // An empty path is not the root of the document but no position at all, so it gets no `#.` either.
+            if (!problem.source_name().empty())
+            {
+                os << " at " << problem.source_name();
+                if (!problem.path().empty())
+                    os << '#' << problem.path();
+            }
+            else if (!problem.path().empty())
+            {
                 os << " at " << problem.path();
+            }
 
             // The separator is unconditional: an empty path used to run "Extraction error" straight into the message.
             os << ": " << problem.message();
@@ -166,6 +175,19 @@ const path& extraction_error::path() const noexcept
     else
     {
         return _problems[0].path();
+    }
+}
+
+const std::string& extraction_error::source_name() const noexcept
+{
+    if (_problems.empty())
+    {
+        static const std::string empty_name;
+        return empty_name;
+    }
+    else
+    {
+        return _problems[0].source_name();
     }
 }
 
@@ -270,12 +292,14 @@ extraction_context::extraction_context(jsonv::formats                fmt,
                                        std::optional<jsonv::version> ver,
                                        jsonv::path                   p,
                                        const void*                   userdata,
-                                       extract_options               options
+                                       extract_options               options,
+                                       std::string                   source_name
                                       ) :
         // Neither `formats` nor `extract_options` can be moved yet (#286).
         context(std::move(fmt), ver, userdata), // NOLINT(performance-move-const-arg)
         _options(std::move(options)),           // NOLINT(performance-move-const-arg)
-        _base_path(std::move(p))
+        _base_path(std::move(p)),
+        _source_name(std::move(source_name))
 { }
 
 extraction_context::extraction_context() :
@@ -620,7 +644,14 @@ void detail::extract_entry(extraction_context&   context,
         (void) from.next_token();
 
     if (!context.extract(type, from, into))
+    {
+        // An extractor is meant to record why it failed, but nothing makes it. Recording the stand-in here, rather than
+        // leaving `extraction_error` to make one up, is what puts it in the document the context names.
+        if (context.problems().size() == mark)
+            (void) context.problem(jsonv::path(), "Unspecified extraction error");
+
         throw extraction_error(context.take_problems_since(mark));
+    }
 
     if (!whole_document)
         return;

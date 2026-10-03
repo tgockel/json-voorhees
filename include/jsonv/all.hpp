@@ -572,6 +572,27 @@ namespace jsonv
 /// the function would have thrown a \c jsonv::extraction_error complaining about how it did not
 /// know how to extract a \c my_type.
 ///
+/// When the JSON came from a file, an error is more use if it says which file. Build the
+/// \c jsonv::extraction_context yourself, with the name of the source last, and hand it to
+/// \c extract in place of the \c format:
+///
+/// \code
+///     jsonv::extraction_context context(format,
+///                                       std::nullopt,
+///                                       jsonv::path(),
+///                                       nullptr,
+///                                       jsonv::extract_options(),
+///                                       "my_type.json"
+///                                      );
+///     my_type y = jsonv::extract<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
+/// \endcode
+///
+/// The \c "b" is not an \c int, so this throws a \c jsonv::extraction_error reading
+/// <tt>Extraction error at my_type.json#.b: Read node of type string when expecting integer</tt>.
+/// Write out every argument before the name: the \c nullptr is the user data, and a string in its
+/// place would be taken for user data rather than for a name. A context is meant for one
+/// document, so make a new one for each file.
+///
 /// If you are coming from JSON Voorhees 1.x, you may be looking for \c extract_sub. An extracting
 /// constructor used to be handed a whole \c jsonv::value and pull each member out of it by name,
 /// which is what \c extraction_context::extract_sub did. It is gone because that \c value is gone:

@@ -815,6 +815,37 @@ TEST(extract_path_tracking_does_not_grow_with_the_base_path)
     ensure_eq(cost_with(jsonv::path()), cost_with(path::create(".a.b.c.d.e")));
 }
 
+TEST(extract_source_name_costs_nothing_on_success)
+{
+    // The name is copied onto a problem when one is recorded, and at no other time, so naming the source of a document
+    // which extracts cleanly costs nothing. The name is built outside the counted region, as the base path above is.
+    const value source = named_triples(16U);
+
+    auto cost_with = [&source] (std::string name) -> std::size_t
+                     {
+                         extraction_context cxt(path_cost_formats(),
+                                                std::nullopt,
+                                                jsonv::path(),
+                                                nullptr,
+                                                extract_options(),
+                                                std::move(name)
+                                               );
+
+                         allocation_counter allocations;
+                         const auto         out  = cxt.extract<std::vector<named_triple>>(source);
+                         const std::size_t  cost = allocations.count();
+
+                         ensure_eq(source.size(), out.size());
+                         return cost;
+                     };
+
+    (void) cost_with(std::string());
+
+    ensure_eq(cost_with(std::string()),
+              cost_with("a source name long enough to need the heap rather than the small-string buffer.json")
+             );
+}
+
 #endif
 
 TEST(extract_read_value_scalars)
@@ -1576,6 +1607,206 @@ TEST(extract_error_with_no_problems_synthesises_one)
     ensure(!std::string(err.what()).empty());
 }
 
+namespace
+{
+
+/// A context reporting its problems in `config.json`. Every argument before the name is spelled out, since a string in
+/// the place of the user data would be taken for the user data.
+extraction_context named_context(const formats& fmts, const extract_options& options = extract_options())
+{
+    return extraction_context(fmts, std::nullopt, jsonv::path(), nullptr, options, "config.json");
+}
+
+/// What \a run throws.
+template <typename FRun>
+extraction_error thrown_by(const FRun& run)
+{
+    try
+    {
+        run();
+    }
+    catch (const extraction_error& err)
+    {
+        return err;
+    }
+
+    ensure(!"extraction_error was not thrown");
+    return extraction_error(extraction_error::problem_list());
+}
+
+/// Read from a second document named `other.json`, as an adapter resolving an include from another file would.
+struct included
+{
+    std::int64_t value;
+};
+
+formats included_formats()
+{
+    static auto instance = make_extractor([] (extraction_context& context, reader& from) -> included
+                                          {
+                                              (void) from.next_value();
+
+                                              extraction_context other(context.formats(),
+                                                                       std::nullopt,
+                                                                       jsonv::path(),
+                                                                       nullptr,
+                                                                       extract_options(),
+                                                                       "other.json"
+                                                                      );
+                                              return included{ extract<std::int64_t>(R"("not a number")", other) };
+                                          });
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_extractor(&instance);
+    return out;
+}
+
+/// Fails without recording why, which an extractor is not meant to do and nothing stops.
+struct silent_failure
+{ };
+
+formats silent_failure_formats()
+{
+    static auto instance = make_extractor([] (reader&) -> std::expected<silent_failure, ast_node_type>
+                                          {
+                                              return std::unexpected(ast_node_type::error);
+                                          });
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_extractor(&instance);
+    return out;
+}
+
+}
+
+TEST(extract_error_names_the_source_and_the_path_within_it)
+{
+    extraction_context cxt = named_context(triple_formats());
+    auto err = thrown_by([&] { (void) extract<triple>(R"({ "a": 1, "b": "two", "c": 3 })", cxt); });
+
+    ensure_eq(std::string("Extraction error at config.json#.b: Read node of type string when expecting integer"),
+              std::string(err.what())
+             );
+    ensure_eq(path::create(".b"), err.path());
+    ensure_eq(std::string("config.json"), err.source_name());
+    ensure_eq(std::string("config.json"), err.problems().at(0).source_name());
+}
+
+TEST(extract_error_without_a_source_name_reads_as_it_did)
+{
+    extraction_context cxt(triple_formats());
+    auto err = thrown_by([&] { (void) extract<triple>(R"({ "a": 1, "b": "two", "c": 3 })", cxt); });
+
+    ensure_eq(std::string("Extraction error at .b: Read node of type string when expecting integer"),
+              std::string(err.what())
+             );
+    ensure(err.source_name().empty());
+}
+
+TEST(extract_error_names_the_source_of_a_parse_failure)
+{
+    // The parse fails before there is any position in the document to name, so the document is named alone -- an
+    // empty path is no position rather than the root, and `config.json#.` would say otherwise.
+    extraction_context cxt = named_context(formats::defaults());
+    auto err = thrown_by([&] { (void) extract<std::int64_t>("[ 1, ", cxt); });
+
+    ensure(std::string_view(err.what()).starts_with("Extraction error at config.json: Could not parse JSON: "));
+    ensure_eq(std::string("config.json"), err.source_name());
+}
+
+TEST(extract_error_names_the_source_of_every_problem_collected)
+{
+    extraction_context cxt = named_context(triple_formats(), collecting());
+    auto err = thrown_by([&]
+                         {
+                             (void) extract<std::vector<triple>>(
+                                 R"([ { "a": "x", "b": 2, "c": 3 }, { "a": 1, "b": 2, "c": "z" } ])",
+                                 cxt
+                             );
+                         });
+
+    ensure_eq(2U, err.problems().size());
+    for (const auto& problem : err.problems())
+        ensure_eq(std::string("config.json"), problem.source_name());
+
+    const std::string what = err.what();
+    ensure(what.starts_with("2 extraction errors:"));
+    ensure(what.find("\n - at config.json#[0].a: ") != std::string::npos);
+    ensure(what.find("\n - at config.json#[1].c: ") != std::string::npos);
+}
+
+TEST(extract_error_names_the_source_under_a_base_path)
+{
+    extraction_context cxt(triple_formats(),
+                           std::nullopt,
+                           path::create(".root"),
+                           nullptr,
+                           extract_options(),
+                           "config.json"
+                          );
+    auto err = thrown_by([&] { (void) extract<triple>(R"({ "a": 1, "b": "two", "c": 3 })", cxt); });
+
+    ensure_eq(path::create(".root.b"), err.path());
+    ensure(std::string_view(err.what()).starts_with("Extraction error at config.json#.root.b: "));
+}
+
+TEST(extract_error_names_the_source_through_the_value_bridge)
+{
+    // An adapter on the bridge reports failure by throwing, and what it throws is folded onto the context -- which is
+    // where it is named, whichever source the bridge was reading.
+    const std::string text = R"({ "a": 1, "b": "two", "c": 3 })";
+    {
+        extraction_context cxt = named_context(bridged_formats());
+        auto err = thrown_by([&] { (void) cxt.extract<bridged_triple>(parse(text)); });
+        ensure_eq(std::string("config.json"), err.source_name());
+        ensure(std::string_view(err.what()).starts_with("Extraction error at config.json"));
+    }
+    {
+        extraction_context cxt = named_context(bridged_formats());
+        auto err = thrown_by([&] { (void) extract<bridged_triple>(text, cxt); });
+        ensure_eq(std::string("config.json"), err.source_name());
+        ensure(std::string_view(err.what()).starts_with("Extraction error at config.json"));
+    }
+}
+
+TEST(extract_error_keeps_the_source_a_problem_was_named_in)
+{
+    // An extractor reading a second document reports that document's problems under its own name, and folding them
+    // onto this context does not rename them.
+    extraction_context cxt = named_context(included_formats());
+    auto err = thrown_by([&] { (void) extract<included>("{}", cxt); });
+
+    ensure_eq(std::string("other.json"), err.source_name());
+    ensure_eq(std::string("Extraction error at other.json: Read node of type string when expecting integer"),
+              std::string(err.what())
+             );
+}
+
+TEST(extract_error_names_the_source_of_a_positioned_failure)
+{
+    // A positioned extraction throws nothing, so the name has to be on the problem by the time it is recorded.
+    extraction_context cxt = named_context(formats::defaults());
+    auto               rdr = open(R"("five")");
+
+    ensure(!cxt.extract<std::int64_t>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("config.json"), cxt.problems().at(0).source_name());
+}
+
+TEST(extract_error_names_the_source_of_a_failure_nobody_described)
+{
+    {
+        extraction_context cxt = named_context(silent_failure_formats());
+        auto err = thrown_by([&] { (void) extract<silent_failure>("{}", cxt); });
+        ensure_eq(std::string("Extraction error at config.json: Unspecified extraction error"), std::string(err.what()));
+    }
+    {
+        extraction_context cxt(silent_failure_formats());
+        auto err = thrown_by([&] { (void) extract<silent_failure>("{}", cxt); });
+        ensure_eq(std::string("Extraction error: Unspecified extraction error"), std::string(err.what()));
+    }
+}
+
 TEST(extract_read_value_rejects_an_unmatched_close)
 {
     // These reach `read_value` only from a tape which was never validated, and the diagnostic it builds asks the
@@ -2325,6 +2556,28 @@ formats probe_formats()
     return out;
 }
 
+/// What an extractor could see of the context it was handed.
+struct context_probe
+{
+    std::optional<version> ver;
+    const void*            user_data;
+    jsonv::path            where;
+};
+
+formats context_probe_formats()
+{
+    static auto instance = make_extractor([] (extraction_context& context, reader& from) -> context_probe
+                                          {
+                                              context_probe out{ context.version(), context.user_data(), context.path() };
+                                              (void) from.next_value();
+                                              return out;
+                                          });
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_extractor(&instance);
+    return out;
+}
+
 /// Counts the instances alive, so a test can see that an object built and then refused was destroyed.
 struct live_counted
 {
@@ -2470,6 +2723,23 @@ TEST(extract_entry_points_accept_every_source)
     ensure_eq(5, extract<std::int32_t>(reader("5"), fmts));
     ensure_eq(5, extract<std::int32_t>(reader("5"), eopts));
     ensure_eq(5, extract<std::int32_t>(reader("5"), fmts, eopts));
+
+    // A context the caller built, in place of the formats and options. Nothing is recorded on one by a success, so one
+    // serves every call here.
+    extraction_context cxt(fmts);
+    ensure_eq(5, extract<std::int32_t>("5", cxt));
+    ensure_eq(5, extract<std::int32_t>(c_string, cxt));
+    ensure_eq(5, extract<std::int32_t>(text, cxt));
+    ensure_eq(5, extract<std::int32_t>(const_text, cxt));
+    ensure_eq(5, extract<std::int32_t>(std::string("5"), cxt));
+    ensure_eq(5, extract<std::int32_t>(view, cxt));
+    ensure_eq(5, extract<std::int32_t>(view, popts, cxt));
+    ensure_eq(5, extract<std::int32_t>(std::string("5"), popts, cxt));
+    {
+        reader rdr("5");
+        ensure_eq(5, extract<std::int32_t>(rdr, cxt));
+    }
+    ensure_eq(5, extract<std::int32_t>(reader("5"), cxt));
 }
 
 TEST(extract_entry_points_accept_every_source_for_a_dsl_type)
@@ -2490,6 +2760,17 @@ TEST(extract_entry_points_accept_every_source_for_a_dsl_type)
         reader rdr(doc);
         ensure_eq(expected, extract<triple>(rdr, fmts));
     }
+    {
+        extraction_context cxt(fmts);
+        ensure_eq(expected, extract<triple>(doc, cxt));
+        ensure_eq(expected, extract<triple>(std::string(doc), cxt));
+        ensure_eq(expected, extract<triple>(doc.c_str(), cxt));
+        ensure_eq(expected, extract<triple>(doc, parse_options(), cxt));
+        ensure_eq(expected, extract<triple>(reader(doc), cxt));
+
+        reader rdr(doc);
+        ensure_eq(expected, extract<triple>(rdr, cxt));
+    }
 
     // The shapes which take no `formats` use the global one.
     formats::set_global(triple_formats());
@@ -2505,6 +2786,51 @@ TEST(extract_entry_points_accept_every_source_for_a_dsl_type)
         reader rdr(doc);
         ensure_eq(expected, extract<triple>(rdr, extract_options()));
     }
+}
+
+TEST(extract_through_a_caller_context_hands_extractors_what_it_was_built_with)
+{
+    // The overloads taking `formats` and `extract_options` build a context with no version, user data or base path, so
+    // until a context could be passed in, nothing extracted from a reader or from text could be given one.
+    const int          token = 0;
+    extraction_context cxt(context_probe_formats(), version(2, 1), path::create(".outer"), &token);
+
+    auto check = [&] (const context_probe& seen)
+                 {
+                     ensure(seen.ver == version(2, 1));
+                     ensure(seen.user_data == &token);
+                     ensure_eq(path::create(".outer"), seen.where);
+                 };
+
+    check(extract<context_probe>("{}", cxt));
+    check(extract<context_probe>(std::string("{}"), cxt));
+    check(extract<context_probe>("{}", parse_options(), cxt));
+    check(extract<context_probe>(reader("{}"), cxt));
+
+    reader rdr("{}");
+    check(extract<context_probe>(rdr, cxt));
+}
+
+TEST(extract_through_a_caller_context_takes_its_problems_with_the_exception)
+{
+    // Whatever the context held before the call is the caller's; what the call recorded leaves with the exception, so
+    // nothing is reported twice by a caller which reads both.
+    extraction_context cxt(formats::defaults());
+    (void) cxt.problem(path(), "already there");
+
+    try
+    {
+        (void) extract<std::int64_t>(R"("five")", cxt);
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+        ensure(err.problems().at(0).message().find("expecting integer") != std::string::npos);
+    }
+
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("already there"), cxt.problems().at(0).message());
 }
 
 TEST(extract_a_cpp_string_is_json_text)
@@ -2679,6 +3005,12 @@ TEST(extract_refuses_views_of_a_source_it_was_handed)
                             ensure_eq(long_text, view);
                         });
 
+    // The same through a context the caller built, which is not left believing its next source is temporary too.
+    extraction_context cxt;
+    ensure_view_refused([&] { ensure_eq(long_text, extract<std::string_view>(std::string(document), cxt)); });
+    ensure_view_refused([&] { ensure_eq(long_text, extract<std::string_view>(reader(std::string(document)), cxt)); });
+    ensure(!cxt.source_is_temporary());
+
     // A copy is fine.
     ensure_eq(long_text, extract<std::string>(std::string(document)));
 }
@@ -2701,6 +3033,13 @@ TEST(extract_views_a_source_the_caller_keeps)
     // An owning reader the caller holds outlives the call, so views of it are the caller's to keep valid.
     reader owning{ std::string(document) };
     ensure_eq(long_text, extract<std::string_view>(owning));
+
+    // The same through a context the caller built.
+    extraction_context cxt;
+    ensure(inside(document, extract<std::string_view>(document, cxt)));
+    ensure(inside(document, extract<std::string_view>(reader(std::string_view(document)), cxt)));
+    reader owning_again{ std::string(document) };
+    ensure_eq(long_text, extract<std::string_view>(owning_again, cxt));
 }
 
 TEST(extract_honours_parse_options)

@@ -121,6 +121,10 @@ using expected_value_or_self_t = typename expected_value_or_self<T>::type;
 /// \{
 
 /// Exception thrown if there is any problem running \c extract.
+///
+/// \c what says where each \c problem was found: at its \c problem::path, and in its \c problem::source_name where it
+/// has one, joined by a \c # as in a URI fragment -- <tt>config.json#.servers[2].port</tt>. A problem with a name and
+/// an empty path is reported in the document as a whole, as <tt>config.json</tt>.
 class JSONV_PUBLIC extraction_error :
         public std::runtime_error
 {
@@ -143,11 +147,20 @@ public:
         ///              instead.
         explicit problem(jsonv::path path, std::exception_ptr cause) noexcept;
 
-        /// The path this problem was encountered at.
+        /// The path this problem was encountered at, within the document \c source_name names.
         JSONV_NODISCARD
         const jsonv::path& path() const noexcept
         {
             return _path;
+        }
+
+        /// The name of the document this problem was encountered in, such as the file it was read from. This is empty
+        /// unless the problem was recorded on an \c extraction_context which was given one, which is where it comes
+        /// from -- see \c extraction_context::source_name.
+        JSONV_NODISCARD
+        const std::string& source_name() const noexcept
+        {
+            return _source_name;
         }
 
         /// Human-readable details about the encountered problem.
@@ -166,9 +179,14 @@ public:
         }
 
     private:
+        /// Names the source of a problem recorded on it.
+        friend class extraction_context;
+
+    private:
         jsonv::path        _path;
         std::string        _message;
         std::exception_ptr _cause;
+        std::string        _source_name;
     };
 
     using problem_list = std::vector<problem>;
@@ -198,6 +216,11 @@ public:
     /// Get the path the first extraction error came from.
     JSONV_NODISCARD
     const jsonv::path& path() const noexcept;
+
+    /// Get the name of the document the first extraction error came from (see \c problem::source_name). This is empty
+    /// if it was not given one.
+    JSONV_NODISCARD
+    const std::string& source_name() const noexcept;
 
     /// Get the first \c problem::cause. This can be \c nullptr if the first \c problem does not have an underlying
     /// cause.
@@ -356,6 +379,10 @@ public:
 ///
 /// Unlike a \c serialization_context, this is mutable and single-use: recording a problem changes it. It is neither
 /// copyable nor movable, since a \ref path_scope holds a pointer to the instance it was pushed onto.
+///
+/// Most extraction never sees one, since \c jsonv::extract builds its own. Build one to extract a document under a
+/// version, with user data, at a base path, or under the name of the file it came from (see \ref source_name), and
+/// hand it to the \c jsonv::extract overloads which take one -- one context for each document.
 class JSONV_PUBLIC extraction_context :
         public context
 {
@@ -369,7 +396,7 @@ public:
     /// Create a new instance using the default \c formats (\c formats::global).
     extraction_context();
 
-    /// Create a new instance using the given \a fmt, \a ver, \a p, \a userdata and \a options.
+    /// Create a new instance using the given \a fmt, \a ver, \a p, \a userdata, \a options and \a source_name.
     ///
     /// \param fmt The \c formats to find an \c extractor for each type in.
     /// \param ver The version of the document being extracted, for extractors to read back with \c context::version.
@@ -380,11 +407,16 @@ public:
     ///                 must outlive this instance.
     /// \param options What to do when something goes wrong. The default reports the first problem and stops; see
     ///                \c extract_options::on_error.
+    /// \param source_name The name of the document being extracted, such as the file it was read from, for every
+    ///                    problem recorded here to be reported in. Empty, the default, names nothing. Spell out every
+    ///                    argument before it: a string literal in the place of \a userdata is a <tt>const void*</tt> as
+    ///                    far as the compiler is concerned, and would quietly become the user data instead.
     explicit extraction_context(jsonv::formats                fmt,
-                                std::optional<jsonv::version> ver      = std::nullopt,
-                                jsonv::path                   p        = jsonv::path(),
-                                const void*                   userdata = nullptr,
-                                extract_options               options  = extract_options()
+                                std::optional<jsonv::version> ver         = std::nullopt,
+                                jsonv::path                   p           = jsonv::path(),
+                                const void*                   userdata    = nullptr,
+                                extract_options               options     = extract_options(),
+                                std::string                   source_name = std::string()
                                );
 
     extraction_context(const extraction_context&)            = delete;
@@ -411,6 +443,13 @@ public:
     JSONV_NODISCARD
     const extract_options& options() const noexcept { return _options; }
 
+    /// Get the name of the document being extracted, which every problem recorded here is reported in. It is empty if
+    /// this context was not given one.
+    ///
+    /// \see extraction_error::problem::source_name
+    JSONV_NODISCARD
+    const std::string& source_name() const noexcept { return _source_name; }
+
     /// Get the path currently being extracted, as named by the live \ref path_scope guards.
     ///
     /// This is built on demand by walking the scope chain, so it is not free -- but nothing on a successful extraction
@@ -431,11 +470,19 @@ public:
     ///
     /// Recording a problem does not throw. The entry point which started extraction throws a single
     /// \c extraction_error carrying everything collected, once the pipeline has unwound.
+    ///
+    /// A problem which does not already name its source is recorded as being in this context's \ref source_name. One
+    /// folded in from the extraction of some other document keeps the name it was given there.
     template <typename... TArgs>
     JSONV_NODISCARD
     std::unexpected<ast_node_type> problem(TArgs&&... args)
     {
-        _problems.emplace_back(std::forward<TArgs>(args)...);
+        // Copied before anything is recorded, so a copy which fails leaves no problem behind without its name.
+        std::string name     = _source_name;
+        auto&       recorded = _problems.emplace_back(std::forward<TArgs>(args)...);
+        if (recorded._source_name.empty())
+            recorded._source_name = std::move(name);
+
         return std::unexpected(ast_node_type::error);
     }
 
@@ -685,6 +732,7 @@ private:
 private:
     extract_options   _options;
     jsonv::path       _base_path;
+    std::string       _source_name;
     const path_scope* _innermost              = nullptr;
     std::size_t       _temporary_source_depth = 0U;
 
@@ -988,7 +1036,7 @@ T extract_entry(extraction_context& context, reader& from, source_lifetime lifet
     return std::move(*ptr);
 }
 
-/// Extract a \c T from JSON \a source text.
+/// Extract a \c T from JSON \a source text through \a context.
 ///
 /// A \c std::string rvalue is taken over: it is moved into a reader which lives as long as this call, so the extraction
 /// is told its source is temporary and refuses to hand back views of it. Anything else is read where it is, through a
@@ -996,13 +1044,8 @@ T extract_entry(extraction_context& context, reader& from, source_lifetime lifet
 /// type, such as a \c std::pmr::string, which outlives this call as every temporary argument does.
 template <typename T, typename TSource>
 JSONV_NODISCARD
-T extract_text(TSource&&              source,
-               const parse_options&   parse_opts,
-               const formats&         fmts,
-               const extract_options& options
-              )
+T extract_text(TSource&& source, const parse_options& parse_opts, extraction_context& context)
 {
-    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
     if constexpr (std::is_same_v<TSource, std::string>)
     {
         reader from(std::forward<TSource>(source), parse_opts);
@@ -1015,6 +1058,19 @@ T extract_text(TSource&&              source,
         reader from(std::string_view(std::forward<TSource>(source)), parse_opts);
         return extract_entry<T>(context, from, source_lifetime::caller);
     }
+}
+
+/// \c extract_text through a context of its own, built from \a fmts and \a options.
+template <typename T, typename TSource>
+JSONV_NODISCARD
+T extract_text(TSource&&              source,
+               const parse_options&   parse_opts,
+               const formats&         fmts,
+               const extract_options& options
+              )
+{
+    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return extract_text<T>(std::forward<TSource>(source), parse_opts, context);
 }
 
 }
@@ -1122,6 +1178,39 @@ T extract(reader&& from, const extract_options& options)
 
 /// \{
 
+/// Extract a C++ value from a \a reader through a \a context the caller built, exactly as the overloads above do with
+/// one built from \c formats and \c extract_options.
+///
+/// Everything \a context was created with applies: its \c formats and \c extract_options, and also what the overloads
+/// above have no way to be given -- the version, user data and base path its extractors see, and the
+/// \c extraction_context::source_name its problems are reported in. A failed call throws the problems it recorded and
+/// takes them off \a context, which is left holding what it held before.
+///
+/// An \c extraction_context is single-use, so build one for each document and do not hand this the one an \c extractor
+/// was given -- whatever that extraction has in progress would be applied to a document it knows nothing about.
+///
+/// \throws extraction_error for the same reasons as the overloads above.
+template <typename T>
+JSONV_NODISCARD
+T extract(reader& from, extraction_context& context)
+{
+    return detail::extract_entry<T>(context, from, detail::source_lifetime::caller);
+}
+
+template <typename T>
+JSONV_NODISCARD
+T extract(reader&& from, extraction_context& context)
+{
+    return detail::extract_entry<T>(context,
+                                    from,
+                                    from.owns_source() ? detail::source_lifetime::extraction
+                                                       : detail::source_lifetime::caller
+                                   );
+}
+/// \}
+
+/// \{
+
 /// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts, using \a fmts (by default
 /// \c jsonv::formats::global()) and \a options.
 ///
@@ -1184,6 +1273,35 @@ JSONV_NODISCARD
 T extract(TSource&& source, const parse_options& parse_opts, const extract_options& options)
 {
     return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, formats::global(), options);
+}
+/// \}
+
+/// \{
+
+/// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts where they are given, through a
+/// \a context the caller built.
+///
+/// \a source is read exactly as the overloads above read it, a \c std::string rvalue included, and \a context is used
+/// as the \c reader overload taking an \c extraction_context uses it: everything it was created with applies, and the
+/// problems a failed call throws are taken off it. Build one for each document.
+///
+/// \throws extraction_error if \a source is not valid JSON, the value could not be extracted, or something follows it.
+/// \throws std::invalid_argument if \a parse_opts asks for a \c parse_options::max_structure_depth beyond the limit,
+///                               as \c jsonv::parse does.
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&& source, extraction_context& context)
+{
+    return detail::extract_text<T>(std::forward<TSource>(source), parse_options::create_default(), context);
+}
+
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&& source, const parse_options& parse_opts, extraction_context& context)
+{
+    return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, context);
 }
 /// \}
 

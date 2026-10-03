@@ -415,6 +415,27 @@ TEST(documentation_tutorial_extracting_constructor)
 
     // Without the format, there is nothing which knows how to extract a `my_type`.
     ensure_throws(jsonv::extraction_error, jsonv::extract<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })"));
+
+    // Naming the source, and the message which names it.
+    jsonv::extraction_context context(format,
+                                      std::nullopt,
+                                      jsonv::path(),
+                                      nullptr,
+                                      jsonv::extract_options(),
+                                      "my_type.json"
+                                     );
+    try
+    {
+        my_type y = jsonv::extract<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
+        (void) y;
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const jsonv::extraction_error& err)
+    {
+        ensure_eq(std::string("Extraction error at my_type.json#.b: Read node of type string when expecting integer"),
+                  std::string(err.what())
+                 );
+    }
 }
 
 TEST(documentation_tutorial_extracting_constructor_walks_the_keys)
