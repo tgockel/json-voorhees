@@ -135,7 +135,7 @@ public:
     {
         return _check_null_input;
     }
-    /// }
+    /// \}
 
     /// \{
     /// When converting with \c to_json, should a \c null input translate into a \c kind::null?

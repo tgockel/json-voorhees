@@ -184,8 +184,11 @@ public:
     /// underlying \a cause.
     explicit extraction_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept;
     explicit extraction_error(jsonv::path path, std::string message) noexcept;
-    explicit extraction_error(jsonv::path path, std::exception_ptr cause) noexcept;
     /// \}
+
+    /// Create a new \c extraction_error with a single \c problem at \a path, whose message is extracted from \a cause
+    /// (see \c problem::problem).
+    explicit extraction_error(jsonv::path path, std::exception_ptr cause) noexcept;
 
     virtual ~extraction_error() noexcept;
 
@@ -562,7 +565,6 @@ public:
     JSONV_NODISCARD
     jsonv::path problem_path(const reader& from) const;
 
-    /// \{
     /// Attempt to extract a \c T from \a from using the \c formats associated with this context.
     ///
     /// This is the positioned primitive a composite calls for each of its parts: it extracts the value under the
@@ -583,9 +585,17 @@ public:
         return std::move(*ptr);
     }
 
+    /// Attempt to extract an object of the given \a type from \a from into the memory at \a into, using the
+    /// \c formats associated with this context. This is what the overload above calls with the \c T it was asked for.
+    ///
+    /// \a into must have room for an object of \a type and be suitably aligned for it. On success an object has been
+    /// created there, and destroying it is up to the caller. On failure nothing has been created, the problem is
+    /// recorded on this context, and the \c ast_node_type returned is the one the \c extractor reported (see
+    /// \c extractor::extract). An exception thrown while extracting is not propagated: it is recorded as a problem and
+    /// reported as \c ast_node_type::error, except that an \c extraction_error from an adapter on the \c value bridge
+    /// has its own problems folded onto this context instead.
     JSONV_NODISCARD
     std::expected<void, ast_node_type> extract(const std::type_info& type, reader& from, void* into);
-    /// \}
 
     /// Attempt to extract a \c T from the in-memory \a from using the \c formats associated with this context.
     ///

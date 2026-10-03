@@ -909,14 +909,25 @@ public:
     const_object_iterator find(const std::wstring& key) const;
 
     /// \{
-    /// Insert \a pair into this object. If \a hint is provided, this insertion could be optimized.
+    /// Insert \a pair into this object, unless an element with an equivalent key is already present.
     ///
-    /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key).
+    /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key) and
+    ///  whose \c second is \c true if the insertion took place.
     /// \throws kind_error if the kind is not an object.
     std::pair<object_iterator, bool> insert(std::pair<std::string, value>  pair);
     std::pair<object_iterator, bool> insert(std::pair<std::wstring, value> pair);
+    /// \}
+
+    /// \{
+    /// Insert \a pair into this object, unless an element with an equivalent key is already present. As with
+    /// \c std::map::insert, the element is inserted as close as possible to the position just prior to \a hint, and a
+    /// good \a hint makes the insertion faster.
+    ///
+    /// \returns An iterator to the newly-inserted element (or the element which shares the key).
+    /// \throws kind_error if the kind is not an object.
     object_iterator insert(const_object_iterator hint, std::pair<std::string, value>  pair);
     object_iterator insert(const_object_iterator hint, std::pair<std::wstring, value> pair);
+    /// \}
 
     /// Insert range defined by [\a first, \a last) into this object.
     ///
@@ -956,6 +967,7 @@ public:
     /// \throws kind_error if the kind is not an object.
     object_iterator insert(const_object_iterator hint, object_node_handle&& handle);
 
+    /// \{
     /// Insert \a items into this object.
     ///
     /// \throws kind_error if the kind is not an object.
@@ -1021,6 +1033,7 @@ public:
     /// \throws kind_error if the kind is not an object.
     size_type erase(const std::string&  key);
     size_type erase(const std::wstring& key);
+    /// \}
 
     /// Erase the item at the given \a position.
     ///
@@ -1031,14 +1044,13 @@ public:
     ///
     /// \throws kind_error if the kind is not an object.
     object_iterator erase(const_object_iterator first, const_object_iterator last);
-    /// \}
 
-    /// \{
-    /// Unlinks the node that contains the element pointed to by position and returns a node handle that owns it.
+    /// Unlinks the node that contains the element pointed to by \a position and returns a node handle that owns it.
     ///
     /// \throws kind_error if the kind is not an object.
     object_node_handle extract(const_object_iterator position);
 
+    /// \{
     /// If the container has an element with the given \a key, unlinks the node that contains that element from the
     /// container and returns a node handle that owns it. Otherwise, returns an empty node handle.
     ///

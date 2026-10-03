@@ -1924,15 +1924,14 @@ public:
     formats_builder& reference_type(std::type_index type, std::type_index from);
 
     /// \{
-    /// Check that, when combined with the \c formats \a other, all types referenced by this \c formats_builder will
-    /// get decoded properly.
+    /// Check that every type referenced by this \c formats_builder has both an \c extractor and a \c serializer in the
+    /// \c formats it is generating, combined with the \c formats \a other or \a others where they are given.
     ///
-    /// \param name if non-empty and this function throws, this \a name will be provided in the exception's \c what
-    ///             string. This can be useful if you are running multiple \c check_references calls and you want to
-    ///             name the different checks.
+    /// If \a name is non-empty and this function throws, \a name will be provided in the exception's \c what string.
+    /// This can be useful if you are running multiple \c check_references calls and you want to name the different
+    /// checks.
     ///
-    /// \throws std::logic_error if \c formats this \c formats_builder is generating, when combined with the provided
-    ///                          \a other \c formats, cannot properly serialize all the types.
+    /// \throws std::logic_error if some referenced type is missing an \c extractor or a \c serializer.
     formats_builder& check_references(const formats&       other,  const std::string& name = "");
     formats_builder& check_references(const formats::list& others, const std::string& name = "");
     formats_builder& check_references(const std::string& name = "");

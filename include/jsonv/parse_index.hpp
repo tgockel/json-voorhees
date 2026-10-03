@@ -118,16 +118,14 @@ public:
     ~parse_index() noexcept;
 
     /// \{
-    /// Create an \c parse_index from the given \a src JSON.
+    /// Create a \c parse_index from the given \a src JSON.
     ///
-    /// \param options
-    ///     The options used to control parsing. If unspecified, these will be \c parse_options::create_default().
-    /// \param initial_buffer_capacity
-    ///     The initial capacity of the underlying buffer. By default (\c nullopt), this will size the buffer according
-    ///     to the length of the \a src string.
+    /// Parsing is controlled by \a options where they are given, and by \c parse_options::create_default() where they
+    /// are not. The underlying buffer starts with an \a initial_buffer_capacity where one is given; without one, or
+    /// when it is \c nullopt, the buffer is sized according to the length of the \a src string.
     ///
-    /// \throws std::length_error if \a initial_buffer_capacity is too large for the buffer's size in bytes to be
-    ///  represented in a \c std::size_t.
+    /// \throws std::length_error if a given \a initial_buffer_capacity is too large for the buffer's size in bytes to
+    ///  be represented in a \c std::size_t.
     JSONV_NODISCARD
     static parse_index parse(std::string_view           src,
                              const parse_options&       options,
@@ -177,9 +175,8 @@ public:
     iterator cend() const { return end(); }
 
     /// \{
-    /// \param options
-    ///     The options used to control how values are extracted from this source. If unspecified, these will be
-    ///     \c extract_options::create_default().
+    /// Build a \c value from the document this index holds. Extraction is controlled by \a options where they are
+    /// given, and by \c extract_options::create_default() where they are not.
     JSONV_NODISCARD
     value extract_tree(const extract_options& options) const;
     JSONV_NODISCARD

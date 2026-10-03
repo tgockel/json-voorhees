@@ -127,11 +127,9 @@ public:
     /// \{
     /// Create a reader which reads from JSON \a source.
     ///
-    /// \param source The JSON source code to parse from. This must stay in memory for the duration of this instance's
-    ///               use. If source is an rvalue reference to a \c std::string instance, the \a source is moved to the
-    ///               reader's implementation to keep alive.
-    /// \param parse_options If specified, use these options to parse \a source. If unspecified, use the default values
-    ///                      of \a parse_options for \c parse_index::parse.
+    /// The \a source must stay in memory for the duration of this instance's use, unless it is an rvalue reference to
+    /// a \c std::string, which is moved to the reader's implementation to keep it alive. It is parsed with
+    /// \a parse_options where they are given, and with the defaults \c parse_index::parse uses where they are not.
     explicit reader(std::string_view source);
     explicit reader(std::string_view source, const parse_options& parse_options);
     explicit reader(const char* source);
