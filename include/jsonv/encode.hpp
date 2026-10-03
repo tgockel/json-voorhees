@@ -194,9 +194,9 @@ private:
     bool          _ensure_ascii;
 };
 
-/** Like \c ostream_encoder, but pretty prints output to an \c std::ostream.
+/** Like \c ostream_encoder, but pretty prints output to an \c std::ostream. For example, to pretty-print JSON to
+ *  \c std::cout:
  *  
- *  \example "ostream_pretty_encoder to pretty-print JSON to std::cout"
  *  \code
  *  jsonv::ostream_pretty_encoder encoder(std::cout);
  *  encoder.encode(some_value);

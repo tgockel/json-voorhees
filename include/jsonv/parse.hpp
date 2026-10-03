@@ -170,15 +170,13 @@ private:
 /// \{
 /// Construct a JSON value from the given \a input.
 ///
-/// \example "parse(std::string_view)"
 /// \code
 /// jsonv::value out = jsonv::parse(R"( { "a": 1, "b": [ 2, 3, 4 ] } )");
 /// \endcode
 ///
-/// \param parse_options Options specific to parsing the \a input -- the indexing of source text into an AST. If
-///                      unspecified, this is \c parse_options::create_default().
-/// \param extract_options Options specific to extraction -- transforming the AST into a \c jsonv::value. If
-///                        unspecified, this is \c extract_options::create_default().
+/// \a parse_options controls parsing -- the indexing of source text into an AST -- and is
+/// \c parse_options::create_default() where not given. \a extract_options controls extraction -- transforming the AST
+/// into a \c jsonv::value -- and is \c extract_options::create_default() where not given.
 ///
 /// An integer literal beyond the range of 64 bits is read as the nearest \c double, so it is a \c kind::decimal. One
 /// from 2^63 through 2^64-1 keeps its bits and reads back as a negative \c kind::integer (see
@@ -186,8 +184,9 @@ private:
 ///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
 ///  or stray literals. Errors of this category are described as an offset into \a input.
-/// \throws extract_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
-///  object with duplicate keys (note that the default \c jsonv::formats does not throw for this case).
+/// \throws extraction_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
+///  object with duplicate keys (note that \c replace, the default \c extract_options::on_duplicate_key, does not
+///  throw for this case).
 /// \throws std::invalid_argument if a number literal has no finite \c double to round to, such as \c 1e400.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::string_view            input,
@@ -201,19 +200,16 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_o
 /// \}
 
 /// \{
-/// Reads a JSON value from the \a input stream.
+/// Reads a JSON value from the \a input stream. For example, to parse JSON from a file:
 ///
-/// \example "parse(std::istream&)"
-/// Parse JSON from some file.
 /// \code
 /// std::ifstream file("file.json");
 /// jsonv::value out = parse(file);
 /// \endcode
 ///
-/// \param parse_options Options specific to parsing the \a input -- the indexing of source text into an AST. If
-///                      unspecified, this is \c parse_options::create_default().
-/// \param extract_options Options specific to extraction -- transforming the AST into a \c jsonv::value. If
-///                        unspecified, this is \c extract_options::create_default().
+/// \a parse_options controls parsing -- the indexing of source text into an AST -- and is
+/// \c parse_options::create_default() where not given. \a extract_options controls extraction -- transforming the AST
+/// into a \c jsonv::value -- and is \c extract_options::create_default() where not given.
 ///
 /// An integer literal beyond the range of 64 bits is read as the nearest \c double, so it is a \c kind::decimal. One
 /// from 2^63 through 2^64-1 keeps its bits and reads back as a negative \c kind::integer (see
@@ -221,8 +217,9 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_o
 ///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
 ///  or stray literals. Errors of this category are described as an offset into \a input.
-/// \throws extract_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
-///  object with duplicate keys (note that the default \c jsonv::formats does not throw for this case).
+/// \throws extraction_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
+///  object with duplicate keys (note that \c replace, the default \c extract_options::on_duplicate_key, does not
+///  throw for this case).
 /// \throws std::invalid_argument if a number literal has no finite \c double to round to, such as \c 1e400.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::istream&          input,
