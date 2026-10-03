@@ -81,6 +81,7 @@ JSONV_PUBLIC void extract_entry(extraction_context&   context,
                                );
 
 /// \{
+
 /// Check if \c T is a \c std::expected and, if it is, get the type it holds.
 ///
 /// Extraction functions are allowed to return either a bare \c T or a \c std::expected<T, ast_node_type>, so the
@@ -129,6 +130,7 @@ public:
     {
     public:
         /// \{
+
         /// Create a problem for the given \a path, \a message, and optional \a cause.
         explicit problem(jsonv::path path, std::string message, std::exception_ptr cause) noexcept;
         explicit problem(jsonv::path path, std::string message) noexcept;
@@ -180,6 +182,7 @@ public:
     explicit extraction_error(problem_list problems) noexcept;
 
     /// \{
+
     /// Create a new \c extraction_error with a single \c problem from the given \a path, \a message, and optional
     /// underlying \a cause.
     explicit extraction_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept;
@@ -267,6 +270,7 @@ public:
     static extract_options create_default();
 
     /// \{
+
     /// See \c on_error. The default failure mode is \c fail_immediately.
     JSONV_NODISCARD
     on_error         failure_mode() const noexcept { return _failure_mode; };
@@ -274,6 +278,7 @@ public:
     /// \}
 
     /// \{
+
     /// The number of problems to collect before giving up. This is only applicable if the \c failure_mode is
     /// \c on_error::collect_all. By default, this value is 10.
     ///
@@ -294,6 +299,7 @@ public:
     /// \}
 
     /// \{
+
     /// See \c duplicate_key_action. The default action is \c replace.
     JSONV_NODISCARD
     duplicate_key_action on_duplicate_key() const { return _on_duplicate_key; }
@@ -434,6 +440,7 @@ public:
     }
 
     /// \{
+
     /// Get the problems encountered so far. If this list is empty, no problems have occurred.
     JSONV_NODISCARD
     const problem_list& problems() const& { return _problems; }
@@ -442,6 +449,7 @@ public:
     /// \}
 
     /// \{
+
     /// May extraction recover from a failure and keep going?
     ///
     /// A composite which knows where its next element begins -- the next element of an array, the next key of an
@@ -520,6 +528,7 @@ public:
     void note_value_consumed(const reader& from) noexcept;
 
     /// \{
+
     /// Check that the \c reader::current AST node of \a from has the given \a type or is one of the given \a types. If
     /// it is not, a \ref problem describing the mismatch is recorded and the type actually found is returned.
     ///
@@ -1054,6 +1063,7 @@ T extract(const value& from, const extract_options& options)
 }
 
 /// \{
+
 /// Extract a C++ value from a \a reader using \a fmts (by default \c jsonv::formats::global()) and \a options.
 ///
 /// A reader on \c ast_node_type::document_start -- a freshly-created one -- is read as a whole document. It is checked
@@ -1111,6 +1121,7 @@ T extract(reader&& from, const extract_options& options)
 /// \}
 
 /// \{
+
 /// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts, using \a fmts (by default
 /// \c jsonv::formats::global()) and \a options.
 ///

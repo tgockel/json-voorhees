@@ -703,6 +703,7 @@ public:
     friend std::string to_string(const value&);
 
     /// \{
+
     /// Get an iterator to the beginning of this array.
     ///
     /// \throws kind_error if the kind is not an array.
@@ -713,6 +714,7 @@ public:
     /// \}
 
     /// \{
+
     /// Get an iterator to the end of this array.
     ///
     /// \throws kind_error if the kind is not an array.
@@ -723,6 +725,7 @@ public:
     /// \}
 
     /// \{
+
     /// View this instance as an array.
     ///
     /// \throws kind_error if the kind is not an array.
@@ -735,6 +738,7 @@ public:
     /// \}
 
     /// \{
+
     /// Get the value in this array at the given \a idx. The overloads which accept an \c int are required to resolve
     /// the type ambiguity of the literal \c 0 between a size_type and a char*.
     ///
@@ -748,6 +752,7 @@ public:
     /// \}
 
     /// \{
+
     /// Get the value in this array at the given \a idx.
     ///
     /// \throws kind_error if the kind is not an array.
@@ -759,6 +764,7 @@ public:
     /// \}
 
     /// \{
+
     /// Push \a item to the back of this array.
     ///
     /// \throws kind_error if the kind is not an array.
@@ -909,6 +915,7 @@ public:
     const_object_iterator find(const std::wstring& key) const;
 
     /// \{
+
     /// Insert \a pair into this object, unless an element with an equivalent key is already present.
     ///
     /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key) and
@@ -919,6 +926,7 @@ public:
     /// \}
 
     /// \{
+
     /// Insert \a pair into this object, unless an element with an equivalent key is already present. As with
     /// \c std::map::insert, the element is inserted as close as possible to the position just prior to \a hint, and a
     /// good \a hint makes the insertion faster.
@@ -968,6 +976,7 @@ public:
     object_iterator insert(const_object_iterator hint, object_node_handle&& handle);
 
     /// \{
+
     /// Insert \a items into this object.
     ///
     /// \throws kind_error if the kind is not an object.
@@ -976,6 +985,7 @@ public:
     /// \}
 
     /// \{
+
     /// Construct an element from \a key and \a val and insert it into this object. If an element with an equivalent
     /// key is already present, the insertion does not happen and the existing element is not overwritten.
     ///
@@ -994,6 +1004,7 @@ public:
     /// \}
 
     /// \{
+
     /// Insert \a val with the given \a key into this object, but only if no element with an equivalent key is already
     /// present. Unlike \ref emplace, \a key is left alone and no node is allocated when the key is already present.
     ///
@@ -1012,6 +1023,7 @@ public:
     /// \}
 
     /// \{
+
     /// Insert \a val with the given \a key into this object if no element with an equivalent key is present;
     /// otherwise, assign \a val to the existing element. Unlike \ref try_emplace, \a val is stored either way.
     ///
@@ -1027,6 +1039,7 @@ public:
     /// \}
 
     /// \{
+
     /// Erase the item with the given \a key.
     ///
     /// \returns 1 if \a key was erased; 0 if it did not.
@@ -1051,6 +1064,7 @@ public:
     object_node_handle extract(const_object_iterator position);
 
     /// \{
+
     /// If the container has an element with the given \a key, unlinks the node that contains that element from the
     /// container and returns a node handle that owns it. Otherwise, returns an empty node handle.
     ///

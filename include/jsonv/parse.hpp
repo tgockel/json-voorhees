@@ -37,6 +37,7 @@ class JSONV_PUBLIC parse_error :
 {
 public:
     /// \{
+
     /// Create an error with the given \a message and optional \a character location.
     explicit parse_error(const char* message, std::optional<std::size_t> character) noexcept;
     explicit parse_error(const char* message) noexcept;
@@ -112,6 +113,7 @@ public:
     static parse_options create_strict();
 
     /// \{
+
     /// The output encoding for multi-byte characters in strings. The default value is \c encoding::utf8.
     JSONV_NODISCARD
     encoding       string_encoding() const { return _string_encoding; }
@@ -119,6 +121,7 @@ public:
     /// \}
 
     /// \{
+
     /// The maximum allowed nesting depth of any structure in the JSON document. The JSON specification technically
     /// limits the depth to 20, but very few implementations actually conform to this, so it is fairly dangerous to set
     /// this value. By default, the value is \c nullopt, which means implementations should limit structure depth to
@@ -130,6 +133,7 @@ public:
     /// \}
 
     /// \{
+
     /// If set to true, the result of a parse is required to have \c kind of \c kind::object or \c kind::array. By
     /// default, this is turned off, which will allow \c parse to return values with \c kind::string or
     /// \c kind::integer.
@@ -139,6 +143,7 @@ public:
     /// \}
 
     /// \{
+
     /// Should the input be completely parsed to consider the parsing a success? This is on by default. Disabling this
     /// option can be useful for situations where JSON input is coming from some stream and you wish to process distinct
     /// objects separately.
@@ -148,6 +153,7 @@ public:
     /// \}
 
     /// \{
+
     /// Are JSON comments allowed? While there is no official syntax for JSON comments, this uses the de-facto standard
     /// of ECMAScript-style block comments: `/* comment */`. If this is enabled, comments are treated exactly like
     /// whitespace. This is off by default, since RFC 8259 has no comments and a conforming parser rejects them; turn
@@ -168,6 +174,7 @@ private:
 };
 
 /// \{
+
 /// Construct a JSON value from the given \a input.
 ///
 /// \code
@@ -200,6 +207,7 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_o
 /// \}
 
 /// \{
+
 /// Reads a JSON value from the \a input stream. For example, to parse JSON from a file:
 ///
 /// \code
@@ -233,6 +241,7 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input, const extract_opti
 /// \}
 
 /// \{
+
 /// Read a JSON value from the string bound by `[begin, end)`.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(const char*            begin,

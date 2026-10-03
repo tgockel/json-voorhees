@@ -62,6 +62,7 @@ class JSONV_PUBLIC no_extractor :
 {
 public:
     /// \{
+
     /// Create a new exception.
     explicit no_extractor(const std::type_info& type);
     explicit no_extractor(const std::type_index& type);

@@ -123,6 +123,7 @@ public:
     }
 
     /// \{
+
     /// When extracting a C++ value, should \c kind::null in JSON automatically become a default-constructed \c TPointer
     /// (which is usually the \c null representation)?
     void check_null_input(bool on)
@@ -138,6 +139,7 @@ public:
     /// \}
 
     /// \{
+
     /// When converting with \c to_json, should a \c null input translate into a \c kind::null?
     void check_null_output(bool on)
     {

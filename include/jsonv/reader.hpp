@@ -106,6 +106,7 @@ public:
     explicit reader(parse_index index);
 
     /// \{
+
     /// Create a reader which reads from an in-memory \a value.
     ///
     /// \param value The value to read from. The overload taking a reference does not copy it, so it must remain
@@ -125,6 +126,7 @@ public:
     /// \}
 
     /// \{
+
     /// Create a reader which reads from JSON \a source.
     ///
     /// The \a source must stay in memory for the duration of this instance's use, unless it is an rvalue reference to
@@ -144,6 +146,7 @@ public:
     reader& operator=(const reader&) = delete;
 
     /// \{
+
     /// Moving a reader transfers its implementation, leaving the source moved-from: \c good is \c false and the
     /// accessors throw \c std::invalid_argument. These are out-of-line because destroying the implementation needs a
     /// complete \c reader::impl, which this header does not have -- the same reason the destructor is.
@@ -196,6 +199,7 @@ public:
     ast_node_type current_type() const;
 
     /// \{
+
     /// Check that the \c current AST node has the given \a type or is one of the expected \a types.
     ///
     /// \returns Nothing if the \c current node matches \a type or one of the given \a types; otherwise the

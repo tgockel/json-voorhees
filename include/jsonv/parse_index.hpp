@@ -118,6 +118,7 @@ public:
     ~parse_index() noexcept;
 
     /// \{
+
     /// Create a \c parse_index from the given \a src JSON.
     ///
     /// Parsing is controlled by \a options where they are given, and by \c parse_options::create_default() where they
@@ -175,6 +176,7 @@ public:
     iterator cend() const { return end(); }
 
     /// \{
+
     /// Build a \c value from the document this index holds. Extraction is controlled by \a options where they are
     /// given, and by \c extract_options::create_default() where they are not.
     JSONV_NODISCARD
@@ -184,6 +186,7 @@ public:
     /// \}
 
     /// \{
+
     /// Get a string representation of the AST.
     ///
     /// +--------------------+--------+

@@ -118,6 +118,7 @@ public:
 };
 
 /// \{
+
 /// Write \a val in the syntax \c path::create reads. An object key which is an identifier (matching
 /// <tt>[a-zA-Z_$][a-zA-Z0-9_$]*</tt>) is written as <tt>.key</tt> and any other key as a JSON string in brackets, like
 /// <tt>["a b"]</tt>. Well-formed UTF-8 in a key is written as it is. An array index is written as <tt>[N]</tt> whatever

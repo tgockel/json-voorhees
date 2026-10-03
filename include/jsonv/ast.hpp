@@ -157,6 +157,7 @@ enum class ast_error : std::uint64_t
 };
 
 /// \{
+
 /// Get a description of the error \a code.
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const ast_error& code);
 JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const ast_error& code);
@@ -505,6 +506,7 @@ public:
     }
 
     /// \{
+
     /// Check that this node has the given \a type or is one of the expected \a types.
     ///
     /// A mismatch is returned rather than thrown, since which node types are acceptable is a question about the JSON

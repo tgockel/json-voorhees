@@ -1924,6 +1924,7 @@ public:
     formats_builder& reference_type(std::type_index type, std::type_index from);
 
     /// \{
+
     /// Check that every type referenced by this \c formats_builder has both an \c extractor and a \c serializer in the
     /// \c formats it is generating, combined with the \c formats \a other or \a others where they are given.
     ///
@@ -1938,6 +1939,7 @@ public:
     /// \}
 
     /// \{
+
     /// Check the references of this builder (see \ref check_references) and compose a \ref formats instance if
     /// successful (see \ref formats::compose).
     JSONV_NODISCARD
