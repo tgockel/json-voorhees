@@ -2325,6 +2325,28 @@ formats probe_formats()
     return out;
 }
 
+/// What an extractor could see of the context it was handed.
+struct context_probe
+{
+    std::optional<version> ver;
+    const void*            user_data;
+    jsonv::path            where;
+};
+
+formats context_probe_formats()
+{
+    static auto instance = make_extractor([] (extraction_context& context, reader& from) -> context_probe
+                                          {
+                                              context_probe out{ context.version(), context.user_data(), context.path() };
+                                              (void) from.next_value();
+                                              return out;
+                                          });
+
+    formats out = formats::compose({ formats::defaults() });
+    out.register_extractor(&instance);
+    return out;
+}
+
 /// Counts the instances alive, so a test can see that an object built and then refused was destroyed.
 struct live_counted
 {
@@ -2470,6 +2492,23 @@ TEST(extract_entry_points_accept_every_source)
     ensure_eq(5, extract<std::int32_t>(reader("5"), fmts));
     ensure_eq(5, extract<std::int32_t>(reader("5"), eopts));
     ensure_eq(5, extract<std::int32_t>(reader("5"), fmts, eopts));
+
+    // A context the caller built, in place of the formats and options. Nothing is recorded on one by a success, so one
+    // serves every call here.
+    extraction_context cxt(fmts);
+    ensure_eq(5, extract<std::int32_t>("5", cxt));
+    ensure_eq(5, extract<std::int32_t>(c_string, cxt));
+    ensure_eq(5, extract<std::int32_t>(text, cxt));
+    ensure_eq(5, extract<std::int32_t>(const_text, cxt));
+    ensure_eq(5, extract<std::int32_t>(std::string("5"), cxt));
+    ensure_eq(5, extract<std::int32_t>(view, cxt));
+    ensure_eq(5, extract<std::int32_t>(view, popts, cxt));
+    ensure_eq(5, extract<std::int32_t>(std::string("5"), popts, cxt));
+    {
+        reader rdr("5");
+        ensure_eq(5, extract<std::int32_t>(rdr, cxt));
+    }
+    ensure_eq(5, extract<std::int32_t>(reader("5"), cxt));
 }
 
 TEST(extract_entry_points_accept_every_source_for_a_dsl_type)
@@ -2490,6 +2529,17 @@ TEST(extract_entry_points_accept_every_source_for_a_dsl_type)
         reader rdr(doc);
         ensure_eq(expected, extract<triple>(rdr, fmts));
     }
+    {
+        extraction_context cxt(fmts);
+        ensure_eq(expected, extract<triple>(doc, cxt));
+        ensure_eq(expected, extract<triple>(std::string(doc), cxt));
+        ensure_eq(expected, extract<triple>(doc.c_str(), cxt));
+        ensure_eq(expected, extract<triple>(doc, parse_options(), cxt));
+        ensure_eq(expected, extract<triple>(reader(doc), cxt));
+
+        reader rdr(doc);
+        ensure_eq(expected, extract<triple>(rdr, cxt));
+    }
 
     // The shapes which take no `formats` use the global one.
     formats::set_global(triple_formats());
@@ -2505,6 +2555,51 @@ TEST(extract_entry_points_accept_every_source_for_a_dsl_type)
         reader rdr(doc);
         ensure_eq(expected, extract<triple>(rdr, extract_options()));
     }
+}
+
+TEST(extract_through_a_caller_context_hands_extractors_what_it_was_built_with)
+{
+    // The overloads taking `formats` and `extract_options` build a context with no version, user data or base path, so
+    // until a context could be passed in, nothing extracted from a reader or from text could be given one.
+    const int          token = 0;
+    extraction_context cxt(context_probe_formats(), version(2, 1), path::create(".outer"), &token);
+
+    auto check = [&] (const context_probe& seen)
+                 {
+                     ensure(seen.ver == version(2, 1));
+                     ensure(seen.user_data == &token);
+                     ensure_eq(path::create(".outer"), seen.where);
+                 };
+
+    check(extract<context_probe>("{}", cxt));
+    check(extract<context_probe>(std::string("{}"), cxt));
+    check(extract<context_probe>("{}", parse_options(), cxt));
+    check(extract<context_probe>(reader("{}"), cxt));
+
+    reader rdr("{}");
+    check(extract<context_probe>(rdr, cxt));
+}
+
+TEST(extract_through_a_caller_context_takes_its_problems_with_the_exception)
+{
+    // Whatever the context held before the call is the caller's; what the call recorded leaves with the exception, so
+    // nothing is reported twice by a caller which reads both.
+    extraction_context cxt(formats::defaults());
+    (void) cxt.problem(path(), "already there");
+
+    try
+    {
+        (void) extract<std::int64_t>(R"("five")", cxt);
+        ensure(!"extraction_error was not thrown");
+    }
+    catch (const extraction_error& err)
+    {
+        ensure_eq(1U, err.problems().size());
+        ensure(err.problems().at(0).message().find("expecting integer") != std::string::npos);
+    }
+
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("already there"), cxt.problems().at(0).message());
 }
 
 TEST(extract_a_cpp_string_is_json_text)
@@ -2679,6 +2774,12 @@ TEST(extract_refuses_views_of_a_source_it_was_handed)
                             ensure_eq(long_text, view);
                         });
 
+    // The same through a context the caller built, which is not left believing its next source is temporary too.
+    extraction_context cxt;
+    ensure_view_refused([&] { ensure_eq(long_text, extract<std::string_view>(std::string(document), cxt)); });
+    ensure_view_refused([&] { ensure_eq(long_text, extract<std::string_view>(reader(std::string(document)), cxt)); });
+    ensure(!cxt.source_is_temporary());
+
     // A copy is fine.
     ensure_eq(long_text, extract<std::string>(std::string(document)));
 }
@@ -2701,6 +2802,13 @@ TEST(extract_views_a_source_the_caller_keeps)
     // An owning reader the caller holds outlives the call, so views of it are the caller's to keep valid.
     reader owning{ std::string(document) };
     ensure_eq(long_text, extract<std::string_view>(owning));
+
+    // The same through a context the caller built.
+    extraction_context cxt;
+    ensure(inside(document, extract<std::string_view>(document, cxt)));
+    ensure(inside(document, extract<std::string_view>(reader(std::string_view(document)), cxt)));
+    reader owning_again{ std::string(document) };
+    ensure_eq(long_text, extract<std::string_view>(owning_again, cxt));
 }
 
 TEST(extract_honours_parse_options)

@@ -988,7 +988,7 @@ T extract_entry(extraction_context& context, reader& from, source_lifetime lifet
     return std::move(*ptr);
 }
 
-/// Extract a \c T from JSON \a source text.
+/// Extract a \c T from JSON \a source text through \a context.
 ///
 /// A \c std::string rvalue is taken over: it is moved into a reader which lives as long as this call, so the extraction
 /// is told its source is temporary and refuses to hand back views of it. Anything else is read where it is, through a
@@ -996,13 +996,8 @@ T extract_entry(extraction_context& context, reader& from, source_lifetime lifet
 /// type, such as a \c std::pmr::string, which outlives this call as every temporary argument does.
 template <typename T, typename TSource>
 JSONV_NODISCARD
-T extract_text(TSource&&              source,
-               const parse_options&   parse_opts,
-               const formats&         fmts,
-               const extract_options& options
-              )
+T extract_text(TSource&& source, const parse_options& parse_opts, extraction_context& context)
 {
-    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
     if constexpr (std::is_same_v<TSource, std::string>)
     {
         reader from(std::forward<TSource>(source), parse_opts);
@@ -1015,6 +1010,19 @@ T extract_text(TSource&&              source,
         reader from(std::string_view(std::forward<TSource>(source)), parse_opts);
         return extract_entry<T>(context, from, source_lifetime::caller);
     }
+}
+
+/// \c extract_text through a context of its own, built from \a fmts and \a options.
+template <typename T, typename TSource>
+JSONV_NODISCARD
+T extract_text(TSource&&              source,
+               const parse_options&   parse_opts,
+               const formats&         fmts,
+               const extract_options& options
+              )
+{
+    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return extract_text<T>(std::forward<TSource>(source), parse_opts, context);
 }
 
 }
@@ -1122,6 +1130,38 @@ T extract(reader&& from, const extract_options& options)
 
 /// \{
 
+/// Extract a C++ value from a \a reader through a \a context the caller built, exactly as the overloads above do with
+/// one built from \c formats and \c extract_options.
+///
+/// Everything \a context was created with applies: its \c formats and \c extract_options, and also the version, user
+/// data and base path its extractors see, which the overloads above have no way to be given. A failed call throws the
+/// problems it recorded and takes them off \a context, which is left holding what it held before.
+///
+/// An \c extraction_context is single-use, so build one for each document and do not hand this the one an \c extractor
+/// was given -- whatever that extraction has in progress would be applied to a document it knows nothing about.
+///
+/// \throws extraction_error for the same reasons as the overloads above.
+template <typename T>
+JSONV_NODISCARD
+T extract(reader& from, extraction_context& context)
+{
+    return detail::extract_entry<T>(context, from, detail::source_lifetime::caller);
+}
+
+template <typename T>
+JSONV_NODISCARD
+T extract(reader&& from, extraction_context& context)
+{
+    return detail::extract_entry<T>(context,
+                                    from,
+                                    from.owns_source() ? detail::source_lifetime::extraction
+                                                       : detail::source_lifetime::caller
+                                   );
+}
+/// \}
+
+/// \{
+
 /// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts, using \a fmts (by default
 /// \c jsonv::formats::global()) and \a options.
 ///
@@ -1184,6 +1224,35 @@ JSONV_NODISCARD
 T extract(TSource&& source, const parse_options& parse_opts, const extract_options& options)
 {
     return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, formats::global(), options);
+}
+/// \}
+
+/// \{
+
+/// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts where they are given, through a
+/// \a context the caller built.
+///
+/// \a source is read exactly as the overloads above read it, a \c std::string rvalue included, and \a context is used
+/// as the \c reader overload taking an \c extraction_context uses it: everything it was created with applies, and the
+/// problems a failed call throws are taken off it. Build one for each document.
+///
+/// \throws extraction_error if \a source is not valid JSON, the value could not be extracted, or something follows it.
+/// \throws std::invalid_argument if \a parse_opts asks for a \c parse_options::max_structure_depth beyond the limit,
+///                               as \c jsonv::parse does.
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&& source, extraction_context& context)
+{
+    return detail::extract_text<T>(std::forward<TSource>(source), parse_options::create_default(), context);
+}
+
+template <typename T, typename TSource>
+    requires std::convertible_to<TSource, std::string_view>
+JSONV_NODISCARD
+T extract(TSource&& source, const parse_options& parse_opts, extraction_context& context)
+{
+    return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, context);
 }
 /// \}
 

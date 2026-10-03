@@ -474,6 +474,12 @@
        a `std::string_view` extracted from either would dangle before the caller could read it; both are refused, as
        for a materialised tree. `extraction_context::source_is_temporary` now covers both causes. Pass a
        `std::string_view`, a `std::string` lvalue or a reader over storage you keep to extract views (#232).
+     - Added `extract<T>(reader&, extraction_context&)`, `extract<T>(reader&&, extraction_context&)` and
+       `extract<T>(text, [parse_options,] extraction_context&)`, which extract through a context the caller built
+       rather than one made from `formats` and `extract_options`. A version, user data and a base path exist only on a
+       context, so until now nothing read from a reader or from text could be given one: the only whole-document entry
+       taking a context was `extraction_context::extract<T>(const value&)`. A failed call takes the problems it recorded
+       off the context with the exception, leaving it holding what it held before (#133).
      - Removed `extraction_context::extract_sub`. It reached into an already-materialised tree by path, which a
        forward cursor has no equivalent for and which nothing in the library still did. Within a `value`-based
        adapter, name the part and say where it is: `context.extract<int>(from.at("a"))` under an
