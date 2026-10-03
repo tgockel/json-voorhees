@@ -480,6 +480,15 @@
        context, so until now nothing read from a reader or from text could be given one: the only whole-document entry
        taking a context was `extraction_context::extract<T>(const value&)`. A failed call takes the problems it recorded
        off the context with the exception, leaving it holding what it held before (#133).
+     - `extraction_error` says which document a problem is in as well as where in it. `extraction_context` takes the
+       name of the document -- usually the file its text was read from -- as a new last constructor argument,
+       `source_name`, and every problem recorded on it carries the name as `extraction_error::problem::source_name`.
+       `what()` joins it to the path with a `#`, as in `Extraction error at config.json#.servers[2].port: ...`, and
+       gives the name alone for a problem with no position, such as a parse failure. A problem folded in from a context
+       which named some other document keeps that name. `extraction_error::source_name` is the first problem's, as
+       `path` is, and without a name the message is unchanged. Spell out every argument before the name: a string in
+       the place of `userdata` converts to `const void*` and is taken for the user data. `extraction_error::problem`
+       and `extraction_context` both change layout (#133).
      - Removed `extraction_context::extract_sub`. It reached into an already-materialised tree by path, which a
        forward cursor has no equivalent for and which nothing in the library still did. Within a `value`-based
        adapter, name the part and say where it is: `context.extract<int>(from.at("a"))` under an
