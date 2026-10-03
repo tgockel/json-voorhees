@@ -426,8 +426,8 @@ namespace jsonv
 ///  - <tt>type_default_on_null()</tt>
 ///  - <tt>type_default_on_null(bool on)</tt>
 ///
-/// If the JSON value \c null is in the input, should this type take on some default?
-/// This should be used with \ref serialization_builder_dsl_ref_type_level_type_default_value.
+/// If the JSON value \c null is in the input, should this type take on some default? This option is only considered
+/// if a \ref serialization_builder_dsl_ref_type_level_type_default_value was provided.
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_type_default_value type_default_value
 ///
@@ -809,8 +809,8 @@ public:
     virtual std::expected<void, ast_node_type>
     extract(extraction_context& context, reader& from, std::string_view key, T& out) const = 0;
 
-    /// Apply this member's default to \a out, reading nothing. Called when no key claimed this member, and when the
-    /// key which did held \c null and \c default_on_null is set.
+    /// Apply this member's default to \a out, reading nothing. Only called on a member which \ref has_default: when no
+    /// key claimed it, and when the key which did held \c null and \c default_on_null is set.
     JSONV_NODISCARD
     virtual std::expected<void, ast_node_type> apply_default(extraction_context& context, T& out) const = 0;
 
@@ -861,7 +861,9 @@ public:
     virtual std::expected<void, ast_node_type>
     extract(extraction_context& context, reader& from, std::string_view key, T& out) const override
     {
-        if (_default_on_null && current_is_null(from))
+        // Only with a default to take. Without one, a `null` is a value like any other and goes to the extractor below,
+        // just as a missing key without one is still reported missing rather than defaulted.
+        if (_default_on_null && _default_value && current_is_null(from))
         {
             (void) from.next_token();
             return apply_default(context, out);
@@ -1070,7 +1072,9 @@ public:
         return default_value([value] (extraction_context&) { return value; });
     }
 
-    /** Should a \c kind::null for a key be interpreted as a missing value? **/
+    /** Should a \c kind::null for a key be interpreted as a missing value? Only considered if a \c default_value was
+     *  provided; without one, the \c null is extracted like any other value.
+    **/
     member_adapter_builder& default_on_null(bool on = true)
     {
         _adapter->default_on_null(on);
@@ -1312,7 +1316,8 @@ private:
             if (_pre_extract)
                 _pre_extract(context);
 
-            if (_default_on_null && detail::current_is_null(from))
+            // As for a member: without a default to take, a `null` is refused below as the non-object it is.
+            if (_default_on_null && _create_default && detail::current_is_null(from))
             {
                 (void) from.next_token();
 

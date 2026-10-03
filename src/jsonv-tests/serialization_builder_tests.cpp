@@ -960,6 +960,85 @@ TEST(serialization_builder_empty_object_still_requires_a_member_without_one)
     }
 }
 
+TEST(serialization_builder_default_on_null_without_a_default_extracts_the_null)
+{
+    // `default_on_null` is only considered when there is a default to take. Without one, a `null` is a value like any
+    // other and goes to the member's own extractor, which can say what is wrong with the document. It used to be
+    // handed to the default factory nobody provided, and failed as a `std::bad_function_call`.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .default_on_null()
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    extraction_context cxt(fmt);
+    auto               rdr = open(R"({ "a": null, "b": 2, "c": 3 })");
+
+    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("Read node of type null when expecting integer"), cxt.problems().at(0).message());
+    ensure_eq(path::create(".a"), cxt.problems().at(0).path());
+    ensure(!cxt.problems().at(0).nested_ptr());
+
+    // Nor does the flag make the member optional. A missing key is still a missing required field, which is the gated
+    // branch the `null` one now matches.
+    extraction_context missing(fmt);
+    auto               missing_rdr = open(R"({ "b": 2, "c": 3 })");
+
+    ensure(!missing.extract<triple>(missing_rdr).has_value());
+    ensure_eq(1U, missing.problems().size());
+    ensure_eq(std::string("Missing required field a"), missing.problems().at(0).message());
+}
+
+TEST(serialization_builder_type_default_on_null_without_a_default_extracts_the_null)
+{
+    // The type-level pair follows the same rule. With no `type_default_value`, a `null` is read like any other value,
+    // and a type described by the DSL is read from an object.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                        .type_default_on_null()
+                  .compose_checked(formats::defaults());
+
+    extraction_context cxt(fmt);
+    auto               rdr = open("null");
+
+    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("Read node of type null when expecting object"), cxt.problems().at(0).message());
+    ensure(!cxt.problems().at(0).nested_ptr());
+}
+
+TEST(serialization_builder_null_takes_the_default_only_when_asked)
+{
+    // A `null` takes the default only where both were asked for, in whichever order they were declared: the gate is
+    // asked at extraction time, not when the flag is set. A member with a `default_value` alone still reads an
+    // explicit `null` as a value to extract, since its default is for a key which is missing.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .default_on_null()
+                            .default_value(7)
+                        .member("b", &triple::b)
+                            .default_value(8)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    ensure_eq(triple({ 7, 2, 3 }), extract<triple>(parse(R"({ "a": null, "b": 2, "c": 3 })"), fmt));
+
+    extraction_context cxt(fmt);
+    auto               rdr = open(R"({ "a": 1, "b": null, "c": 3 })");
+
+    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    ensure_eq(std::string("Read node of type null when expecting integer"), cxt.problems().at(0).message());
+    ensure_eq(path::create(".b"), cxt.problems().at(0).path());
+}
+
 TEST(serialization_builder_alternate_name_prefers_the_declared_one)
 {
     // Both spellings are in the document. The declared name is preferred whichever order they arrive in, which the

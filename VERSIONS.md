@@ -544,6 +544,12 @@
        which caught the `std::bad_alloc` and carried on got `no_extractor` or `no_serializer` -- or, in a `formats`
        composed over a base, the base's implementation without a word. A registration which throws now leaves the
        `formats` as it found it (#244).
+     - Fixed `default_on_null` without a `default_value`, and `type_default_on_null` without a `type_default_value`,
+       failing with `std::bad_function_call`. A `null` where either applied was handed to a default factory nobody
+       provided, so the document was refused with an `extraction_error` describing the library's internals. The flag is
+       now only considered when there is a default to take -- the test a missing key was already put to, and what the
+       DSL reference has always said for a member. A `null` with nothing to fall back on is extracted like any other
+       value: for an integer member, or for the type itself, a node type mismatch naming `null` (#258).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC
