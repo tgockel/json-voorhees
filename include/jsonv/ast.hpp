@@ -40,7 +40,7 @@ std::string string_from_token(std::string_view token, std::true_type is_escaped)
 
 }
 
-/// \ingroup Value
+/// \addtogroup Value
 /// \{
 
 /// Marker type for an encountered token type.
@@ -103,7 +103,8 @@ enum class ast_node_type : std::uint8_t
     error            = 15,
 };
 
-/// \{
+/// Write the one-character code for \a type.
+///
 /// +--------------------+--------+
 /// | `ast_node_type`    | Output |
 /// +--------------------+--------+
@@ -124,9 +125,12 @@ enum class ast_node_type : std::uint8_t
 /// | `decimal`          | `d`    |
 /// | `error`            | `!`    |
 /// +--------------------+--------+
+///
+/// A value outside the enumeration is written as `Invalid type value: ` followed by its number.
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const ast_node_type& type);
+
+/// Get what \c operator<< writes for \a type as a \c std::string.
 JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const ast_node_type& type);
-/// \}
 
 /// Error code encountered while building the AST.
 enum class ast_error : std::uint64_t
@@ -550,12 +554,12 @@ private:
     storage_type _impl;
 };
 
+/// \}
+
 template <typename TSelf, ast_node_type KIndexToken>
 ast_node::base<TSelf, KIndexToken>::operator ast_node() const
 {
     return ast_node(ast_node::storage_type(static_cast<const TSelf&>(*this)));
 }
-
-/// \}
 
 }

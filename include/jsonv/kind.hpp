@@ -18,7 +18,7 @@
 namespace jsonv
 {
 
-/** \ingroup Value
+/** \addtogroup Value
  *  \{
 **/
 

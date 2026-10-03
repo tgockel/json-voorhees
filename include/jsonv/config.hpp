@@ -9,7 +9,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
-/// \ingroup Configuration
+/// \addtogroup Configuration
 /// \{
 
 /// \def JSONV_USER_CONFIG
@@ -18,11 +18,22 @@
 #   include JSONV_USER_CONFIG
 #endif
 
+/// \def JSONV_VERSION_MAJOR
+/// The major version of JSON Voorhees these headers belong to.
 #define JSONV_VERSION_MAJOR 2
+
+/// \def JSONV_VERSION_MINOR
+/// The minor version of JSON Voorhees these headers belong to.
 #define JSONV_VERSION_MINOR 0
+
+/// \def JSONV_VERSION_PATCH
+/// The patch version of JSON Voorhees these headers belong to.
 #define JSONV_VERSION_PATCH 0
 
 /// \def JSONV_VERSION
+/// The version of JSON Voorhees these headers belong to as a single number,
+/// `JSONV_VERSION_MAJOR * 1000000 + JSONV_VERSION_MINOR * 1000 + JSONV_VERSION_PATCH`, so a version check can be
+/// written as `#if JSONV_VERSION >= 2000000`.
 #define JSONV_VERSION (JSONV_VERSION_MAJOR * 1000000 + JSONV_VERSION_MINOR * 1000 + JSONV_VERSION_PATCH)
 
 /// \def JSONV_DEBUG

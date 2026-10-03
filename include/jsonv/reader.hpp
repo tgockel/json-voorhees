@@ -35,7 +35,7 @@ class reader_lookahead;
 
 }
 
-/// \ingroup Serialization
+/// \addtogroup Serialization
 /// \{
 
 /// A reader instance reads from some form of JSON source (probably a string) and converts it into a JSON \ref ast_node

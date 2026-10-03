@@ -21,7 +21,7 @@ namespace jsonv
 class extract_options;
 class parse_options;
 
-/// \ingroup Value
+/// \addtogroup Value
 /// \{
 
 /// Represents the index of a parsed AST. When combined with the original text, can be used to create a \c value. See
