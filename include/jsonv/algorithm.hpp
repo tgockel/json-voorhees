@@ -412,15 +412,18 @@ public:
     virtual value resolve_type_conflict(path&& current_path, value&& a, value&& b) const override;
 };
 
-/// Merges two \c values, \a a and \a b into a single \c value.
+/// \{
+
+/// Merges \c values into a single \c value by the given \a rules (see \c merge_rules). The \a current_path is the
+/// \c path into the \c value being merged, which can give more useful error information when merging recursively.
 ///
-/// The merging follows a few simple rules:
+/// Two values \a a and \a b are merged by a few simple rules:
 ///
-///  - If \a a.kind() != \a b.kind() and they are not \c kind::integer and \c kind::decimal, call \a on_type_conflict
-///    and return the result.
+///  - If \a a.kind() != \a b.kind() and they are not \c kind::integer and \c kind::decimal, call
+///    \c merge_rules::resolve_type_conflict and return the result.
 ///  - Otherwise, branch based on the (shared) type:
 ///    - \c kind::object - Return a new object with all the values from \a a and \a b for the keys which are unique per
-///      object. For the keys which are shared, the value is the result of \a on_same_key.
+///      object. For the keys which are shared, the value is the result of \c merge_rules::resolve_same_key.
 ///    - \c kind::array - Return a new array with the values of \a b appended to \a a.
 ///    - \c kind::string - Return a new string with \a b appended to \a a.
 ///    - \c kind::boolean - Return `a.as_boolean() || b.as_boolean()`
@@ -428,11 +431,8 @@ public:
 ///      decimal.
 ///    - \c kind::decimal - Return `a + b` as a decimal.
 ///
-/// \param rules are the rules to merge with (see \c merge_rules).
-/// \param current_path The current \c path into the \c value that we are merging. This can be used to give more useful
-///                     error information if we are merging recursively.
-/// \param a is a \c value to merge.
-/// \param b is a \c value to merge.
+/// Three or more values are merged two at a time from left to right, a single value is returned as it is, and no values
+/// at all make an empty object. This is how \c merge takes any number of values.
 JSONV_NODISCARD JSONV_PUBLIC value merge_explicit(const merge_rules& rules,
                                   path               current_path,
                                   value              a,
@@ -455,6 +455,7 @@ value merge_explicit(const merge_rules& rules, path current_path, value a, value
                           std::forward<TValue>(rest)...
                          );
 }
+/// \}
 
 /** Merges all the provided \a values into a single \c value. If there are any key or type conflicts, an exception will
  *  be thrown.

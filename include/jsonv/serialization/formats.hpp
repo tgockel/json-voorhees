@@ -88,9 +88,12 @@ class JSONV_PUBLIC no_serializer :
         public std::runtime_error
 {
 public:
+    /// \{
+
     /// Create a new exception.
     explicit no_serializer(const std::type_info& type);
     explicit no_serializer(const std::type_index& type);
+    /// \}
 
     virtual ~no_serializer() noexcept;
 

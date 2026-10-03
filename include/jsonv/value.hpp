@@ -587,6 +587,8 @@ public:
         return _kind;
     }
 
+    /// \{
+
     /** Get the value specified by the path \a p.
      *
      *  \throws std::out_of_range if any path along the chain did not exist.
@@ -604,6 +606,9 @@ public:
     const value& at_path(std::string_view p) const;
     JSONV_NODISCARD
     const value& at_path(size_type   p) const;
+    /// \}
+
+    /// \{
 
     /** Similar to \c count, but walks the given path \a p to determine its presence.
      *
@@ -618,6 +623,9 @@ public:
     size_type count_path(std::string_view p) const;
     JSONV_NODISCARD
     size_type count_path(size_type   p) const;
+    /// \}
+
+    /// \{
 
     /** Get or create the value specified by the path \a p. This is the moral equivalent to \c operator[] for paths. If
      *  no value exists at the path, a new one is created as the default (\c null) value. If any path along the way
@@ -635,6 +643,7 @@ public:
     value& path(const path& p);
     value& path(std::string_view p);
     value& path(size_type   p);
+    /// \}
 
     /** Swap the value this instance represents with \a other. **/
     void swap(value& other) noexcept;
@@ -843,6 +852,8 @@ public:
     /// \throws kind_error if the kind is not an array.
     array_iterator erase(const_array_iterator first, const_array_iterator last);
 
+    /// \{
+
     /** Get an iterator to the first key-value pair in this object.
      *
      *  \throws kind_error if the kind is not an object.
@@ -851,6 +862,9 @@ public:
     object_iterator       begin_object();
     JSONV_NODISCARD
     const_object_iterator begin_object() const;
+    /// \}
+
+    /// \{
 
     /** Get an iterator to the one past the end of this object.
      *
@@ -860,6 +874,9 @@ public:
     object_iterator       end_object();
     JSONV_NODISCARD
     const_object_iterator end_object() const;
+    /// \}
+
+    /// \{
 
     /** View this instance as an object.
      *
@@ -871,6 +888,9 @@ public:
     const_object_view  as_object() const &;
     JSONV_NODISCARD
     owning_object_view as_object() &&;
+    /// \}
+
+    /// \{
 
     /** Get the value associated with the given \a key of this object. If the \a key does not exist, it will be created.
      *
@@ -879,6 +899,9 @@ public:
     value& operator[](const std::string& key);
     value& operator[](std::string&& key);
     value& operator[](const std::wstring& key);
+    /// \}
+
+    /// \{
 
     /** Get the value associated with the given \a key of this object.
      *
@@ -891,6 +914,9 @@ public:
     const value& at(const std::string& key) const;
     JSONV_NODISCARD
     const value& at(const std::wstring& key) const;
+    /// \}
+
+    /// \{
 
     /** Check if the given \a key exists in this object.
      *
@@ -900,6 +926,9 @@ public:
     size_type count(const std::string& key) const;
     JSONV_NODISCARD
     size_type count(const std::wstring& key) const;
+    /// \}
+
+    /// \{
 
     /** Attempt to locate a key-value pair with the provided \a key in this object.
      *
@@ -913,6 +942,7 @@ public:
     const_object_iterator find(const std::string& key)  const;
     JSONV_NODISCARD
     const_object_iterator find(const std::wstring& key) const;
+    /// \}
 
     /// \{
 

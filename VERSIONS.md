@@ -560,6 +560,13 @@
      - Link-time optimization is now enabled per configuration rather than globally. `CMAKE_BUILD_TYPE` was defaulted
        to `Release` whenever it was empty, which is always under a multi-config generator, so a Visual Studio build
        chose LTO from a configuration it was not building and compiled the Debug one `/GL` and `/LTCG`.
+     - The reference documentation gives each overload the comment it shares with the rest of its set. Doxygen attached
+       that comment to the set's first declaration only, so `reader::from_value(value&&)`, the `std::wstring` and
+       `const` forms of `value`'s accessors and about ninety others had no entry; `DISTRIBUTE_GROUP_DOC` is now on, and
+       each shared comment has been made true of every overload it now describes. The `string_view` and `istream`
+       overloads of `parse`, `ostream_pretty_encoder` and one `enum_adapter` constructor are documented where they are
+       declared rather than on a stray "Examples" page, and a new Configuration module lists the macros in `config.hpp`
+       (#300).
 
 1._ Series
 ==========
