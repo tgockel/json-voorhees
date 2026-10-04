@@ -202,6 +202,12 @@
      - `ostream_pretty_encoder` no longer flushes its stream at the end of every line. It wrote line breaks with
        `std::endl`, so pretty output to a file or a socket paid for a write per line. The output itself is unchanged;
        flush the stream yourself if you need it to have arrived (#188).
+     - `jsonv::optional<T>` is still `std::optional<T>` for every `T` that takes, and is now also defined for a
+       reference. `std::optional<T&>` is C++26 (P2988), and neither MSVC's standard library nor Apple's has it yet, so
+       `jsonv::optional<T&>` is a stand-in with its interface: one pointer, trivially copyable, rebound rather than
+       assigned through, and refusing to bind to a temporary. It is what the accessors which may have nothing to lend
+       return. Once every supported toolchain has `std::optional<T&>`, `jsonv::optional` is `std::optional` throughout.
+       `jsonv::nullopt` is gone; `std::nullopt` works for both.
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

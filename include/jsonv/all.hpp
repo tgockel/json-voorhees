@@ -920,6 +920,7 @@ namespace jsonv
 #include "forward.hpp"
 #include "functional.hpp"
 #include "kind.hpp"
+#include "optional.hpp"
 #include "parse.hpp"
 #include "parse_index.hpp"
 #include "path.hpp"
