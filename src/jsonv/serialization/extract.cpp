@@ -319,7 +319,7 @@ path extraction_context::path() const
 std::string_view extraction_context::encoded_source() const
 {
     const auto* scope = _innermost_source;
-    if (!scope || !scope->_closed)
+    if (!scope || scope->_showing != detail::source_scope::shows::value_and_text)
         return std::string_view();
     else if (!scope->_tree)
         return scope->_text;
@@ -328,6 +328,32 @@ std::string_view extraction_context::encoded_source() const
         scope->_encoded.emplace(to_string(*scope->_tree));
 
     return *scope->_encoded;
+}
+
+optional<const value&> extraction_context::source_value() const
+{
+    using shows = detail::source_scope::shows;
+
+    const auto* scope = _innermost_source;
+    if (!scope || scope->_showing == shows::nothing)
+        return std::nullopt;
+    else if (scope->_tree)
+        return scope->_tree;
+
+    if (!scope->_read)
+    {
+        // Before the walk the reader is still on the value. After it the reader is on the object's `}`, and the
+        // bookmark is the way back to its `{` -- which a source with no tape would not have, and could not show.
+        if (scope->_showing == shows::value)
+            scope->_read.emplace(detail::peek_value(*this, *scope->_from));
+        else if (scope->_bookmark)
+            scope->_read.emplace(detail::peek_value_at(*this, *scope->_from, *scope->_bookmark));
+        else
+            return std::nullopt;
+    }
+
+    scope->lend_temporary();
+    return *scope->_read;
 }
 
 /// The reader's path, or an empty one if asking for it fails.
@@ -575,12 +601,12 @@ std::expected<void, ast_node_type> extraction_context::extract(const std::type_i
     // extraction is what keeps a note nobody collects from answering for an unrelated position later.
     _consumed_failed_value = nullptr;
 
-    // An object whose `}` has been reached can be quoted by its hooks, and a hook is free to extract something else
-    // through this context. Nothing that extraction runs is part of the object -- and the DSL's adapter is not the only
-    // extractor which might ask -- so it is shown nothing. Part-way through a walk there is no source showing to hide,
-    // since the innermost object has not reached its `}`, so the ordinary path pays for the test and no more.
-    std::optional<detail::encoded_source_scope> hide_source;
-    if (_innermost_source && _innermost_source->_closed)
+    // An object's hooks are shown it -- before the walk and once it reaches the `}` -- and a hook is free to extract
+    // something else through this context. Nothing that extraction runs is part of the object -- and the DSL's adapter
+    // is not the only extractor which might ask -- so it is shown nothing. Part-way through a walk there is nothing
+    // showing to hide, so the ordinary path pays for the test and no more.
+    std::optional<detail::source_scope> hide_source;
+    if (_innermost_source && _innermost_source->_showing != detail::source_scope::shows::nothing)
         hide_source.emplace(*this);
 
     try
@@ -1114,6 +1140,24 @@ value detail::peek_value(const extraction_context& context, const reader& from)
         return read_scalar(from.current());
 
     reader probe = reader_lookahead::open(from);
+    try
+    {
+        return read_value_settling(probe, context.options().on_duplicate_key());
+    }
+    catch (const duplicate_key_error& ex)
+    {
+        throw relocate(context, ex);
+    }
+}
+
+std::optional<parse_index::const_iterator> detail::bookmark(const reader& from) noexcept
+{
+    return reader_lookahead::mark(from);
+}
+
+value detail::peek_value_at(const extraction_context& context, const reader& from, parse_index::const_iterator at)
+{
+    reader probe = reader_lookahead::open(from, at);
     try
     {
         return read_value_settling(probe, context.options().on_duplicate_key());

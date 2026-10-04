@@ -163,6 +163,16 @@ std::unique_ptr<reader::impl> reader::impl_parse_index::lookahead() const
     return std::unique_ptr<impl>(new impl_parse_index(*_index, _current));
 }
 
+std::optional<parse_index::const_iterator> reader::impl_parse_index::tape_position() const noexcept
+{
+    return _current;
+}
+
+std::unique_ptr<reader::impl> reader::impl_parse_index::lookahead_at(parse_index::const_iterator at) const
+{
+    return std::unique_ptr<impl>(new impl_parse_index(*_index, at));
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // reader::impl_parse_index_owning                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

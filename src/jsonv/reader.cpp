@@ -191,4 +191,20 @@ reader detail::reader_lookahead::open(const reader& origin)
         throw std::invalid_argument("reader instance has been moved-from");
 }
 
+std::optional<parse_index::const_iterator> detail::reader_lookahead::mark(const reader& origin) noexcept
+{
+    if (origin._impl)
+        return origin._impl->tape_position();
+    else
+        return std::nullopt;
+}
+
+reader detail::reader_lookahead::open(const reader& origin, parse_index::const_iterator at)
+{
+    if (origin._impl)
+        return reader(origin._impl->lookahead_at(at));
+    else
+        throw std::invalid_argument("reader instance has been moved-from");
+}
+
 }

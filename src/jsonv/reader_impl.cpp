@@ -71,6 +71,16 @@ optional<const value&> reader::impl::borrowed_value() const noexcept
     return std::nullopt;
 }
 
+std::optional<parse_index::const_iterator> reader::impl::tape_position() const noexcept
+{
+    return std::nullopt;
+}
+
+std::unique_ptr<reader::impl> reader::impl::lookahead_at(parse_index::const_iterator) const
+{
+    throw std::logic_error("This reader has no tape to open a lookahead on a position of");
+}
+
 const path& reader::impl::current_path() const
 {
     if (_current_path_dirty)

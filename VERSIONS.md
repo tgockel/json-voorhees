@@ -406,18 +406,34 @@
        handler is `void(extraction_context&, std::set<std::string>)`, and a member's `default_value` factory is
        `TMember(extraction_context&)`. `throw_extra_keys_extraction_error` follows the second of those and never
        read its `value` anyway. A forward cursor cannot hand a callback the object it is part-way through reading,
-       and a missing key is only known to be missing once every key which was there has gone by. The capability
-       that removes -- most sharply a default computed from a sibling member, which has no workaround short of
-       restructuring -- is tracked in #235; `post_extract` sees the whole object and is where such a default
-       belongs today. `type_default_value` is unaffected: it took only the context already (#231).
+       and a missing key is only known to be missing once every key which was there has gone by. What the parameter
+       gave them -- most sharply a default computed from a sibling member -- they ask the context for instead, through
+       `extraction_context::source_value` (#235). `type_default_value` is unaffected: it took only the context
+       already (#231).
      - `extraction_context::encoded_source` quotes the object a DSL-described type is being extracted from, so a
        `post_extract` which refuses the object can say which one it was. It is there for the hooks which run once the
-       walk reaches the object's `}` -- `on_extract_extra_keys` and the `default_value` of a member whose key never
-       arrived as well as `post_extract` -- and is empty anywhere else, including inside anything one of those hooks
-       goes on to extract through its context. Read from JSON text it is a view of exactly what was written; read from
-       a `value` it is that value's compact encoding, made the first time a hook asks, so an extraction which never
-       asks pays nothing for it from either. It is text to quote rather than a tree to query, which is still #235
-       (#134).
+       walk reaches the object's `}` -- `on_extract_extra_keys` and every member's `default_value` as well as
+       `post_extract` -- and is empty anywhere else, including inside anything one of those hooks goes on to extract
+       through its context. Read from JSON text it is a view of exactly what was written; read from a `value` it is
+       that value's compact encoding, made the first time a hook asks, so an extraction which never asks pays nothing
+       for it from either. It is text to quote; `extraction_context::source_value` is the tree to query (#134).
+     - `extraction_context::source_value` gives the hooks of a DSL-described type the object they are about, as a
+       `value` to read members out of: `pre_extract` can refuse a document by a version member, a `default_value` can
+       compute from a sibling, and an `on_extract_extra_keys` handler can read the values of the keys it is handed.
+       It returns a `jsonv::optional<const value&>`, which is empty anywhere else -- a member's `check_input` or setter
+       during the walk, a `type_default_value` standing in for a `null`, anything a hook goes on to extract through its
+       context, and anything outside DSL extraction. `pre_extract` is shown the value the reader is on, which is not
+       necessarily an object. Read from a `value`, it is the caller's own tree. Read from text, the first hook to ask
+       has the object read into a `value` through a second cursor -- from where the reader is, before the walk, or
+       from a position on the tape kept from the object's `{`, after it -- and the hooks after it are shown the same
+       one. Keeping that position allocates nothing, so an extraction which never asks costs what it did. What is read
+       from text belongs to the extraction, so while it is being lent `source_is_temporary` is `true`, and a
+       `std::string_view` extracted from it is refused rather than left to dangle (#235).
+     - A `null` which takes a member's default under `default_on_null` has it applied once the walk is done, in
+       declaration order with the defaults of the keys which never arrived, rather than as the walk meets the `null`.
+       That is what the option always said a `null` means, and it is what lets that default read and quote the whole
+       object. Its setter now runs after every member the document did give a value, rather than in document order
+       (#235).
      - Finding the keys which claimed no member is now free. It used to be a second scan over the materialised
        object, registered as a `pre_extract` and comparing every key against every member; the walk now knows which
        keys those were because it is the thing which failed to place them. It is also no longer a `pre_extract`, so

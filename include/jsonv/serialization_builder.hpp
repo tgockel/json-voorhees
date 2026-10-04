@@ -127,7 +127,9 @@ namespace jsonv
 /// document order rather than declaration order, so that is also the order a member's \c check_input and setter run
 /// in and the order problems are reported in. Once the walk reaches the end of the object, each member no key
 /// claimed is given its \ref serialization_builder_dsl_ref_member_level_default_value "default value" or, if it has
-/// none, reported as missing; that pass, being over the members rather than the keys, goes in declaration order.
+/// none, reported as missing; that pass, being over the members rather than the keys, goes in declaration order. A
+/// member whose key held a \c null under \ref serialization_builder_dsl_ref_member_level_default_on_null
+/// "default_on_null" is given its default in the same pass, since that is what the \c null stands for.
 ///
 /// A key which no member claims is skipped rather than collected: its value is stepped over unread, in a single step
 /// however large it is, and never built into a \c value nobody asked for. Its name is all that is kept, and only when
@@ -136,11 +138,12 @@ namespace jsonv
 /// \c duplicate_key_action::exception remembers every key, claimed or not, so that the object is refused if one comes
 /// round again.
 ///
-/// The same forward walk is why no hook is handed the JSON being read as a \c value to query: \c pre_extract runs
-/// before any of it has been, and by the time a default is wanted or \c post_extract runs, it has gone by. What the
-/// hooks which run after the walk can have is its text. Once the walk reaches the object's \c },
-/// \c extraction_context::encoded_source quotes the whole of it -- which is what a hook validating the object wants to
-/// put in its message. It is only ever worked out when asked for, so it costs a successful extraction nothing.
+/// No hook is handed the JSON being read as an argument, but every one which takes an \c extraction_context can ask it
+/// for the object. \c extraction_context::source_value has it as a \c value to read members out of: for
+/// \c pre_extract, before the walk, and for \c on_extract_extra_keys, every \c default_value and \c post_extract after
+/// it. Once the walk has reached the object's \c }, \c extraction_context::encoded_source quotes the whole of it too,
+/// which is what a hook validating the object wants to put in its message. Neither is worked out until a hook asks, so
+/// they cost an extraction which never asks nothing.
 ///
 /// \section Reference
 ///
@@ -414,9 +417,20 @@ namespace jsonv
 /// Call the given \a perform function during the \c extract operation, but before performing any extraction. This can
 /// be called multiple times -- all functions will be called in the order they are provided.
 ///
-/// The source document is not among the arguments. Extraction walks the reader forward, so at the point this runs
-/// there is nothing read yet to hand over, and \c extraction_context::encoded_source is empty; see
-/// \ref serialization_builder_dsl_ref_type_level_post_extract for a hook which sees the finished object.
+/// The source document is not among the arguments, but \c extraction_context::source_value has it, before any member
+/// has been read out of it. Nothing yet knows that it is an object, so it is shown as whatever it is -- including a
+/// \c null that \ref serialization_builder_dsl_ref_type_level_default_on_null "type_default_on_null" goes on to replace.
+/// Its text cannot be quoted yet, so \c extraction_context::encoded_source is empty.
+///
+/// \code
+///   .type<my_type>()
+///       .pre_extract([] (extraction_context& context)
+///                    {
+///                        if (context.source_value().value().at("schema") != jsonv::value(2))
+///                            throw std::invalid_argument("Only schema 2 is supported");
+///                    }
+///                   )
+/// \endcode
 ///
 /// \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
 ///
@@ -426,8 +440,8 @@ namespace jsonv
 /// are provided. This allows validation methods to be called on the extracted object as part of extraction.
 /// Postprocessing functions are allowed to mutate the extracted object.
 ///
-/// A validation which fails can quote the JSON the object was read from, through
-/// \c extraction_context::encoded_source:
+/// The JSON the object was read from is there to read, through \c extraction_context::source_value, and a validation
+/// which fails can quote it through \c extraction_context::encoded_source:
 ///
 /// \code
 ///   .type<my_type>()
@@ -458,7 +472,8 @@ namespace jsonv
 ///  - <tt>type_default_value(T value)</tt>
 ///  - <tt>type_default_value(std::function&lt;T (extraction_context& context)&gt;)</tt>
 ///
-/// What value should be used to create the default for this type?
+/// What value should be used to create the default for this type? It stands in for the \c null rather than reading it,
+/// so \c extraction_context::source_value shows it nothing.
 ///
 /// \code
 ///   .type<my_type>()
@@ -474,8 +489,9 @@ namespace jsonv
 ///
 /// When extracting, perform some \a action if extra keys are provided. By default, extra keys are usually simply
 /// ignored, so this is useful if you wish to throw an exception (or anything you want). The \a action is handed the
-/// names of the keys which claimed no member; their values have already been stepped over unread, but the object they
-/// are in can still be quoted with \c extraction_context::encoded_source.
+/// names of the keys which claimed no member. The walk stepped over their values rather than reading them, but the
+/// \a action can read them out of \c extraction_context::source_value, or quote the object they are in with
+/// \c extraction_context::encoded_source.
 ///
 /// \code
 ///   .type<my_type>()
@@ -570,17 +586,24 @@ namespace jsonv
 ///  - <tt>default_value(std::function&lt;TMember (extraction_context& context)&gt; create)</tt>
 ///
 /// Provide a default value for this member if no key is found when extracting. The function implementation can
-/// synthesize the value however it likes, but it is not handed the object being extracted: a missing key is only known
-/// to be missing once every key which was there has gone by, and the walk does not go back. A default which depends on
-/// the other members belongs in \ref serialization_builder_dsl_ref_type_level_post_extract, which sees the whole object
-/// once it is built. The object's text is there to be quoted, by \c extraction_context::encoded_source, but not to be
-/// read members out of -- and only for a key which never arrived. A default standing in for a \c null under
-/// \ref serialization_builder_dsl_ref_member_level_default_on_null "default_on_null" is taken as the walk meets the
-/// \c null, before the object has a \c } to quote it to.
+/// synthesize the value however it likes. A missing key is only known to be missing once every key which was there has
+/// gone by, so defaults are taken once the walk is done -- including one standing in for a \c null under
+/// \ref serialization_builder_dsl_ref_member_level_default_on_null "default_on_null" -- and the function can read the
+/// rest of the object through \c extraction_context::source_value, or quote it through
+/// \c extraction_context::encoded_source. What it reads is the JSON. A default which depends on the members as they
+/// were extracted belongs in \ref serialization_builder_dsl_ref_type_level_post_extract, which sees the whole object
+/// once it is built.
 ///
 /// \code
 ///  .member("x", &my_type::x)
 ///      .default_value(10)
+///  .member("name",         &my_type::name)
+///  .member("display_name", &my_type::display_name)
+///      .default_value([] (extraction_context& context)
+///                     {
+///                         return context.source_value().value().at("name").as_string();
+///                     }
+///                    )
 /// \endcode
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_default_on_null default_on_null
@@ -588,8 +611,9 @@ namespace jsonv
 ///  - <tt>default_on_null()</tt>
 ///  - <tt>default_on_null(bool on)</tt>
 ///
-/// If the value associated with this key is \c kind::null, should that be treated as the default value? This option is
-/// only considered if a \ref serialization_builder_dsl_ref_member_level_default_value was provided.
+/// If the value associated with this key is \c kind::null, should that be treated as though the key were missing, and
+/// the default value taken? This option is only considered if a
+/// \ref serialization_builder_dsl_ref_member_level_default_value was provided.
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_encode_if encode_if
 ///
@@ -760,6 +784,10 @@ constexpr std::size_t no_extract_key = std::size_t(-1);
 /// two ways, where the earliest name wins, and the second is a duplicate key, which is
 /// \c extract_options::on_duplicate_key's to decide.
 ///
+/// A key whose \c null stands for the member's default under \c default_on_null claims it all the same, and is
+/// remembered as having done so: the default is applied once the walk is done, alongside the defaults of the members
+/// no key claimed.
+///
 /// Read once the walk is done, so it has to be cheap to make: a wholly successful extraction of an object allocates
 /// nothing, and a `std::vector` would spoil that for every object extracted. Types with more members than fit inline
 /// fall back to one.
@@ -774,8 +802,8 @@ public:
     {
         if (count > inline_capacity)
         {
-            _spilled = std::make_unique<std::uint16_t[]>(count);
-            std::fill_n(_spilled.get(), count, unclaimed);
+            _spilled = std::make_unique<spilled_claim[]>(count);
+            std::fill_n(_spilled.get(), count, spilled_claim{ unclaimed, false });
         }
         else
         {
@@ -787,7 +815,7 @@ public:
     JSONV_NODISCARD
     std::uint16_t claim_rank(std::size_t idx) const
     {
-        return _spilled ? _spilled[idx] : _ranks[idx];
+        return _spilled ? _spilled[idx].rank : _ranks[idx];
     }
 
     JSONV_NODISCARD
@@ -796,27 +824,60 @@ public:
         return claim_rank(idx) != unclaimed;
     }
 
-    /// Record that the name at \a rank is the one member \a idx is being read from.
-    void claim(std::size_t idx, std::size_t rank)
+    /// Is member \a idx to be given its default once the walk is done? It is if no key claimed it, and if the key
+    /// which last did held a \c null standing for the default.
+    JSONV_NODISCARD
+    bool wants_default(std::size_t idx) const
+    {
+        if (!claimed(idx))
+            return true;
+        else if (_spilled)
+            return _spilled[idx].null_default;
+        else
+            return (_null_defaults >> idx & 1U) != 0U;
+    }
+
+    /// Record that the name at \a rank is the one member \a idx is being read from -- or, if \a null_default, that
+    /// the key under it held a \c null which stands for the member's default.
+    void claim(std::size_t idx, std::size_t rank, bool null_default = false)
     {
         // A member with more names than this can count is not something anyone builds; the clamp is here so the type
         // can stay narrow, not because the case is expected.
         auto stored = std::uint16_t(std::min<std::size_t>(rank, unclaimed - 1U));
 
         if (_spilled)
-            _spilled[idx] = stored;
+        {
+            _spilled[idx] = spilled_claim{ stored, null_default };
+        }
         else
+        {
             _ranks[idx] = stored;
+
+            const auto bit = std::uint64_t(1U) << idx;
+            _null_defaults = null_default ? (_null_defaults | bit) : (_null_defaults & ~bit);
+        }
     }
 
 private:
     static constexpr std::size_t inline_capacity = 64U;
+    static_assert(inline_capacity <= 64U, "_null_defaults has a bit for each member tracked inline");
+
+    /// A claim on a member of a type too big to track inline.
+    struct spilled_claim
+    {
+        std::uint16_t rank;
+        bool          null_default;
+    };
 
     /// A plain array rather than a `std::vector`, which allocates a debugging proxy on some standard libraries even
     /// when it is empty -- and this one is empty for every type small enough to be tracked inline, which is nearly
     /// all of them.
     std::array<std::uint16_t, inline_capacity> _ranks;
-    std::unique_ptr<std::uint16_t[]>           _spilled;
+
+    /// For each member tracked inline, whether the key which claimed it held a \c null standing for its default. Kept
+    /// apart from the rank rather than as a bit of it, so that no rank and no claim can be mistaken for \ref unclaimed.
+    std::uint64_t                               _null_defaults = 0U;
+    std::unique_ptr<spilled_claim[]>            _spilled;
 };
 
 template <typename T>
@@ -827,7 +888,8 @@ public:
     { }
 
     /// Extract this member from \a from, which is positioned on the member's value, and set it on \a out. On return
-    /// the cursor sits one position past that value, as every extractor owes its caller.
+    /// the cursor sits one position past that value, as every extractor owes its caller. A \c null which
+    /// \ref defaults_on_null says stands for the default never reaches this; the walk keeps it for the default.
     ///
     /// \param key The key the document used, which is what names this member in a problem raised inside it -- the
     ///            declared name would be the wrong answer for a member matched through an \c alternate_name. It must
@@ -837,10 +899,16 @@ public:
     virtual std::expected<void, ast_node_type>
     extract(extraction_context& context, reader& from, std::string_view key, T& out) const = 0;
 
-    /// Apply this member's default to \a out, reading nothing. Only called on a member which \ref has_default: when no
-    /// key claimed it, and when the key which did held \c null and \c default_on_null is set.
+    /// Apply this member's default to \a out, reading nothing. Only called on a member which \ref has_default, once the
+    /// walk is done: when no key claimed it, and when the key which did held \c null and \ref defaults_on_null.
     JSONV_NODISCARD
     virtual std::expected<void, ast_node_type> apply_default(extraction_context& context, T& out) const = 0;
+
+    /// Does a \c null under this member's key stand for its default? Only with a default to take: without one, a
+    /// \c null is a value like any other and goes to \ref extract, just as a missing key without one is reported
+    /// missing rather than defaulted.
+    JSONV_NODISCARD
+    virtual bool defaults_on_null() const = 0;
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
 
@@ -889,14 +957,6 @@ public:
     virtual std::expected<void, ast_node_type>
     extract(extraction_context& context, reader& from, std::string_view key, T& out) const override
     {
-        // Only with a default to take. Without one, a `null` is a value like any other and goes to the extractor below,
-        // just as a missing key without one is still reported missing rather than defaulted.
-        if (_default_on_null && _default_value && current_is_null(from))
-        {
-            (void) from.next_token();
-            return apply_default(context, out);
-        }
-
         // Scoped to the extraction and not to the assignment. `_set_value` is whatever the
         // `member(name, access, mutate)` overload was handed, so it is arbitrary user code, and once the member's
         // value exists the extractor is no longer at this key -- something that setter goes on to extract is where
@@ -941,6 +1001,12 @@ public:
     virtual bool has_default() const override
     {
         return bool(_default_value);
+    }
+
+    JSONV_NODISCARD
+    virtual bool defaults_on_null() const override
+    {
+        return _default_on_null && _default_value;
     }
 
     JSONV_NODISCARD
@@ -1341,9 +1407,9 @@ private:
         JSONV_NODISCARD
         virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const override
         {
-            // Made before anything else runs, so that from here on this object is the one `encoded_source` answers
-            // for -- with nothing, until the walk reaches its `}`.
-            detail::encoded_source_scope source(context);
+            // Made before anything else runs, so that from here on this is the value `source_value` answers for. Its
+            // text waits for the walk to reach the `}`, which is the first point anything knows where it ends.
+            detail::source_scope source(context, from);
 
             if (_pre_extract)
                 _pre_extract(context);
@@ -1351,6 +1417,9 @@ private:
             // As for a member: without a default to take, a `null` is refused below as the non-object it is.
             if (_default_on_null && _create_default && detail::current_is_null(from))
             {
+                // The default stands in for this type rather than being about the `null` it replaces, and the scope
+                // cannot show what the cursor is about to step past.
+                source.hide();
                 (void) from.next_token();
 
                 try
@@ -1501,11 +1570,22 @@ private:
                     }
 
                     const auto& member = *_members[matched.index];
-                    auto        walked = run_member(context,
-                                                    member,
-                                                    &from,
-                                                    [&] { return member.extract(context, from, key, out); }
-                                                   );
+                    if (member.defaults_on_null() && detail::current_is_null(from))
+                    {
+                        // `default_on_null` makes a `null` mean what a missing key means, so its default is taken
+                        // where a missing key's is: once the walk is done, when the default can see the whole object.
+                        // It is still a claim, so a repeat of the key is settled against it like any other -- under
+                        // `replace`, a value after the `null` is extracted over it.
+                        (void) from.next_token();
+                        claims.claim(matched.index, matched.rank, true);
+                        continue;
+                    }
+
+                    auto walked = run_member(context,
+                                             member,
+                                             &from,
+                                             [&] { return member.extract(context, from, key, out); }
+                                            );
 
                     // Claimed even when it failed: the key was there, so the pass below has nothing to say about it.
                     claims.claim(matched.index, matched.rank);
@@ -1526,7 +1606,7 @@ private:
 
                 for (std::size_t idx = 0U; idx < _members.size(); ++idx)
                 {
-                    if (claims.claimed(idx))
+                    if (!claims.wants_default(idx))
                         continue;
 
                     const auto& member = *_members[idx];

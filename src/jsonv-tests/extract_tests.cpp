@@ -331,6 +331,15 @@ struct quoting_triple
     std::int64_t c;
 };
 
+/// \c named_triple with a \c post_extract which asks for the object as a \c value, which read from text means reading
+/// it again.
+struct asking_triple
+{
+    std::int64_t a;
+    std::int64_t b;
+    std::int64_t c;
+};
+
 /// The same three members reached by an adapter which names nothing, so that comparing the two says what naming
 /// costs and nothing else. Everything else either one does -- the enclosing context, the key walk, the lookup, the
 /// container it lands in -- is identical and cancels.
@@ -341,11 +350,10 @@ struct unnamed_triple
     std::int64_t c;
 };
 
-/// The DSL's key loop with the `path_scope` taken out and not one other thing changed -- bar the
-/// `encoded_source_scope`, which records where the object starts and ends and so has nothing to allocate either. It was
-/// written against the
-/// `value` interface while the DSL was, and had to follow it onto the reader: an adapter which materialises has a
-/// wholly different cost, so comparing one against the other would measure the materialisation and not the naming.
+/// The DSL's key loop with the `path_scope` taken out and not one other thing changed -- bar the `source_scope`, which
+/// records where the object is and so has nothing to allocate either. It was written against the `value` interface
+/// while the DSL was, and had to follow it onto the reader: an adapter which materialises has a wholly different cost,
+/// so comparing one against the other would measure the materialisation and not the naming.
 class unnamed_triple_adapter final :
         public adapter_for<unnamed_triple>
 {
@@ -485,9 +493,20 @@ const formats& path_cost_formats()
                                                       return out;
                                                   }
                                                  )
+                                .type<asking_triple>()
+                                    .member(long_a, &asking_triple::a)
+                                    .member(long_b, &asking_triple::b)
+                                    .member(long_c, &asking_triple::c)
+                                    .post_extract([] (const extraction_context& context, asking_triple&& out)
+                                                  {
+                                                      (void) context.source_value();
+                                                      return out;
+                                                  }
+                                                 )
                                 .register_container<std::vector<named_triple>>()
                                 .register_container<std::vector<quiet_triple>>()
                                 .register_container<std::vector<quoting_triple>>()
+                                .register_container<std::vector<asking_triple>>()
                                 .register_container<std::vector<std::int64_t>>()
                                 .register_container<std::vector<double>>()
                             .compose_checked(formats::defaults());
@@ -544,6 +563,22 @@ std::size_t extraction_cost(const value& source)
     const std::size_t  cost = allocations.count();
 
     ensure_eq(source.size(), out.size());
+    return cost;
+}
+
+/// \ref extraction_cost for JSON \a text, an array of \a count elements. Parsing the text is not extraction, so the
+/// reader is made before the count starts.
+template <typename T>
+std::size_t extraction_cost(std::string_view text, std::size_t count)
+{
+    extraction_context cxt(path_cost_formats());
+    reader             rdr(text);
+
+    allocation_counter allocations;
+    const auto         out  = extract<T>(rdr, cxt);
+    const std::size_t  cost = allocations.count();
+
+    ensure_eq(count, out.size());
     return cost;
 }
 
@@ -833,6 +868,28 @@ TEST(extract_encoded_source_costs_nothing_unless_asked)
 
     ensure_eq(plain, extraction_cost<std::vector<quiet_triple>>(source));
     ensure_le(plain + source.size(), extraction_cost<std::vector<quoting_triple>>(source));
+}
+
+TEST(extract_source_value_costs_nothing_unless_asked)
+{
+    // Read from text, a hook which asks for `source_value` after the walk has the object read again, from a position on
+    // the tape kept from its `{`. That position is kept for every object, whether anything goes on to ask or not, so it
+    // has to cost nothing: the DSL's walk costs what a hand-written one with no scope at all costs, and a hook which
+    // never asks costs what no hook does. The hook which does ask is what shows the comparison can see a read, which
+    // allocates at least once per object for the second cursor alone.
+    const std::size_t count = 16U;
+    const std::string text  = to_string(named_triples(count));
+
+    (void) extraction_cost<std::vector<named_triple>>(text, count);
+    (void) extraction_cost<std::vector<unnamed_triple>>(text, count);
+    (void) extraction_cost<std::vector<quiet_triple>>(text, count);
+    (void) extraction_cost<std::vector<asking_triple>>(text, count);
+
+    const std::size_t plain = extraction_cost<std::vector<named_triple>>(text, count);
+
+    ensure_eq(extraction_cost<std::vector<unnamed_triple>>(text, count), plain);
+    ensure_eq(plain, extraction_cost<std::vector<quiet_triple>>(text, count));
+    ensure_le(plain + count, extraction_cost<std::vector<asking_triple>>(text, count));
 }
 
 TEST(extract_numbers_from_a_value_synthesise_no_tokens)

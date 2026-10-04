@@ -16,6 +16,7 @@
 #include <jsonv/forward.hpp>
 #include <jsonv/optional.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/parse_index.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
 #include <jsonv/serialization/context.hpp>
@@ -46,7 +47,7 @@ namespace detail
 {
 
 class borrowed_subtree;
-class encoded_source_scope;
+class source_scope;
 class temporary_source_scope;
 
 /// Does the source an extraction reads from outlive it?
@@ -431,13 +432,16 @@ public:
     ///
     /// An extractor which returns a view of what it was given must check this and refuse when it is \c true, because
     /// the storage its view would name is gone by the time the caller has it. \c std::string_view is the built-in one.
-    /// There are two ways to get here:
+    /// There are three ways to get here:
     ///
     ///  - A \c value -based adapter runs against a reader over JSON text. There is no pre-existing tree for it to
     ///    borrow, so one is materialised and destroyed as the bridge unwinds. This is true for everything nested
     ///    under such a materialisation, not only the value that caused it.
     ///  - The source was handed to extraction to own: \c jsonv::extract given a \c std::string rvalue, or an rvalue
     ///    \c reader which owns its source. That source dies with the call, so this is true for the whole extraction.
+    ///  - A hook of a type described with the serialization builder DSL has been lent, by \ref source_value, an object
+    ///    read out of JSON text for it. That object dies with the extraction of the type, so this is true from then
+    ///    until the walk of the object starts or its extraction finishes.
     JSONV_NODISCARD
     bool source_is_temporary() const noexcept { return _temporary_source_depth != 0U; }
 
@@ -457,10 +461,10 @@ public:
     /// is about, for the hooks which validate one to put in their message.
     ///
     /// It is only there once the walk has reached the object's \c }, which is to say for what runs after it:
-    /// \c on_extract_extra_keys, the \c default_value of a member whose key never arrived and the setter that default
-    /// is handed to, and \c post_extract. What runs during the walk is shown nothing: \c pre_extract, a member's
-    /// \c check_input and setter as its key is read, and a \c default_value standing in for a \c null under
-    /// \c default_on_null. Neither is anything a hook goes on to extract through \ref extract -- or through
+    /// \c on_extract_extra_keys, every member's \c default_value and the setter that default is handed to, and
+    /// \c post_extract. What runs before or during the walk is shown nothing: \c pre_extract, which can have the
+    /// object as a \c value from \ref source_value but not its text, and a member's \c check_input and setter as its
+    /// key is read. Neither is anything a hook goes on to extract through \ref extract -- or through
     /// \c jsonv::extract, which comes through it -- whichever extractor that reaches, nor anything outside DSL
     /// extraction altogether. No object's source is empty -- the least of them is \c {} -- so an empty view always
     /// means there is nothing to quote.
@@ -476,6 +480,34 @@ public:
     /// \returns A view which is valid until the hook which asked for it returns.
     JSONV_NODISCARD
     std::string_view encoded_source() const;
+
+    /// Get the value a type described with the serialization builder DSL is being extracted from, for its hooks to
+    /// read members out of: a version for \c pre_extract to refuse a document by, a sibling for a \c default_value to
+    /// compute from, the values of the keys an \c on_extract_extra_keys handler is told no member claimed.
+    ///
+    /// It is there for the hooks which take an \c extraction_context: \c pre_extract, before the walk, is shown the
+    /// value the reader is on, which is not necessarily an object; and \c on_extract_extra_keys, every member's
+    /// \c default_value and \c post_extract, after it, are shown the object. A member's \c check_input and setter run
+    /// during the walk and are shown nothing, as is a \c type_default_value standing in for a \c null. So, as for
+    /// \ref encoded_source, is anything a hook goes on to extract through \ref extract, and anything outside DSL
+    /// extraction altogether.
+    ///
+    /// Read from a \c value, this is that value: the caller's own tree, lent rather than copied. Read from JSON text
+    /// there is no tree to lend, so the first hook to ask has the object read into one -- from where the reader is,
+    /// before the walk, or from the object's \c { after it, through a second cursor which leaves the first where it
+    /// is. Every hook of that object after it is shown the same one. Nothing is read for an extraction which never
+    /// asks, and nothing allocated: what lets the hooks after the walk go back is a position on the parsed document's
+    /// tape. A repeated key is settled by \ref options as the walk settles it.
+    ///
+    /// What is read from text belongs to the extraction rather than to the caller, so while it is being lent
+    /// \ref source_is_temporary is \c true -- and extracting a \c std::string_view out of it is refused rather than
+    /// left to dangle. That lasts until the walk starts or the object is finished.
+    ///
+    /// \returns The value, valid until the hook which asked for it returns; or nothing where no hook is being shown
+    ///          one.
+    /// \throws Whatever \c read_value throws for the object, the first time it is read from text.
+    JSONV_NODISCARD
+    optional<const value&> source_value() const;
 
     /// Get the path currently being extracted, as named by the live \ref path_scope guards.
     ///
@@ -678,8 +710,8 @@ public:
     /// reported as \c ast_node_type::error, except that an \c extraction_error from an adapter on the \c value bridge
     /// has its own problems folded onto this context instead.
     ///
-    /// Called from a hook which can see \ref encoded_source, this hides it from everything the extraction runs, since
-    /// none of that is part of the object the hook is about.
+    /// Called from a hook which can see \ref source_value or \ref encoded_source, this hides both from everything the
+    /// extraction runs, since none of that is part of the object the hook is about.
     JSONV_NODISCARD
     std::expected<void, ast_node_type> extract(const std::type_info& type, reader& from, void* into);
 
@@ -743,7 +775,7 @@ public:
 private:
     friend class path_scope;
     friend class detail::borrowed_subtree;
-    friend class detail::encoded_source_scope;
+    friend class detail::source_scope;
     friend class detail::temporary_source_scope;
 
     friend JSONV_PUBLIC void detail::extract_entry(extraction_context&   context,
@@ -767,8 +799,8 @@ private:
     const path_scope* _innermost              = nullptr;
     std::size_t       _temporary_source_depth = 0U;
 
-    /// The object \ref encoded_source quotes, if one is being extracted.
-    const detail::encoded_source_scope* _innermost_source = nullptr;
+    /// The object \ref source_value and \ref encoded_source answer for, if one is being extracted.
+    const detail::source_scope* _innermost_source = nullptr;
 
     /// Where to report the failure currently unwinding, left by a bridge which walked the cursor past the value which
     /// failed. A destructor runs before the handler which records the problem, so the location has to be worked out
@@ -852,6 +884,21 @@ JSONV_NODISCARD JSONV_PUBLIC value peek_members(const extraction_context&       
                                                 const std::set<std::string, std::less<>>& keys
                                                );
 
+/// Where \a from is, for \ref peek_value_at to read the value there once \a from has moved past it.
+///
+/// \returns The position; or nothing if \a from is not over JSON text. A reader over a \c value has the value itself to
+///          lend, through \c reader::current_value, and needs no way back to it.
+JSONV_NODISCARD JSONV_PUBLIC std::optional<parse_index::const_iterator> bookmark(const reader& from) noexcept;
+
+/// \ref peek_value for the value at \a at, a position \ref bookmark gave for \a from, wherever \a from has got to
+/// since. It is read through a second cursor on \a from's source, so \a from does not move.
+///
+/// \throws Whatever \ref peek_value throws for the same subtree.
+JSONV_NODISCARD JSONV_PUBLIC value peek_value_at(const extraction_context&   context,
+                                                 const reader&               from,
+                                                 parse_index::const_iterator at
+                                                );
+
 /// Say, for as long as this lives, that what is being extracted from is a temporary -- see
 /// \c extraction_context::source_is_temporary.
 ///
@@ -880,43 +927,73 @@ private:
     extraction_context* _context;
 };
 
-/// Say, for as long as this lives, which object \c extraction_context::encoded_source quotes.
+/// Say, for as long as this lives, which object \c extraction_context::source_value and
+/// \c extraction_context::encoded_source answer for, and whether they answer at all.
 ///
-/// The serialization builder's adapter makes one for each object it extracts, which says nothing until \c close.
-/// \c extraction_context::extract makes one which is never closed around any extraction started while an object's
-/// source is showing -- by one of that object's hooks, extracting something else -- so that nothing the second
-/// extraction runs, whichever extractor runs it, is shown an object it is not part of.
+/// The serialization builder's adapter makes one for each object it extracts, before \c pre_extract runs, on the value
+/// its reader is on. That shows the value but not its text, since nothing knows where it ends until it has been walked.
+/// \c open hides both for the walk, and \c close shows both for what runs after it. \c extraction_context::extract
+/// makes one which shows nothing around any extraction started while something is showing -- by one of those hooks,
+/// extracting something else -- so that nothing the second extraction runs, whichever extractor runs it, is shown an
+/// object it is not part of.
 ///
 /// Like a \c extraction_context::path_scope, this is linked into the context rather than copied into it, and it records
-/// the extent of its object rather than the text: that is what lets an extraction which never asks pay nothing.
-class encoded_source_scope
+/// where its object is rather than what is in it: that is what lets an extraction which never asks pay nothing.
+class source_scope
 {
 public:
-    explicit encoded_source_scope(extraction_context& context) noexcept :
+    /// Show nothing, hiding whatever an enclosing scope was showing.
+    explicit source_scope(extraction_context& context) noexcept :
             _context(&context),
             _parent(context._innermost_source)
     {
         context._innermost_source = this;
     }
 
-    encoded_source_scope(const encoded_source_scope&)            = delete;
-    encoded_source_scope& operator=(const encoded_source_scope&) = delete;
-
-    ~encoded_source_scope() noexcept
+    /// Show the value \a from is on, which is what the hooks which run before the walk are about. The reader has to
+    /// still be on it when one of them asks.
+    source_scope(extraction_context& context, const reader& from) noexcept :
+            source_scope(context)
     {
+        _from    = &from;
+        _tree    = from.current_value();
+        _showing = shows::value;
+    }
+
+    source_scope(const source_scope&)            = delete;
+    source_scope& operator=(const source_scope&) = delete;
+
+    ~source_scope() noexcept
+    {
+        stop_lending();
         _context->_innermost_source = _parent;
     }
 
-    /// Note the object \a from is on the \a opened \c { of. The reader has to still be on it: a reader over a \c value
-    /// can only lend the value from there.
-    void open(const reader& from, const ast_node::object_begin& opened) noexcept
+    /// Show nothing from here on.
+    void hide() noexcept
     {
-        _tree = from.current_value();
-        if (!_tree)
-            _begin = opened.token_raw().data();
+        stop_lending();
+        _showing = shows::nothing;
     }
 
-    /// Note that \a from has reached the \c } of the object, so that it can be quoted from here on.
+    /// Note the object \a from is on the \a opened \c { of, and show nothing while it is walked.
+    void open(const reader& from, const ast_node::object_begin& opened) noexcept
+    {
+        hide();
+
+        // A reader over a `value` lends the object, and needs neither the text nor a way back to it.
+        if (_tree)
+            return;
+
+        _begin = opened.token_raw().data();
+
+        // The way back for a hook after the walk, when the reader will be on the `}`. Not needed if a hook before the
+        // walk has already read the object, which is the same object.
+        if (!_read)
+            _bookmark = detail::bookmark(from);
+    }
+
+    /// Note that \a from has reached the \c } of the object, and show all of it from here on.
     void close(const reader& from)
     {
         // Text only. A reader over a `value` synthesises its `{` and `}` out of one static string, where they sit side
@@ -927,18 +1004,53 @@ public:
             _text    = std::string_view(_begin, static_cast<std::size_t>(end.data() + end.size() - _begin));
         }
 
-        _closed = true;
+        _showing = shows::value_and_text;
     }
 
 private:
     friend class jsonv::extraction_context;
 
-    extraction_context*         _context;
-    const encoded_source_scope* _parent;
-    const char*                 _begin  = nullptr;
-    optional<const value&>      _tree;
-    std::string_view            _text;
-    bool                        _closed = false;
+    enum class shows : unsigned char
+    {
+        nothing,
+        value,
+        value_and_text,
+    };
+
+    /// Say that what \c extraction_context::source_value is lending was read out of text and dies with this scope, so
+    /// that nothing extracted from it is a view of it. Once is enough: it stays said until \ref stop_lending.
+    void lend_temporary() const noexcept
+    {
+        if (!_lending)
+        {
+            _lending = true;
+            ++_context->_temporary_source_depth;
+        }
+    }
+
+    void stop_lending() const noexcept
+    {
+        if (_lending)
+        {
+            _lending = false;
+            --_context->_temporary_source_depth;
+        }
+    }
+
+private:
+    extraction_context*                        _context;
+    const source_scope*                        _parent;
+    const reader*                              _from    = nullptr;
+    optional<const value&>                     _tree;
+    std::optional<parse_index::const_iterator> _bookmark;
+    const char*                                _begin   = nullptr;
+    std::string_view                           _text;
+    shows                                      _showing = shows::nothing;
+    mutable bool                               _lending = false;
+
+    /// The object read out of text, once something has asked for it. Not a bare \c value, which would be a \c null
+    /// built for every object extracted.
+    mutable std::optional<value> _read;
 
     /// The encoding of \c _tree, once something has asked for it. Not a bare `std::string`, since default-constructing
     /// one is not free on every standard library and this is made for every object extracted.

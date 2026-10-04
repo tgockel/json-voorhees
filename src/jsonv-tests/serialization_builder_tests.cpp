@@ -256,20 +256,15 @@ TEST(serialization_builder_defaults)
                             .default_value(20)
                         .member("favorite_numbers", &person::favorite_numbers)
                         .member("winning_numbers",  &person::winning_numbers)
-                            .default_value(std::vector<long>())
+                            // Computed from a sibling, which the default can read because it is taken once the walk
+                            // is done -- for the `null` below as much as for a key which never arrived.
+                            .default_value([] (extraction_context& cxt)
+                                           {
+                                               const value& source = cxt.source_value().value();
+                                               return cxt.extract<std::vector<long>>(source.at("favorite_numbers"));
+                                           }
+                                          )
                             .default_on_null()
-                        // A default computed from a sibling member cannot be a `default_value` any more: the walk is
-                        // a forward one, so when a missing key is noticed the object it would have read from has
-                        // already gone by. `post_extract` sees the whole object and is where such a default belongs.
-                        .post_extract([] (extraction_context&, person&& out) -> person
-                                      {
-                                          if (out.winning_numbers.empty())
-                                              out.winning_numbers.assign(begin(out.favorite_numbers),
-                                                                         end(out.favorite_numbers)
-                                                                        );
-                                          return std::move(out);
-                                      }
-                                     )
                     .register_containers<long, std::set, std::vector>()
                     .compose_checked(formats::defaults())
                 ;
@@ -281,6 +276,14 @@ TEST(serialization_builder_defaults)
                            { "winning_numbers",  null                 },
                          }
                         );
+    ensure_eq(p, extract<person>(input, fmt));
+    ensure_eq(p, extract<person>(std::string_view(to_string(input)), fmt));
+
+    value missing = input;
+    missing.erase("winning_numbers");
+    ensure_eq(p, extract<person>(missing, fmt));
+    ensure_eq(p, extract<person>(std::string_view(to_string(missing)), fmt));
+
     auto encoded = to_json(p, fmt);
     person q = extract<person>(encoded, fmt);
     ensure_eq(p, q);
@@ -1790,11 +1793,12 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object_from_any_ext
     }
 }
 
-TEST(serialization_builder_encoded_source_reaches_a_default_only_for_a_missing_key)
+TEST(serialization_builder_encoded_source_reaches_every_default)
 {
-    // A default for a key which never arrived is taken after the walk, factory and setter both, and both can quote the
-    // object. One standing in for a `null` under `default_on_null` is taken as the walk meets the `null`, before there
-    // is a `}` -- as is the setter of a member whose key is there -- and is shown nothing.
+    // A default is taken after the walk, factory and setter both, and both can quote the object -- whether the key
+    // never arrived or held a `null` standing for the default under `default_on_null`, which means the same thing.
+    // The setter of a member whose key held a value runs as the walk meets it, before there is a `}`, and is shown
+    // nothing.
     const extraction_context* current = nullptr;
     std::vector<std::string>  seen;
 
@@ -1839,14 +1843,18 @@ TEST(serialization_builder_encoded_source_reaches_a_default_only_for_a_missing_k
                };
 
     const std::string_view missing = R"({ "a": 1, "b": 2 })";
+    const std::string_view nulled  = R"({ "a": 1, "b": 2, "c": null })";
 
     for (bool from_text : { true, false })
     {
-        const std::string quoted = from_text ? std::string(missing) : to_string(parse(missing));
+        auto quote = [from_text] (std::string_view text)
+                     {
+                         return from_text ? std::string(text) : to_string(parse(text));
+                     };
 
         // The factory, then the setter it hands its value to.
-        ensure(run(missing, from_text) == std::vector<std::string>({ quoted, quoted }));
-        ensure(run(R"({ "a": 1, "b": 2, "c": null })", from_text) == std::vector<std::string>({ "", "" }));
+        ensure(run(missing, from_text) == std::vector<std::string>({ quote(missing), quote(missing) }));
+        ensure(run(nulled, from_text) == std::vector<std::string>({ quote(nulled), quote(nulled) }));
         ensure(run(R"({ "a": 1, "b": 2, "c": 3 })", from_text) == std::vector<std::string>({ "" }));
     }
 }
@@ -1880,6 +1888,476 @@ TEST(serialization_builder_encoded_source_encodes_a_value_once)
     (void) extract<triple>(object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }), fmt);
     ensure(first != nullptr);
     ensure(same);
+}
+
+
+TEST(serialization_builder_default_value_reads_its_siblings)
+{
+    // A default is taken once the walk is done, so it can read any member of the object: one the document lists after
+    // the key the default stands in for as well as one before it, and whether that key never arrived or held a `null`.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                            .default_value([] (extraction_context& context)
+                                           {
+                                               const value& source = context.source_value().value();
+                                               return source.at("a").as_integer() + source.at("b").as_integer();
+                                           }
+                                          )
+                            .default_on_null()
+                  .compose_checked(formats::defaults());
+
+    for (std::string_view text : { R"({ "a": 1, "b": 2 })",
+                                   R"({ "c": null, "a": 1, "b": 2 })",
+                                   R"({ "a": 1, "c": null, "b": 2 })",
+                                 }
+        )
+    {
+        ensure_eq(triple({ 1, 2, 3 }), extract<triple>(text, fmt));
+        ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(text), fmt));
+    }
+
+    // A value for the key is extracted rather than defaulted, wherever a `null` for it was.
+    ensure_eq(triple({ 1, 2, 7 }), extract<triple>(std::string_view(R"({ "c": null, "a": 1, "b": 2, "c": 7 })"), fmt));
+}
+
+TEST(serialization_builder_null_default_waits_for_the_walk)
+{
+    // A `null` under `default_on_null` means what a missing key means, so its default is taken where a missing key's
+    // is: after every key the document has, in declaration order, rather than as the walk meets the `null`.
+    std::vector<std::string> order;
+
+    auto setter = [&order] (const std::string& name)
+                  {
+                      return [&order, name] (triple& x, std::int64_t&& v)
+                             {
+                                 order.push_back(name);
+                                 if (name == "a")
+                                     x.a = v;
+                                 else if (name == "b")
+                                     x.b = v;
+                                 else
+                                     x.c = v;
+                             };
+                  };
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member<std::int64_t>("a",
+                                              [] (const triple& x) -> const std::int64_t& { return x.a; },
+                                              setter("a")
+                                             )
+                            .default_value(std::int64_t(10))
+                            .default_on_null()
+                        .member<std::int64_t>("b",
+                                              [] (const triple& x) -> const std::int64_t& { return x.b; },
+                                              setter("b")
+                                             )
+                        .member<std::int64_t>("c",
+                                              [] (const triple& x) -> const std::int64_t& { return x.c; },
+                                              setter("c")
+                                             )
+                            .default_value(std::int64_t(30))
+                            .default_on_null()
+                  .compose_checked(formats::defaults());
+
+    for (bool from_text : { true, false })
+    {
+        const std::string_view text = R"({ "c": null, "b": 2, "a": null })";
+
+        order.clear();
+        auto out = from_text ? extract<triple>(text, fmt) : extract<triple>(parse(text), fmt);
+        ensure_eq(triple({ 10, 2, 30 }), out);
+        ensure(order == std::vector<std::string>({ "b", "a", "c" }));
+    }
+}
+
+namespace
+{
+
+/// A single member answering to \c a0 and to \c a1 through \c a32767 after it.
+struct many_named
+{
+    std::int64_t a;
+};
+
+/// More members than the DSL's walk tracks inline: \c m0 through \c m69, each defaulting to its own index.
+struct wide
+{
+    std::array<std::int64_t, 70U> values;
+};
+
+}
+
+TEST(serialization_builder_null_default_keeps_its_claim_with_many_names)
+{
+    // A `null` taking the default is still a claim by the name it came under, however far down the member's list of
+    // names that is: a repeat of the name is settled against it as against any claim. The way the walk remembers that
+    // the claim was a `null` must not make the claim look like none at all.
+    for (auto action : { extract_options::duplicate_key_action::ignore, extract_options::duplicate_key_action::replace })
+    {
+        auto builder = formats_builder();
+        auto member  = builder.type<many_named>().member("a0", &many_named::a);
+        for (int idx = 1; idx < 32768; ++idx)
+            member.alternate_name("a" + std::to_string(idx));
+        member.default_value(std::int64_t(7)).default_on_null();
+
+        formats fmt = builder.compose_checked(formats::defaults());
+
+        // Only text can say a key twice; a `value` has already settled which of the two it keeps.
+        const std::string_view text     = R"({ "a32767": null, "a32767": 9 })";
+        const auto             options  = extract_options().on_duplicate_key(action);
+        const std::int64_t     expected = action == extract_options::duplicate_key_action::ignore ? 7 : 9;
+
+        ensure_eq(expected, extract<many_named>(text, fmt, options).a);
+        ensure_eq(7,        extract<many_named>(parse(R"({ "a32767": null })"), fmt, options).a);
+    }
+}
+
+TEST(serialization_builder_null_default_on_a_type_too_wide_to_track_inline)
+{
+    auto builder = formats_builder();
+    auto type    = builder.type<wide>();
+    for (std::size_t idx = 0U; idx < 70U; ++idx)
+    {
+        type.member<std::int64_t>("m" + std::to_string(idx),
+                                  [idx] (const wide& x) -> const std::int64_t& { return x.values[idx]; },
+                                  [idx] (wide& x, std::int64_t&& v) { x.values[idx] = v; }
+                                 )
+                .default_value(std::int64_t(idx))
+                .default_on_null();
+    }
+    formats fmt = builder.compose_checked(formats::defaults());
+
+    // Members on either side of the inline limit, defaulted by a `null` and by having no key, and one with a value.
+    const std::string_view text = R"({ "m3": null, "m65": null, "m66": 500, "m69": null })";
+
+    for (bool from_text : { true, false })
+    {
+        auto out = from_text ? extract<wide>(text, fmt) : extract<wide>(parse(text), fmt);
+        for (std::size_t idx = 0U; idx < 70U; ++idx)
+            ensure_eq(idx == 66U ? 500 : std::int64_t(idx), out.values[idx]);
+    }
+}
+
+TEST(serialization_builder_extra_keys_handler_reads_their_values)
+{
+    // The handler is handed the names of the keys no member claimed, and can read their values out of the object.
+    value seen;
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                        .on_extract_extra_keys([&seen] (extraction_context& context, const std::set<std::string>& keys)
+                                               {
+                                                   const value& source = context.source_value().value();
+                                                   for (const auto& key : keys)
+                                                       seen[key] = source.at(key);
+                                               }
+                                              )
+                  .compose_checked(formats::defaults());
+
+    const std::string_view text = R"({ "a": 1, "x": [ 1, { "y": true } ], "b": 2, "c": 3, "z": "zed" })";
+    const value            expected = object({ { "x", array({ 1, object({ { "y", true } }) }) }, { "z", "zed" } });
+
+    for (bool from_text : { true, false })
+    {
+        seen = object();
+        auto out = from_text ? extract<triple>(text, fmt) : extract<triple>(parse(text), fmt);
+        ensure_eq(triple({ 1, 2, 3 }), out);
+        ensure_eq(expected, seen);
+    }
+}
+
+TEST(serialization_builder_pre_extract_reads_the_document)
+{
+    // Run before the walk, `pre_extract` can refuse a document by what it says before any member has been read.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .pre_extract([] (extraction_context& context)
+                                     {
+                                         const value& source = context.source_value().value();
+                                         if (source.count("schema") == 0U || source.at("schema") != value(2))
+                                             throw std::invalid_argument("Unsupported schema");
+                                     }
+                                    )
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    const std::string_view current  = R"({ "schema": 2, "a": 1, "b": 2, "c": 3 })";
+    const std::string_view outdated = R"({ "schema": 1, "a": 1, "b": 2, "c": 3 })";
+
+    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(current, fmt));
+    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(current), fmt));
+    ensure_throws(extraction_error, extract<triple>(outdated, fmt));
+    ensure_throws(extraction_error, extract<triple>(parse(outdated), fmt));
+}
+
+namespace
+{
+
+/// What \c extraction_context::source_value showed, as text: the encoding of the value, or "nothing".
+std::string shown(const extraction_context& context)
+{
+    auto source = context.source_value();
+    return source ? to_string(*source) : std::string("nothing");
+}
+
+}
+
+TEST(serialization_builder_pre_extract_is_shown_what_the_reader_is_on)
+{
+    // Before the walk there is no knowing that the value is an object, and `pre_extract` is shown it whatever it is. A
+    // `type_default_value` standing in for a `null` is shown nothing, as the cursor has stepped past what it replaces.
+    std::vector<std::string> seen;
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .pre_extract([&seen] (extraction_context& context) { seen.push_back(shown(context)); })
+                        .type_default_on_null()
+                        .type_default_value([&seen] (extraction_context& context)
+                                            {
+                                                seen.push_back(shown(context));
+                                                return triple({ 0, 0, 0 });
+                                            }
+                                           )
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    for (bool from_text : { true, false })
+    {
+        seen.clear();
+        auto out = from_text ? extract<triple>(std::string_view("null"), fmt) : extract<triple>(null, fmt);
+        ensure_eq(triple({ 0, 0, 0 }), out);
+        ensure(seen == std::vector<std::string>({ "null", "nothing" }));
+
+        seen.clear();
+        ensure_throws(extraction_error,
+                      from_text ? extract<triple>(std::string_view("[ 1 ]"), fmt) : extract<triple>(array({ 1 }), fmt)
+                     );
+        ensure(seen == std::vector<std::string>({ to_string(array({ 1 })) }));
+    }
+}
+
+TEST(serialization_builder_source_value_is_empty_during_the_walk)
+{
+    // A member's `check_input` and setter run as the walk meets their key, and are shown nothing -- including in a
+    // nested object, whose enclosing object is part-way through its own walk.
+    const extraction_context* current = nullptr;
+    std::vector<std::string>  seen;
+    auto record = [&current, &seen] { seen.push_back(shown(*current)); };
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .check_input([record] (const std::int64_t&) { record(); })
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                    .type<wrapper>()
+                        .member("inner", &wrapper::inner)
+                        .member("d",     &wrapper::d)
+                            .check_input([record] (const std::int64_t&) { record(); })
+                  .compose_checked(formats::defaults());
+
+    const std::string_view text = R"({ "inner": { "a": 1, "b": 2, "c": 3 }, "d": 4 })";
+
+    for (bool from_text : { true, false })
+    {
+        extraction_context cxt(fmt);
+        current = &cxt;
+        seen.clear();
+
+        if (from_text)
+        {
+            auto rdr = open(text);
+            ensure(cxt.extract<wrapper>(rdr).has_value());
+        }
+        else
+        {
+            (void) cxt.extract<wrapper>(parse(text));
+        }
+
+        ensure(seen == std::vector<std::string>({ "nothing", "nothing" }));
+        ensure(!cxt.source_value());
+    }
+
+    ensure(!extraction_context().source_value());
+}
+
+namespace
+{
+
+/// Extracted by a hand-written extractor rather than the DSL, keeping what \c source_value showed it.
+struct source_value_probe
+{
+    std::string seen;
+};
+
+}
+
+TEST(serialization_builder_source_value_hides_an_enclosing_object)
+{
+    // A hook is free to extract something else. What that extraction runs is shown its own object or nothing, never the
+    // object whose hook started it -- whether it is the DSL's or an extractor written by hand -- and once it has
+    // returned, that object is shown again.
+    static auto probe = make_extractor([] (extraction_context& context, reader& from) -> source_value_probe
+                                       {
+                                           (void) from.next_value();
+                                           return source_value_probe{ shown(context) };
+                                       });
+
+    std::vector<std::string> seen;
+
+    formats dsl = formats_builder()
+                    .type<triple>()
+                        .pre_extract([&seen] (extraction_context& context) { seen.push_back(shown(context)); })
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                    .type<wrapper>()
+                        .pre_extract([&seen] (extraction_context& context)
+                                     {
+                                         seen.push_back(shown(context));
+
+                                         auto rdr = open("42");
+                                         seen.push_back(context.extract<source_value_probe>(rdr)->seen);
+                                     }
+                                    )
+                        .member("d", &wrapper::d)
+                        .post_extract([&seen] (extraction_context& context, wrapper&& out)
+                                      {
+                                          seen.push_back(shown(context));
+
+                                          auto rdr = open(R"({ "c": 3, "b": 2, "a": 1 })");
+                                          out.inner = context.extract<triple>(rdr).value();
+                                          seen.push_back(context.extract<source_value_probe>(value(42)).seen);
+
+                                          seen.push_back(shown(context));
+                                          return out;
+                                      }
+                                     )
+                  .compose_checked(formats::defaults());
+
+    formats fmt = formats::compose({ dsl });
+    fmt.register_extractor(&probe);
+
+    const std::string_view text = R"({ "d": 4 })";
+
+    for (bool from_text : { true, false })
+    {
+        seen.clear();
+        auto out = from_text ? extract<wrapper>(text, fmt) : extract<wrapper>(parse(text), fmt);
+        ensure_eq(triple({ 1, 2, 3 }), out.inner);
+
+        const std::string outer = to_string(parse(text));
+        const std::string inner = to_string(parse(R"({ "c": 3, "b": 2, "a": 1 })"));
+        ensure(seen == std::vector<std::string>({ outer, "nothing", outer, inner, "nothing", outer }));
+    }
+}
+
+TEST(serialization_builder_source_value_is_read_from_text_once)
+{
+    // From text, the first hook to ask has the object read, and every hook after it -- before the walk or after -- is
+    // shown the same one. From a value, every hook is shown the caller's own tree.
+    std::vector<const value*> seen;
+    auto record = [&seen] (const extraction_context& context) { seen.push_back(&context.source_value().value()); };
+
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .pre_extract([record] (extraction_context& context) { record(context); })
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                            .default_value([record] (extraction_context& context)
+                                           {
+                                               record(context);
+                                               return std::int64_t(3);
+                                           }
+                                          )
+                        .post_extract([record] (extraction_context& context, triple&& out)
+                                      {
+                                          record(context);
+                                          return out;
+                                      }
+                                     )
+                  .compose_checked(formats::defaults());
+
+    const std::string_view text = R"({ "a": 1, "b": 2 })";
+
+    (void) extract<triple>(text, fmt);
+    ensure_eq(3U, seen.size());
+    ensure(seen.at(0) == seen.at(1));
+    ensure(seen.at(0) == seen.at(2));
+
+    seen.clear();
+    const value tree = parse(text);
+    (void) extract<triple>(tree, fmt);
+    ensure(seen == std::vector<const value*>({ &tree, &tree, &tree }));
+}
+
+namespace
+{
+
+/// A name and a nickname, both views of whatever they were extracted from. The nickname defaults to the name.
+struct nicknamed
+{
+    std::string_view name;
+    std::string_view nick;
+};
+
+formats nicknamed_formats()
+{
+    static const formats instance =
+        formats_builder()
+            .type<nicknamed>()
+                .pre_extract([] (extraction_context& context) { (void) context.source_value(); })
+                .member("name", &nicknamed::name)
+                .member("nick", &nicknamed::nick)
+                    .default_value([] (extraction_context& context)
+                                   {
+                                       const value& source = context.source_value().value();
+                                       return context.extract<std::string_view>(source.at("name"));
+                                   }
+                                  )
+        .compose_checked(formats::defaults());
+
+    return instance;
+}
+
+}
+
+TEST(serialization_builder_source_value_read_from_text_is_temporary)
+{
+    // What is read out of text for a hook dies with the extraction, so a view of it would dangle: extracting one is
+    // refused. A member read during the walk still views the text, even though `pre_extract` had the object read.
+    const std::string text = R"({ "name": "Robert", "nick": "Bob" })";
+
+    auto out = extract<nicknamed>(std::string_view(text), nicknamed_formats());
+    ensure_eq("Robert", out.name);
+    ensure_eq("Bob",    out.nick);
+    ensure(out.name.data() == text.data() + text.find("Robert"));
+
+    ensure_throws(extraction_error,
+                  extract<nicknamed>(std::string_view(R"({ "name": "Robert" })"), nicknamed_formats())
+                 );
+}
+
+TEST(serialization_builder_source_value_lent_from_a_value_may_be_viewed)
+{
+    // From a value, the hook is lent the caller's own tree, which a view may name.
+    const value tree = object({ { "name", "Robert" } });
+
+    auto out = extract<nicknamed>(tree, nicknamed_formats());
+    ensure_eq("Robert", out.nick);
+    ensure(out.nick.data() == tree.at("name").as_string_view().data());
 }
 
 }

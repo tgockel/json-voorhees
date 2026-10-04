@@ -246,7 +246,7 @@ public:
     ///
     /// This only finds the \c extractor and calls it. What \c extraction_context::extract does around that call is
     /// skipped: an exception is not recorded as a problem but propagates, and an extraction started from a hook which
-    /// can see \c extraction_context::encoded_source does not have it hidden.
+    /// can see \c extraction_context::source_value or \c extraction_context::encoded_source does not have them hidden.
     ///
     /// \returns whatever the located \c extractor returned; see \c extractor::extract.
     ///

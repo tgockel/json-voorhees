@@ -42,6 +42,10 @@ public:
 
     virtual std::unique_ptr<impl> lookahead() const override;
 
+    virtual std::optional<parse_index::const_iterator> tape_position() const noexcept override;
+
+    virtual std::unique_ptr<impl> lookahead_at(parse_index::const_iterator at) const override;
+
 private:
     /// A cursor over someone else's \a index, starting on \a current. See \c lookahead.
     explicit impl_parse_index(const parse_index& index, parse_index::const_iterator current) noexcept;

@@ -11,6 +11,7 @@
 
 #include <jsonv/ast.hpp>
 #include <jsonv/optional.hpp>
+#include <jsonv/parse_index.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
 #include <jsonv/value.hpp>
@@ -72,6 +73,18 @@ public:
     /// \see detail::reader_lookahead
     virtual std::unique_ptr<impl> lookahead() const = 0;
 
+    /// Where this cursor is on the tape it reads, for \c lookahead_at to open a second cursor on once this one has
+    /// moved on; or nothing for a source with no tape. The default is nothing.
+    ///
+    /// \see detail::reader_lookahead::mark
+    virtual std::optional<parse_index::const_iterator> tape_position() const noexcept;
+
+    /// Create a second cursor on this source at \a at, a position \c tape_position gave, without moving this one. As
+    /// for \c lookahead, it must not outlive this instance.
+    ///
+    /// \throws std::logic_error from a source with no tape, which cannot have given a position. That is the default.
+    virtual std::unique_ptr<impl> lookahead_at(parse_index::const_iterator at) const;
+
 protected:
     /// Attempt to load the current token. If there is no token to load, return \c nullopt.
     virtual std::optional<ast_node> load_current() const = 0;
@@ -126,6 +139,19 @@ public:
     ///
     /// \throws std::invalid_argument if \a origin has been moved-from.
     static reader open(const reader& origin);
+
+    /// Where \a origin is, for the overload below to open a reader on once \a origin has moved past it. Nothing if
+    /// \a origin's source has no tape to mark a place on -- a reader over a \c value, which has the value itself to
+    /// lend instead -- or if \a origin has been moved-from.
+    ///
+    /// A mark is two words copied out of the cursor, so nothing is allocated until a reader is opened on one.
+    static std::optional<parse_index::const_iterator> mark(const reader& origin) noexcept;
+
+    /// Create a reader on \a at, a position \c mark gave for \a origin, wherever \a origin has got to since. It
+    /// borrows \a origin's source exactly as the overload above does.
+    ///
+    /// \throws std::invalid_argument if \a origin has been moved-from.
+    static reader open(const reader& origin, parse_index::const_iterator at);
 };
 
 }
