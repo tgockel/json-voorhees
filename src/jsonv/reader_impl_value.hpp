@@ -120,7 +120,7 @@ private:
 
 protected:
     /// \see reader::current_value
-    const value* borrowed_value() const noexcept override;
+    optional<const value&> borrowed_value() const noexcept override;
 
 private:
     /// A cursor over the same tree as \a origin, on the node \a origin is on. See \c lookahead.

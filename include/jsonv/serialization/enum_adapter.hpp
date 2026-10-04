@@ -196,7 +196,7 @@ protected:
     virtual std::expected<TEnum, ast_node_type> create(extraction_context& context, reader& from) const override
     {
         // A value-backed reader lends the value itself, which is looked up where it sits.
-        if (const value* lent = from.current_value())
+        if (auto lent = from.current_value())
             return settle(context, from, *lent);
 
         if constexpr (value_order::reads_text)

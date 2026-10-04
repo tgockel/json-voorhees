@@ -205,8 +205,9 @@
      - `jsonv::optional<T>` is still `std::optional<T>` for every `T` that takes, and is now also defined for a
        reference. `std::optional<T&>` is C++26 (P2988), and neither MSVC's standard library nor Apple's has it yet, so
        `jsonv::optional<T&>` is a stand-in with its interface: one pointer, trivially copyable, rebound rather than
-       assigned through, and refusing to bind to a temporary. It is what the accessors which may have nothing to lend
-       return. Once every supported toolchain has `std::optional<T&>`, `jsonv::optional` is `std::optional` throughout.
+       assigned through, and refusing to bind to a temporary. `reader::current_value` returns one rather than a
+       `const value*`, empty where there is no `value` to lend -- on a reader over text, or on a key or a closing token.
+       Once every supported toolchain has `std::optional<T&>`, `jsonv::optional` is `std::optional` throughout.
        `jsonv::nullopt` is gone; `std::nullopt` works for both.
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,

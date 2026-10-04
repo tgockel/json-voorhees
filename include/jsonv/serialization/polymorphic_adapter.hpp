@@ -12,6 +12,7 @@
 #include <jsonv/config.hpp>
 #include <jsonv/demangle.hpp>
 #include <jsonv/kind.hpp>
+#include <jsonv/optional.hpp>
 #include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
 
@@ -159,7 +160,7 @@ protected:
     {
         // A value-backed reader renders a non-finite `kind::decimal` as `literal_null`, so where there is a `value` to
         // ask, its `kind` decides -- the same rule `optional_adapter` follows for the same reason.
-        const value* lent = from.current_value();
+        optional<const value&> lent = from.current_value();
         if (_check_null_input && (lent ? lent->kind() == jsonv::kind::null
                                        : from.current_type() == ast_node_type::literal_null
                                  )

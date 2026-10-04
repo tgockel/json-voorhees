@@ -12,6 +12,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/ast.hpp>
+#include <jsonv/optional.hpp>
 #include <expected>
 #include <string_view>
 
@@ -240,10 +241,10 @@ public:
     /// view of what it was handed -- \c std::string_view among them -- borrows the caller's storage rather than a
     /// temporary which dies with the call.
     ///
-    /// \returns The value \c current names; or \c nullptr if this reader is not value-backed, is not \c good, or is
+    /// \returns The value \c current names; or nothing if this reader is not value-backed, is not \c good, or is
     ///          positioned somewhere which does not start a value, such as an object key or a closing token.
     JSONV_NODISCARD
-    const value* current_value() const noexcept;
+    optional<const value&> current_value() const noexcept;
 
     /// Get the path to the current node this reader is pointing at. This is used in the generation of error messages to
     /// describe the location of something that could not be extracted.

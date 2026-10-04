@@ -86,7 +86,7 @@ std::expected<std::string, ast_node_type> read_string(extraction_context& contex
 {
     // A lent `value` holds the decoded string already. The token a value-backed reader would synthesise for it is a
     // quoted copy in its arena, which this would only copy again.
-    if (const value* lent = from.current_value())
+    if (auto lent = from.current_value())
         return lent->as_string();
 
     try
@@ -115,7 +115,7 @@ std::expected<std::string, ast_node_type> read_string(extraction_context& contex
 JSONV_NODISCARD
 std::expected<void, ast_node_type> expect_number(extraction_context& context, reader& from)
 {
-    if (const value* lent = from.current_value())
+    if (auto lent = from.current_value())
     {
         if (lent->kind() == jsonv::kind::decimal || lent->kind() == jsonv::kind::integer)
             return {};
@@ -133,7 +133,7 @@ JSONV_NODISCARD
 std::expected<double, ast_node_type> read_decimal(extraction_context& context, reader& from)
 {
     // The `value` is the number; the token is a rendering of it. See `expect_number`.
-    if (const value* lent = from.current_value())
+    if (auto lent = from.current_value())
         return lent->as_decimal();
 
     auto token = from.current().token_raw();
@@ -176,7 +176,7 @@ std::expected<T, ast_node_type> read_integer(extraction_context& context, reader
 {
     // A lent `value` already holds the number as a `std::int64_t`, which is all a value-backed reader's token is a
     // rendering of -- so this is the check `from_chars` would make of that token, without formatting it to find out.
-    if (const value* lent = from.current_value())
+    if (auto lent = from.current_value())
     {
         auto wide = lent->as_integer();
         if (std::in_range<T>(wide))
@@ -228,7 +228,7 @@ std::expected<value, ast_node_type> extract_value(extraction_context& context, r
 {
     // A value-backed reader is already holding the tree, so copy what it lends rather than rebuilding one token at a
     // time -- which would also drop what a `value` can hold and JSON cannot, such as a non-finite `kind::decimal`.
-    if (const value* borrowed = from.current_value())
+    if (auto borrowed = from.current_value())
     {
         value out = *borrowed;
         (void) from.next_value();
@@ -270,7 +270,7 @@ std::expected<std::string_view, ast_node_type> extract_string_view(extraction_co
                                "std::string instead."
                               );
     }
-    else if (const value* borrowed = from.current_value())
+    else if (auto borrowed = from.current_value())
     {
         // Value-backed: view the caller's own string rather than the token the reader synthesised for it, which lives
         // in the reader's arena and dies with the reader.
@@ -459,7 +459,7 @@ JSONV_NODISCARD
 auto coerce_lent_value(extraction_context& context, reader& from, const FCoerce& coerce)
     -> std::optional<std::expected<std::remove_cvref_t<decltype(coerce(std::declval<const value&>()))>, ast_node_type>>
 {
-    const value* lent = from.current_value();
+    auto lent = from.current_value();
     if (!lent)
         return std::nullopt;
 
@@ -595,7 +595,7 @@ template <typename T>
 JSONV_NODISCARD
 std::expected<T, ast_node_type> coerce_extract_integer(extraction_context& context, reader& from)
 {
-    if (const value* lent = from.current_value())
+    if (auto lent = from.current_value())
     {
         // The lent tree is read with the same range check as a token, so the two sources agree about what fits.
         auto wide = coerce_checked(context, from, *lent, coerce_integer);

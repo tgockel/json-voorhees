@@ -14,6 +14,7 @@
 #include <jsonv/ast.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 #include <jsonv/forward.hpp>
+#include <jsonv/optional.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
@@ -935,7 +936,7 @@ private:
     extraction_context*         _context;
     const encoded_source_scope* _parent;
     const char*                 _begin  = nullptr;
-    const value*                _tree   = nullptr;
+    optional<const value&>      _tree;
     std::string_view            _text;
     bool                        _closed = false;
 
@@ -979,15 +980,15 @@ public:
     void commit();
 
 private:
-    extraction_context* _context;
-    reader*             _from;
-    const value*        _borrowed;
-    bool                _materialised;
-    bool                _advanced;
+    extraction_context*    _context;
+    reader*                _from;
+    optional<const value&> _borrowed;
+    bool                   _materialised;
+    bool                   _advanced;
     /// Distinct from \ref _advanced: a structure read out of text is advanced by the constructor, so the two only
     /// agree for the shapes \c commit had something left to do for.
-    bool                _committed;
-    int                 _uncaught_on_entry;
+    bool                   _committed;
+    int                    _uncaught_on_entry;
     value               _owned;
 };
 

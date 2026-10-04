@@ -10,6 +10,7 @@
 #pragma once
 
 #include <jsonv/ast.hpp>
+#include <jsonv/optional.hpp>
 #include <jsonv/path.hpp>
 #include <jsonv/reader.hpp>
 #include <jsonv/value.hpp>
@@ -55,7 +56,7 @@ public:
     /// from text have nothing to return here.
     ///
     /// \see reader::current_value
-    virtual const value* borrowed_value() const noexcept;
+    virtual optional<const value&> borrowed_value() const noexcept;
 
     bool next_token();
 

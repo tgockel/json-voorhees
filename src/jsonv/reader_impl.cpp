@@ -66,9 +66,9 @@ ast_node_type reader::impl::load_current_type() const
     return current().type();
 }
 
-const value* reader::impl::borrowed_value() const noexcept
+optional<const value&> reader::impl::borrowed_value() const noexcept
 {
-    return nullptr;
+    return std::nullopt;
 }
 
 const path& reader::impl::current_path() const

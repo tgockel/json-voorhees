@@ -1596,17 +1596,17 @@ TEST(extract_value_backed_reader_lends_its_subtree)
     reader rdr    = reader::from_value(source);
 
     (void) rdr.next_token();   // onto {
-    ensure(rdr.current_value() == &source);
+    ensure(&rdr.current_value().value() == &source);
 
     (void) rdr.next_token();   // onto the key "a" -- half a member, not a value
-    ensure(rdr.current_value() == nullptr);
+    ensure(!rdr.current_value());
 
     (void) rdr.next_token();   // onto [
-    ensure(rdr.current_value() == &source.at("a"));
+    ensure(&rdr.current_value().value() == &source.at("a"));
 
     // A text-backed reader has no tree to lend.
     auto text = open(R"({ "a": 1 })");
-    ensure(text.current_value() == nullptr);
+    ensure(!text.current_value());
 }
 
 TEST(extract_read_value_duplicate_keys_match_parse)

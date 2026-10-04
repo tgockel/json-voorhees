@@ -12,6 +12,7 @@
 #include <jsonv/ast.hpp>
 #include <jsonv/config.hpp>
 #include <jsonv/kind.hpp>
+#include <jsonv/optional.hpp>
 #include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
 
@@ -48,9 +49,9 @@ protected:
         // has nowhere to put one -- that is what encoding the value produces, not what the tree holds. Where there is
         // a `value` to ask, its `kind` decides and the rendering does not, which is the same rule the numeric
         // extractors follow for the same reason.
-        const value* lent = from.current_value();
-        bool         none = lent ? lent->kind() == jsonv::kind::null
-                                 : from.current_type() == ast_node_type::literal_null;
+        optional<const value&> lent = from.current_value();
+        bool                   none = lent ? lent->kind() == jsonv::kind::null
+                                           : from.current_type() == ast_node_type::literal_null;
 
         // Everything past here steps the cursor before it builds anything, so a `TOptional` which refuses -- its
         // default constructor for the `null` case, its converting one for the other -- fails with the value behind

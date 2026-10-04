@@ -743,7 +743,7 @@ protected:
 JSONV_NODISCARD
 inline bool current_is_null(const reader& from)
 {
-    if (const value* lent = from.current_value())
+    if (auto lent = from.current_value())
         return lent->kind() == jsonv::kind::null;
     else
         return from.good() && from.current_type() == ast_node_type::literal_null;

@@ -967,7 +967,7 @@ static bool is_scalar(ast_node_type type)
 detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& from) :
         _context(&context),
         _from(&from),
-        _borrowed(nullptr),
+        _borrowed(),
         _materialised(false),
         _advanced(false),
         _committed(false),
@@ -976,7 +976,7 @@ detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& 
     if (from.good() && from.current_type() == ast_node_type::document_start)
         (void) from.next_token();
 
-    if (const value* lent = from.current_value())
+    if (auto lent = from.current_value())
     {
         // The reader is walking a tree which already exists, so hand out the node itself and leave the cursor on it.
         _borrowed = lent;
