@@ -3085,7 +3085,7 @@ TEST(extract_from_a_positioned_reader_reads_one_value)
 
 TEST(extract_malformed_text_reports_the_parse_failure)
 {
-    for (std::string_view text : { "[ 1, 2", "5 x", R"({ "a": })" })
+    for (std::string_view text : { "[ 1, 2", "5 x", "5 6", R"({ "a": })" })
     {
         const std::string expected = parse_error_of(text);
 
@@ -3141,14 +3141,6 @@ TEST(extract_converts_text_as_the_value_category_it_was_given)
     text_by_category named;
     ensure_eq(1, extract<std::int32_t>(named));
     ensure_eq(2, extract<std::int32_t>(text_by_category{}));
-}
-
-TEST(extract_refuses_text_after_the_value)
-{
-    // The parser lets trailing text through after a top-level scalar, so something has to notice that the document did
-    // not end where the value did. `extract<std::int64_t>(parse("5 6"))` never allowed it either.
-    ensure_throws(extraction_error, extract<std::int64_t>("5 6"));
-    ensure_throws(extraction_error, extract<std::int64_t>(reader("5 6")));
 }
 
 TEST(extract_refuses_an_extractor_which_leaves_its_value_unread)

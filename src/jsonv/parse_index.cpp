@@ -520,6 +520,18 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             self->data(structure[depth].open_index + 2) = structure[depth].item_count;
         };
 
+    // A value may begin the document, or follow the `[` or `{` which opens a structure or the `,` or `:` which owes one.
+    // After a finished value it is missing the `,` between them -- or, directly inside the document, is a second value
+    // where the input should have ended, which `push_back_out` reports the same way after a top-level structure.
+    auto expect_value_here = [&]() JSONV_ALWAYS_INLINE
+        {
+            if (state == container_state::item_finished)
+            {
+                JSONV_UNLIKELY
+                throw push_error(self, depth == 1U ? ast_error::expected_eof : ast_error::expected_comma, begin, iter);
+            }
+        };
+
     auto get_string = [&](ast_node_type token_ascii, ast_node_type token_escaped) JSONV_ALWAYS_INLINE
         {
             if (*iter != '\"')
@@ -570,18 +582,22 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             fastforward_whitespace(*&iter, end);
             break;
         case 't':
+            expect_value_here();
             parse_literal(self, begin, *&iter, end, "true", ast_node_type::literal_true);
             state = container_state::item_finished;
             break;
         case 'f':
+            expect_value_here();
             parse_literal(self, begin, *&iter, end, "false", ast_node_type::literal_false);
             state = container_state::item_finished;
             break;
         case 'n':
+            expect_value_here();
             parse_literal(self, begin, *&iter, end, "null", ast_node_type::literal_null);
             state = container_state::item_finished;
             break;
         case '[':
+            expect_value_here();
             push_back_deeper(ast_node_type::array_begin, iter);
             state = container_state::opened;
             ++iter;
@@ -595,6 +611,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             ++iter;
             break;
         case '{':
+            expect_value_here();
             push_back_deeper(ast_node_type::object_begin, iter);
             ++iter;
 
@@ -615,6 +632,13 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             if (state != container_state::item_finished)
                 throw push_error(self, ast_error::unexpected_comma, begin, iter);
 
+            // The document holds a single value, so a `,` after it is as much trailing input as a second value is.
+            if (depth == 1U)
+            {
+                JSONV_UNLIKELY
+                throw push_error(self, ast_error::expected_eof, begin, iter);
+            }
+
             ++iter;
             ++structure[depth - 1].item_count;
 
@@ -623,6 +647,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             state = container_state::needs_item;
             break;
         case '\"':
+            expect_value_here();
             get_string(ast_node_type::string_canonical, ast_node_type::string_escaped);
             state = container_state::item_finished;
             break;
@@ -637,6 +662,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
         case '8':
         case '9':
         case '-':
+            expect_value_here();
             if (auto result = detail::match_number(iter, end))
             {
                 push_back_with_extra<2>(self,

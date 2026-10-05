@@ -268,6 +268,91 @@ TEST(ast_parse_document_ending_inside_a_structure_is_unexpected_eof)
     }
 }
 
+/// Only the `,`, `]` and `}` cases asked whether they were allowed where they were, so a value was taken wherever it
+/// appeared. Two in a row with nothing between them parsed: `[1 2]` as an array whose `element_count()` was 1, since
+/// that counts commas, and `5 6` as a document holding two values, which `jsonv::parse` then failed to build with
+/// `std::invalid_argument`. A top-level `,` passed as well, so `5,` parsed as `5`.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/261
+TEST(ast_parse_values_without_a_comma_between_them_are_refused)
+{
+    struct
+    {
+        std::string_view src;
+        std::string_view tape;
+        jsonv::ast_error code;
+        std::size_t      at;
+        bool             comments = false;
+    }
+    const cases[] =
+    {
+        // Inside a structure the `,` is missing. Every kind of value reports it.
+        { "[1 2]",              "^[i!",   jsonv::ast_error::expected_comma,  3U },
+        { "[1, 2 3]",           "^[ii!",  jsonv::ast_error::expected_comma,  6U },
+        { "[1 -2]",             "^[i!",   jsonv::ast_error::expected_comma,  3U },
+        { R"(["a" "b"])",       "^[s!",   jsonv::ast_error::expected_comma,  5U },
+        { "[true false]",       "^[t!",   jsonv::ast_error::expected_comma,  6U },
+        { "[false null]",       "^[f!",   jsonv::ast_error::expected_comma,  7U },
+        { "[null true]",        "^[n!",   jsonv::ast_error::expected_comma,  6U },
+        { "[[] []]",            "^[[]!",  jsonv::ast_error::expected_comma,  4U },
+        { "[[] {}]",            "^[[]!",  jsonv::ast_error::expected_comma,  4U },
+        { "[{} 1]",             "^[{}!",  jsonv::ast_error::expected_comma,  4U },
+        // An object read the `"b"` as a string value, and only failed at the `:` after it, with "unexpected token".
+        { R"({"a": 1 "b": 2})", "^{ki!",  jsonv::ast_error::expected_comma,  8U },
+        { R"({"a": [] {}})",    "^{k[]!", jsonv::ast_error::expected_comma,  9U },
+        { "[1 /* c */ 2]",      "^[i!",   jsonv::ast_error::expected_comma, 11U, true },
+        // Directly inside the document, where a second value is trailing input.
+        { "5 6",                "^i!",    jsonv::ast_error::expected_eof,    2U },
+        { R"("a" "b")",         "^s!",    jsonv::ast_error::expected_eof,    4U },
+        { "5 [1]",              "^i!",    jsonv::ast_error::expected_eof,    2U },
+        { "5 {}",               "^i!",    jsonv::ast_error::expected_eof,    2U },
+        { "true false",         "^t!",    jsonv::ast_error::expected_eof,    5U },
+        { "5,",                 "^i!",    jsonv::ast_error::expected_eof,    1U },
+        { "5, 6",               "^i!",    jsonv::ast_error::expected_eof,    1U },
+        { "5 /* c */ 6",        "^i!",    jsonv::ast_error::expected_eof,   10U, true },
+        // A top-level structure was always followed by a check for the end of the input, and says the same thing.
+        { "[1] 2",              "^[i]!",  jsonv::ast_error::expected_eof,    4U },
+        { "[1],",               "^[i]!",  jsonv::ast_error::expected_eof,    3U },
+    };
+
+    for (const auto& c : cases)
+    {
+        const auto options = jsonv::parse_options().comments(c.comments);
+
+        auto ast = jsonv::parse_index::parse(c.src, options);
+        ensure_eq(c.tape, to_string(ast));
+
+        try
+        {
+            ast.validate();
+            ensure(!"parse_error was not thrown");
+        }
+        catch (const jsonv::parse_error& ex)
+        {
+            ensure_eq(c.at, ex.character().value());
+            ensure(std::string_view(ex.what()).ends_with(to_string(c.code)));
+        }
+
+        // Neither success nor the `std::invalid_argument` from building a tree out of a tape with two values on it.
+        ensure_throws(jsonv::parse_error, jsonv::parse(c.src, options));
+    }
+}
+
+TEST(ast_parse_values_with_a_comma_between_them_still_parse)
+{
+    using jsonv::array;
+
+    const auto with_comments = jsonv::parse_options().comments(true);
+
+    ensure_eq(array({ 1, 2 }),             jsonv::parse("[1, 2]"));
+    ensure_eq(array({ 1, -2 }),            jsonv::parse("[1,-2]"));
+    ensure_eq(array({ array(), array() }), jsonv::parse("[[], []]"));
+    ensure_eq(jsonv::value(5),             jsonv::parse("5"));
+    ensure_eq(jsonv::value(5),             jsonv::parse(" 5 "));
+    ensure_eq(jsonv::value(5),             jsonv::parse("5 /* c */", with_comments));
+    ensure_eq(array({ 1, 2 }),             jsonv::parse("[1 /* c */, 2]", with_comments));
+}
+
 /// An opener reserves slots for its matching close token and its element count, but neither is known until that close
 /// token arrives. A failed parse must still leave them determinate, because `iterator::operator*` reads the element
 /// count unconditionally when it builds an `object_begin` or `array_begin`.
@@ -474,6 +559,100 @@ TEST(ast_skip_subtree_matches_walking_on_corpus)
         ensure(!src.empty());
 
         ensure_skip_subtree_matches_walking(src);
+    }
+}
+
+/// Count the values directly inside the structure at \a pos the slow way, by tracking depth. An object's keys are not
+/// counted, since each is followed by exactly one value. This is the oracle `element_count` is checked against.
+static std::size_t walked_element_count(const jsonv::parse_index& index, jsonv::parse_index::iterator pos)
+{
+    std::size_t depth = 0U;
+    std::size_t count = 0U;
+
+    do
+    {
+        switch ((*pos).type())
+        {
+        case jsonv::ast_node_type::object_begin:
+        case jsonv::ast_node_type::array_begin:
+            if (depth == 1U)
+                ++count;
+            ++depth;
+            break;
+        case jsonv::ast_node_type::object_end:
+        case jsonv::ast_node_type::array_end:
+            --depth;
+            break;
+        case jsonv::ast_node_type::key_canonical:
+        case jsonv::ast_node_type::key_escaped:
+            break;
+        default:
+            if (depth == 1U)
+                ++count;
+            break;
+        }
+
+        ++pos;
+    } while (depth > 0U && pos != index.end());
+
+    return count;
+}
+
+/// The parser counts an array's or object's elements by its commas, which only comes to the number of elements because
+/// a value which follows another without one is refused. `[1 2]` used to parse with an `element_count()` of 1.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/261
+static void ensure_element_counts_match_walking(std::string_view src)
+{
+    auto ast = jsonv::parse_index::parse(src);
+    ensure(ast.success());
+
+    std::size_t structures_checked = 0U;
+
+    for (auto iter = ast.begin(); iter != ast.end(); ++iter)
+    {
+        auto node = *iter;
+        switch (node.type())
+        {
+        case jsonv::ast_node_type::object_begin:
+            ensure_eq(walked_element_count(ast, iter), node.as<jsonv::ast_node::object_begin>().element_count());
+            break;
+        case jsonv::ast_node_type::array_begin:
+            ensure_eq(walked_element_count(ast, iter), node.as<jsonv::ast_node::array_begin>().element_count());
+            break;
+        default:
+            continue;
+        }
+
+        ++structures_checked;
+    }
+
+    ensure(structures_checked > 0U);
+}
+
+TEST(ast_element_count_matches_walking)
+{
+    ensure_element_counts_match_walking("[]");
+    ensure_element_counts_match_walking("{}");
+    ensure_element_counts_match_walking("[1, 2]");
+    ensure_element_counts_match_walking("[[], []]");
+    ensure_element_counts_match_walking(R"([ "a", true, false, null, -1.5, {}, [] ])");
+    ensure_element_counts_match_walking(R"({ "a": [ 1, 2, 3 ], "b": { "key": "value" }, "c": 4 })");
+    ensure_element_counts_match_walking(R"([ [ [ [ [ 1 ] ] ] ], [], [ {} ], { "x": [ { "y": [] } ] } ])");
+    ensure_element_counts_match_walking(R"({ "esc\t": "a\nb", "u": "é", "nested": { "deep": { "deeper": [] } } })");
+}
+
+TEST(ast_element_count_matches_walking_on_corpus)
+{
+    for (const char* name : { "canada.json", "citm_catalog.json", "generated.json", "blns.json" })
+    {
+        std::ifstream    in(jsonv_test::test_path(name));
+        std::ostringstream buffer;
+        buffer << in.rdbuf();
+        auto src = std::move(buffer).str();
+        ensure(!src.empty());
+
+        ensure_element_counts_match_walking(src);
     }
 }
 

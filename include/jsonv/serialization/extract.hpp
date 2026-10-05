@@ -70,8 +70,8 @@ enum class source_lifetime : unsigned char
 /// not, has its source checked as well, since there is no value there and the parse can say why.
 ///
 /// \param into Storage for the extracted object, as for \c extractor::extract.
-/// \param destroy Destroys the object in \a into. A document with something after its value is only found to have it
-///                once the object has been built, and has to be refused after all.
+/// \param destroy Destroys the object in \a into. An extractor which left a whole document's reader short of its end is
+///                only found to have done so once the object has been built, and has to be refused after all.
 ///
 /// \throws extraction_error carrying the problems this call recorded, and only those, since a \c value bridge calls
 ///                          this with a context which may already hold some.

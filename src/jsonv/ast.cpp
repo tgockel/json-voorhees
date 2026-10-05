@@ -314,6 +314,7 @@ std::ostream& operator<<(std::ostream& os, const ast_error& src)
     case ast_error::unexpected_comma:       return os << "unexpected comma";
     case ast_error::expected_string:        return os << "expected a string";
     case ast_error::expected_key_delimiter: return os << "expected ':'";
+    case ast_error::expected_comma:         return os << "expected ','";
     case ast_error::invalid_literal:        return os << "invalid literal";
     case ast_error::invalid_number:         return os << "invalid number format";
     case ast_error::invalid_string:         return os << "invalid string format";

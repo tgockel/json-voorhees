@@ -139,6 +139,8 @@ enum class ast_error : std::uint64_t
     expected_document,
     expected_string,
     expected_key_delimiter,
+    /// A value followed another inside an array or object with no `,` between them, as in `[1 2]`.
+    expected_comma,
     unexpected_token,
     unexpected_comma,
     unexpected_eof,

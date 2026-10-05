@@ -713,10 +713,9 @@ void detail::extract_entry(extraction_context&   context,
         return;
     }
 
-    // The value did not take up the whole document. The parser lets trailing text through after a top-level scalar --
-    // `5 6` parses -- so this is where that is refused; it is also what notices an extractor which left the cursor
-    // somewhere other than one past its value. `expect` names what was found instead, but reading `current` off an
-    // exhausted reader throws, so that case gets a message of its own.
+    // The value did not take up the whole document. A source with anything after its value fails to parse, so this is
+    // an extractor which left the cursor somewhere other than one past its value. `expect` names what was found
+    // instead, but reading `current` off an exhausted reader throws, so that case gets a message of its own.
     if (from.good())
         (void) context.expect(from, ast_node_type::document_end);
     else

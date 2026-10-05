@@ -122,6 +122,13 @@
        cut. An extraction from one carried the same message. The parser closed the document before looking at what
        was still open. It now reports `ast_error::unexpected_eof` at the end of the input, and the tape stops at the
        `error` node rather than carrying a `document_end` for a document which never ended (#262).
+     - Fixed `parse_index::parse` accepting a value which follows another with no `,` between them. `[1 2]` parsed as
+       a two-element array whose `element_count()` was 1, since that counts commas. At the top level, `5,` parsed as
+       `5`, and `5 6` parsed into a tape `jsonv::parse` could not build a tree from, so it threw
+       `std::invalid_argument` rather than `parse_error`. Inside an array or object this now fails with the new
+       `ast_error::expected_comma`, and at the top level with `ast_error::expected_eof`, as `[1] 2` already did.
+       `{"a": 1 "b": 2}`, which failed with "unexpected token" at the `:` after `"b"`, now reports the missing `,` at
+       the `"b"` itself (#261).
      - Fixed `parse_index::parse` under-allocating its buffer for an `initial_buffer_capacity` near `SIZE_MAX`. The
        size in bytes wrapped, so a small allocation claimed the whole requested capacity and the first write ran off
        its end; for some values the allocation was smaller than the buffer's own header, and writing that corrupted
