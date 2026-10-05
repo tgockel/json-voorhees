@@ -594,8 +594,8 @@ public:
      *  \throws std::out_of_range if any path along the chain did not exist.
      *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
      *                     index when the value is a string).
-     *  \throws parse_error if a \c std::string_view was specified that did not have a valid specification (see
-     *                      \c path::create).
+     *  \throws std::invalid_argument if a \c std::string_view was specified that did not have a valid specification
+     *                                (see \c path::create).
     **/
     value&       at_path(const path& p);
     value&       at_path(std::string_view p);
@@ -614,8 +614,8 @@ public:
      *
      *  \returns \c 1 if the path finds an element; \c 0 if there is no such path in the tree.
      *
-     *  \throws parse_error if a \c std::string_view was specified that did not have a valid specification (see
-     *                      \c path::create).
+     *  \throws std::invalid_argument if a \c std::string_view was specified that did not have a valid specification
+     *                                (see \c path::create).
     **/
     JSONV_NODISCARD
     size_type count_path(const path& p) const;
@@ -635,8 +635,8 @@ public:
      *
      *  \throws kind_error if the path traversal is not valid for the value (for example: if the path specifies an array
      *                     index when the value is a string).
-     *  \throws parse_error if a \c std::string_view was specified that did not have a valid specification (see
-     *                      \c path::create).
+     *  \throws std::invalid_argument if a \c std::string_view was specified that did not have a valid specification
+     *                                (see \c path::create).
      *
      *  \see at_path
     **/

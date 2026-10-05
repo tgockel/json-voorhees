@@ -189,6 +189,16 @@ TEST(value_at_path_out_of_range)
     ensure_throws(std::out_of_range, tree2.at_path(".does.not.exist"));
 }
 
+TEST(value_path_parse_invalid)
+{
+    value tree = object({ { "a", 1 } });
+    const value& ctree = tree;
+    ensure_throws(std::invalid_argument, tree.at_path(".a#"));
+    ensure_throws(std::invalid_argument, ctree.at_path(".a#"));
+    ensure_throws(std::invalid_argument, ctree.count_path(".a#"));
+    ensure_throws(std::invalid_argument, tree.path(".a#"));
+}
+
 TEST(value_path_array_construct)
 {
     value arr;
