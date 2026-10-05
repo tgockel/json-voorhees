@@ -26,6 +26,9 @@
 #     then extract from that, "from_text" extracts off the parse index without a
 #     value, and "from_value" extracts from a value parsed before the clock starts.
 #     They run 10 iterations rather than 100, to keep the check target quick.
+#   - An existing build/ must be configured Release (or with no build type, which
+#     CMakeLists.txt turns into Release) and without JSONV_SANITIZE. Anything else is
+#     refused rather than reconfigured. With no build/, the script configures one.
 #
 set -euo pipefail
 
@@ -44,6 +47,41 @@ while getopts "n:f:h" opt; do
         *) exit 2 ;;
     esac
 done
+
+# A Debug build runs every row once (JSONV_DEBUG) and a sanitized one times the
+# instrumentation, and either prints a figure that looks like a measurement. CI's sanitizer
+# job configures exactly that into build/, so check what is there. Refuse rather than
+# reconfigure: flipping someone's tree to Release costs them a full rebuild of something
+# they were using for another purpose. An empty build type is Release, because
+# CMakeLists.txt defaults it to that for a single-config generator. The suggested
+# reconfigure names JSONV_LTO because a sanitized tree caches it OFF.
+if [ -f build/CMakeCache.txt ]; then
+    build_type="$(sed -n 's/^CMAKE_BUILD_TYPE:[^=]*=//p' build/CMakeCache.txt)"
+    sanitize="$(sed -n 's/^JSONV_SANITIZE:[^=]*=//p' build/CMakeCache.txt)"
+    case "$(printf '%s' "$build_type" | tr '[:lower:]' '[:upper:]')" in
+        ""|RELEASE) build_type_ok=1 ;;
+        *)          build_type_ok=0 ;;
+    esac
+    # CMake's false constants. It folds the case of the named ones but not of NOTFOUND or the
+    # -NOTFOUND suffix, so "x-notfound" is a true value.
+    sanitize_ok=0
+    case "$(printf '%s' "$sanitize" | tr '[:lower:]' '[:upper:]')" in
+        ""|OFF|0|NO|N|FALSE|IGNORE) sanitize_ok=1 ;;
+    esac
+    case "$sanitize" in
+        NOTFOUND|*-NOTFOUND) sanitize_ok=1 ;;
+    esac
+    if [ "$build_type_ok" -eq 0 ] || [ "$sanitize_ok" -eq 0 ]; then
+        {
+            echo "refusing to time build/: it is configured with"
+            echo "    CMAKE_BUILD_TYPE=${build_type:-(unset)} JSONV_SANITIZE=${sanitize:-(unset)}"
+            echo "Benchmarks need a Release build without sanitizers. Move build/ aside and rerun"
+            echo "to have this script configure one, or reconfigure it in place:"
+            echo "    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DJSONV_SANITIZE=OFF -DJSONV_LTO=ON"
+        } >&2
+        exit 1
+    fi
+fi
 
 if [ ! -x build/jsonv-tests ]; then
     echo "Configuring Release build..." >&2
