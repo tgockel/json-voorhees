@@ -79,7 +79,6 @@ parse_options parse_options::create_strict()
            .string_encoding(encoding::utf8_strict)
            .max_structure_depth(20)
            .require_document(true)
-           .complete_parse(true)
            .comments(false)
            ;
 }
@@ -99,12 +98,6 @@ parse_options& parse_options::max_structure_depth(std::optional<size_type> depth
 parse_options& parse_options::require_document(bool val)
 {
     _require_document = val;
-    return *this;
-}
-
-parse_options& parse_options::complete_parse(bool complete_parse_)
-{
-    _complete_parse = complete_parse_;
     return *this;
 }
 

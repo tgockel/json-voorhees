@@ -137,6 +137,9 @@
        `std::bad_alloc` (#221).
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
+     - Removed `parse_options::complete_parse`. It let 1.x read one document after another off a `tokenizer`, but the
+       2.0 parser never read it: every parse takes the whole of its input as one document, and anything after the
+       value fails with `ast_error::expected_eof` (#261).
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
        (things like allowing ECMAScript-style block comments `/* ... */`) and extraction-specific options and errors
        (things like what to do if an object has the same key).

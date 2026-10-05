@@ -106,7 +106,6 @@ public:
     /// string_encoding() == encoding::utf8_strict
     /// max_structure_depth() == 20
     /// require_document() == true
-    /// complete_parse() == true
     /// comments() == false
     /// \endcode
     JSONV_NODISCARD
@@ -144,16 +143,6 @@ public:
 
     /// \{
 
-    /// Should the input be completely parsed to consider the parsing a success? This is on by default. Disabling this
-    /// option can be useful for situations where JSON input is coming from some stream and you wish to process distinct
-    /// objects separately.
-    JSONV_NODISCARD
-    bool           complete_parse() const { return _complete_parse; }
-    parse_options& complete_parse(bool);
-    /// \}
-
-    /// \{
-
     /// Are JSON comments allowed? While there is no official syntax for JSON comments, this uses the de-facto standard
     /// of ECMAScript-style block comments: `/* comment */`. If this is enabled, comments are treated exactly like
     /// whitespace. This is off by default, since RFC 8259 has no comments and a conforming parser rejects them; turn
@@ -169,7 +158,6 @@ private:
     encoding            _string_encoding  = encoding::utf8;
     std::optional<size_type> _max_struct_depth = std::nullopt;
     bool                _require_document = false;
-    bool                _complete_parse   = true;
     bool                _comments         = false;
 };
 
