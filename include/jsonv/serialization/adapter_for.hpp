@@ -120,7 +120,19 @@ protected:
         // Only once the older body is through: a throw out of it leaves the cursor on the value which failed, so the
         // problem names that rather than whatever follows it.
         subtree.commit();
-        return out;
+
+        // Committing steps the cursor past the value, so the return -- which moves the result into the `std::expected`
+        // with the caller's own move constructor -- fails with that value behind it. `borrowed_subtree` cannot say so
+        // on our behalf here: it has committed, which is the state it takes to mean the body succeeded.
+        try
+        {
+            return out;
+        }
+        catch (...)
+        {
+            context.note_value_consumed(from);
+            throw;
+        }
     }
 
     /// Create an instance of \c T from the materialised \a from.

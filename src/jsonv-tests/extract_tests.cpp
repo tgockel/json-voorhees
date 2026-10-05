@@ -241,14 +241,54 @@ protected:
     }
 };
 
+/// Reached through the older `value`-based interface, and refusing to move when it holds 9. Its adapter returns it as a
+/// prvalue, so nothing moves it before the bridge's own return does -- after the bridge has committed its subtree.
+struct bridged_fragile
+{
+    std::int64_t v = 0;
+
+    bridged_fragile()                                  = default;
+    bridged_fragile(const bridged_fragile&)            = default;
+    bridged_fragile& operator=(const bridged_fragile&) = default;
+    bridged_fragile& operator=(bridged_fragile&&)      = default;
+
+    explicit bridged_fragile(std::int64_t v) :
+            v(v)
+    { }
+
+    bridged_fragile(bridged_fragile&& other) :
+            v(other.v)
+    {
+        if (v == 9)
+            throw std::runtime_error("move refuses");
+    }
+};
+
+class bridged_fragile_adapter final :
+        public value_adapter_for<bridged_fragile>
+{
+protected:
+    bridged_fragile create(extraction_context& context, const value& from) const override
+    {
+        return bridged_fragile(context.extract<std::int64_t>(from.at("v")));
+    }
+
+    value to_json(const serialization_context&, const bridged_fragile&) const override
+    {
+        return object();
+    }
+};
+
 formats bridged_formats()
 {
-    static bridged_int_adapter    int_instance;
-    static bridged_triple_adapter triple_instance;
+    static bridged_int_adapter     int_instance;
+    static bridged_triple_adapter  triple_instance;
+    static bridged_fragile_adapter fragile_instance;
 
     formats out = formats::compose({ formats::defaults() });
     out.register_adapter(&int_instance);
     out.register_adapter(&triple_instance);
+    out.register_adapter(&fragile_instance);
     return out;
 }
 
@@ -2452,6 +2492,44 @@ TEST(extract_collect_all_resumes_after_a_structure_which_failed_to_read)
                   formats_builder().register_container<std::vector<std::string>>().compose_checked(formats::coerce())
               )
              );
+}
+
+TEST(extract_collect_all_resumes_after_a_bridged_result_which_failed_to_move)
+{
+    // The bridge commits -- stepping the cursor past the value, or acknowledging that materialising it already did --
+    // and only then returns, which moves the result with the caller's own move constructor. A failure there leaves the
+    // value behind the cursor, so recovering by stepping over it again skips the sibling after it and reports the one
+    // after that under its index. Text and a `value` reach the commit having advanced at different points: a structure
+    // read from text is walked past to be materialised, where one in a tree is lent and only stepped over by `commit`.
+    const formats fmts = formats_builder()
+                             .register_container<std::vector<bridged_fragile>>()
+                         .compose_checked(bridged_formats());
+
+    for (bool from_value : { false, true })
+    {
+        auto collected = [&] (const std::string& text)
+                         {
+                             const value        tree = parse(text);
+                             extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, collecting());
+                             reader             rdr  = from_value ? reader::from_value(tree) : reader(text);
+                             (void) rdr.next_token();
+
+                             ensure(!cxt.extract<std::vector<bridged_fragile>>(rdr).has_value());
+                             return cxt.problems();
+                         };
+
+        // `[1]` is valid and has to be read; `[2]` fails in the older body, which still names the value it failed on.
+        auto problems = collected(R"([ { "v": 9 }, { "v": 1 }, { "v": "x" } ])");
+        ensure_eq(2U, problems.size());
+        ensure_eq(path::create("[0]"), problems.at(0).path());
+        ensure(problems.at(0).message().find("move refuses") != std::string::npos);
+        ensure_eq(path::create("[2]"), problems.at(1).path());
+
+        // On the last element, stepping again walks off the `]` and reports an array which never ended.
+        problems = collected(R"([ { "v": 1 }, { "v": 9 } ])");
+        ensure_eq(1U, problems.size());
+        ensure_eq(path::create("[1]"), problems.at(0).path());
+    }
 }
 
 TEST(extract_collect_all_records_a_nested_failure_exactly_once)
