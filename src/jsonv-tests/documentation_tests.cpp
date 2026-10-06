@@ -1,9 +1,9 @@
 /// \file
 /// The examples the documentation teaches from, compiled and run: the serialization tutorial in \c jsonv/all.hpp, the
-/// opening example of the serialization builder DSL page, and the worked examples on \c jsonv::reader. Nothing else
-/// checks code written in a Doxygen comment, and these examples have drifted from the API before (#233). Each example
-/// below is the documentation's code, verbatim, except that a test asserts what an example prints; a change which
-/// breaks one here has broken it there as well, so change both.
+/// opening example of the serialization builder DSL page, and the worked examples on \c jsonv::reader and
+/// \c jsonv::writer. Nothing else checks code written in a Doxygen comment, and these examples have drifted from the
+/// API before (#233). Each example below is the documentation's code, verbatim, except that a test asserts what an
+/// example prints; a change which breaks one here has broken it there as well, so change both.
 ///
 /// Copyright (c) 2026 by Travis Gockel. All rights reserved.
 ///
@@ -23,6 +23,7 @@
 #include <jsonv/serialization/extractor_construction.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/value.hpp>
+#include <jsonv/writer.hpp>
 
 #include <cstdint>
 #include <list>
@@ -384,6 +385,32 @@ jsonv::reader opened(std::string_view text)
     return out;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// jsonv/writer.hpp                                                                                                   //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace writer_class
+{
+
+struct my_object
+{
+    std::int64_t             a = 0;
+    std::vector<std::string> tags;
+};
+
+void write_my_object(jsonv::writer& to, const my_object& from)
+{
+    to.object_begin();
+    to.key("a").integer(from.a);
+    to.key("tags").array_begin();
+    for (const auto& tag : from.tags)
+        to.string(tag);
+    to.array_end();
+    to.object_end();
+}
+
+}
+
 }
 
 TEST(documentation_tutorial_extract)
@@ -687,6 +714,24 @@ TEST(documentation_reader_examples)
         auto found_reader = opened(text);
         ensure(!reader_next_structure::find_a(found_reader).has_value());
     }
+}
+
+TEST(documentation_writer_example)
+{
+    // The header's driver prints to `std::cout` through a pretty encoder; the same thing into a string.
+    std::ostringstream            pretty;
+    jsonv::ostream_pretty_encoder sink(pretty);
+    jsonv::writer                 to(sink);
+    writer_class::write_my_object(to, writer_class::my_object{ 1, { "x", "y" } });
+
+    ensure_eq(std::string("{\n  \"a\": 1,\n  \"tags\": [\n    \"x\",\n    \"y\"\n  ]\n}"), pretty.str());
+    ensure_eq(std::size_t(0), to.depth());
+
+    // And compact, which is what `to_string` of the equivalent `value` prints.
+    std::ostringstream compact;
+    jsonv::writer      compact_to(compact);
+    writer_class::write_my_object(compact_to, writer_class::my_object{ 1, { "x", "y" } });
+    ensure_eq(jsonv::to_string(jsonv::parse(R"({ "a": 1, "tags": ["x", "y"] })")), compact.str());
 }
 
 }

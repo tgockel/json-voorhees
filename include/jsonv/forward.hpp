@@ -40,5 +40,6 @@ class serializer;
 class serialization_context;
 class value;
 struct version;
+class writer;
 
 }

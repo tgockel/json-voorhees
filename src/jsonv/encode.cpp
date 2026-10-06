@@ -31,6 +31,11 @@ encoder::~encoder() noexcept = default;
 
 void encoder::encode(const value& source)
 {
+    write_tree(source);
+}
+
+void encoder::write_tree(const value& source)
+{
     switch (source.kind())
     {
     case kind::array:
@@ -43,7 +48,7 @@ void encoder::encode(const value& source)
                     first = false;
                 else
                     write_array_delimiter();
-                encode(sub);
+                write_tree(sub);
             }
         }
         write_array_end();
@@ -72,7 +77,7 @@ void encoder::encode(const value& source)
                     write_object_delimiter();
 
                 write_object_key(entry.first);
-                encode(entry.second);
+                write_tree(entry.second);
             }
         }
         write_object_end();

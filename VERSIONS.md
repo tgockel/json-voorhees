@@ -225,6 +225,15 @@
        `const value*`, empty where there is no `value` to lend -- on a reader over text, or on a key or a closing token.
        Once every supported toolchain has `std::optional<T&>`, `jsonv::optional` is `std::optional` throughout.
        `jsonv::nullopt` is gone; `std::nullopt` works for both.
+     - Added `writer`, the push-side mirror of `reader`: a cursor which writes a JSON token sequence into any
+       `encoder` -- `object_begin`, `key`, `integer`, `array_end` and the rest, named after `ast_node_type` -- or into
+       a `std::ostream` through a compact `ostream_encoder` it owns. The writer owns the grammar and the punctuation.
+       A key outside an object, a value where a key is due, a mismatched end or any call on a moved-from writer throws
+       before anything reaches the sink, and the delimiters between elements and between members are the writer's to
+       write, so an `encoder` only ever sees a sequence of hook calls which spells a valid document. `current_path()`
+       names the slot the next token fills and comes off the writer's own frame stack, so unlike `reader::current_path`
+       over text it is cheap. `writer::write(const value&)` and `encoder::encode` share one walk, so an `encoder`
+       subclass, the pretty printer included, sees exactly the sequence of hook calls it saw before (#319).
    - Serialization
      - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
        saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,

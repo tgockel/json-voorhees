@@ -21,15 +21,25 @@
 namespace jsonv
 {
 
-/** An encoder is responsible for writing values to some form of output. **/
+/** An encoder is responsible for writing values to some form of output.
+ *
+ *  It is a sink for the tokens of a JSON document: a \c writer drives the \c write_ hooks below one token at a time,
+ *  writing the delimiters between elements and members itself, and \c encode is the one walk of a \c value which
+ *  both it and \c writer::write perform. An implementation turns each token into text, as \c ostream_encoder does,
+ *  or into anything else.
+ *
+ *  \see writer
+**/
 class JSONV_PUBLIC encoder
 {
 public:
     virtual ~encoder() noexcept;
-    
-    /** Encode some source value into this encoder. This is the only useful entry point to this class. **/
+
+    /** Encode some source value into this encoder. To write a document token by token instead of from a finished
+     *  \c value, construct a \c writer over this encoder; its \c writer::write is this same walk.
+    **/
     void encode(const jsonv::value& source);
-    
+
 protected:
     /** Write the null value.
      *  
@@ -128,12 +138,22 @@ protected:
     virtual void write_decimal(double value) = 0;
     
     /** Write a boolean value.
-     *  
+     *
      *  \code
      *  true
      *  \endcode
     **/
     virtual void write_boolean(bool value) = 0;
+
+private:
+    /** Write \a source and everything under it. This is the walk behind \c encode and behind
+     *  <tt>writer::write(const value&)</tt>: a \c value is well-formed by construction, so nothing checks the grammar
+     *  inside one, and the delimiters are written here.
+    **/
+    void write_tree(const jsonv::value& source);
+
+    /// The hooks above are driven by a \c writer, which is what keeps the sequence of calls spelling a valid document.
+    friend class writer;
 };
 
 /** An encoder that outputs to an \c std::ostream. This implementation is used for \c operator<< on a \c value.

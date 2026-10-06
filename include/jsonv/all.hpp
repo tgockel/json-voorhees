@@ -930,3 +930,4 @@ namespace jsonv
 #include "serialization/all.hpp"
 #include "value.hpp"
 #include "version.hpp"
+#include "writer.hpp"
