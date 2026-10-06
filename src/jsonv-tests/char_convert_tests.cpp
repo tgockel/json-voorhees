@@ -12,6 +12,7 @@
 #include <jsonv/char_convert.hpp>
 
 #include <cstdint>
+#include <cwchar>
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -349,6 +350,27 @@ TEST(convert_to_narrow_invalid)
     ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xdc00), L'A' }));
     ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ L'A', wchar_t(0xdfff) }));
 }
+
+#if WCHAR_MAX > 0xffff
+TEST(convert_to_narrow_rejects_units_wider_than_utf16)
+{
+    #define JSONV_TEST_ENSURE_NARROW_THROWS(...) \
+        ensure_throws(std::range_error, jsonv::detail::convert_to_narrow(std::wstring{ __VA_ARGS__ }))
+
+    // A std::wstring is UTF-16 even where wchar_t is 32 bits, so a unit which does not fit in 16 bits is an error.
+    // These used to be truncated to their low 16 bits first, so each came out as some other character (#271).
+    JSONV_TEST_ENSURE_NARROW_THROWS(wchar_t(0x1f600));   // was U+F600
+    JSONV_TEST_ENSURE_NARROW_THROWS(wchar_t(0x10000));   // was U+0000
+    JSONV_TEST_ENSURE_NARROW_THROWS(wchar_t(-1));        // was U+FFFF
+
+    // The second unit was truncated before the pair was checked, which turned an invalid pair into U+1F600.
+    JSONV_TEST_ENSURE_NARROW_THROWS(wchar_t(0xd83d), wchar_t(0x1de00));
+    JSONV_TEST_ENSURE_NARROW_THROWS(wchar_t(0xd83d), wchar_t(-0x2200));
+
+    // The widest unit which does fit is still a character.
+    ensure_eq("\xef\xbf\xbf", jsonv::detail::convert_to_narrow(std::wstring{ wchar_t(0xffff) }));
+}
+#endif
 
 TEST(convert_to_wide_reports_the_leftmost_error)
 {

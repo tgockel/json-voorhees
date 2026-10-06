@@ -13,6 +13,9 @@
 
 #include "test.hpp"
 
+#include <cwchar>
+#include <stdexcept>
+
 TEST(parse_empty_string)
 {
     jsonv::value val = jsonv::parse("\"\"");
@@ -107,6 +110,19 @@ TEST(wide_strings_astral)
 
     ensure_eq(emoji, value(emoji.as_wstring()));
 }
+
+#if WCHAR_MAX > 0xffff
+TEST(wide_strings_wider_than_utf16)
+{
+    using namespace jsonv;
+
+    // A wide string is UTF-16 even where wchar_t is 32 bits. U+1F600 as a single unit used to be stored as U+F600.
+    const wchar_t raw[] = { wchar_t(0x1f600), L'\0' };
+
+    ensure_throws(std::range_error, value(std::wstring(raw)));
+    ensure_throws(std::range_error, value(raw));
+}
+#endif
 
 TEST(string_view_construction)
 {

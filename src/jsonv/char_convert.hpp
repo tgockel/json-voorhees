@@ -47,11 +47,17 @@ using string_decode_fn = std::string (*)(std::string_view source);
 /// Get a string decoding function for the given output \a encoding.
 string_decode_fn get_string_decoder(parse_options::encoding encoding);
 
-/** Convert the UTF-8 encoded \a source into a UTF-16 encoded \c std::wstring. **/
+/** Convert the UTF-8 encoded \a source into a UTF-16 encoded \c std::wstring. The result is UTF-16 even where
+ *  \c wchar_t is 32 bits, so a code point outside the BMP takes a surrogate pair there too.
+**/
 std::wstring convert_to_wide(std::string_view source);
 
 /// \{
-/// Convert the UTF-16 encoded \a source into a UTF-8 encoded \c std::string.
+/// Convert the UTF-16 encoded \a source into a UTF-8 encoded \c std::string. As with \c convert_to_wide, \a source is
+/// UTF-16 even where \c wchar_t is 32 bits.
+///
+/// \throws std::range_error if \a source is not valid UTF-16, such as when it holds an unpaired surrogate or a code
+///  unit above 0xFFFF.
 std::string convert_to_narrow(const std::wstring& source);
 std::string convert_to_narrow(const wchar_t*      source);
 /// \}

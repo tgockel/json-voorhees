@@ -459,14 +459,16 @@ public:
     /// Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
     /// UTF-8 encoded string.
     ///
-    /// \throws std::range_error if \a value is not valid UTF-16, such as when it holds an unpaired surrogate.
+    /// \throws std::range_error if \a value is not valid UTF-16, such as when it holds an unpaired surrogate or, where
+    ///  \c wchar_t is 32 bits, a code unit above 0xFFFF.
     value(const std::wstring& value);
 
     /** Create a \c kind::string with the given \a value. Keep in mind that it will be converted to and stored as a
      *  UTF-8 encoded string.
      *
      *  \param value The value to create with. This must be null-terminated.
-     *  \throws std::range_error if \a value is not valid UTF-16, such as when it holds an unpaired surrogate.
+     *  \throws std::range_error if \a value is not valid UTF-16, such as when it holds an unpaired surrogate or, where
+     *   \c wchar_t is 32 bits, a code unit above 0xFFFF.
     **/
     value(const wchar_t* value);
 
@@ -523,7 +525,8 @@ public:
     std::string_view as_string_view() const &;
 
     /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
-     *  the \c char base \c std::string.
+     *  the \c char base \c std::string. The result is UTF-16 even where \c wchar_t is 32 bits, so a code point outside
+     *  the BMP takes a surrogate pair there too.
      *
      *  \throws kind_error if this value does not represent a string.
      *  \throws std::range_error if the stored string is not valid UTF-8.

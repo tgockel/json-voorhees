@@ -21,6 +21,7 @@
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <type_traits>
 
 #include "detail/fixed_map.hpp"
 #include "detail/is_print.hpp"
@@ -569,11 +570,19 @@ std::wstring convert_to_wide(std::string_view source)
     return out;
 }
 
+/// The code unit \a unit holds, read at the full width of \c wchar_t. That is 32 bits on some platforms, and signed on
+/// some, so a unit too wide for UTF-16 -- a negative one included -- comes out above 0xffff rather than truncated.
+static char32_t utf16_code_unit(wchar_t unit) noexcept
+{
+    return static_cast<std::make_unsigned_t<wchar_t>>(unit);
+}
+
 /// The number of UTF-8 bytes the UTF-16 source encodes into. Like \c utf16_length_of_utf8, this is not a validator.
 static std::size_t utf8_length_of_utf16(const wchar_t* source_data, std::size_t source_size) noexcept
 {
-    // NOTE(tgockel): `wchar_t` is signed here, so read through `std::uint16_t` exactly as the conversion loop does.
-    auto unit_at = [&] (std::size_t idx) { return static_cast<std::uint16_t>(source_data[idx]); };
+    // NOTE(tgockel): Read through `utf16_code_unit` exactly as the conversion loop does. A unit above 0xffff can be
+    // mistaken for a surrogate by the masks below, but the conversion loop rejects it, so miscounting it is fine.
+    auto unit_at = [&] (std::size_t idx) { return utf16_code_unit(source_data[idx]); };
 
     std::size_t bytes = 0;
 
@@ -608,7 +617,16 @@ static std::string convert_to_narrow(const wchar_t* source_data, std::size_t sou
 
     for (std::size_t source_idx = 0; source_idx < source_size; /* inline */)
     {
-        auto next_source = [&] () -> char32_t { return static_cast<std::uint16_t>(source_data[source_idx++]); };
+        // A `std::wstring` is UTF-16 even where `wchar_t` is 32 bits. Narrowing a unit which does not fit would encode
+        // some other character, and could turn an invalid surrogate pair into a valid one, so it is refused instead.
+        // Both units of a pair are read through here, so this covers the low surrogate too.
+        auto next_source = [&] () -> char32_t
+                           {
+                               auto unit = utf16_code_unit(source_data[source_idx++]);
+                               if (unit > 0xffffU)
+                                   throw std::range_error("Invalid UTF-16: code unit is wider than 16 bits");
+                               return unit;
+                           };
 
         char32_t codepoint;
         auto     c         = next_source();

@@ -12,6 +12,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization.hpp>
 
+#include <cwchar>
 #include <map>
 #include <stdexcept>
 #include <string>
@@ -329,6 +330,43 @@ TEST(object_wide_key_on_non_object_reports_kind_error)
     // On an actual object the conversion is reached, and it is the one that fails.
     ensure_throws(std::range_error, jsonv::object().try_emplace(lone_surrogate, 1));
 }
+
+#if WCHAR_MAX > 0xffff
+// A wide key is UTF-16 even where wchar_t is 32 bits. Each of these used to be truncated to 16 bits per unit and so
+// named some other key -- the last one a valid U+1F600 (#271).
+TEST(object_wide_key_wider_than_utf16)
+{
+    const std::wstring keys[] =
+        {
+            { wchar_t(0x1f600) },
+            { wchar_t(0x10000) },
+            { wchar_t(0xd83d), wchar_t(0x1de00) },
+        };
+
+    for (const auto& key : keys)
+    {
+        jsonv::value obj = jsonv::object();
+
+        ensure_throws(std::range_error, obj[key]);
+        ensure_throws(std::range_error, obj.at(key));
+        ensure_throws(std::range_error, std::as_const(obj).at(key));
+        ensure_throws(std::range_error, obj.count(key));
+        ensure_throws(std::range_error, obj.find(key));
+        ensure_throws(std::range_error, std::as_const(obj).find(key));
+        ensure_throws(std::range_error, obj.insert({ key, 1 }));
+        ensure_throws(std::range_error, obj.insert(obj.end_object(), { key, 1 }));
+        ensure_throws(std::range_error, obj.insert({ { key, 1 } }));
+        ensure_throws(std::range_error, obj.emplace(key, 1));
+        ensure_throws(std::range_error, obj.try_emplace(key, 1));
+        ensure_throws(std::range_error, obj.insert_or_assign(key, 1));
+        ensure_throws(std::range_error, obj.erase(key));
+        ensure_throws(std::range_error, obj.extract(key));
+        ensure_throws(std::range_error, jsonv::object({ { key, 1 } }));
+
+        ensure_eq(obj, jsonv::object());
+    }
+}
+#endif
 
 // insert(hint, handle) documents that the handle keeps ownership of its element when the insertion does not happen.
 TEST(object_insert_hint_node_handle_collision_keeps_handle)

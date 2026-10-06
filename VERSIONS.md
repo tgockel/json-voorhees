@@ -170,6 +170,12 @@
        malformed input. The wide-string conversions agree with it: `as_wstring` now refuses an overlong encoding,
        and a `std::wstring` holding an unpaired low surrogate throws `std::range_error` when made into a `value` or
        used as a key, rather than being stored as a surrogate's UTF-8 bytes (#207).
+     - Fixed the `std::wstring` conversions truncating each code unit to 16 bits before checking it where `wchar_t` is
+       32 bits, as on Linux and macOS. A single unit of `0x1f600` was stored as U+F600, `0x10000` as U+0000, and a high
+       surrogate followed by `0x1de00` came out as a valid U+1F600, since the second unit was cut down to a low
+       surrogate before the pair was checked. A `std::wstring` is UTF-16 on every platform -- `as_wstring` already
+       writes surrogate pairs into a 32-bit `wchar_t` -- so a unit which is negative or above `0xffff` now throws
+       `std::range_error` when made into a `value` or used as a key (#271).
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to
