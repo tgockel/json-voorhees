@@ -30,6 +30,6 @@ CheckOptions:
   bugprone-unused-return-value.AllowCastToVoid: true
   # These take the end of the range as a pointer instead of a size.
   bugprone-suspicious-stringview-data-usage.AllowedCallees: '::std::from_chars;::fast_float::from_chars'
-  # Iterators are passed by value by convention. `formats` and `extract_options` are sink parameters which get copied
+  # Iterators are passed by value by convention. `formats` and `deserialize_options` are sink parameters which get copied
   # because neither type can be moved yet (#286).
-  performance-unnecessary-value-param.AllowedTypes: 'iterator$;^::jsonv::formats$;^::jsonv::extract_options$'
+  performance-unnecessary-value-param.AllowedTypes: 'iterator$;^::jsonv::formats$;^::jsonv::deserialize_options$'

@@ -23,10 +23,10 @@ namespace jsonv
 /// \addtogroup Serialization
 /// \{
 
-/// An adapter for the type \c T. This is a utility class which converts the `void*`s used in the \c extractor and
+/// An adapter for the type \c T. This is a utility class which converts the `void*`s used in the \c deserializer and
 /// \c serializer interfaces into the more-friendly \c T.
 ///
-/// \see extractor_for
+/// \see deserializer_for
 /// \see serializer_for
 /// \see value_adapter_for
 template <typename T>
@@ -34,7 +34,7 @@ class adapter_for :
         public adapter
 {
 public:
-    /// \see extractor::get_type
+    /// \see deserializer::get_type
     /// \see serializer::get_type
     JSONV_NODISCARD
     virtual const std::type_info& get_type() const noexcept override
@@ -42,10 +42,10 @@ public:
         return typeid(T);
     }
 
-    /// \see extractor::extract
+    /// \see deserializer::deserialize
     JSONV_NODISCARD
     virtual std::expected<void, ast_node_type>
-    extract(extraction_context& context, reader& from, void* into) const override
+    deserialize(deserialization_context& context, reader& from, void* into) const override
     {
         if (auto created = create(context, from))
         {
@@ -81,25 +81,25 @@ public:
 protected:
     /// Create an instance of \c T by reading \a from.
     ///
-    /// \param context Extra information to help you decode sub-objects, such as looking up other \c extractor
+    /// \param context Extra information to help you decode sub-objects, such as looking up other \c deserializer
     ///                implementations via \c formats. Record any problem you encounter with
-    ///                \c extraction_context::problem.
-    /// \param from The JSON \c reader to extract from. On a successful return it should sit one position past the
+    ///                \c deserialization_context::problem.
+    /// \param from The JSON \c reader to deserialize from. On a successful return it should sit one position past the
     ///             value which was read, as \c reader::next_value would have left it.
     ///
     /// \returns The created instance; otherwise a \c std::unexpected carrying the \c ast_node_type actually found
     ///          when the failure was a type mismatch, or \c ast_node_type::error otherwise.
     JSONV_NODISCARD
-    virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const = 0;
+    virtual std::expected<T, ast_node_type> create(deserialization_context& context, reader& from) const = 0;
 
     JSONV_NODISCARD
     virtual value to_json(const serialization_context& context, const T& from) const = 0;
 };
 
-/// A base for adapters written against the older \c value -based extraction interface.
+/// A base for adapters written against the older \c value -based deserialization interface.
 ///
 /// The subtree under the reader is materialised with \c read_value and handed to the subclass, whose \c create runs
-/// unchanged. This costs the whole subtree in memory, which is exactly what extracting off a \c reader is meant to
+/// unchanged. This costs the whole subtree in memory, which is exactly what deserializing off a \c reader is meant to
 /// avoid -- so it is a stepping stone for ports, not a destination. New adapters should derive from \c adapter_for and
 /// walk the \c reader.
 template <typename T>
@@ -109,11 +109,11 @@ class value_adapter_for :
 protected:
     JSONV_NODISCARD
     virtual std::expected<T, ast_node_type>
-    create(extraction_context& context, reader& from) const final override
+    create(deserialization_context& context, reader& from) const final override
     {
-        // An extraction_error thrown by the subclass is deliberately left to propagate: extraction_context::extract
-        // folds its problem list onto the context, which is how the path and message an older adapter throws with
-        // survive into the pipeline's std::expected channel.
+        // A deserialization_error thrown by the subclass is deliberately left to propagate:
+        // deserialization_context::deserialize folds its problem list onto the context, which is how the path and
+        // message an older adapter throws with survive into the pipeline's std::expected channel.
         detail::borrowed_subtree subtree(context, from);
         T                        out = create(context, subtree.get());
 
@@ -137,9 +137,9 @@ protected:
 
     /// Create an instance of \c T from the materialised \a from.
     ///
-    /// \throws extraction_error if \a from cannot be converted to a \c T.
+    /// \throws deserialization_error if \a from cannot be converted to a \c T.
     JSONV_NODISCARD
-    virtual T create(extraction_context& context, const value& from) const = 0;
+    virtual T create(deserialization_context& context, const value& from) const = 0;
 };
 
 /// \}

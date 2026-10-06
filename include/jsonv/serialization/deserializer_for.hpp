@@ -1,4 +1,4 @@
-/// \file jsonv/serialization/extractor_for.hpp
+/// \file jsonv/serialization/deserializer_for.hpp
 ///
 /// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
@@ -10,7 +10,7 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization/extract.hpp>
+#include <jsonv/serialization/deserialize.hpp>
 
 #include <expected>
 #include <new>
@@ -22,26 +22,26 @@ namespace jsonv
 /// \addtogroup Serialization
 /// \{
 
-/// An \c extractor for type \c T. This is a utility class which converts the `void*` used in the \c extractor
+/// A \c deserializer for type \c T. This is a utility class which converts the `void*` used in the \c deserializer
 /// interface into the more-friendly \c T.
 ///
 /// \see adapter_for
 template <typename T>
-class extractor_for :
-        public extractor
+class deserializer_for :
+        public deserializer
 {
 public:
-    /// \see extractor::get_type
+    /// \see deserializer::get_type
     JSONV_NODISCARD
     virtual const std::type_info& get_type() const noexcept override
     {
         return typeid(T);
     }
 
-    /// \see extractor::extract
+    /// \see deserializer::deserialize
     JSONV_NODISCARD
     virtual std::expected<void, ast_node_type>
-    extract(extraction_context& context, reader& from, void* into) const override
+    deserialize(deserialization_context& context, reader& from, void* into) const override
     {
         if (auto created = create(context, from))
         {
@@ -70,7 +70,7 @@ protected:
     ///
     /// \see adapter_for::create
     JSONV_NODISCARD
-    virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const = 0;
+    virtual std::expected<T, ast_node_type> create(deserialization_context& context, reader& from) const = 0;
 };
 
 /// \}

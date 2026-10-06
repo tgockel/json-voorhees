@@ -20,7 +20,7 @@
 #include <jsonv/serialization.hpp>
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/serialization/container_adapter.hpp>
-#include <jsonv/serialization/extractor_construction.hpp>
+#include <jsonv/serialization/deserializer_construction.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/writer.hpp>
@@ -45,17 +45,17 @@ namespace
 // jsonv/all.hpp: Serialization                                                                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// The extracting constructor from "Extracting with extract".
-namespace extracting
+/// The deserializing constructor from "Deserializing with deserialize".
+namespace deserializing
 {
 
 class my_type
 {
 public:
-    my_type(jsonv::reader& from, jsonv::extraction_context& context)
+    my_type(jsonv::reader& from, jsonv::deserialization_context& context)
     {
         if (!from.expect(jsonv::ast_node_type::object_begin))
-            throw jsonv::extraction_error(context.problem_path(from), "Expected an object");
+            throw jsonv::deserialization_error(context.problem_path(from), "Expected an object");
 
         // Step off the { and onto the first key -- or onto the } of an empty object.
         (void) from.next_token();
@@ -67,11 +67,11 @@ public:
             (void) from.next_token();
 
             if (key == "a")
-                a = extract_member<int>(from, context, "a");
+                a = deserialize_member<int>(from, context, "a");
             else if (key == "b")
-                b = extract_member<int>(from, context, "b");
+                b = deserialize_member<int>(from, context, "b");
             else if (key == "c")
-                c = extract_member<std::string>(from, context, "c");
+                c = deserialize_member<std::string>(from, context, "c");
             else
                 (void) from.next_value();
         }
@@ -80,9 +80,9 @@ public:
         (void) from.next_token();
     }
 
-    static const jsonv::extractor* get_extractor()
+    static const jsonv::deserializer* get_deserializer()
     {
-        static jsonv::extractor_construction<my_type> instance;
+        static jsonv::deserializer_construction<my_type> instance;
         return &instance;
     }
 
@@ -93,15 +93,15 @@ public:
 
 private:
     template <typename T>
-    static T extract_member(jsonv::reader& from, jsonv::extraction_context& context, std::string_view key)
+    static T deserialize_member(jsonv::reader& from, jsonv::deserialization_context& context, std::string_view key)
     {
-        jsonv::extraction_context::path_scope scope(context, key);
+        jsonv::deserialization_context::path_scope scope(context, key);
 
         auto mark = context.problems().size();
-        if (auto result = context.extract<T>(from))
+        if (auto result = context.deserialize<T>(from))
             return *std::move(result);
 
-        throw jsonv::extraction_error(context.take_problems_since(mark));
+        throw jsonv::deserialization_error(context.take_problems_since(mark));
     }
 
 private:
@@ -120,27 +120,30 @@ namespace ported
 class my_type
 {
 public:
-    my_type(const jsonv::value& from, jsonv::extraction_context& context) :
-            a(extract_member<int>(from, context, "a")),
-            b(extract_member<int>(from, context, "b")),
-            c(extract_member<std::string>(from, context, "c"))
+    my_type(const jsonv::value& from, jsonv::deserialization_context& context) :
+            a(deserialize_member<int>(from, context, "a")),
+            b(deserialize_member<int>(from, context, "b")),
+            c(deserialize_member<std::string>(from, context, "c"))
     { }
 
     template <typename T>
-    static T extract_member(const jsonv::value& from, jsonv::extraction_context& context, const std::string& key)
+    static T deserialize_member(const jsonv::value&              from,
+                                jsonv::deserialization_context& context,
+                                const std::string&              key
+                               )
     {
-        jsonv::extraction_context::path_scope scope(context, key);
+        jsonv::deserialization_context::path_scope scope(context, key);
 
         auto member = from.find(key);
         if (member == from.end_object())
-            throw jsonv::extraction_error(context.path(), "Missing required member");
+            throw jsonv::deserialization_error(context.path(), "Missing required member");
 
-        return context.extract<T>(member->second);
+        return context.deserialize<T>(member->second);
     }
 
-    static const jsonv::extractor* get_extractor()
+    static const jsonv::deserializer* get_deserializer()
     {
-        static jsonv::extractor_construction<my_type> instance;
+        static jsonv::deserializer_construction<my_type> instance;
         return &instance;
     }
 
@@ -215,15 +218,15 @@ struct bar
 
 }
 
-/// The \c formats the tutorial's \c main builds for an extracting \c my_type, plus a \c std::vector of it, so a test
+/// The \c formats the tutorial's \c main builds for a deserializing \c my_type, plus a \c std::vector of it, so a test
 /// can check what the tutorial says happens to one which is an element of an array.
 template <typename TMyType>
-jsonv::formats extracting_formats()
+jsonv::formats deserializing_formats()
 {
     static jsonv::container_adapter<std::vector<TMyType>> vector_adapter;
 
     jsonv::formats local_formats;
-    local_formats.register_extractor(TMyType::get_extractor());
+    local_formats.register_deserializer(TMyType::get_deserializer());
     local_formats.register_adapter(&vector_adapter);
     return jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
 }
@@ -236,21 +239,21 @@ std::string print(const T& x)
     return std::move(os).str();
 }
 
-/// The \c extraction_error thrown by extracting a \c T from \a source -- JSON text or a \c value -- which the test
-/// expects there to be.
+/// The \c deserialization_error thrown by deserializing a \c T from \a source -- JSON text or a \c value -- which the
+/// test expects there to be.
 template <typename T, typename TSource>
-jsonv::extraction_error extraction_failure(const TSource& source, const jsonv::formats& fmts)
+jsonv::deserialization_error deserialization_failure(const TSource& source, const jsonv::formats& fmts)
 {
     try
     {
-        (void) jsonv::extract<T>(source, fmts);
+        (void) jsonv::deserialize<T>(source, fmts);
     }
-    catch (const jsonv::extraction_error& ex)
+    catch (const jsonv::deserialization_error& ex)
     {
         return ex;
     }
 
-    throw test_failure("extraction succeeded where it was expected to fail");
+    throw test_failure("deserialization succeeded where it was expected to fail");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,7 +293,7 @@ struct my_object
     std::int64_t a = 0;
 };
 
-std::optional<my_object> extract_my_object(jsonv::reader& from)
+std::optional<my_object> deserialize_my_object(jsonv::reader& from)
 {
     if (!from.expect(jsonv::ast_node_type::object_begin))
         return std::nullopt;
@@ -413,96 +416,97 @@ void write_my_object(jsonv::writer& to, const my_object& from)
 
 }
 
-TEST(documentation_tutorial_extract)
+TEST(documentation_tutorial_deserialize)
 {
-    ensure_eq(1, jsonv::extract<int>("1"));
-    ensure_eq(2.5, jsonv::extract<double>("2.5"));
-    ensure_eq(std::string("Hello!"), jsonv::extract<std::string>(R"("Hello!")"));
+    ensure_eq(1, jsonv::deserialize<int>("1"));
+    ensure_eq(2.5, jsonv::deserialize<double>("2.5"));
+    ensure_eq(std::string("Hello!"), jsonv::deserialize<std::string>(R"("Hello!")"));
 
     jsonv::value val = jsonv::parse(R"({ "d": 4 })");
-    ensure_eq(4, jsonv::extract<int>(val.at("d")));
+    ensure_eq(4, jsonv::deserialize<int>(val.at("d")));
 
     // What the prose says of the spellings: a C++ string is JSON text rather than a JSON string, and JSON which does
     // not hold what was asked for throws.
-    ensure_throws(jsonv::extraction_error, jsonv::extract<std::string>("Hello!"));
-    ensure_throws(jsonv::extraction_error, jsonv::extract<int>(R"("one")"));
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<std::string>("Hello!"));
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<int>(R"("one")"));
 }
 
-TEST(documentation_tutorial_extracting_constructor)
+TEST(documentation_tutorial_deserializing_constructor)
 {
-    using extracting::my_type;
+    using deserializing::my_type;
 
     // `main`, and the output shown under it.
     jsonv::formats local_formats;
-    local_formats.register_extractor(my_type::get_extractor());
+    local_formats.register_deserializer(my_type::get_deserializer());
     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
 
-    my_type x = jsonv::extract<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })", format);
+    my_type x = jsonv::deserialize<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })", format);
     ensure_eq(std::string("{ a=1, b=2, c=Hello! }"), print(x));
 
-    // Without the format, there is nothing which knows how to extract a `my_type`.
-    ensure_throws(jsonv::extraction_error, jsonv::extract<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })"));
+    // Without the format, there is nothing which knows how to deserialize a `my_type`.
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })"));
 
     // Naming the source, and the message which names it.
-    jsonv::extraction_context context(format,
-                                      std::nullopt,
-                                      jsonv::path(),
-                                      nullptr,
-                                      jsonv::extract_options(),
-                                      "my_type.json"
-                                     );
+    jsonv::deserialization_context context(format,
+                                           std::nullopt,
+                                           jsonv::path(),
+                                           nullptr,
+                                           jsonv::deserialize_options(),
+                                           "my_type.json"
+                                          );
     try
     {
-        my_type y = jsonv::extract<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
+        my_type y = jsonv::deserialize<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
         (void) y;
-        ensure(!"extraction_error was not thrown");
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const jsonv::extraction_error& err)
+    catch (const jsonv::deserialization_error& err)
     {
-        ensure_eq(std::string("Extraction error at my_type.json#.b: Read node of type string when expecting integer"),
+        ensure_eq(std::string("Deserialization error at my_type.json#.b: "
+                              "Read node of type string when expecting integer"),
                   std::string(err.what())
                  );
     }
 }
 
-TEST(documentation_tutorial_extracting_constructor_walks_the_keys)
+TEST(documentation_tutorial_deserializing_constructor_walks_the_keys)
 {
     // Keys in whatever order the document wrote them, one it does not recognize skipped however large its value is,
     // and one it leaves out leaving its member as it was initialized. An escaped key reads as the key it spells.
-    using extracting::my_type;
+    using deserializing::my_type;
 
-    auto x = jsonv::extract<my_type>(R"({ "zzz": [ 1, { "q": [ 2 ] } ], "c": "x", "\u0061": 4 })",
-                                     extracting_formats<my_type>()
-                                    );
+    auto x = jsonv::deserialize<my_type>(R"({ "zzz": [ 1, { "q": [ 2 ] } ], "c": "x", "\u0061": 4 })",
+                                         deserializing_formats<my_type>()
+                                        );
     ensure_eq(std::string("{ a=4, b=0, c=x }"), print(x));
 
     // ...and it is left one past the object, which is what lets a container read the next element.
-    auto xs = jsonv::extract<std::vector<my_type>>(R"([ { "a": 1 }, {}, { "c": "y", "b": 3 } ])",
-                                                   extracting_formats<my_type>()
-                                                  );
+    auto xs = jsonv::deserialize<std::vector<my_type>>(R"([ { "a": 1 }, {}, { "c": "y", "b": 3 } ])",
+                                                       deserializing_formats<my_type>()
+                                                      );
     ensure_eq(3U, xs.size());
     ensure_eq(std::string("{ a=1, b=0, c= }"), print(xs[0]));
     ensure_eq(std::string("{ a=0, b=0, c= }"), print(xs[1]));
     ensure_eq(std::string("{ a=0, b=3, c=y }"), print(xs[2]));
 }
 
-TEST(documentation_tutorial_extracting_constructor_reports_once_at_the_member)
+TEST(documentation_tutorial_deserializing_constructor_reports_once_at_the_member)
 {
     // The tutorial promises that a problem with "a" is reported once, at `.a` -- or at `[3].a` when the `my_type` is
     // the fourth element of an array.
-    using extracting::my_type;
+    using deserializing::my_type;
 
-    auto alone = extraction_failure<my_type>(R"({ "a": "one" })", extracting_formats<my_type>());
+    auto alone = deserialization_failure<my_type>(R"({ "a": "one" })", deserializing_formats<my_type>());
     ensure_eq(1U, alone.problems().size());
     ensure_eq(jsonv::path::create(".a"), alone.path());
 
-    auto fourth = extraction_failure<std::vector<my_type>>(R"([ {}, {}, {}, { "a": "one" } ])",
-                                                           extracting_formats<my_type>()
-                                                          );
+    auto fourth = deserialization_failure<std::vector<my_type>>(R"([ {}, {}, {}, { "a": "one" } ])",
+                                                                deserializing_formats<my_type>()
+                                                               );
     ensure_eq(1U, fourth.problems().size());
     ensure_eq(jsonv::path::create("[3].a"), fourth.path());
 
-    auto not_object = extraction_failure<std::vector<my_type>>(R"([ {}, 5 ])", extracting_formats<my_type>());
+    auto not_object = deserialization_failure<std::vector<my_type>>(R"([ {}, 5 ])", deserializing_formats<my_type>());
     ensure_eq(1U, not_object.problems().size());
     ensure_eq(jsonv::path::create("[1]"), not_object.path());
 }
@@ -511,17 +515,17 @@ TEST(documentation_tutorial_ported_constructor)
 {
     using ported::my_type;
 
-    auto x = jsonv::extract<my_type>(R"({ "c": "Hello!", "b": 2, "a": 1 })", extracting_formats<my_type>());
+    auto x = jsonv::deserialize<my_type>(R"({ "c": "Hello!", "b": 2, "a": 1 })", deserializing_formats<my_type>());
     ensure_eq(std::string("{ a=1, b=2, c=Hello! }"), print(x));
 
-    // The `path_scope` is what names the member, since the `value` it is extracted from cannot.
-    auto fourth = extraction_failure<std::vector<my_type>>(R"([
+    // The `path_scope` is what names the member, since the `value` it is deserialized from cannot.
+    auto fourth = deserialization_failure<std::vector<my_type>>(R"([
                                                                  { "a": 1, "b": 2, "c": "" },
                                                                  { "a": 1, "b": 2, "c": "" },
                                                                  { "a": 1, "b": 2, "c": "" },
                                                                  { "a": 1, "b": "two", "c": "" }
                                                              ])",
-                                                           extracting_formats<my_type>()
+                                                           deserializing_formats<my_type>()
                                                           );
     ensure_eq(1U, fourth.problems().size());
     ensure_eq(jsonv::path::create("[3].b"), fourth.path());
@@ -530,22 +534,22 @@ TEST(documentation_tutorial_ported_constructor)
     // a `value`.
     const std::string_view missing_b = R"({ "a": 1, "c": "" })";
 
-    auto from_text = extraction_failure<my_type>(missing_b, extracting_formats<my_type>());
+    auto from_text = deserialization_failure<my_type>(missing_b, deserializing_formats<my_type>());
     ensure_eq(1U, from_text.problems().size());
     ensure_eq(jsonv::path::create(".b"), from_text.path());
     ensure_eq(std::string("Missing required member"), from_text.problems().front().message());
 
-    auto from_value = extraction_failure<my_type>(jsonv::parse(missing_b), extracting_formats<my_type>());
+    auto from_value = deserialization_failure<my_type>(jsonv::parse(missing_b), deserializing_formats<my_type>());
     ensure_eq(1U, from_value.problems().size());
     ensure_eq(jsonv::path::create(".b"), from_value.path());
 
-    auto fourth_missing = extraction_failure<std::vector<my_type>>(R"([
+    auto fourth_missing = deserialization_failure<std::vector<my_type>>(R"([
                                                                          { "a": 1, "b": 2, "c": "" },
                                                                          { "a": 1, "b": 2, "c": "" },
                                                                          { "a": 1, "b": 2, "c": "" },
                                                                          { "a": 1, "c": "" }
                                                                      ])",
-                                                                   extracting_formats<my_type>()
+                                                                   deserializing_formats<my_type>()
                                                                   );
     ensure_eq(1U, fourth_missing.problems().size());
     ensure_eq(jsonv::path::create("[3].b"), fourth_missing.path());
@@ -585,7 +589,7 @@ TEST(documentation_tutorial_composing_type_adapters)
             .compose_checked(jsonv::formats::defaults())
         ;
 
-    // "perfectly capable of serializing to and extracting from this JSON document"
+    // "perfectly capable of serializing to and deserializing from this JSON document"
     const std::string_view document = R"({
                                              "x": { "a": 50, "b": 20, "c": "Blah" },
                                              "y": { "a": 10,          "c": "No B?" },
@@ -593,7 +597,7 @@ TEST(documentation_tutorial_composing_type_adapters)
                                              "w": "Only serialized before 5.0"
                                          })";
 
-    bar out = jsonv::extract<bar>(document, formats);
+    bar out = jsonv::deserialize<bar>(document, formats);
     ensure_eq(50, out.x.a);
     ensure_eq(20, out.x.b);
     ensure_eq(std::string("Blah"), out.x.c);
@@ -637,9 +641,9 @@ TEST(documentation_dsl_page_example)
             .check_references(jsonv::formats::defaults())
         ;
 
-    // The JSON the page says this describes, extracted once the DSL's adapters are combined with the defaults that
+    // The JSON the page says this describes, deserialized once the DSL's adapters are combined with the defaults that
     // `check_references` checked them against.
-    company out = jsonv::extract<company>(R"({
+    company out = jsonv::deserialize<company>(R"({
                                                  "name": "Paul's Construction",
                                                  "certified": false,
                                                  "employees": [
@@ -686,7 +690,7 @@ TEST(documentation_reader_examples)
         auto expected = jsonv::parse(text).at("a").as_integer();
 
         auto walked_reader = opened(text);
-        auto walked        = reader_class::extract_my_object(walked_reader);
+        auto walked        = reader_class::deserialize_my_object(walked_reader);
         ensure(walked.has_value());
         ensure_eq(expected, walked->a);
 
@@ -698,7 +702,7 @@ TEST(documentation_reader_examples)
 
     // An object without an "a" is a `my_object` left as it was initialized, but there is nothing for `find_a` to find.
     auto empty_walked = opened("{}");
-    auto empty        = reader_class::extract_my_object(empty_walked);
+    auto empty        = reader_class::deserialize_my_object(empty_walked);
     ensure(empty.has_value());
     ensure_eq(0, empty->a);
 
@@ -709,7 +713,7 @@ TEST(documentation_reader_examples)
     for (std::string_view text : { R"({ "a": "five" })", R"([ 5 ])" })
     {
         auto walked_reader = opened(text);
-        ensure(!reader_class::extract_my_object(walked_reader).has_value());
+        ensure(!reader_class::deserialize_my_object(walked_reader).has_value());
 
         auto found_reader = opened(text);
         ensure(!reader_next_structure::find_a(found_reader).has_value());

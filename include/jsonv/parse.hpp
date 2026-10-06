@@ -26,7 +26,7 @@
 namespace jsonv
 {
 
-class extract_options;
+class deserialize_options;
 class tokenizer;
 
 /// An error encountered when parsing.
@@ -169,9 +169,9 @@ private:
 /// jsonv::value out = jsonv::parse(R"( { "a": 1, "b": [ 2, 3, 4 ] } )");
 /// \endcode
 ///
-/// \a parse_options controls parsing -- the indexing of source text into an AST -- and is
-/// \c parse_options::create_default() where not given. \a extract_options controls extraction -- transforming the AST
-/// into a \c jsonv::value -- and is \c extract_options::create_default() where not given.
+/// \a parse_options controls parsing -- the indexing of source text into an AST -- and is \c
+/// parse_options::create_default() where not given. \a deserialize_options controls extraction -- transforming the AST
+/// into a \c jsonv::value -- and is \c deserialize_options::create_default() where not given.
 ///
 /// An integer literal beyond the range of 64 bits is read as the nearest \c double, so it is a \c kind::decimal. One
 /// from 2^63 through 2^64-1 keeps its bits and reads back as a negative \c kind::integer (see
@@ -179,19 +179,19 @@ private:
 ///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
 ///  or stray literals. Errors of this category are described as an offset into \a input.
-/// \throws extraction_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
-///  object with duplicate keys (note that \c replace, the default \c extract_options::on_duplicate_key, does not
-///  throw for this case).
+/// \throws deserialization_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors
+///                               like an object with duplicate keys (note that \c replace, the default \c
+///                               deserialize_options::on_duplicate_key, does not throw for this case).
 /// \throws std::invalid_argument if a number literal has no finite \c double to round to, such as \c 1e400.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::string_view            input,
             const parse_options&   parse_options,
-            const extract_options& extract_options
+            const deserialize_options& deserialize_options
            );
 
 JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input);
 JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const parse_options& parse_options);
-JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_options& extract_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const deserialize_options& deserialize_options);
 /// \}
 
 /// \{
@@ -203,9 +203,9 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_o
 /// jsonv::value out = parse(file);
 /// \endcode
 ///
-/// \a parse_options controls parsing -- the indexing of source text into an AST -- and is
-/// \c parse_options::create_default() where not given. \a extract_options controls extraction -- transforming the AST
-/// into a \c jsonv::value -- and is \c extract_options::create_default() where not given.
+/// \a parse_options controls parsing -- the indexing of source text into an AST -- and is \c
+/// parse_options::create_default() where not given. \a deserialize_options controls extraction -- transforming the AST
+/// into a \c jsonv::value -- and is \c deserialize_options::create_default() where not given.
 ///
 /// An integer literal beyond the range of 64 bits is read as the nearest \c double, so it is a \c kind::decimal. One
 /// from 2^63 through 2^64-1 keeps its bits and reads back as a negative \c kind::integer (see
@@ -213,19 +213,19 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const extract_o
 ///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
 ///  or stray literals. Errors of this category are described as an offset into \a input.
-/// \throws extraction_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors like an
-///  object with duplicate keys (note that \c replace, the default \c extract_options::on_duplicate_key, does not
-///  throw for this case).
+/// \throws deserialization_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors
+///                               like an object with duplicate keys (note that \c replace, the default \c
+///                               deserialize_options::on_duplicate_key, does not throw for this case).
 /// \throws std::invalid_argument if a number literal has no finite \c double to round to, such as \c 1e400.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(std::istream&          input,
             const parse_options&   parse_options,
-            const extract_options& extract_options
+            const deserialize_options& deserialize_options
            );
 
 JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input);
 JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input, const parse_options& parse_options);
-JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input, const extract_options& extract_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input, const deserialize_options& deserialize_options);
 /// \}
 
 /// \{
@@ -233,12 +233,15 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::istream& input, const extract_opti
 /// Read a JSON value from the string bound by `[begin, end)`.
 JSONV_NODISCARD JSONV_PUBLIC
 value parse(const char*            begin,
-            const char*            end,
-            const parse_options&   parse_options,
-            const extract_options& extract_options
+            const char*                end,
+            const parse_options&       parse_options,
+            const deserialize_options& deserialize_options
            );
 JSONV_NODISCARD JSONV_PUBLIC value parse(const char* begin, const char* end, const parse_options& parse_options);
-JSONV_NODISCARD JSONV_PUBLIC value parse(const char* begin, const char* end, const extract_options& extract_options);
+JSONV_NODISCARD JSONV_PUBLIC value parse(const char*                begin,
+                                         const char*                end,
+                                         const deserialize_options& deserialize_options
+                                        );
 JSONV_NODISCARD JSONV_PUBLIC value parse(const char* begin, const char* end);
 /// \}
 

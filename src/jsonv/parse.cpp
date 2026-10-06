@@ -116,20 +116,20 @@ parse_options& parse_options::comments(bool val)
 #define JSONV_PARSE_IMPL_OVERLOADS(params, args)                                                                       \
     value parse(JSONV_IDENTITY params)                                                                                 \
     {                                                                                                                  \
-        return parse(JSONV_IDENTITY args, parse_options::create_default(), extract_options::create_default());         \
+        return parse(JSONV_IDENTITY args, parse_options::create_default(), deserialize_options::create_default());     \
     }                                                                                                                  \
                                                                                                                        \
     value parse(JSONV_IDENTITY params, const parse_options& parse_opts)                                                \
     {                                                                                                                  \
-        return parse(JSONV_IDENTITY args, parse_opts, extract_options::create_default());                              \
+        return parse(JSONV_IDENTITY args, parse_opts, deserialize_options::create_default());                          \
     }                                                                                                                  \
                                                                                                                        \
-    value parse(JSONV_IDENTITY params, const extract_options& extract_opts)                                            \
+    value parse(JSONV_IDENTITY params, const deserialize_options& extract_opts)                                        \
     {                                                                                                                  \
         return parse(JSONV_IDENTITY args, parse_options::create_default(), extract_opts);                              \
     }                                                                                                                  \
 
-value parse(std::string_view input, const parse_options& parse_opts, const extract_options& extract_opts)
+value parse(std::string_view input, const parse_options& parse_opts, const deserialize_options& extract_opts)
 {
     auto ast = parse_index::parse(input, parse_opts);
     ast.validate();
@@ -138,7 +138,7 @@ value parse(std::string_view input, const parse_options& parse_opts, const extra
 
 JSONV_PARSE_IMPL_OVERLOADS((std::string_view input), (input))
 
-value parse(std::istream& input, const parse_options& parse_opts, const extract_options& extract_opts)
+value parse(std::istream& input, const parse_options& parse_opts, const deserialize_options& extract_opts)
 {
     auto text = std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
     return parse(text, parse_opts, extract_opts);
@@ -146,7 +146,11 @@ value parse(std::istream& input, const parse_options& parse_opts, const extract_
 
 JSONV_PARSE_IMPL_OVERLOADS((std::istream& input), (input))
 
-value parse(const char* begin, const char* end, const parse_options& parse_opts, const extract_options& extract_opts)
+value parse(const char*                begin,
+            const char*                end,
+            const parse_options&       parse_opts,
+            const deserialize_options& extract_opts
+           )
 {
     return parse(std::string_view(begin, std::distance(begin, end)), parse_opts, extract_opts);
 }

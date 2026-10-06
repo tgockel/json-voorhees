@@ -10,7 +10,7 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization/extract.hpp>
+#include <jsonv/serialization/deserialize.hpp>
 
 #include "adapter_for.hpp"
 
@@ -23,22 +23,22 @@ namespace jsonv
 /// \addtogroup Serialization
 /// \{
 
-template <typename T, typename FExtract, typename FToJson>
+template <typename T, typename FDeserialize, typename FToJson>
 class function_adapter :
         public adapter_for<T>
 {
 public:
-    template <typename FUExtract, typename FUToJson>
-    explicit function_adapter(FUExtract&& extract_, FUToJson&& to_json_) :
-            _extract(std::forward<FUExtract>(extract_)),
+    template <typename FUDeserialize, typename FUToJson>
+    explicit function_adapter(FUDeserialize&& deserialize_, FUToJson&& to_json_) :
+            _deserialize(std::forward<FUDeserialize>(deserialize_)),
             _to_json(std::forward<FUToJson>(to_json_))
     { }
 
 protected:
     JSONV_NODISCARD
-    virtual std::expected<T, ast_node_type> create(extraction_context& context, reader& from) const override
+    virtual std::expected<T, ast_node_type> create(deserialization_context& context, reader& from) const override
     {
-        return detail::invoke_extract<T>(_extract, context, from);
+        return detail::invoke_deserialize<T>(_deserialize, context, from);
     }
 
     JSONV_NODISCARD
@@ -63,18 +63,19 @@ private:
     }
 
 private:
-    FExtract _extract;
+    FDeserialize _deserialize;
     FToJson  _to_json;
 };
 
-/// Create an \c adapter from \a extract and \a to_json_, deducing the adapted type from what \a extract returns.
-template <typename FExtract, typename FToJson>
+/// Create an \c adapter from \a deserialize and \a to_json_, deducing the adapted type from what \a deserialize
+/// returns.
+template <typename FDeserialize, typename FToJson>
 JSONV_NODISCARD
-auto make_adapter(FExtract extract, FToJson to_json_)
-    -> function_adapter<detail::extract_function_result_t<FExtract>, FExtract, FToJson>
+auto make_adapter(FDeserialize deserialize, FToJson to_json_)
+    -> function_adapter<detail::deserialize_function_result_t<FDeserialize>, FDeserialize, FToJson>
 {
-    return function_adapter<detail::extract_function_result_t<FExtract>, FExtract, FToJson>
-            (std::move(extract), std::move(to_json_));
+    return function_adapter<detail::deserialize_function_result_t<FDeserialize>, FDeserialize, FToJson>
+            (std::move(deserialize), std::move(to_json_));
 }
 
 /// \}

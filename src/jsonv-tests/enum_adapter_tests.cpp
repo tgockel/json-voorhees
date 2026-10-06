@@ -132,53 +132,54 @@ reader open_value(const value& source)
     return out;
 }
 
-extract_options collecting()
+deserialize_options collecting()
 {
-    return extract_options::create_default()
-                .failure_mode(extract_options::on_error::collect_all)
+    return deserialize_options::create_default()
+                .failure_mode(deserialize_options::on_error::collect_all)
                 .max_failures(10U);
 }
 
-bool mentions(const extraction_error::problem& problem, std::string_view text)
+bool mentions(const deserialization_error::problem& problem, std::string_view text)
 {
     return problem.message().find(text) != std::string::npos;
 }
 
-/// The \c ring extracted from \a source, read from the JSON text or from the \c value it parses to, which must succeed.
-ring extracted(std::string_view source, bool from_value, const formats& fmts)
+/// The \c ring deserialized from \a source, read from the JSON text or from the \c value it parses to, which must
+/// succeed.
+ring deserialized(std::string_view source, bool from_value, const formats& fmts)
 {
     const value        tree = parse(source);
-    extraction_context cxt(fmts);
+    deserialization_context cxt(fmts);
     auto               rdr = from_value ? open_value(tree) : open(source);
 
-    auto out = cxt.extract<ring>(rdr);
+    auto out = cxt.deserialize<ring>(rdr);
     ensure(out.has_value());
     ensure(cxt.problems().empty());
     return *out;
 }
 
-/// The single problem extracting a \c ring from \a source reports, read from the JSON text or from the \c value it
+/// The single problem deserializing a \c ring from \a source reports, read from the JSON text or from the \c value it
 /// parses to.
-extraction_error::problem refused(std::string_view source, bool from_value, const formats& fmts)
+deserialization_error::problem refused(std::string_view source, bool from_value, const formats& fmts)
 {
     const value        tree = parse(source);
-    extraction_context cxt(fmts);
+    deserialization_context cxt(fmts);
     auto               rdr = from_value ? open_value(tree) : open(source);
 
-    auto out = cxt.extract<ring>(rdr);
+    auto out = cxt.deserialize<ring>(rdr);
     ensure(!out.has_value());
     ensure_eq(1U, cxt.problems().size());
     return cxt.problems().at(0);
 }
 
-/// What extracting a \c ring from \a source comes to: the ring, or the message it was refused with.
+/// What deserializing a \c ring from \a source comes to: the ring, or the message it was refused with.
 std::string outcome(std::string_view source, bool from_value, const formats& fmts)
 {
     const value        tree = parse(source);
-    extraction_context cxt(fmts);
+    deserialization_context cxt(fmts);
     auto               rdr = from_value ? open_value(tree) : open(source);
 
-    auto out = cxt.extract<ring>(rdr);
+    auto out = cxt.deserialize<ring>(rdr);
     if (out)
         return "ring " + std::to_string(static_cast<int>(*out));
 
@@ -186,20 +187,20 @@ std::string outcome(std::string_view source, bool from_value, const formats& fmt
     return cxt.problems().at(0).message();
 }
 
-/// Extract a \c ring from the front of `[ element, 7 ]` and read what the reader is on afterwards. Every extractor owes
-/// its caller one position past the value it read. Read as a value rather than viewed as a token, since a token from a
-/// value-backed reader is a view of an arena which dies with that reader.
-value after_extracting(std::string_view element, bool from_value, const formats& fmts)
+/// Deserialize a \c ring from the front of `[ element, 7 ]` and read what the reader is on afterwards. Every
+/// deserializer owes its caller one position past the value it read. Read as a value rather than viewed as a token,
+/// since a token from a value-backed reader is a view of an arena which dies with that reader.
+value after_deserializing(std::string_view element, bool from_value, const formats& fmts)
 {
     const std::string  text = "[ " + std::string(element) + ", 7 ]";
     const value        tree = parse(text);
-    extraction_context cxt(fmts);
+    deserialization_context cxt(fmts);
     reader             rdr = from_value ? reader::from_value(tree) : reader(std::string_view(text));
 
     (void) rdr.next_token();   // onto the `[`
     (void) rdr.next_token();   // onto the element
 
-    ensure(cxt.extract<ring>(rdr).has_value());
+    ensure(cxt.deserialize<ring>(rdr).has_value());
     return read_value(rdr);
 }
 
@@ -222,7 +223,7 @@ TEST(enum_adapter_reads_every_mapping_from_both_sources)
 
     for (const auto& [text, expected] : cases)
         for (bool from_value : { false, true })
-            ensure(expected == extracted(text, from_value, mixed_formats()));
+            ensure(expected == deserialized(text, from_value, mixed_formats()));
 }
 
 TEST(enum_adapter_reads_an_escaped_string_as_it_decodes)
@@ -232,11 +233,11 @@ TEST(enum_adapter_reads_an_escaped_string_as_it_decodes)
     for (std::string_view text : { R"("fi\u0072e")", R"("\u0066ire")" })
     {
         ensure(open(text).current_type() == ast_node_type::string_escaped);
-        ensure(ring::fire == extracted(text, false, ring_formats()));
+        ensure(ring::fire == deserialized(text, false, ring_formats()));
     }
 
-    ensure(ring::fire == extracted(R"("F\u0049RE")", false, ring_icase_formats()));
-    ensure(ring::heart == extracted(R"("USE\u004cESS")", false, ring_icase_formats()));
+    ensure(ring::fire == deserialized(R"("F\u0049RE")", false, ring_icase_formats()));
+    ensure(ring::heart == deserialized(R"("USE\u004cESS")", false, ring_icase_formats()));
 }
 
 TEST(enum_adapter_icase_multimapping_matches_every_spelling)
@@ -255,19 +256,19 @@ TEST(enum_adapter_icase_multimapping_matches_every_spelling)
 
     for (const auto& [text, expected] : cases)
         for (bool from_value : { false, true })
-            ensure(expected == extracted(text, from_value, ring_icase_formats()));
+            ensure(expected == deserialized(text, from_value, ring_icase_formats()));
 }
 
 TEST(enum_adapter_lands_one_past_the_value)
 {
     for (bool from_value : { false, true })
     {
-        ensure_eq(value(7), after_extracting(R"("fire")",      from_value, mixed_formats()));
-        ensure_eq(value(7), after_extracting(R"("\u0066ire")", from_value, ring_formats()));
-        ensure_eq(value(7), after_extracting("666",            from_value, mixed_formats()));
-        ensure_eq(value(7), after_extracting("true",           from_value, mixed_formats()));
-        ensure_eq(value(7), after_extracting("null",           from_value, mixed_formats()));
-        ensure_eq(value(7), after_extracting("[ 1, 2 ]",       from_value, mixed_formats()));
+        ensure_eq(value(7), after_deserializing(R"("fire")",      from_value, mixed_formats()));
+        ensure_eq(value(7), after_deserializing(R"("\u0066ire")", from_value, ring_formats()));
+        ensure_eq(value(7), after_deserializing("666",            from_value, mixed_formats()));
+        ensure_eq(value(7), after_deserializing("true",           from_value, mixed_formats()));
+        ensure_eq(value(7), after_deserializing("null",           from_value, mixed_formats()));
+        ensure_eq(value(7), after_deserializing("[ 1, 2 ]",       from_value, mixed_formats()));
     }
 }
 
@@ -312,12 +313,12 @@ TEST(enum_adapter_miss_is_placed_where_the_context_says)
             const std::string_view text = R"({ "a": [ "fire", "bogus" ] })";
             const value            tree = parse(text);
 
-            extraction_context cxt(ring_formats());
+            deserialization_context cxt(ring_formats());
             reader             rdr = from_value ? reader::from_value(tree) : reader(text);
             for (int step = 0; step < 5; ++step)   // onto the `{`, "a", the `[`, "fire" and then "bogus"
                 (void) rdr.next_token();
 
-            ensure(!cxt.extract<ring>(rdr).has_value());
+            ensure(!cxt.deserialize<ring>(rdr).has_value());
             ensure_eq(1U, cxt.problems().size());
             ensure_eq(path::create(".a[1]"), cxt.problems().at(0).path());
 
@@ -327,18 +328,18 @@ TEST(enum_adapter_miss_is_placed_where_the_context_says)
 
         // A base path or a scope outranks the reader.
         {
-            extraction_context cxt(ring_formats(), std::nullopt, path::create(".payload"));
+            deserialization_context cxt(ring_formats(), std::nullopt, path::create(".payload"));
             auto               rdr = from_value ? open_value(bogus) : open(R"("bogus")");
 
-            ensure(!cxt.extract<ring>(rdr).has_value());
+            ensure(!cxt.deserialize<ring>(rdr).has_value());
             ensure_eq(path::create(".payload"), cxt.problems().at(0).path());
         }
         {
-            extraction_context             cxt(ring_formats());
-            extraction_context::path_scope named(cxt, "renamed");
-            auto                           rdr = from_value ? open_value(bogus) : open(R"("bogus")");
+            deserialization_context             cxt(ring_formats());
+            deserialization_context::path_scope named(cxt, "renamed");
+            auto                                rdr = from_value ? open_value(bogus) : open(R"("bogus")");
 
-            ensure(!cxt.extract<ring>(rdr).has_value());
+            ensure(!cxt.deserialize<ring>(rdr).has_value());
             ensure_eq(path::create(".renamed"), cxt.problems().at(0).path());
         }
     }
@@ -353,10 +354,10 @@ TEST(enum_adapter_collect_all_resumes_after_a_miss)
 
     for (bool from_value : { false, true })
     {
-        extraction_context cxt(ring_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(ring_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = from_value ? open_value(tree) : open(text);
 
-        ensure(!cxt.extract<std::vector<ring>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<ring>>(rdr).has_value());
         ensure_eq(4U, cxt.problems().size());
         ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
         ensure_eq(path::create("[2]"), cxt.problems().at(1).path());
@@ -373,10 +374,10 @@ TEST(enum_adapter_collect_all_resumes_after_a_value_which_cannot_be_read)
     // still on them -- so the container steps over each, and over the whole of an array it could not read.
     const std::string_view text = R"([ "\uD800", "fire", 1e400, [ 1e400 ], "nope" ])";
 
-    extraction_context cxt(ring_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+    deserialization_context cxt(ring_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
     auto               rdr = open(text);
 
-    ensure(!cxt.extract<std::vector<ring>>(rdr).has_value());
+    ensure(!cxt.deserialize<std::vector<ring>>(rdr).has_value());
     ensure_eq(4U, cxt.problems().size());
     ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
     ensure_eq(path::create("[2]"), cxt.problems().at(1).path());
@@ -465,9 +466,9 @@ TEST(enum_adapter_other_orderings_are_used_as_given)
 
     for (bool from_value : { false, true })
     {
-        ensure(ring::heart == extracted(R"("useless")",    from_value, greater));
-        ensure(ring::heart == extracted(R"("useless")",    from_value, transparent));
-        ensure(ring::fire  == extracted(R"("\u0066ire")", from_value, transparent));
+        ensure(ring::heart == deserialized(R"("useless")",    from_value, greater));
+        ensure(ring::heart == deserialized(R"("useless")",    from_value, transparent));
+        ensure(ring::fire  == deserialized(R"("\u0066ire")", from_value, transparent));
 
         ensure_eq(std::string(R"(Invalid value for ring: "bogus" )"
                               R"((expected one of "wind", "water", "useless", "heart", "fire", "earth"))"
@@ -486,7 +487,7 @@ namespace
 {
 
 /// An enumerator which refuses to be copied, or to be moved, while \c refusing says so -- and only as the value 9, so
-/// that building the mapping and extracting any other value go through.
+/// that building the mapping and deserializing any other value go through.
 struct touchy
 {
     enum class refusal
@@ -575,13 +576,13 @@ TEST(enum_adapter_copy_or_move_failure_keeps_the_following_diagnostics)
         for (bool from_value : { false, true })
         {
             {
-                const std::string_view text = R"([ "nine", "bogus" ])";
-                const value            tree = parse(text);
-                extraction_context     cxt(touchy_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
-                auto                   rdr = from_value ? open_value(tree) : open(text);
+                const std::string_view  text = R"([ "nine", "bogus" ])";
+                const value             tree = parse(text);
+                deserialization_context cxt(touchy_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+                auto                    rdr = from_value ? open_value(tree) : open(text);
 
                 refusing_while refusing(refusal);
-                ensure(!cxt.extract<std::vector<touchy>>(rdr).has_value());
+                ensure(!cxt.deserialize<std::vector<touchy>>(rdr).has_value());
                 ensure_eq(2U, cxt.problems().size());
                 ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
                 ensure(mentions(cxt.problems().at(0), "refuses"));
@@ -590,13 +591,13 @@ TEST(enum_adapter_copy_or_move_failure_keeps_the_following_diagnostics)
             }
 
             {
-                const std::string_view text = R"([ "one", "nine" ])";
-                const value            tree = parse(text);
-                extraction_context     cxt(touchy_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
-                auto                   rdr = from_value ? open_value(tree) : open(text);
+                const std::string_view  text = R"([ "one", "nine" ])";
+                const value             tree = parse(text);
+                deserialization_context cxt(touchy_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+                auto                    rdr = from_value ? open_value(tree) : open(text);
 
                 refusing_while refusing(refusal);
-                ensure(!cxt.extract<std::vector<touchy>>(rdr).has_value());
+                ensure(!cxt.deserialize<std::vector<touchy>>(rdr).has_value());
                 ensure_eq(1U, cxt.problems().size());
                 ensure_eq(path::create("[1]"), cxt.problems().at(0).path());
                 ensure(mentions(cxt.problems().at(0), "refuses"));
@@ -610,33 +611,33 @@ TEST(enum_adapter_copy_or_move_failure_keeps_the_following_diagnostics)
 namespace
 {
 
-/// The allocations one extraction of a \c T out of the JSON \a source text performs, with everything the extraction
-/// does not pay for -- parsing the text, building the context -- set up beforehand.
+/// The allocations one deserialization of a \c T out of the JSON \a source text performs, with everything the
+/// deserialization does not pay for -- parsing the text, building the context -- set up beforehand.
 template <typename T>
-std::size_t extraction_cost(std::string_view source, const formats& fmts)
+std::size_t deserialization_cost(std::string_view source, const formats& fmts)
 {
-    extraction_context cxt(fmts);
+    deserialization_context cxt(fmts);
     reader             rdr(source);
     (void) rdr.next_token();
 
     allocation_counter allocations;
-    auto               out  = cxt.extract<T>(rdr);
+    auto               out  = cxt.deserialize<T>(rdr);
     const std::size_t  cost = allocations.count();
 
     ensure(out.has_value());
     return cost;
 }
 
-/// The same, for an extraction out of an in-memory \a source.
+/// The same, for a deserialization out of an in-memory \a source.
 template <typename T>
-std::size_t extraction_cost_of_value(const value& source, const formats& fmts)
+std::size_t deserialization_cost_of_value(const value& source, const formats& fmts)
 {
-    extraction_context cxt(fmts);
+    deserialization_context cxt(fmts);
     reader             rdr = reader::from_value(source);
     (void) rdr.next_token();
 
     allocation_counter allocations;
-    auto               out  = cxt.extract<T>(rdr);
+    auto               out  = cxt.deserialize<T>(rdr);
     const std::size_t  cost = allocations.count();
 
     ensure(out.has_value());
@@ -650,18 +651,22 @@ TEST(enum_adapter_from_text_builds_nothing)
     // The whole point of reading the reader: a string is looked up by its text and a number where it sits, so nothing
     // is built on the way to the ring. On the `value` bridge every one of these built a `value` from text, and the
     // long string paid for a copy of its text besides.
-    ensure_eq(0U, extraction_cost<ring>(R"("fire")", ring_formats()));
-    ensure_eq(0U, extraction_cost<ring>(R"("a spelling far too long for any small-string buffer")", mixed_formats()));
-    ensure_eq(0U, extraction_cost<ring>(R"("FIRE")", ring_icase_formats()));
-    ensure_eq(0U, extraction_cost<ring>("666", mixed_formats()));
-    ensure_eq(0U, extraction_cost<ring>("true", mixed_formats()));
-    ensure_eq(0U, extraction_cost_of_value<ring>(value("fire"), ring_formats()));
+    ensure_eq(0U, deserialization_cost<ring>(R"("fire")", ring_formats()));
+    ensure_eq(0U,
+              deserialization_cost<ring>(R"("a spelling far too long for any small-string buffer")", mixed_formats())
+             );
+    ensure_eq(0U, deserialization_cost<ring>(R"("FIRE")", ring_icase_formats()));
+    ensure_eq(0U, deserialization_cost<ring>("666", mixed_formats()));
+    ensure_eq(0U, deserialization_cost<ring>("true", mixed_formats()));
+    ensure_eq(0U, deserialization_cost_of_value<ring>(value("fire"), ring_formats()));
 
     // An escaped string has to be decoded before it can be compared, and decoding is all it costs: no more than
-    // extracting the string itself. Relative rather than absolute, since a debug standard library charges for a
+    // deserializing the string itself. Relative rather than absolute, since a debug standard library charges for a
     // `std::string` in ways no fixed budget survives.
     const std::string_view escaped = R"("a spelling far too long for any small-string buffe\u0072")";
-    ensure_le(extraction_cost<ring>(escaped, mixed_formats()), extraction_cost<std::string>(escaped, mixed_formats()));
+    ensure_le(deserialization_cost<ring>(escaped, mixed_formats()),
+              deserialization_cost<std::string>(escaped, mixed_formats())
+             );
 }
 
 #endif

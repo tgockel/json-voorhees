@@ -10,7 +10,7 @@
 #pragma once
 
 #include <jsonv/config.hpp>
-#include <jsonv/serialization/extract.hpp>
+#include <jsonv/serialization/deserialize.hpp>
 #include <jsonv/serialization/serializer.hpp>
 
 namespace jsonv
@@ -19,10 +19,10 @@ namespace jsonv
 /// \addtogroup Serialization
 /// \{
 
-/// An \c adapter is both an \c extractor and a \c serializer. It is made with the idea that for \e most types, you want
-/// to both encode and decode JSON.
+/// An \c adapter is both a \c deserializer and a \c serializer. It is made with the idea that for \e most types, you
+/// want to both encode and decode JSON.
 class JSONV_PUBLIC adapter :
-        public extractor,
+        public deserializer,
         public serializer
 {
 public:

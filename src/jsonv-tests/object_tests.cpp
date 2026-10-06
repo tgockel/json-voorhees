@@ -674,22 +674,22 @@ TEST(parse_object_duplicate_keys)
 
     // Default settings choose last key
     ensure_eq(jsonv::object({ { "a", 3 } }),
-              jsonv::parse(source, jsonv::extract_options::create_default())
+              jsonv::parse(source, jsonv::deserialize_options::create_default())
              );
 
     // Choose to ignore
     ensure_eq(jsonv::object({ { "a", 1 } }),
               jsonv::parse(source,
-                           jsonv::extract_options::create_default()
-                                .on_duplicate_key(jsonv::extract_options::duplicate_key_action::ignore)
+                           jsonv::deserialize_options::create_default()
+                                .on_duplicate_key(jsonv::deserialize_options::duplicate_key_action::ignore)
                           )
              );
 
     // Throw
-    ensure_throws(jsonv::extraction_error,
+    ensure_throws(jsonv::deserialization_error,
                   jsonv::parse(source,
-                               jsonv::extract_options::create_default()
-                                    .on_duplicate_key(jsonv::extract_options::duplicate_key_action::exception)
+                               jsonv::deserialize_options::create_default()
+                                    .on_duplicate_key(jsonv::deserialize_options::duplicate_key_action::exception)
                               )
                  );
 }

@@ -18,7 +18,7 @@ Features include (but are not necessarily limited to):
   - Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)
   - No-throw move semantics wherever possible
 - Serialization/Deserialization
-  - Extract a C++ type straight from JSON text, or from a `value`, using `extract<T>`
+  - Deserialize a C++ type straight from JSON text, or from a `value`, using `deserialize<T>`
   - Encode a C++ type into a value using `to_json`
 - Safe
   - In the best case, illegal code should fail to compile

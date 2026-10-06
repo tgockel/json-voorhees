@@ -41,7 +41,8 @@ class container_adapter :
 
 protected:
     JSONV_NODISCARD
-    virtual std::expected<TContainer, ast_node_type> create(extraction_context& context, reader& from) const override
+    virtual std::expected<TContainer, ast_node_type>
+    create(deserialization_context& context, reader& from) const override
     {
         using std::end;
 
@@ -60,7 +61,8 @@ protected:
         bool closed    = false;
 
         // Step off the `[` and onto the first element, or onto the `]` of an empty array. The loop never advances
-        // itself: extracting an element leaves the cursor one past it, which is what every extractor owes its caller.
+        // itself: deserializing an element leaves the cursor one past it, which is what every deserializer owes its
+        // caller.
         (void) from.next_token();
 
         try
@@ -69,7 +71,7 @@ protected:
             {
                 // A parse which failed part-way through an array still hands back a usable tape; it just ends with
                 // an `error` describing what cut it short, where the rest of the elements should have been. Saying
-                // the array never closed is more use than letting the extraction below report it as a mismatch
+                // the array never closed is more use than letting the deserialization below report it as a mismatch
                 // against a node type no element can have, and there is nothing after it to recover into.
                 if (auto type = from.current_type();
                     type == ast_node_type::document_end || type == ast_node_type::error)
@@ -96,15 +98,16 @@ protected:
 
                 // Naming the element is what puts `[3]` into a problem raised inside it. The scope lives on this
                 // frame and is two stores to push; no `jsonv::path` is built unless a problem is actually recorded,
-                // which is why a wholly successful extraction of a large array allocates nothing to track where it
+                // which is why a wholly successful deserialization of a large array allocates nothing to track where it
                 // is.
                 //
-                // It covers the extraction and not the insertion, which is `TContainer`'s code and may be a user's.
+                // It covers the deserialization and not the insertion, which is `TContainer`'s code and may be a
+                // user's.
                 auto element = [&] () -> std::expected<element_type, ast_node_type>
                                {
-                                   extraction_context::path_scope scope(context, idx);
+                                   deserialization_context::path_scope scope(context, idx);
 
-                                   return context.extract<element_type>(from);
+                                   return context.deserialize<element_type>(from);
                                }();
 
                 if (!element)

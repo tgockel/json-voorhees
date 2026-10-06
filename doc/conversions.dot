@@ -14,8 +14,8 @@ digraph jsonv {
   str     -> value   [label="parse", URL="\ref jsonv::parse"]
   istream -> value   [label="parse", URL="\ref jsonv::parse"]
   value   -> value   [label="map, merge, diff, ..."]
-  str     -> class   [label="extract", URL="\ref jsonv::extract"]
-  value   -> class   [label="extract", URL="\ref jsonv::extract"]
+  str     -> class   [label="deserialize", URL="\ref jsonv::deserialize"]
+  value   -> class   [label="deserialize", URL="\ref jsonv::deserialize"]
   class   -> value   [label="to_json", URL="\ref jsonv::to_json"]
   dsl     -> value   [label="value, object, array"]
 }

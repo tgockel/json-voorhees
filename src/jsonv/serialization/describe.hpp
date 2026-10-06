@@ -1,5 +1,5 @@
 /// \file
-/// A human-readable name for an \c ast_node_type, shared by everything which reports an extraction problem.
+/// A human-readable name for an \c ast_node_type, shared by everything which reports a deserialization problem.
 ///
 /// Copyright (c) 2026 by Travis Gockel. All rights reserved.
 ///
@@ -21,9 +21,9 @@ namespace jsonv
 /// A human-readable name for \a type.
 ///
 /// \c operator<<(std::ostream&, ast_node_type) writes the single-character tape representation, which is what dumping
-/// a token stream in a test wants and is not what someone reading \c extraction_error::what() wants. The two string
-/// node types share a name, as do the two key types, since the distinction between them is about how the source spelt
-/// a string and not about what was found.
+/// a token stream in a test wants and is not what someone reading \c deserialization_error::what() wants. The two
+/// string node types share a name, as do the two key types, since the distinction between them is about how the source
+/// spelt a string and not about what was found.
 JSONV_NODISCARD JSONV_LOCAL std::string_view describe(ast_node_type type);
 
 }

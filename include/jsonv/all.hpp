@@ -33,7 +33,7 @@ namespace jsonv
 ///   - Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)
 ///   - No-throw move semantics wherever possible
 /// - Serialization/Deserialization
-///   - Extract a C++ type straight from JSON text, or from a `value`, using `extract<T>`
+///   - Deserialize a C++ type straight from JSON text, or from a `value`, using `deserialize<T>`
 ///   - Encode a C++ type into a value using `to_json`
 /// - Safe
 ///   - In the best case, illegal code should fail to compile
@@ -328,12 +328,12 @@ namespace jsonv
 /// Most of the time, you do not want to deal with \c jsonv::value instances directly. Instead, most
 /// people prefer to convert JSON into their own strong C++ \c class or \c struct. JSON Voorhees
 /// provides utilities to make this easy for you to use. At the end of the day, you should be able
-/// to create an arbitrary C++ type with <tt>jsonv::extract&lt;my_type&gt;(text)</tt> and create a
+/// to create an arbitrary C++ type with <tt>jsonv::deserialize&lt;my_type&gt;(text)</tt> and create a
 /// \c jsonv::value from your arbitrary C++ type with <tt>jsonv::to_json(my_instance)</tt>.
 ///
-/// \subsection serialization_encoding Extracting with extract
+/// \subsection serialization_encoding Deserializing with deserialize
 ///
-/// Let's start with converting JSON into C++ types with <tt>jsonv::extract&lt;T&gt;</tt>.
+/// Let's start with converting JSON into C++ types with <tt>jsonv::deserialize&lt;T&gt;</tt>.
 ///
 /// \code
 /// #include <jsonv/parse.hpp>
@@ -345,12 +345,12 @@ namespace jsonv
 ///
 /// int main()
 /// {
-///     std::cout << "a=" << jsonv::extract<int>("1") << std::endl;
-///     std::cout << "b=" << jsonv::extract<double>("2.5") << std::endl;
-///     std::cout << "c=" << jsonv::extract<std::string>(R"("Hello!")") << std::endl;
+///     std::cout << "a=" << jsonv::deserialize<int>("1") << std::endl;
+///     std::cout << "b=" << jsonv::deserialize<double>("2.5") << std::endl;
+///     std::cout << "c=" << jsonv::deserialize<std::string>(R"("Hello!")") << std::endl;
 ///
 ///     jsonv::value val = jsonv::parse(R"({ "d": 4 })");
-///     std::cout << "d=" << jsonv::extract<int>(val.at("d")) << std::endl;
+///     std::cout << "d=" << jsonv::deserialize<int>(val.at("d")) << std::endl;
 /// }
 /// \endcode
 ///
@@ -363,18 +363,18 @@ namespace jsonv
 /// d=4
 /// \endcode
 ///
-/// The first three extract from JSON text, which is the spelling to reach for when text is what you
+/// The first three deserialize from JSON text, which is the spelling to reach for when text is what you
 /// have: the C++ value is read straight out of the text, and no \c jsonv::value is built along the
-/// way. That does mean a C++ string handed to \c extract is JSON \e text rather than a JSON string,
-/// so <tt>extract&lt;std::string&gt;(R"("Hello!")")</tt> is <tt>Hello!</tt> while
-/// <tt>extract&lt;std::string&gt;("Hello!")</tt> fails to parse. The last extracts from a
+/// way. That does mean a C++ string handed to \c deserialize is JSON \e text rather than a JSON string,
+/// so <tt>deserialize&lt;std::string&gt;(R"("Hello!")")</tt> is <tt>Hello!</tt> while
+/// <tt>deserialize&lt;std::string&gt;("Hello!")</tt> fails to parse. The last deserializes from a
 /// \c jsonv::value, which is the spelling for JSON you have already parsed or built. Either way,
-/// JSON which does not hold what you asked for -- <tt>extract&lt;int&gt;(R"("one")")</tt> -- throws
-/// a \c jsonv::extraction_error saying what was found instead.
+/// JSON which does not hold what you asked for -- <tt>deserialize&lt;int&gt;(R"("one")")</tt> -- throws
+/// a \c jsonv::deserialization_error saying what was found instead.
 ///
 /// Overall, this is not very complicated. We did not do anything that could not have been done
 /// through a little use of \c parse and the \c as_ accessors like \c as_integer. So what is this
-/// \c extract giving us?
+/// \c deserialize giving us?
 ///
 /// The real power comes in when we start talking about \c jsonv::formats. These objects provide a
 /// set of rules to encode and decode arbitrary types. So let's make a C++ \c class for our JSON
@@ -382,7 +382,7 @@ namespace jsonv
 ///
 /// \code
 /// #include <jsonv/serialization.hpp>
-/// #include <jsonv/serialization/extractor_construction.hpp>
+/// #include <jsonv/serialization/deserializer_construction.hpp>
 ///
 /// #include <iostream>
 /// #include <string>
@@ -392,10 +392,10 @@ namespace jsonv
 /// class my_type
 /// {
 /// public:
-///     my_type(jsonv::reader& from, jsonv::extraction_context& context)
+///     my_type(jsonv::reader& from, jsonv::deserialization_context& context)
 ///     {
 ///         if (!from.expect(jsonv::ast_node_type::object_begin))
-///             throw jsonv::extraction_error(context.problem_path(from), "Expected an object");
+///             throw jsonv::deserialization_error(context.problem_path(from), "Expected an object");
 ///
 ///         // Step off the { and onto the first key -- or onto the } of an empty object.
 ///         (void) from.next_token();
@@ -407,11 +407,11 @@ namespace jsonv
 ///             (void) from.next_token();
 ///
 ///             if (key == "a")
-///                 a = extract_member<int>(from, context, "a");
+///                 a = deserialize_member<int>(from, context, "a");
 ///             else if (key == "b")
-///                 b = extract_member<int>(from, context, "b");
+///                 b = deserialize_member<int>(from, context, "b");
 ///             else if (key == "c")
-///                 c = extract_member<std::string>(from, context, "c");
+///                 c = deserialize_member<std::string>(from, context, "c");
 ///             else
 ///                 (void) from.next_value();
 ///         }
@@ -420,9 +420,9 @@ namespace jsonv
 ///         (void) from.next_token();
 ///     }
 ///
-///     static const jsonv::extractor* get_extractor()
+///     static const jsonv::deserializer* get_deserializer()
 ///     {
-///         static jsonv::extractor_construction<my_type> instance;
+///         static jsonv::deserializer_construction<my_type> instance;
 ///         return &instance;
 ///     }
 ///
@@ -433,15 +433,15 @@ namespace jsonv
 ///
 /// private:
 ///     template <typename T>
-///     static T extract_member(jsonv::reader& from, jsonv::extraction_context& context, std::string_view key)
+///     static T deserialize_member(jsonv::reader& from, jsonv::deserialization_context& context, std::string_view key)
 ///     {
-///         jsonv::extraction_context::path_scope scope(context, key);
+///         jsonv::deserialization_context::path_scope scope(context, key);
 ///
 ///         auto mark = context.problems().size();
-///         if (auto result = context.extract<T>(from))
+///         if (auto result = context.deserialize<T>(from))
 ///             return *std::move(result);
 ///
-///         throw jsonv::extraction_error(context.take_problems_since(mark));
+///         throw jsonv::deserialization_error(context.take_problems_since(mark));
 ///     }
 ///
 /// private:
@@ -453,10 +453,10 @@ namespace jsonv
 /// int main()
 /// {
 ///     jsonv::formats local_formats;
-///     local_formats.register_extractor(my_type::get_extractor());
+///     local_formats.register_deserializer(my_type::get_deserializer());
 ///     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
 ///
-///     my_type x = jsonv::extract<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })", format);
+///     my_type x = jsonv::deserialize<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })", format);
 ///     std::cout << x << std::endl;
 /// }
 /// \endcode
@@ -472,13 +472,13 @@ namespace jsonv
 /// funny-looking constructor:
 ///
 /// \code
-///     my_type(jsonv::reader& from, jsonv::extraction_context& context)
+///     my_type(jsonv::reader& from, jsonv::deserialization_context& context)
 /// \endcode
 ///
-/// This is an <i>extracting constructor</i>. All that means is that it has those two arguments: a
-/// \c jsonv::reader and a \c jsonv::extraction_context. The reader is a forward cursor over the
+/// This is a <i>deserializing constructor</i>. All that means is that it has those two arguments: a
+/// \c jsonv::reader and a \c jsonv::deserialization_context. The reader is a forward cursor over the
 /// JSON, and when the constructor is called it is sitting on the first token of the value to
-/// extract from -- for \c my_type, the <tt>{</tt> of an object. From there, the constructor walks
+/// deserialize from -- for \c my_type, the <tt>{</tt> of an object. From there, the constructor walks
 /// the object one key at a time, in whatever order the document wrote them:
 ///
 /// \code
@@ -490,138 +490,141 @@ namespace jsonv
 ///             (void) from.next_token();
 ///
 ///             if (key == "a")
-///                 a = extract_member<int>(from, context, "a");
+///                 a = deserialize_member<int>(from, context, "a");
 ///             // ...
 ///             else
 ///                 (void) from.next_value();
 ///         }
 /// \endcode
 ///
-/// Each value it wants is extracted by \c extract_member, which leaves the reader on the next key,
+/// Each value it wants is deserialized by \c deserialize_member, which leaves the reader on the next key,
 /// or on the <tt>}</tt>. A key it does not recognize has its value skipped with \c next_value,
 /// which steps over the whole value in one go, however large it is. Once the closing <tt>}</tt> has
-/// been stepped off as well, the reader is left one position past the object. Every extractor
-/// promises that, because it is where whatever is extracting around this object carries on from. A
+/// been stepped off as well, the reader is left one position past the object. Every deserializer
+/// promises that, because it is where whatever is deserializing around this object carries on from. A
 /// key the document leaves out leaves its member as it was initialized.
 ///
 /// \code
 ///     template <typename T>
-///     static T extract_member(jsonv::reader& from, jsonv::extraction_context& context, std::string_view key)
+///     static T deserialize_member(jsonv::reader& from, jsonv::deserialization_context& context, std::string_view key)
 ///     {
-///         jsonv::extraction_context::path_scope scope(context, key);
+///         jsonv::deserialization_context::path_scope scope(context, key);
 ///
 ///         auto mark = context.problems().size();
-///         if (auto result = context.extract<T>(from))
+///         if (auto result = context.deserialize<T>(from))
 ///             return *std::move(result);
 ///
-///         throw jsonv::extraction_error(context.take_problems_since(mark));
+///         throw jsonv::deserialization_error(context.take_problems_since(mark));
 ///     }
 /// \endcode
 ///
-/// The \c jsonv::extraction_context is what does the work. <tt>context.extract&lt;T&gt;(from)</tt>
-/// extracts a \c T from the value under the cursor, using the \c jsonv::formats the extraction was
+/// The \c jsonv::deserialization_context is what does the work. <tt>context.deserialize&lt;T&gt;(from)</tt>
+/// deserializes a \c T from the value under the cursor, using the \c jsonv::formats the deserialization was
 /// started with, and leaves the cursor one past that value. When it cannot, it does not throw: it
 /// records the problem on the context and returns a \c std::unexpected. A constructor can only fail
-/// by throwing, so \c extract_member throws a \c jsonv::extraction_error carrying what the context
+/// by throwing, so \c deserialize_member throws a \c jsonv::deserialization_error carrying what the context
 /// recorded -- \e taking it with \c take_problems_since rather than copying it, so the problem is
-/// reported once. The \c path_scope names the member for as long as it is being extracted, which is
+/// reported once. The \c path_scope names the member for as long as it is being deserialized, which is
 /// what puts a problem with \c "a" at <tt>.a</tt> -- or at <tt>[3].a</tt> when the \c my_type is
 /// the fourth element of an array.
 ///
-/// Giving up at the first problem is what extraction does by default. With
-/// \c jsonv::extract_options::on_error::collect_all, it carries on past a problem so that it can
-/// report as many as it finds, and an extractor which walks the reader itself has more to do for
-/// that to work -- see \c jsonv::extraction_context::recover. The
+/// Giving up at the first problem is what deserialization does by default. With
+/// \c jsonv::deserialize_options::on_error::collect_all, it carries on past a problem so that it can
+/// report as many as it finds, and a deserializer which walks the reader itself has more to do for
+/// that to work -- see \c jsonv::deserialization_context::recover. The
 /// \ref serialization_composition "DSL" described below does all of that for you.
 ///
 /// \code
-///     static const jsonv::extractor* get_extractor()
+///     static const jsonv::deserializer* get_deserializer()
 ///     {
-///         static jsonv::extractor_construction<my_type> instance;
+///         static jsonv::deserializer_construction<my_type> instance;
 ///         return &instance;
 ///     }
 /// \endcode
 ///
-/// A \c jsonv::extractor is a type that knows how to read JSON and create some C++ type out of it.
-/// In this case, we are creating a \c jsonv::extractor_construction, which is a subtype that knows
-/// how to call the constructor of a type. There are all sorts of \c jsonv::extractor
+/// A \c jsonv::deserializer is a type that knows how to read JSON and create some C++ type out of it.
+/// In this case, we are creating a \c jsonv::deserializer_construction, which is a subtype that knows
+/// how to call the constructor of a type. There are all sorts of \c jsonv::deserializer
 /// implementations in \c jsonv/serialization/, so you should be able to find one that fits your
 /// needs.
 ///
 /// \code
 ///     jsonv::formats local_formats;
-///     local_formats.register_extractor(my_type::get_extractor());
+///     local_formats.register_deserializer(my_type::get_deserializer());
 ///     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
 /// \endcode
 ///
 /// Now things are starting to get interesting. The \c jsonv::formats object is a collection of
-/// <tt>jsonv::extractor</tt>s, so we create one of our own and add the \c jsonv::extractor* from
-/// the static function of \c my_type. The \c local_formats \e only knows how to extract instances
-/// of \c my_type -- it does \e not know even the most basic things like how to extract an \c int.
+/// <tt>jsonv::deserializer</tt>s, so we create one of our own and add the \c jsonv::deserializer* from
+/// the static function of \c my_type. The \c local_formats \e only knows how to deserialize instances
+/// of \c my_type -- it does \e not know even the most basic things like how to deserialize an \c int.
 /// We use \c jsonv::formats::compose to create a new instance of \c jsonv::formats that combines
 /// the qualities of \c local_formats (which knows how to deal with \c my_type) and the
 /// \c jsonv::formats::defaults (which knows how to deal with things like \c int and
 /// \c std::string). The \c formats instance now has the power to do everything we need!
 ///
 /// \code
-///     my_type x = jsonv::extract<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })", format);
+///     my_type x = jsonv::deserialize<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })", format);
 /// \endcode
 ///
 /// This is not terribly different from the example before, but now we are explicitly passing a
 /// \c jsonv::formats object to the function. If we had not provided \c format as an argument here,
-/// the function would have thrown a \c jsonv::extraction_error complaining about how it did not
-/// know how to extract a \c my_type.
+/// the function would have thrown a \c jsonv::deserialization_error complaining about how it did not
+/// know how to deserialize a \c my_type.
 ///
 /// When the JSON came from a file, an error is more use if it says which file. Build the
-/// \c jsonv::extraction_context yourself, with the name of the source last, and hand it to
-/// \c extract in place of the \c format:
+/// \c jsonv::deserialization_context yourself, with the name of the source last, and hand it to
+/// \c deserialize in place of the \c format:
 ///
 /// \code
-///     jsonv::extraction_context context(format,
+///     jsonv::deserialization_context context(format,
 ///                                       std::nullopt,
 ///                                       jsonv::path(),
 ///                                       nullptr,
-///                                       jsonv::extract_options(),
+///                                       jsonv::deserialize_options(),
 ///                                       "my_type.json"
 ///                                      );
-///     my_type y = jsonv::extract<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
+///     my_type y = jsonv::deserialize<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
 /// \endcode
 ///
-/// The \c "b" is not an \c int, so this throws a \c jsonv::extraction_error reading
-/// <tt>Extraction error at my_type.json#.b: Read node of type string when expecting integer</tt>.
+/// The \c "b" is not an \c int, so this throws a \c jsonv::deserialization_error reading
+/// <tt>Deserialization error at my_type.json#.b: Read node of type string when expecting integer</tt>.
 /// Write out every argument before the name: the \c nullptr is the user data, and a string in its
 /// place would be taken for user data rather than for a name. A context is meant for one
 /// document, so make a new one for each file.
 ///
-/// If you are coming from JSON Voorhees 1.x, you may be looking for \c extract_sub. An extracting
+/// If you are coming from JSON Voorhees 1.x, you may be looking for \c extract_sub. A deserializing
 /// constructor used to be handed a whole \c jsonv::value and pull each member out of it by name,
 /// which is what \c extraction_context::extract_sub did. It is gone because that \c value is gone:
-/// extraction reads the JSON as it goes rather than building a \c value first, and a forward cursor
+/// deserialization reads the JSON as it goes rather than building a \c value first, and a forward cursor
 /// has no way to look a key up. Walking the keys, as \c my_type does, is what replaces it. When
 /// random access is genuinely wanted -- what one member means depends on another written after it,
 /// say -- read the object into a \c jsonv::value and look things up in that, with \c value::find or
-/// \c value::at_path. An extracting constructor can still take a <tt>const jsonv::value&</tt> in
+/// \c value::at_path. A deserializing constructor can still take a <tt>const jsonv::value&</tt> in
 /// place of the reader for exactly this, and is handed the object as a \c value -- read off the
 /// reader with \c jsonv::read_value, if it was not one already. That keeps the \c extract_sub calls
 /// of a 1.x constructor easy to port:
 ///
 /// \code
-///     my_type(const jsonv::value& from, jsonv::extraction_context& context) :
-///             a(extract_member<int>(from, context, "a")),
-///             b(extract_member<int>(from, context, "b")),
-///             c(extract_member<std::string>(from, context, "c"))
+///     my_type(const jsonv::value& from, jsonv::deserialization_context& context) :
+///             a(deserialize_member<int>(from, context, "a")),
+///             b(deserialize_member<int>(from, context, "b")),
+///             c(deserialize_member<std::string>(from, context, "c"))
 ///     { }
 ///
 ///     template <typename T>
-///     static T extract_member(const jsonv::value& from, jsonv::extraction_context& context, const std::string& key)
+///     static T deserialize_member(const jsonv::value&              from,
+///                                 jsonv::deserialization_context& context,
+///                                 const std::string&              key
+///                                )
 ///     {
-///         jsonv::extraction_context::path_scope scope(context, key);
+///         jsonv::deserialization_context::path_scope scope(context, key);
 ///
 ///         auto member = from.find(key);
 ///         if (member == from.end_object())
-///             throw jsonv::extraction_error(context.path(), "Missing required member");
+///             throw jsonv::deserialization_error(context.path(), "Missing required member");
 ///
-///         return context.extract<T>(member->second);
+///         return context.deserialize<T>(member->second);
 ///     }
 /// \endcode
 ///
@@ -630,15 +633,15 @@ namespace jsonv
 /// \c find rather than \c value::at is what reports a missing \c "b" at <tt>.b</tt>, while the
 /// scope is still alive to say so. The \c std::out_of_range from \c at would only be caught once
 /// the scope had gone, so it would be reported at the object around the member, and it does not
-/// say which member it was. <tt>context.extract&lt;T&gt;</tt> throws rather than returning when it
+/// say which member it was. <tt>context.deserialize&lt;T&gt;</tt> throws rather than returning when it
 /// is handed a \c value, so nothing needs handing over. Building that \c value for every object
-/// extracted is the cost the reader-based constructor avoids.
+/// deserialized is the cost the reader-based constructor avoids.
 ///
 /// \subsection serialization_to_json Serialization with to_json
 ///
 /// JSON Voorhees also allows you to convert from your C++ structures into JSON values, using
-/// \c jsonv::to_json. It should feel like a mirror of \c jsonv::extract, with similar argument
-/// types and many shared concepts. Just like extraction, \c jsonv::to_json uses the
+/// \c jsonv::to_json. It should feel like a mirror of \c jsonv::deserialize, with similar argument
+/// types and many shared concepts. Just like deserialization, \c jsonv::to_json uses the
 /// \c jsonv::formats class, but it uses a \c jsonv::serializer to convert from C++ into JSON.
 ///
 /// \code
@@ -700,7 +703,7 @@ namespace jsonv
 ///
 /// \subsection serialization_composition Composing Type Adapters
 ///
-/// Does all this seem a little bit \e manual to you? Creating an \c extractor and \c serializer for
+/// Does all this seem a little bit \e manual to you? Creating a \c deserializer and \c serializer for
 /// every single type can get a little bit tedious. Unfortunately, until C++ has a standard way to
 /// do reflection, we must specify the conversions manually. However, there \e is an easier way!
 /// That way is the \ref serialization_builder_dsl "Serialization Builder DSL".
@@ -756,17 +759,17 @@ namespace jsonv
 /// The two most-used functions are \c type and \c member. \c type defines a \c jsonv::adapter for
 /// the C++ class provided at the template parameter. All of the calls before the second \c type
 /// call modify the adapter for \c foo. There, we attach members with the \c member function. This
-/// tells the \c formats how to encode and extract each of the specified members to and from a JSON
+/// tells the \c formats how to encode and deserialize each of the specified members to and from a JSON
 /// object using the provided string as the key. The extra function calls like \c default_value,
 /// \c since and \c until are just a couple of the many functions available to modify how the
 /// members of the type get transformed.
 ///
 /// The chain ends with \c compose_checked, which checks that every type the members refer to --
-/// \c int and \c std::string here -- can be extracted and serialized once the adapters the DSL
+/// \c int and \c std::string here -- can be deserialized and serialized once the adapters the DSL
 /// built are combined with \c jsonv::formats::defaults, and then composes the two, just as we
 /// composed \c local_formats by hand earlier.
 ///
-/// The \c formats we built would be perfectly capable of serializing to and extracting from this
+/// The \c formats we built would be perfectly capable of serializing to and deserializing from this
 /// JSON document:
 ///
 /// \code
@@ -778,12 +781,12 @@ namespace jsonv
 /// }
 /// \endcode
 ///
-/// Extracting a \c bar reads the document just the way the constructor of \c my_type did: each
+/// Deserializing a \c bar reads the document just the way the constructor of \c my_type did: each
 /// object's keys are walked in the order the document wrote them, each is handed to the member
 /// which claims it, and a key no member claims has its value stepped over unread. What the DSL adds
 /// is everything that constructor left out. A member without a \c default_value is required, a key
-/// the document repeats is settled by \c jsonv::extract_options::on_duplicate_key, and
-/// \c jsonv::extract_options::on_error::collect_all carries on past a problem to report the rest.
+/// the document repeats is settled by \c jsonv::deserialize_options::on_duplicate_key, and
+/// \c jsonv::deserialize_options::on_error::collect_all carries on past a problem to report the rest.
 ///
 /// For a more in-depth reference, see the \ref serialization_builder_dsl "Serialization Builder DSL page".
 ///

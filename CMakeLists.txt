@@ -156,7 +156,7 @@ option(JSONV_RELEASE_WITH_DEBUG_SYMBOLS
       )
 
 # `JSONV_DEBUG` throttles the test suite's timing loops: without it `benchmark_tests.cpp` runs 100 iterations over the
-# multi-megabyte corpus and `extract_tests.cpp` sizes its linearity guard at 20000 elements. It therefore has to follow
+# multi-megabyte corpus and `deserialize_tests.cpp` sizes its linearity guard at 20000 elements. It therefore has to follow
 # the configuration being built rather than the platform. It used to be appended to `CMAKE_CXX_FLAGS_DEBUG` inside the
 # non-Windows branch below, which left every MSVC build -- Debug included -- running the timing loops, against what
 # both CONTRIBUTING.md and the CI workflow say happens.

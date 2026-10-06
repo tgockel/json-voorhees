@@ -43,12 +43,13 @@ class reader_lookahead;
 /// sequence.
 ///
 /// Readers normalize access to JSON source for conversion to some other format. They can be provided with pre-parsed
-/// JSON through a \c parse_index or \c value. They can be provided with a \c std::string or \c std::string_view directly.
-/// This allows \c extractor implementations to operate on all forms of JSON without worrying about the implementation.
+/// JSON through a \c parse_index or \c value. They can be provided with a \c std::string or \c std::string_view
+/// directly. This allows \c deserializer implementations to operate on all forms of JSON without worrying about the
+/// implementation.
 ///
 /// A reader is a forward cursor over that sequence. It starts on \c ast_node_type::document_start, so the first thing
-/// to do is step onto the value itself -- which \c jsonv::extract does for you when handed a fresh reader. Reading an
-/// object means walking its keys, handling the ones you recognize and skipping the ones you do not:
+/// to do is step onto the value itself -- which \c jsonv::deserialize does for you when handed a fresh reader. Reading
+/// an object means walking its keys, handling the ones you recognize and skipping the ones you do not:
 ///
 /// \code
 /// struct my_object
@@ -56,7 +57,7 @@ class reader_lookahead;
 ///     std::int64_t a = 0;
 /// };
 ///
-/// std::optional<my_object> extract_my_object(jsonv::reader& from)
+/// std::optional<my_object> deserialize_my_object(jsonv::reader& from)
 /// {
 ///     if (!from.expect(jsonv::ast_node_type::object_begin))
 ///         return std::nullopt;
@@ -177,7 +178,7 @@ public:
     /// Does this reader own the storage it reads from?
     ///
     /// This is \c true for a reader created from a \c std::string rvalue or by \c from_value(value&&), which keep their
-    /// source alive for exactly as long as the reader. Anything extracted as a view of the source -- a
+    /// source alive for exactly as long as the reader. Anything deserialized as a view of the source -- a
     /// \c std::string_view, say -- is then valid only while the reader is. It is \c false for every other source,
     /// where the caller owns the storage, and for a moved-from reader.
     JSONV_NODISCARD
@@ -237,9 +238,9 @@ public:
     /// A reader created by \c from_value is walking a \c value which already exists, so the subtree under \c current
     /// is something it can hand out by reference rather than rebuild. A reader over JSON text has no such tree.
     ///
-    /// Extraction uses this to avoid copying a subtree it was already given, and so that an extractor which returns a
-    /// view of what it was handed -- \c std::string_view among them -- borrows the caller's storage rather than a
-    /// temporary which dies with the call.
+    /// Deserialization uses this to avoid copying a subtree it was already given, and so that a deserializer which
+    /// returns a view of what it was handed -- \c std::string_view among them -- borrows the caller's storage rather
+    /// than a temporary which dies with the call.
     ///
     /// \returns The value \c current names; or nothing if this reader is not value-backed, is not \c good, or is
     ///          positioned somewhere which does not start a value, such as an object key or a closing token.
@@ -247,7 +248,7 @@ public:
     optional<const value&> current_value() const noexcept;
 
     /// Get the path to the current node this reader is pointing at. This is used in the generation of error messages to
-    /// describe the location of something that could not be extracted.
+    /// describe the location of something that could not be deserialized.
     ///
     /// \code
     /// ^               /* "."  -- start of document is the empty path */
@@ -438,8 +439,8 @@ private:
     explicit reader(std::unique_ptr<impl> impl) noexcept;
 
     /// The library sometimes has to read ahead -- \c polymorphic_adapter has to find its discriminator before it knows
-    /// which type to extract. That is a second cursor on this reader's source rather than a rewind of this one, and it
-    /// is kept out of the public interface on purpose: promising it would commit every future source, including one
+    /// which type to deserialize. That is a second cursor on this reader's source rather than a rewind of this one, and
+    /// it is kept out of the public interface on purpose: promising it would commit every future source, including one
     /// which streams, to supporting it.
     friend class detail::reader_lookahead;
 

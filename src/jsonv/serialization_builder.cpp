@@ -40,11 +40,19 @@ void formats_builder::check_references_impl(const formats& searching, const std:
     {
         const std::type_index& type = pair.first;
 
-        bool has_extractor  = [&] { try { (void) searching.get_extractor(type);  return true; } catch (const no_extractor&)  { return false; } }();
-        bool has_serializer = [&] { try { (void) searching.get_serializer(type); return true; } catch (const no_serializer&) { return false; } }();
+        bool has_deserializer = [&]
+                                {
+                                    try { (void) searching.get_deserializer(type); return true; }
+                                    catch (const no_deserializer&) { return false; }
+                                }();
+        bool has_serializer   = [&]
+                                {
+                                    try { (void) searching.get_serializer(type); return true; }
+                                    catch (const no_serializer&) { return false; }
+                                }();
 
-        if (!has_extractor || !has_serializer)
-            failed_types.emplace_back(type, has_extractor, has_serializer);
+        if (!has_deserializer || !has_serializer)
+            failed_types.emplace_back(type, has_deserializer, has_serializer);
     }
 
     if (!failed_types.empty())
@@ -183,9 +191,9 @@ formats_builder& formats_builder_dsl::on_duplicate_type(duplicate_type_action ac
 
 }
 
-void throw_extra_keys_extraction_error(extraction_context&          context,
-                                       const std::set<std::string>& extra_keys
-                                      )
+void throw_extra_keys_deserialization_error(deserialization_context&          context,
+                                            const std::set<std::string>& extra_keys
+                                           )
 {
     std::ostringstream os;
     bool plural = extra_keys.size() != 1;
@@ -199,7 +207,7 @@ void throw_extra_keys_extraction_error(extraction_context&          context,
             os << ", ";
         os << key;
     }
-    throw extraction_error(context.path(), os.str());
+    throw deserialization_error(context.path(), os.str());
 }
 
 }

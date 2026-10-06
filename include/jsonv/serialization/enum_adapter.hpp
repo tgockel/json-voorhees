@@ -124,8 +124,8 @@ struct enum_value_order<value_less_icase>
 /// An adapter for enumeration types. The most common use of this is to map \c enum values in C++ to string values in a
 /// JSON representation (and vice versa).
 ///
-/// Extraction reads the \c reader directly. A value the mapping does not hold is refused with the reader still on it,
-/// and the problem names the value and lists every JSON value the mapping accepts, in the mapping's order:
+/// Deserialization reads the \c reader directly. A value the mapping does not hold is refused with the reader still on
+/// it, and the problem names the value and lists every JSON value the mapping accepts, in the mapping's order:
 ///
 /// \code
 /// Invalid value for ring: "bogus" (expected one of "earth", "fire", "heart", "useless", "water", "wind")
@@ -136,10 +136,10 @@ struct enum_value_order<value_less_icase>
 /// \tparam FEnumComp <tt>bool (*)(TEnum, TEnum)</tt> -- a strict ordering for \c TEnum values.
 /// \tparam FValueComp <tt>bool (*)(value, value)</tt> -- a strict ordering for \c value objects. By default, this is a
 ///                    case-sensitive comparison, but this can be replaced with anything you desire (for example, use
-///                    \c value_less_icase to ignore case in extracting from JSON). Under the library's own orderings
+///                    \c value_less_icase to ignore case in deserializing from JSON). Under the library's own orderings
 ///                    -- <tt>std::less&lt;value&gt;</tt>, \c value_less and \c value_less_icase -- a string read from
 ///                    JSON text is looked up by its text, with no \c value built to hold it. Any other ordering can
-///                    only be asked about a \c value, so one is built for every string extracted from text.
+///                    only be asked about a \c value, so one is built for every string deserialized from text.
 ///
 /// \see enum_adapter_icase
 template <typename TEnum,
@@ -167,11 +167,11 @@ public:
     /// Create an adapter with the specified \a mapping values.
     ///
     /// \param enum_name A user-friendly name for this enumeration to be used in error messages.
-    /// \param mapping A list of C++ types and values to use in \c to_json and \c extract. It is okay to have a C++
+    /// \param mapping A list of C++ types and values to use in \c to_json and \c deserialize. It is okay to have a C++
     ///                value with more than one JSON representation. In this case, the \e first JSON representation will
     ///                be used in \c to_json, but \e all JSON representations will be interpreted as the C++ value. It
     ///                is also okay to have the same JSON representation for multiple C++ values. In this case, the
-    ///                \e first JSON representation provided for that value will be used in \c extract.
+    ///                \e first JSON representation provided for that value will be used in \c deserialize.
     ///
     /// For example:
     ///
@@ -183,7 +183,7 @@ public:
     ///                      { ring::earth, "earth"   },
     ///                      { ring::water, "water"   },
     ///                      { ring::heart, "heart"   }, // "heart" is preferred for to_json
-    ///                      { ring::heart, "useless" }, // "useless" is interpreted as ring::heart in extract
+    ///                      { ring::heart, "useless" }, // "useless" is interpreted as ring::heart in deserialize
     ///                    }
     ///                   );
     /// \endcode
@@ -193,7 +193,7 @@ public:
 
 protected:
     JSONV_NODISCARD
-    virtual std::expected<TEnum, ast_node_type> create(extraction_context& context, reader& from) const override
+    virtual std::expected<TEnum, ast_node_type> create(deserialization_context& context, reader& from) const override
     {
         // A value-backed reader lends the value itself, which is looked up where it sits.
         if (auto lent = from.current_value())
@@ -235,7 +235,7 @@ private:
 
     /// Look up \a key -- a \c value, or the text of a string -- and step \a from past the value it was read from.
     template <typename TKey>
-    std::expected<TEnum, ast_node_type> settle(extraction_context& context, reader& from, const TKey& key) const
+    std::expected<TEnum, ast_node_type> settle(deserialization_context& context, reader& from, const TKey& key) const
     {
         auto iter = _val_to_cpp.find(key);
         if (iter == _val_to_cpp.end())
@@ -285,7 +285,7 @@ private:
     std::map<TEnum, value, FEnumComp>                  _cpp_to_val;
 };
 
-/// An adapter for enumeration types which ignores the case when extracting from JSON.
+/// An adapter for enumeration types which ignores the case when deserializing from JSON.
 ///
 /// \see enum_adapter
 template <typename TEnum, typename FEnumComp = std::less<TEnum>>

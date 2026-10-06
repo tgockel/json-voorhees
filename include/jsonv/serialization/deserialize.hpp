@@ -1,5 +1,5 @@
-/// \file jsonv/serialization/extract.hpp
-/// Extraction of C++ types from a JSON AST.
+/// \file jsonv/serialization/deserialize.hpp
+/// Deserialization of C++ types from a JSON AST.
 ///
 /// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
@@ -50,45 +50,46 @@ class borrowed_subtree;
 class source_scope;
 class temporary_source_scope;
 
-/// Does the source an extraction reads from outlive it?
+/// Does the source a deserialization reads from outlive it?
 enum class source_lifetime : unsigned char
 {
-    /// The caller owns the source and keeps it alive past the extraction, so what is extracted may view it.
+    /// The caller owns the source and keeps it alive past the deserialization, so what is deserialized may view it.
     caller,
-    /// The source was handed to the extraction to own and is freed when it finishes, so nothing extracted may view it.
-    extraction,
+    /// The source was handed to the deserialization to own and is freed when it finishes, so nothing deserialized may
+    /// view it.
+    deserialization,
 };
 
-/// The one place a public entry point runs an extraction: every \c jsonv::extract overload and
-/// \c extraction_context::extract(const value&) come through here.
+/// The one place a public entry point runs a deserialization: every \c jsonv::deserialize overload and
+/// \c deserialization_context::deserialize(const value&) come through here.
 ///
-/// A reader on \c ast_node_type::document_start is extracted as a whole document. Its source is checked to have
-/// parsed, the \c document_start is stepped over -- here and nowhere else, so an \c extractor is never entered on one
+/// A reader on \c ast_node_type::document_start is deserialized as a whole document. Its source is checked to have
+/// parsed, the \c document_start is stepped over -- here and nowhere else, so a \c deserializer is never entered on one
 /// -- and once the value has been read the reader must be on \c ast_node_type::document_end, where it is left. A
-/// reader the caller has already positioned gets none of that: the value under the cursor is extracted and the cursor
-/// is left one past it, as \c reader::next_value would. A reader on an \c ast_node_type::error node, positioned or
-/// not, has its source checked as well, since there is no value there and the parse can say why.
+/// reader the caller has already positioned gets none of that: the value under the cursor is deserialized and the
+/// cursor is left one past it, as \c reader::next_value would. A reader on an \c ast_node_type::error node, positioned
+/// or not, has its source checked as well, since there is no value there and the parse can say why.
 ///
-/// \param into Storage for the extracted object, as for \c extractor::extract.
-/// \param destroy Destroys the object in \a into. An extractor which left a whole document's reader short of its end is
-///                only found to have done so once the object has been built, and has to be refused after all.
+/// \param into Storage for the deserialized object, as for \c deserializer::deserialize.
+/// \param destroy Destroys the object in \a into. A deserializer which left a whole document's reader short of its end
+///                is only found to have done so once the object has been built, and has to be refused after all.
 ///
-/// \throws extraction_error carrying the problems this call recorded, and only those, since a \c value bridge calls
-///                          this with a context which may already hold some.
-JSONV_PUBLIC void extract_entry(extraction_context&   context,
-                                const std::type_info& type,
-                                reader&               from,
-                                void*                 into,
-                                void               (* destroy)(void*) noexcept,
-                                source_lifetime       lifetime
-                               );
+/// \throws deserialization_error carrying the problems this call recorded, and only those, since a \c value bridge
+///                               calls this with a context which may already hold some.
+JSONV_PUBLIC void deserialize_entry(deserialization_context&   context,
+                                    const std::type_info& type,
+                                    reader&               from,
+                                    void*                 into,
+                                    void               (* destroy)(void*) noexcept,
+                                    source_lifetime       lifetime
+                                   );
 
 /// \{
 
 /// Check if \c T is a \c std::expected and, if it is, get the type it holds.
 ///
-/// Extraction functions are allowed to return either a bare \c T or a \c std::expected<T, ast_node_type>, so the
-/// machinery which deduces what an adapter extracts has to see through the latter.
+/// Deserialization functions are allowed to return either a bare \c T or a \c std::expected<T, ast_node_type>, so the
+/// machinery which deduces what an adapter deserializes has to see through the latter.
 template <typename T>
 struct is_expected :
         std::false_type
@@ -123,16 +124,16 @@ using expected_value_or_self_t = typename expected_value_or_self<T>::type;
 /// \addtogroup Serialization
 /// \{
 
-/// Exception thrown if there is any problem running \c extract.
+/// Exception thrown if there is any problem running \c deserialize.
 ///
 /// \c what says where each \c problem was found: at its \c problem::path, and in its \c problem::source_name where it
 /// has one, joined by a \c # as in a URI fragment -- <tt>config.json#.servers[2].port</tt>. A problem with a name and
 /// an empty path is reported in the document as a whole, as <tt>config.json</tt>.
-class JSONV_PUBLIC extraction_error :
+class JSONV_PUBLIC deserialization_error :
         public std::runtime_error
 {
 public:
-    /// Description of a single problem with extraction.
+    /// Description of a single problem with deserialization.
     class problem
     {
     public:
@@ -158,8 +159,8 @@ public:
         }
 
         /// The name of the document this problem was encountered in, such as the file it was read from. This is empty
-        /// unless the problem was recorded on an \c extraction_context which was given one, which is where it comes
-        /// from -- see \c extraction_context::source_name.
+        /// unless the problem was recorded on a \c deserialization_context which was given one, which is where it comes
+        /// from -- see \c deserialization_context::source_name.
         JSONV_NODISCARD
         const std::string& source_name() const noexcept
         {
@@ -183,7 +184,7 @@ public:
 
     private:
         /// Names the source of a problem recorded on it.
-        friend class extraction_context;
+        friend class deserialization_context;
 
     private:
         jsonv::path        _path;
@@ -195,33 +196,33 @@ public:
     using problem_list = std::vector<problem>;
 
 public:
-    /// Create an \c extraction_error from the given list of \a problems.
+    /// Create a \c deserialization_error from the given list of \a problems.
     ///
     /// \param problems The list of problems which caused this error. It is expected that \c problems.size() is greater
     ///                 than \c 0. If it is not, a single \c problem will be created with a note about an unspecified
     ///                 error.
-    explicit extraction_error(problem_list problems) noexcept;
+    explicit deserialization_error(problem_list problems) noexcept;
 
     /// \{
 
-    /// Create a new \c extraction_error with a single \c problem from the given \a path, \a message, and optional
+    /// Create a new \c deserialization_error with a single \c problem from the given \a path, \a message, and optional
     /// underlying \a cause.
-    explicit extraction_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept;
-    explicit extraction_error(jsonv::path path, std::string message) noexcept;
+    explicit deserialization_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept;
+    explicit deserialization_error(jsonv::path path, std::string message) noexcept;
     /// \}
 
-    /// Create a new \c extraction_error with a single \c problem at \a path, whose message is extracted from \a cause
-    /// (see \c problem::problem).
-    explicit extraction_error(jsonv::path path, std::exception_ptr cause) noexcept;
+    /// Create a new \c deserialization_error with a single \c problem at \a path, whose message is extracted from \a
+    /// cause (see \c problem::problem).
+    explicit deserialization_error(jsonv::path path, std::exception_ptr cause) noexcept;
 
-    virtual ~extraction_error() noexcept;
+    virtual ~deserialization_error() noexcept;
 
-    /// Get the path the first extraction error came from.
+    /// Get the path the first deserialization error came from.
     JSONV_NODISCARD
     const jsonv::path& path() const noexcept;
 
-    /// Get the name of the document the first extraction error came from (see \c problem::source_name). This is empty
-    /// if it was not given one.
+    /// Get the name of the document the first deserialization error came from (see \c problem::source_name). This is
+    /// empty if it was not given one.
     JSONV_NODISCARD
     const std::string& source_name() const noexcept;
 
@@ -230,42 +231,43 @@ public:
     JSONV_NODISCARD
     const std::exception_ptr& nested_ptr() const noexcept;
 
-    /// Get the list of problems which caused this \c extraction_error. There will always be at least one \c problem in
-    /// this list.
+    /// Get the list of problems which caused this \c deserialization_error. There will always be at least one \c
+    /// problem in this list.
     JSONV_NODISCARD
     const problem_list& problems() const noexcept { return _problems; }
 
 private:
     template <typename... TArgs>
-    explicit extraction_error(std::in_place_t, TArgs&&... problem_args) noexcept;
+    explicit deserialization_error(std::in_place_t, TArgs&&... problem_args) noexcept;
 
 private:
     problem_list _problems;
 };
 
-/// Configuration for various extraction options. This becomes part of the \c extraction_context.
-class JSONV_PUBLIC extract_options final
+/// Configuration for various deserialization options. This becomes part of the \c deserialization_context.
+class JSONV_PUBLIC deserialize_options final
 {
 public:
-    using size_type = extraction_error::problem_list::size_type;
+    using size_type = deserialization_error::problem_list::size_type;
 
-    /// When an error is encountered during extraction, what should happen?
+    /// When an error is encountered during deserialization, what should happen?
     enum class on_error
     {
-        /// Report the first problem and stop, so the \c extraction_error thrown describes one thing that went wrong.
+        /// Report the first problem and stop, so the \c deserialization_error thrown describes one thing that went
+        /// wrong.
         fail_immediately,
-        /// Keep extracting past a problem wherever something knows how to resume, so the \c extraction_error thrown
-        /// at the end describes as many of them as it can.
+        /// Keep deserializing past a problem wherever something knows how to resume, so the \c deserialization_error
+        /// thrown at the end describes as many of them as it can.
         ///
         /// Resuming is only possible where a composite knows where its next element begins -- the next element of an
-        /// array, the next key of an object -- which is why \c extraction_context::recover is asked rather than told.
-        /// A failure with no enclosing composite to resume into still ends extraction with a single problem.
+        /// array, the next key of an object -- which is why \c deserialization_context::recover is asked rather than
+        /// told. A failure with no enclosing composite to resume into still ends deserialization with a single problem.
         ///
-        /// Collecting gathers diagnostics; it does not produce partially-extracted objects. An extraction which
+        /// Collecting gathers diagnostics; it does not produce partially-deserialized objects. A deserialization which
         /// recovered from anything still throws, so this changes how much the error explains and never whether one
         /// happens.
         ///
-        /// \see extract_options::max_failures
+        /// \see deserialize_options::max_failures
         collect_all,
     };
 
@@ -281,26 +283,26 @@ public:
         ///
         /// For example: `{ "a": 1, "a": 2, "a": 3 }` will end with `{ "a": 1 }`.
         ignore,
-        /// Repeated keys should raise an \c extraction_error.
+        /// Repeated keys should raise a \c deserialization_error.
         exception,
     };
 
 public:
     /// Create an instance with the default options.
-    extract_options() noexcept;
+    deserialize_options() noexcept;
 
-    ~extract_options() noexcept; // NOLINT(performance-trivially-destructible): see #286
+    ~deserialize_options() noexcept; // NOLINT(performance-trivially-destructible): see #286
 
     /// Create a default set of options.
     JSONV_NODISCARD
-    static extract_options create_default();
+    static deserialize_options create_default();
 
     /// \{
 
     /// See \c on_error. The default failure mode is \c fail_immediately.
     JSONV_NODISCARD
     on_error         failure_mode() const noexcept { return _failure_mode; };
-    extract_options& failure_mode(on_error mode);
+    deserialize_options& failure_mode(on_error mode);
     /// \}
 
     /// \{
@@ -308,11 +310,11 @@ public:
     /// The number of problems to collect before giving up. This is only applicable if the \c failure_mode is
     /// \c on_error::collect_all. By default, this value is 10.
     ///
-    /// This is a threshold extraction stops at rather than a cap on the list it reports. A single failure which
-    /// reports several problems at once -- an adapter recording a batch of them before returning, or throwing an
-    /// \c extraction_error carrying several -- is taken whole rather than torn in half, so the final list can exceed
-    /// the limit by that batch. Truncating would drop diagnostics to enforce a bound whose purpose is to stop the
-    /// walk, not to edit the report.
+    /// This is a threshold deserialization stops at rather than a cap on the list it reports. A single failure which
+    /// reports several problems at once -- an adapter recording a batch of them before returning, or throwing a \c
+    /// deserialization_error carrying several -- is taken whole rather than torn in half, so the final list can exceed
+    /// the limit by that batch. Truncating would drop diagnostics to enforce a bound whose purpose is to stop the walk,
+    /// not to edit the report.
     ///
     /// A limit of \c 0 or \c 1 makes the first problem the last, which is \c on_error::fail_immediately in all but
     /// name.
@@ -321,7 +323,7 @@ public:
     /// in memory for some period of time.
     JSONV_NODISCARD
     size_type        max_failures() const { return _max_failures; }
-    extract_options& max_failures(size_type limit);
+    deserialize_options& max_failures(size_type limit);
     /// \}
 
     /// \{
@@ -329,7 +331,7 @@ public:
     /// See \c duplicate_key_action. The default action is \c replace.
     JSONV_NODISCARD
     duplicate_key_action on_duplicate_key() const { return _on_duplicate_key; }
-    extract_options&     on_duplicate_key(duplicate_key_action action);
+    deserialize_options&     on_duplicate_key(duplicate_key_action action);
     /// \}
 
 private:
@@ -340,123 +342,126 @@ private:
     duplicate_key_action _on_duplicate_key = duplicate_key_action::replace;
 };
 
-/// An \c extractor holds the method for converting JSON source into an arbitrary C++ type.
-class JSONV_PUBLIC extractor
+/// A \c deserializer holds the method for converting JSON source into an arbitrary C++ type.
+class JSONV_PUBLIC deserializer
 {
 public:
-    virtual ~extractor() noexcept;
+    virtual ~deserializer() noexcept;
 
-    /// Get the run-time type this \c extractor knows how to extract. Once this \c extractor is registered with a
+    /// Get the run-time type this \c deserializer knows how to deserialize. Once this \c deserializer is registered
+    /// with a
     /// \c formats, it is not allowed to change.
     JSONV_NODISCARD
     virtual const std::type_info& get_type() const noexcept = 0;
 
-    /// Extract the type \a from a \c reader \a into a region of memory.
+    /// Deserialize the type \a from a \c reader \a into a region of memory.
     ///
-    /// \param context Extra information to help you decode sub-objects, such as looking up other \c extractor
-    ///                implementations via \c formats. It is also where a \ref extraction_context::problem is recorded
-    ///                and where the \c path a problem is reported at comes from.
-    /// \param from The JSON \c reader to extract something from. On entry, \c reader::current is the first node of the
-    ///             value to extract -- never \c ast_node_type::document_start, which the entry points step over
-    ///             before any \c extractor runs. On a successful return it should be one position past that value, as
-    ///             \c reader::next_value would leave it.
-    /// \param into The region of memory to create the extracted object in. There will always be enough room to create
-    ///             your object and the alignment of the pointer should be correct (assuming a working \c alignof
+    /// \param context Extra information to help you decode sub-objects, such as looking up other \c deserializer
+    ///                implementations via \c formats. It is also where a \ref deserialization_context::problem is
+    /// recorded                and where the \c path a problem is reported at comes from.
+    /// \param from The JSON \c reader to deserialize something from. On entry, \c reader::current is the first node of
+    ///             the value to deserialize -- never \c ast_node_type::document_start, which the entry points step over
+    /// before any \c deserializer runs. On a successful return it should be one position past that value, as
+    /// \c reader::next_value would leave it.
+    /// \param into The region of memory to create the deserialized object in. There will always be enough room to
+    ///             create your object and the alignment of the pointer should be correct (assuming a working \c alignof
     ///             implementation).
     ///
     /// \returns A success result if the object was created in \a into; otherwise a \c std::unexpected carrying the
     ///          \c ast_node_type actually found when the failure was a type mismatch, or \c ast_node_type::error as a
     ///          sentinel for everything else. In the failure case nothing has been constructed in \a into and
-    ///          \c extraction_context::problems describes what went wrong.
+    ///          \c deserialization_context::problems describes what went wrong.
     ///
-    /// \see extractor_for
+    /// \see deserializer_for
     /// \see adapter_for
     /// \see value_adapter_for
     JSONV_NODISCARD
     virtual std::expected<void, ast_node_type>
-    extract(extraction_context& context, reader& from, void* into) const = 0;
+    deserialize(deserialization_context& context, reader& from, void* into) const = 0;
 };
 
-/// Provides extra information to routines used for extraction, collects the problems they encounter, and tracks where
-/// in the document they are.
+/// Provides extra information to routines used for deserialization, collects the problems they encounter, and tracks
+/// where in the document they are.
 ///
 /// Unlike a \c serialization_context, this is mutable and single-use: recording a problem changes it. It is neither
 /// copyable nor movable, since a \ref path_scope holds a pointer to the instance it was pushed onto.
 ///
-/// Most extraction never sees one, since \c jsonv::extract builds its own. Build one to extract a document under a
-/// version, with user data, at a base path, or under the name of the file it came from (see \ref source_name), and
-/// hand it to the \c jsonv::extract overloads which take one -- one context for each document.
-class JSONV_PUBLIC extraction_context :
+/// Most deserialization never sees one, since \c jsonv::deserialize builds its own. Build one to deserialize a document
+/// under a version, with user data, at a base path, or under the name of the file it came from (see \ref source_name),
+/// and hand it to the \c jsonv::deserialize overloads which take one -- one context for each document.
+class JSONV_PUBLIC deserialization_context :
         public context
 {
 public:
-    /// The problems recorded on a context, in the form an \c extraction_error carries them.
-    using problem_list = extraction_error::problem_list;
+    /// The problems recorded on a context, in the form a \c deserialization_error carries them.
+    using problem_list = deserialization_error::problem_list;
 
     class path_scope;
 
 public:
     /// Create a new instance using the default \c formats (\c formats::global).
-    extraction_context();
+    deserialization_context();
 
     /// Create a new instance using the given \a fmt, \a ver, \a p, \a userdata, \a options and \a source_name.
     ///
-    /// \param fmt The \c formats to find an \c extractor for each type in.
-    /// \param ver The version of the document being extracted, for extractors to read back with \c context::version.
-    ///            \c std::nullopt means no version was specified, which is not the same thing as version \c 0.0.
-    /// \param p A path all reported problems are relative to. This is almost always empty -- it exists for extraction
-    ///          of a document which is itself a fragment of some larger one.
-    /// \param userdata Arbitrary data for extractors to read back with \c context::user_data. It is not owned, so it
+    /// \param fmt The \c formats to find a \c deserializer for each type in.
+    /// \param ver The version of the document being deserialized, for deserializers to read back with \c
+    ///            context::version. \c std::nullopt means no version was specified, which is not the same thing as
+    ///            version \c 0.0.
+    /// \param p A path all reported problems are relative to. This is almost always empty -- it exists for
+    ///          deserialization of a document which is itself a fragment of some larger one.
+    /// \param userdata Arbitrary data for deserializers to read back with \c context::user_data. It is not owned, so it
     ///                 must outlive this instance.
     /// \param options What to do when something goes wrong. The default reports the first problem and stops; see
-    ///                \c extract_options::on_error.
-    /// \param source_name The name of the document being extracted, such as the file it was read from, for every
+    ///                \c deserialize_options::on_error.
+    /// \param source_name The name of the document being deserialized, such as the file it was read from, for every
     ///                    problem recorded here to be reported in. Empty, the default, names nothing. Spell out every
     ///                    argument before it: a string literal in the place of \a userdata is a <tt>const void*</tt> as
     ///                    far as the compiler is concerned, and would quietly become the user data instead.
-    explicit extraction_context(jsonv::formats                fmt,
-                                std::optional<jsonv::version> ver         = std::nullopt,
-                                jsonv::path                   p           = jsonv::path(),
-                                const void*                   userdata    = nullptr,
-                                extract_options               options     = extract_options(),
-                                std::string                   source_name = std::string()
-                               );
+    explicit deserialization_context(jsonv::formats                fmt,
+                                     std::optional<jsonv::version> ver         = std::nullopt,
+                                     jsonv::path                   p           = jsonv::path(),
+                                     const void*                   userdata    = nullptr,
+                                     deserialize_options           options     = deserialize_options(),
+                                     std::string                   source_name = std::string()
+                                    );
 
-    extraction_context(const extraction_context&)            = delete;
-    extraction_context& operator=(const extraction_context&) = delete;
+    deserialization_context(const deserialization_context&)            = delete;
+    deserialization_context& operator=(const deserialization_context&) = delete;
 
-    virtual ~extraction_context() noexcept;
+    virtual ~deserialization_context() noexcept;
 
-    /// Is the source being extracted storage which is freed when extraction finishes, rather than storage the caller
-    /// keeps?
+    /// Is the source being deserialized storage which is freed when deserialization finishes, rather than storage the
+    /// caller keeps?
     ///
-    /// An extractor which returns a view of what it was given must check this and refuse when it is \c true, because
+    /// A deserializer which returns a view of what it was given must check this and refuse when it is \c true, because
     /// the storage its view would name is gone by the time the caller has it. \c std::string_view is the built-in one.
     /// There are three ways to get here:
     ///
     ///  - A \c value -based adapter runs against a reader over JSON text. There is no pre-existing tree for it to
-    ///    borrow, so one is materialised and destroyed as the bridge unwinds. This is true for everything nested
-    ///    under such a materialisation, not only the value that caused it.
-    ///  - The source was handed to extraction to own: \c jsonv::extract given a \c std::string rvalue, or an rvalue
-    ///    \c reader which owns its source. That source dies with the call, so this is true for the whole extraction.
-    ///  - A hook of a type described with the serialization builder DSL has been lent, by \ref source_value, an object
-    ///    read out of JSON text for it. That object dies with the extraction of the type, so this is true from then
-    ///    until the walk of the object starts or its extraction finishes.
+    /// borrow, so one is materialised and destroyed as the bridge unwinds. This is true for everything nested    under
+    /// such a materialisation, not only the value that caused it.  - The source was handed to deserialization to own:
+    /// \c jsonv::deserialize given a \c std::string rvalue, or an rvalue    \c reader which owns its source. That
+    /// source dies with the call, so this is true for the whole deserialization.  - A hook of a type described with the
+    /// serialization builder DSL has been lent, by \ref source_value, an object    read out of JSON text for it. That
+    /// object dies with the deserialization of the type, so this is true from then    until the walk of the object
+    /// starts or its deserialization finishes.
     JSONV_NODISCARD
     bool source_is_temporary() const noexcept { return _temporary_source_depth != 0U; }
 
-    /// Get the options this context is extracting under.
+    /// Get the options this context is deserializing under.
     JSONV_NODISCARD
-    const extract_options& options() const noexcept { return _options; }
+    const deserialize_options& options() const noexcept { return _options; }
 
-    /// Get the name of the document being extracted, which every problem recorded here is reported in. It is empty if
-    /// this context was not given one.
+    /// Get the name of the document being deserialized, which every problem recorded here is reported in. It is empty
+    /// if this context was not given one.
     ///
-    /// \see extraction_error::problem::source_name
+    /// \see deserialization_error::problem::source_name
     JSONV_NODISCARD
     const std::string& source_name() const noexcept { return _source_name; }
 
-    /// Get the JSON of the object a type described with the serialization builder DSL is being extracted from, from its
+    /// Get the JSON of the object a type described with the serialization builder DSL is being deserialized from, from
+    /// its
     /// \c { to its matching \c }. Where \ref source_name says which document a problem is in, this quotes the object it
     /// is about, for the hooks which validate one to put in their message.
     ///
@@ -464,43 +469,43 @@ public:
     /// \c on_extract_extra_keys, every member's \c default_value and the setter that default is handed to, and
     /// \c post_extract. What runs before or during the walk is shown nothing: \c pre_extract, which can have the
     /// object as a \c value from \ref source_value but not its text, and a member's \c check_input and setter as its
-    /// key is read. Neither is anything a hook goes on to extract through \ref extract -- or through
-    /// \c jsonv::extract, which comes through it -- whichever extractor that reaches, nor anything outside DSL
-    /// extraction altogether. No object's source is empty -- the least of them is \c {} -- so an empty view always
+    /// key is read. Neither is anything a hook goes on to deserialize through \ref deserialize -- or through
+    /// \c jsonv::deserialize, which comes through it -- whichever deserializer that reaches, nor anything outside DSL
+    /// deserialization altogether. No object's source is empty -- the least of them is \c {} -- so an empty view always
     /// means there is nothing to quote.
     ///
-    /// An extractor reached around \ref extract, through \c formats::extract or by calling it directly, skips the
-    /// hiding along with everything else \ref extract does around the call, and is shown whatever is showing.
+    /// A deserializer reached around \ref deserialize, through \c formats::deserialize or by calling it directly, skips
+    /// the hiding along with everything else \ref deserialize does around the call, and is shown whatever is showing.
     ///
     /// Read from JSON text, this is a view of exactly what was written, whitespace, comments and keys no member claimed
     /// included. Read from a \c value, there was never any text to view, so it is that value's compact encoding --
     /// faithful to the JSON, but not necessarily the bytes anybody typed. It is encoded on the first call and kept for
-    /// the rest of that object's hooks, so an extraction which never asks never pays for it.
+    /// the rest of that object's hooks, so a deserialization which never asks never pays for it.
     ///
     /// \returns A view which is valid until the hook which asked for it returns.
     JSONV_NODISCARD
     std::string_view encoded_source() const;
 
-    /// Get the value a type described with the serialization builder DSL is being extracted from, for its hooks to
+    /// Get the value a type described with the serialization builder DSL is being deserialized from, for its hooks to
     /// read members out of: a version for \c pre_extract to refuse a document by, a sibling for a \c default_value to
     /// compute from, the values of the keys an \c on_extract_extra_keys handler is told no member claimed.
     ///
-    /// It is there for the hooks which take an \c extraction_context: \c pre_extract, before the walk, is shown the
-    /// value the reader is on, which is not necessarily an object; and \c on_extract_extra_keys, every member's
-    /// \c default_value and \c post_extract, after it, are shown the object. A member's \c check_input and setter run
-    /// during the walk and are shown nothing, as is a \c type_default_value standing in for a \c null. So, as for
-    /// \ref encoded_source, is anything a hook goes on to extract through \ref extract, and anything outside DSL
-    /// extraction altogether.
+    /// It is there for the hooks which take a \c deserialization_context: \c pre_extract, before the walk, is shown the
+    /// value the reader is on, which is not necessarily an object; and \c on_extract_extra_keys, every member's \c
+    /// default_value and \c post_extract, after it, are shown the object. A member's \c check_input and setter run
+    /// during the walk and are shown nothing, as is a \c type_default_value standing in for a \c null. So, as for \ref
+    /// encoded_source, is anything a hook goes on to deserialize through \ref deserialize, and anything outside DSL
+    /// deserialization altogether.
     ///
     /// Read from a \c value, this is that value: the caller's own tree, lent rather than copied. Read from JSON text
     /// there is no tree to lend, so the first hook to ask has the object read into one -- from where the reader is,
     /// before the walk, or from the object's \c { after it, through a second cursor which leaves the first where it
-    /// is. Every hook of that object after it is shown the same one. Nothing is read for an extraction which never
+    /// is. Every hook of that object after it is shown the same one. Nothing is read for a deserialization which never
     /// asks, and nothing allocated: what lets the hooks after the walk go back is a position on the parsed document's
     /// tape. A repeated key is settled by \ref options as the walk settles it.
     ///
-    /// What is read from text belongs to the extraction rather than to the caller, so while it is being lent
-    /// \ref source_is_temporary is \c true -- and extracting a \c std::string_view out of it is refused rather than
+    /// What is read from text belongs to the deserialization rather than to the caller, so while it is being lent
+    /// \ref source_is_temporary is \c true -- and deserializing a \c std::string_view out of it is refused rather than
     /// left to dangle. That lasts until the walk starts or the object is finished.
     ///
     /// \returns The value, valid until the hook which asked for it returns; or nothing where no hook is being shown
@@ -509,15 +514,15 @@ public:
     JSONV_NODISCARD
     optional<const value&> source_value() const;
 
-    /// Get the path currently being extracted, as named by the live \ref path_scope guards.
+    /// Get the path currently being deserialized, as named by the live \ref path_scope guards.
     ///
-    /// This is built on demand by walking the scope chain, so it is not free -- but nothing on a successful extraction
-    /// calls it. If no scope is live the result is the base path this context was created with, which is usually empty;
-    /// see \ref path_scope for why that is not the same as "the root of the document".
+    /// This is built on demand by walking the scope chain, so it is not free -- but nothing on a successful
+    /// deserialization calls it. If no scope is live the result is the base path this context was created with, which
+    /// is usually empty; see \ref path_scope for why that is not the same as "the root of the document".
     JSONV_NODISCARD
     jsonv::path path() const;
 
-    /// Note that a problem has been encountered, forwarding \a args to an \c extraction_error::problem.
+    /// Note that a problem has been encountered, forwarding \a args to a \c deserialization_error::problem.
     ///
     /// \returns \c std::unexpected of \c ast_node_type::error in all cases, which converts implicitly into any
     ///          \c std::expected<T, ast_node_type>, so an implementation can simply return it:
@@ -527,11 +532,11 @@ public:
     ///     return context.problem(context.path(), "Expected a value between 500 and 2500");
     /// \endcode
     ///
-    /// Recording a problem does not throw. The entry point which started extraction throws a single
-    /// \c extraction_error carrying everything collected, once the pipeline has unwound.
+    /// Recording a problem does not throw. The entry point which started deserialization throws a single
+    /// \c deserialization_error carrying everything collected, once the pipeline has unwound.
     ///
     /// A problem which does not already name its source is recorded as being in this context's \ref source_name. One
-    /// folded in from the extraction of some other document keeps the name it was given there.
+    /// folded in from the deserialization of some other document keeps the name it was given there.
     template <typename... TArgs>
     JSONV_NODISCARD
     std::unexpected<ast_node_type> problem(TArgs&&... args)
@@ -556,22 +561,22 @@ public:
 
     /// \{
 
-    /// May extraction recover from a failure and keep going?
+    /// May deserialization recover from a failure and keep going?
     ///
     /// A composite which knows where its next element begins -- the next element of an array, the next key of an
     /// object -- asks this when one of them fails. A \c true answer means skip what failed and keep walking, so one
     /// bad element does not hide every problem after it; \c false means report the failure and let the pipeline
     /// unwind. Only the loop knows where it would resume, which is why collecting is something a composite opts into
     /// rather than something this context can deliver on its own -- and why a failure with no enclosing composite
-    /// ends extraction however \c extract_options::failure_mode is set.
+    /// ends deserialization however \c deserialize_options::failure_mode is set.
     ///
-    /// The answer is \c false under \c extract_options::on_error::fail_immediately, and becomes \c false in
-    /// \c collect_all once \c extract_options::max_failures problems have been recorded. It is never a promise that
-    /// extraction will succeed: recovering collects diagnostics, it does not produce partial objects, so a composite
-    /// which recovered from anything **must still report failure** once its loop is done.
+    /// The answer is \c false under \c deserialize_options::on_error::fail_immediately, and becomes \c false in
+    /// \c collect_all once \c deserialize_options::max_failures problems have been recorded. It is never a promise that
+    /// deserialization will succeed: recovering collects diagnostics, it does not produce partial objects, so a
+    /// composite which recovered from anything **must still report failure** once its loop is done.
     ///
     /// \code
-    /// auto element = context.extract<T>(from);
+    /// auto element = context.deserialize<T>(from);
     /// if (!element)
     /// {
     ///     if (!context.recover())
@@ -586,29 +591,29 @@ public:
     /// Note \ref skip_failed_value rather than \c reader::next_value: where the value which failed was read through
     /// the \c value bridge, the cursor is already past it and stepping again would skip the next one.
     ///
-    /// The overload taking an \c extraction_error is for an adapter on the \c value bridge, which reports failure by
-    /// throwing. On \c true the problems \a ex carries have been folded onto this context and the caller may
-    /// continue; on \c false nothing was folded and the caller should rethrow \a ex, which the catch in
-    /// \c extract(const std::type_info&, reader&, void*) folds instead. Either way every problem is recorded exactly
-    /// once, which is the thing to preserve: the \c value -based overloads hand their problems to the exception
-    /// rather than leaving them behind, so a fold in both places would report each failure twice.
+    /// The overload taking a \c deserialization_error is for an adapter on the \c value bridge, which reports failure
+    /// by throwing. On \c true the problems \a ex carries have been folded onto this context and the caller may
+    /// continue; on \c false nothing was folded and the caller should rethrow \a ex, which the catch in \c
+    /// deserialize(const std::type_info&, reader&, void*) folds instead. Either way every problem is recorded exactly
+    /// once, which is the thing to preserve: the \c value -based overloads hand their problems to the exception rather
+    /// than leaving them behind, so a fold in both places would report each failure twice.
     JSONV_NODISCARD
     bool recover() const noexcept;
     JSONV_NODISCARD
-    bool recover(const extraction_error& ex);
+    bool recover(const deserialization_error& ex);
     /// \}
 
     /// Remove and return the problems recorded since \a mark, a value \c problems() previously reported the size of.
     ///
     /// A composite which recovered still has to report failure, and on the \c value -based interface that means
-    /// throwing an \c extraction_error. This is how it hands over what it collected without leaving a copy behind for
-    /// the catch which folds that error back onto a context to record a second time.
+    /// throwing a \c deserialization_error. This is how it hands over what it collected without leaving a copy behind
+    /// for the catch which folds that error back onto a context to record a second time.
     JSONV_NODISCARD
     problem_list take_problems_since(problem_list::size_type mark);
 
     /// Step \a from past the value whose failure is being recovered from.
     ///
-    /// This is \c reader::next_value, except where the step has already happened. Most extractors leave the cursor
+    /// This is \c reader::next_value, except where the step has already happened. Most deserializers leave the cursor
     /// naming the value they rejected, so stepping over it is exactly one \c reader::next_value. An adapter on the
     /// \c value bridge reading a structure out of JSON text is the exception: materialising that structure is what
     /// walks the cursor over it, so by the time the older body reports a failure the cursor names the *next* sibling.
@@ -616,7 +621,7 @@ public:
     /// result and dropping every problem it had to report -- and misnumbering everything after it.
     ///
     /// The note this consults belongs to \a from and to the one failure being reported. It is cleared when the next
-    /// extraction starts, so a note nobody collects expires rather than answering for an unrelated position.
+    /// deserialization starts, so a note nobody collects expires rather than answering for an unrelated position.
     ///
     /// \see recover
     /// \see note_value_consumed
@@ -626,7 +631,7 @@ public:
     /// whatever recovers from it must not step over that value a second time.
     ///
     /// The \c value bridge says this for itself. An adapter which walks the reader has to say it whenever it fails
-    /// with the value behind it rather than in front of it: after a nested extraction which succeeded, or once it
+    /// with the value behind it rather than in front of it: after a nested deserialization which succeeded, or once it
     /// has read its own closing token. A composite which fails part-way through a structure should finish walking
     /// that structure first -- the position inside it means nothing to a caller -- and then say so.
     ///
@@ -671,7 +676,7 @@ public:
     ///
     /// This is \ref path when any \ref path_scope has named a position and the reader's own \c reader::current_path
     /// when none has -- never both, since an adapter walking a single reader would otherwise have its position
-    /// counted twice. \ref expect and \ref current_as report through this; an extractor which rejects a value for a
+    /// counted twice. \ref expect and \ref current_as report through this; a deserializer which rejects a value for a
     /// reason other than its node type -- a number outside the range of what it builds, say -- wants the same answer
     /// for the same reason.
     ///
@@ -680,19 +685,19 @@ public:
     JSONV_NODISCARD
     jsonv::path problem_path(const reader& from) const;
 
-    /// Attempt to extract a \c T from \a from using the \c formats associated with this context.
+    /// Attempt to deserialize a \c T from \a from using the \c formats associated with this context.
     ///
-    /// This is the positioned primitive a composite calls for each of its parts: it extracts the value under the
+    /// This is the positioned primitive a composite calls for each of its parts: it deserializes the value under the
     /// cursor and nothing else. In particular it does not step over \c ast_node_type::document_start, so it is not
-    /// the way to start on a fresh reader -- \c jsonv::extract is.
+    /// the way to start on a fresh reader -- \c jsonv::deserialize is.
     ///
-    /// \tparam T is the type to extract. It must be movable.
+    /// \tparam T is the type to deserialize. It must be movable.
     template <typename T>
     JSONV_NODISCARD
-    std::expected<T, ast_node_type> extract(reader& from)
+    std::expected<T, ast_node_type> deserialize(reader& from)
     {
         alignas(T) std::byte place[sizeof(T)];
-        if (auto result = extract(typeid(T), from, static_cast<void*>(place)); !result)
+        if (auto result = deserialize(typeid(T), from, static_cast<void*>(place)); !result)
             return std::unexpected(result.error());
 
         T*   ptr     = std::launder(reinterpret_cast<T*>(place));
@@ -700,45 +705,45 @@ public:
         return std::move(*ptr);
     }
 
-    /// Attempt to extract an object of the given \a type from \a from into the memory at \a into, using the
+    /// Attempt to deserialize an object of the given \a type from \a from into the memory at \a into, using the
     /// \c formats associated with this context. This is what the overload above calls with the \c T it was asked for.
     ///
     /// \a into must have room for an object of \a type and be suitably aligned for it. On success an object has been
     /// created there, and destroying it is up to the caller. On failure nothing has been created, the problem is
-    /// recorded on this context, and the \c ast_node_type returned is the one the \c extractor reported (see
-    /// \c extractor::extract). An exception thrown while extracting is not propagated: it is recorded as a problem and
-    /// reported as \c ast_node_type::error, except that an \c extraction_error from an adapter on the \c value bridge
-    /// has its own problems folded onto this context instead.
+    /// recorded on this context, and the \c ast_node_type returned is the one the \c deserializer reported (see \c
+    /// deserializer::deserialize). An exception thrown while deserializing is not propagated: it is recorded as a
+    /// problem and reported as \c ast_node_type::error, except that a \c deserialization_error from an adapter on the
+    /// \c value bridge has its own problems folded onto this context instead.
     ///
     /// Called from a hook which can see \ref source_value or \ref encoded_source, this hides both from everything the
-    /// extraction runs, since none of that is part of the object the hook is about.
+    /// deserialization runs, since none of that is part of the object the hook is about.
     JSONV_NODISCARD
-    std::expected<void, ast_node_type> extract(const std::type_info& type, reader& from, void* into);
+    std::expected<void, ast_node_type> deserialize(const std::type_info& type, reader& from, void* into);
 
-    /// Attempt to extract a \c T from the in-memory \a from using the \c formats associated with this context.
+    /// Attempt to deserialize a \c T from the in-memory \a from using the \c formats associated with this context.
     ///
     /// This runs the same pipeline as the \c reader overload by walking \a from through a \c reader::from_value, and
     /// reports failure by throwing rather than by returning. It is how an adapter written against the older
-    /// \c value-based interface reaches the rest of the pipeline. To extract part of \a from, name the part --
-    /// <tt>extract<T>(from.at("a"))</tt> -- under a \ref path_scope saying where it is.
+    /// \c value-based interface reaches the rest of the pipeline. To deserialize part of \a from, name the part --
+    /// <tt>deserialize<T>(from.at("a"))</tt> -- under a \ref path_scope saying where it is.
     ///
-    /// \throws extraction_error if anything goes wrong when attempting to extract a value.
+    /// \throws deserialization_error if anything goes wrong when attempting to deserialize a value.
     ///
     /// \see value_adapter_for
     template <typename T>
     JSONV_NODISCARD
-    T extract(const value& from);
+    T deserialize(const value& from);
 
-    /// An RAII guard naming one step of the extraction path while it is alive.
+    /// An RAII guard naming one step of the deserialization path while it is alive.
     ///
-    /// A \c reader knows where the *reader* is, which is not always where the *extractor* is: an adapter which
+    /// A \c reader knows where the *reader* is, which is not always where the *deserializer* is: an adapter which
     /// re-roots onto a subtree gets a reader whose \c reader::current_path is relative to that subtree, and an adapter
     /// which renames a member wants the name the caller declared rather than the one the document used. Pushing a
-    /// scope says where the extractor is, and takes precedence over the reader's own answer.
+    /// scope says where the deserializer is, and takes precedence over the reader's own answer.
     ///
-    /// Scopes are kept on the C++ stack and linked into a chain, so a push is two stores and a pop is one. No
-    /// \c jsonv::path is built until something calls \c extraction_context::path, which happens only when a problem is
-    /// recorded.
+    /// Scopes are kept on the C++ stack and linked into a chain, so a push is two stores and a pop is one. No \c
+    /// jsonv::path is built until something calls \c deserialization_context::path, which happens only when a problem
+    /// is recorded.
     ///
     /// The overloads which view their argument allocate nothing: the \c std::size_t one, and those naming a key by
     /// \c std::string_view, \c std::string lvalue or string literal. A key they view must outlive the scope, which is
@@ -750,16 +755,16 @@ public:
     class JSONV_PUBLIC path_scope
     {
     public:
-        /// Name the element at \a index of the array being extracted, on \a context.
-        path_scope(extraction_context& context, std::size_t index) noexcept;
+        /// Name the element at \a index of the array being deserialized, on \a context.
+        path_scope(deserialization_context& context, std::size_t index) noexcept;
 
-        /// Name the member \a key of the object being extracted, on \a context. \a key is viewed rather than copied.
-        path_scope(extraction_context& context, std::string_view key) noexcept;
+        /// Name the member \a key of the object being deserialized, on \a context. \a key is viewed rather than copied.
+        path_scope(deserialization_context& context, std::string_view key) noexcept;
 
-        /// Name the member \a key of the object being extracted, on \a context. \a key is a string literal, or some
+        /// Name the member \a key of the object being deserialized, on \a context. \a key is a string literal, or some
         /// other array holding a NUL-terminated string, and is viewed rather than copied.
         template <std::size_t N>
-        path_scope(extraction_context& context, const char (&key)[N]) noexcept :
+        path_scope(deserialization_context& context, const char (&key)[N]) noexcept :
                 path_scope(context, std::string_view(key))
         {
             // An array rather than a `const char*`, which a literal `0` converts to as readily as it does to the
@@ -767,36 +772,36 @@ public:
             // than taken to be `N - 1` long, since an array of `char` with room to spare binds here as well.
         }
 
-        /// Name the member \a key of the object being extracted, on \a context, keeping a copy of \a key for as long as
-        /// this scope lives. \a key is an array of \c char holding a NUL-terminated string which is about to be
+        /// Name the member \a key of the object being deserialized, on \a context, keeping a copy of \a key for as long
+        /// as this scope lives. \a key is an array of \c char holding a NUL-terminated string which is about to be
         /// destroyed, such as a member of a temporary.
         template <std::size_t N>
-        path_scope(extraction_context& context, const char (&&key)[N]) :
+        path_scope(deserialization_context& context, const char (&&key)[N]) :
                 path_scope(context, path_element(std::string_view(key)))
         { }
 
-        /// Name the member \a key of the object being extracted, on \a context. \a key is a \c std::string, and is
+        /// Name the member \a key of the object being deserialized, on \a context. \a key is a \c std::string, and is
         /// viewed rather than copied.
         template <typename TString>
             requires std::same_as<TString, std::string>
-        path_scope(extraction_context& context, const TString& key) noexcept :
+        path_scope(deserialization_context& context, const TString& key) noexcept :
                 path_scope(context, std::string_view(key))
         {
             // A template rather than a `const std::string&` so that a braced `{ data, size }`, which deduces nothing,
             // goes on reaching the `std::string_view` overload alone instead of being ambiguous with this one.
         }
 
-        /// Name the member \a key of the object being extracted, on \a context, keeping \a key for as long as this
+        /// Name the member \a key of the object being deserialized, on \a context, keeping \a key for as long as this
         /// scope lives. \a key is a \c std::string rvalue. One which is \c const, such as one returned as a
         /// <tt>const std::string</tt>, cannot be moved from, so it is copied rather than viewed after it is gone.
         template <typename TString>
             requires std::same_as<std::remove_const_t<TString>, std::string>
-        path_scope(extraction_context& context, TString&& key) :
+        path_scope(deserialization_context& context, TString&& key) :
                 path_scope(context, path_element(std::forward<TString>(key)))
         { }
 
         /// Name \a elem on \a context, keeping a copy of it for as long as this scope lives.
-        path_scope(extraction_context& context, path_element elem);
+        path_scope(deserialization_context& context, path_element elem);
 
         path_scope(const path_scope&)            = delete;
         path_scope& operator=(const path_scope&) = delete;
@@ -804,13 +809,13 @@ public:
         ~path_scope() noexcept;
 
     private:
-        friend class extraction_context;
+        friend class deserialization_context;
 
         /// Append this scope's ancestors and then itself to \a out, so the result reads outermost-first.
         void append_to(jsonv::path& out) const;
 
     private:
-        extraction_context*                                       _context;
+        deserialization_context*                                       _context;
         const path_scope*                                         _parent;
         std::variant<std::size_t, std::string_view, path_element> _element;
     };
@@ -821,13 +826,13 @@ private:
     friend class detail::source_scope;
     friend class detail::temporary_source_scope;
 
-    friend JSONV_PUBLIC void detail::extract_entry(extraction_context&   context,
-                                                   const std::type_info& type,
-                                                   reader&               from,
-                                                   void*                 into,
-                                                   void               (* destroy)(void*) noexcept,
-                                                   detail::source_lifetime lifetime
-                                                  );
+    friend JSONV_PUBLIC void detail::deserialize_entry(deserialization_context&   context,
+                                                       const std::type_info& type,
+                                                       reader&               from,
+                                                       void*                 into,
+                                                       void               (* destroy)(void*) noexcept,
+                                                       detail::source_lifetime lifetime
+                                                      );
 
     /// Where to report a failure which is being translated out of an exception. Unlike \ref problem_path this takes
     /// the location a bridge left behind on its way out, because by now the cursor has moved on from the value which
@@ -836,22 +841,22 @@ private:
     jsonv::path take_failure_path(const reader& from);
 
 private:
-    extract_options   _options;
-    jsonv::path       _base_path;
-    std::string       _source_name;
-    const path_scope* _innermost              = nullptr;
-    std::size_t       _temporary_source_depth = 0U;
+    deserialize_options _options;
+    jsonv::path         _base_path;
+    std::string         _source_name;
+    const path_scope*   _innermost              = nullptr;
+    std::size_t         _temporary_source_depth = 0U;
 
-    /// The object \ref source_value and \ref encoded_source answer for, if one is being extracted.
+    /// The object \ref source_value and \ref encoded_source answer for, if one is being deserialized.
     const detail::source_scope* _innermost_source = nullptr;
 
     /// Where to report the failure currently unwinding, left by a bridge which walked the cursor past the value which
     /// failed. A destructor runs before the handler which records the problem, so the location has to be worked out
-    /// in the destructor and picked up by \ref take_failure_path. It lives and dies with one call to \c extract.
+    /// in the destructor and picked up by \ref take_failure_path. It lives and dies with one call to \c deserialize.
     std::optional<jsonv::path> _failure_path;
 
     /// The reader whose cursor a bridge already walked past the value currently failing. Read by
-    /// \ref skip_failed_value and, like \ref _failure_path, it lives and dies with one call to \c extract.
+    /// \ref skip_failed_value and, like \ref _failure_path, it lives and dies with one call to \c deserialize.
     const reader*     _consumed_failed_value = nullptr;
 
     problem_list      _problems;
@@ -869,60 +874,60 @@ private:
 /// surrounding pipeline runs against a streaming \c reader.
 ///
 /// A structure which fails part-way through is still stepped over, so \a from is left one past it just as success
-/// would have left it; a scalar which fails leaves \a from on it. An extractor which lets the failure of a structure
+/// would have left it; a scalar which fails leaves \a from on it. A deserializer which lets the failure of a structure
 /// out has to say that the value is behind the cursor, or a composite recovering from it steps over the following
-/// sibling as well -- which is what the overload taking an \c extraction_context is for.
+/// sibling as well -- which is what the overload taking a \c deserialization_context is for.
 ///
-/// An object which repeats a key keeps the last of its values, which is \c extract_options::duplicate_key_action's
-/// default. The overload taking an \c extraction_context does what its options say instead.
+/// An object which repeats a key keeps the last of its values, which is \c deserialize_options::duplicate_key_action's
+/// default. The overload taking a \c deserialization_context does what its options say instead.
 ///
-/// \throws extraction_error if \a from is not positioned on a value or the document ends part-way through one.
+/// \throws deserialization_error if \a from is not positioned on a value or the document ends part-way through one.
 /// \throws std::invalid_argument if a number has no finite \c double to round to, such as \c 1e400.
 /// \throws parse_error if a string holds an escape which does not decode, such as an unpaired `\uD800`.
 ///
 /// \see value_adapter_for
 JSONV_NODISCARD JSONV_PUBLIC value read_value(reader& from);
 
-/// \ref read_value for an extractor. When a structure fails, which leaves the cursor past it, this also says so to
-/// \a context with \c extraction_context::note_value_consumed -- which is what lets a composite recovering from the
+/// \ref read_value for a deserializer. When a structure fails, which leaves the cursor past it, this also says so to \a
+/// context with \c deserialization_context::note_value_consumed -- which is what lets a composite recovering from the
 /// failure resume at the next sibling rather than one sibling too far.
 ///
-/// A repeated key is settled by \a context's \c extract_options::on_duplicate_key, as \c parse settles it for the same
-/// options: \c replace keeps the last value, \c ignore the first, and \c exception refuses the object.
+/// A repeated key is settled by \a context's \c deserialize_options::on_duplicate_key, as \c parse settles it for the
+/// same options: \c replace keeps the last value, \c ignore the first, and \c exception refuses the object.
 ///
-/// \throws extraction_error for a repeated key under \c extract_options::duplicate_key_action::exception, as well as
-///  for everything \ref read_value throws it for.
-JSONV_NODISCARD JSONV_PUBLIC value read_value(extraction_context& context, reader& from);
+/// \throws deserialization_error for a repeated key under \c deserialize_options::duplicate_key_action::exception, as
+///                               well as for everything \ref read_value throws it for.
+JSONV_NODISCARD JSONV_PUBLIC value read_value(deserialization_context& context, reader& from);
 
 namespace detail
 {
 
 /// \ref read_value without moving \a from: the subtree under its cursor is read through a second cursor on the same
-/// source, which is what lets an extractor decide what to extract before extracting it. A scalar under a cursor over
-/// JSON text is read where it sits, since there is nothing to walk.
+/// source, which is what lets a deserializer decide what to deserialize before deserializing it. A scalar under a
+/// cursor over JSON text is read where it sits, since there is nothing to walk.
 ///
-/// \param context The extraction this is peeking for. What is peeked at is going to be read again for real, and the
-///                two have to agree about which value a repeated key has, so one is settled by \a context's
-///                \c extract_options::on_duplicate_key exactly as \ref read_value settles it for \a context -- and a
-///                refusal is placed where \a context says, as \ref read_value places one.
+/// \param context The deserialization this is peeking for. What is peeked at is going to be read again for real, and
+///                the two have to agree about which value a repeated key has, so one is settled by \a context's
+/// \c deserialize_options::on_duplicate_key exactly as \ref read_value settles it for \a context -- and a
+/// refusal is placed where \a context says, as \ref read_value places one.
 ///
 /// \throws Whatever \ref read_value throws for the same subtree, including for a repeated key under
-///  \c extract_options::duplicate_key_action::exception.
-JSONV_NODISCARD JSONV_PUBLIC value peek_value(const extraction_context& context, const reader& from);
+///  \c deserialize_options::duplicate_key_action::exception.
+JSONV_NODISCARD JSONV_PUBLIC value peek_value(const deserialization_context& context, const reader& from);
 
 /// The members named in \a keys of the object under \a from's cursor, read without moving \a from and without reading
 /// any other member -- each of those is stepped over whole, which on a reader over text costs nothing however large it
 /// is.
 ///
-/// \param context The extraction this is peeking for, as for \ref peek_value. Only the keys asked for are looked at, so
-///                only a repeat of one of those is settled -- or refused.
+/// \param context The deserialization this is peeking for, as for \ref peek_value. Only the keys asked for are looked
+///                at, so only a repeat of one of those is settled -- or refused.
 ///
 /// A document which ends part-way through the object gives back whatever was found before it ended.
 ///
 /// \returns An object holding the members found; or \c null if \a from is not on an object.
 /// \throws Whatever \ref read_value throws for one of the members read, including for a repeat of one of \a keys
-///  under \c extract_options::duplicate_key_action::exception.
-JSONV_NODISCARD JSONV_PUBLIC value peek_members(const extraction_context&                 context,
+///  under \c deserialize_options::duplicate_key_action::exception.
+JSONV_NODISCARD JSONV_PUBLIC value peek_members(const deserialization_context&                 context,
                                                 const reader&                             from,
                                                 const std::set<std::string, std::less<>>& keys
                                                );
@@ -937,22 +942,23 @@ JSONV_NODISCARD JSONV_PUBLIC std::optional<parse_index::const_iterator> bookmark
 /// since. It is read through a second cursor on \a from's source, so \a from does not move.
 ///
 /// \throws Whatever \ref peek_value throws for the same subtree.
-JSONV_NODISCARD JSONV_PUBLIC value peek_value_at(const extraction_context&   context,
+JSONV_NODISCARD JSONV_PUBLIC value peek_value_at(const deserialization_context&   context,
                                                  const reader&               from,
                                                  parse_index::const_iterator at
                                                 );
 
-/// Say, for as long as this lives, that what is being extracted from is a temporary -- see
-/// \c extraction_context::source_is_temporary.
+/// Say, for as long as this lives, that what is being deserialized from is a temporary -- see
+/// \c deserialization_context::source_is_temporary.
 ///
-/// An extractor which builds a \c value and shows it to a callback has made exactly the temporary that question is
-/// about, and nothing the callback extracts from it can tell: \c extraction_context::extract(const value&) takes the
+/// A deserializer which builds a \c value and shows it to a callback has made exactly the temporary that question is
+/// about, and nothing the callback deserializes from it can tell: \c deserialization_context::deserialize(const value&)
+/// takes the
 /// \c value to be the caller's. \c polymorphic_adapter does this when it materialises a subtree read from JSON text
 /// for its discriminators.
 class temporary_source_scope
 {
 public:
-    explicit temporary_source_scope(extraction_context& context) noexcept :
+    explicit temporary_source_scope(deserialization_context& context) noexcept :
             _context(&context)
     {
         ++_context->_temporary_source_depth;
@@ -967,26 +973,27 @@ public:
     }
 
 private:
-    extraction_context* _context;
+    deserialization_context* _context;
 };
 
-/// Say, for as long as this lives, which object \c extraction_context::source_value and
-/// \c extraction_context::encoded_source answer for, and whether they answer at all.
+/// Say, for as long as this lives, which object \c deserialization_context::source_value and
+/// \c deserialization_context::encoded_source answer for, and whether they answer at all.
 ///
-/// The serialization builder's adapter makes one for each object it extracts, before \c pre_extract runs, on the value
-/// its reader is on. That shows the value but not its text, since nothing knows where it ends until it has been walked.
-/// \c open hides both for the walk, and \c close shows both for what runs after it. \c extraction_context::extract
-/// makes one which shows nothing around any extraction started while something is showing -- by one of those hooks,
-/// extracting something else -- so that nothing the second extraction runs, whichever extractor runs it, is shown an
-/// object it is not part of.
+/// The serialization builder's adapter makes one for each object it deserializes, before \c pre_extract runs, on the
+/// value its reader is on. That shows the value but not its text, since nothing knows where it ends until it has been
+/// walked. \c open hides both for the walk, and \c close shows both for what runs after it. \c
+/// deserialization_context::deserialize makes one which shows nothing around any deserialization started while
+/// something is showing -- by one of those hooks, deserializing something else -- so that nothing the second
+/// deserialization runs, whichever deserializer runs it, is shown an object it is not part of.
 ///
-/// Like a \c extraction_context::path_scope, this is linked into the context rather than copied into it, and it records
-/// where its object is rather than what is in it: that is what lets an extraction which never asks pay nothing.
+/// Like a \c deserialization_context::path_scope, this is linked into the context rather than copied into it, and it
+/// records where its object is rather than what is in it: that is what lets a deserialization which never asks pay
+/// nothing.
 class source_scope
 {
 public:
     /// Show nothing, hiding whatever an enclosing scope was showing.
-    explicit source_scope(extraction_context& context) noexcept :
+    explicit source_scope(deserialization_context& context) noexcept :
             _context(&context),
             _parent(context._innermost_source)
     {
@@ -995,7 +1002,7 @@ public:
 
     /// Show the value \a from is on, which is what the hooks which run before the walk are about. The reader has to
     /// still be on it when one of them asks.
-    source_scope(extraction_context& context, const reader& from) noexcept :
+    source_scope(deserialization_context& context, const reader& from) noexcept :
             source_scope(context)
     {
         _from    = &from;
@@ -1051,7 +1058,7 @@ public:
     }
 
 private:
-    friend class jsonv::extraction_context;
+    friend class jsonv::deserialization_context;
 
     enum class shows : unsigned char
     {
@@ -1060,8 +1067,8 @@ private:
         value_and_text,
     };
 
-    /// Say that what \c extraction_context::source_value is lending was read out of text and dies with this scope, so
-    /// that nothing extracted from it is a view of it. Once is enough: it stays said until \ref stop_lending.
+    /// Say that what \c deserialization_context::source_value is lending was read out of text and dies with this scope,
+    /// so that nothing deserialized from it is a view of it. Once is enough: it stays said until \ref stop_lending.
     void lend_temporary() const noexcept
     {
         if (!_lending)
@@ -1081,7 +1088,7 @@ private:
     }
 
 private:
-    extraction_context*                        _context;
+    deserialization_context*                        _context;
     const source_scope*                        _parent;
     const reader*                              _from    = nullptr;
     optional<const value&>                     _tree;
@@ -1092,11 +1099,11 @@ private:
     mutable bool                               _lending = false;
 
     /// The object read out of text, once something has asked for it. Not a bare \c value, which would be a \c null
-    /// built for every object extracted.
+    /// built for every object deserialized.
     mutable std::optional<value> _read;
 
     /// The encoding of \c _tree, once something has asked for it. Not a bare `std::string`, since default-constructing
-    /// one is not free on every standard library and this is made for every object extracted.
+    /// one is not free on every standard library and this is made for every object deserialized.
     mutable std::optional<std::string> _encoded;
 };
 
@@ -1104,23 +1111,23 @@ private:
 ///
 /// A reader created by \c reader::from_value is already holding the tree the older \c value -based interface wants.
 /// Materialising a copy for it would pay for a deep copy and, worse, hand the adapter storage which dies with this
-/// object -- silently breaking every extractor which returns a view of what it was given. Borrowing is what keeps a
-/// \c std::string_view pointing into the caller's \c value, which is where it pointed before extraction ran through
-/// a \c reader.
+/// object -- silently breaking every deserializer which returns a view of what it was given. Borrowing is what keeps a
+/// \c std::string_view pointing into the caller's \c value, which is where it pointed before deserialization ran
+/// through a \c reader.
 ///
 /// A reader over JSON text has no such tree, so the subtree is materialised. Anything borrowed from it is valid only
-/// until this object goes away, which is why the context is told: see \c extraction_context::source_is_temporary.
+/// until this object goes away, which is why the context is told: see \c deserialization_context::source_is_temporary.
 ///
 /// **The reader is not advanced until \c commit.** An adapter on the bridge consumes its whole subtree before the
 /// older body runs, so a failure in that body would otherwise be reported against the next sibling. Leaving the cursor
-/// where the extraction started means the position is simply still correct, which is cheaper and more accurate than
-/// noting it beforehand -- \c reader::current_path rebuilds by scanning from the start of the document on a
-/// text-backed source, so asking for it on every successful extraction is quadratic. A structure read from text is the
-/// one case which cannot wait, since materialising it is what walks the cursor over it.
+/// where the deserialization started means the position is simply still correct, which is cheaper and more accurate
+/// than noting it beforehand -- \c reader::current_path rebuilds by scanning from the start of the document on a
+/// text-backed source, so asking for it on every successful deserialization is quadratic. A structure read from text is
+/// the one case which cannot wait, since materialising it is what walks the cursor over it.
 class JSONV_PUBLIC borrowed_subtree
 {
 public:
-    borrowed_subtree(extraction_context& context, reader& from);
+    borrowed_subtree(deserialization_context& context, reader& from);
 
     borrowed_subtree(const borrowed_subtree&)            = delete;
     borrowed_subtree& operator=(const borrowed_subtree&) = delete;
@@ -1135,7 +1142,7 @@ public:
     void commit();
 
 private:
-    extraction_context*    _context;
+    deserialization_context*    _context;
     reader*                _from;
     optional<const value&> _borrowed;
     bool                   _materialised;
@@ -1147,15 +1154,16 @@ private:
     value               _owned;
 };
 
-/// Call \a func as an extraction function and normalise whatever it gives back into a \c std::expected.
+/// Call \a func as a deserialization function and normalise whatever it gives back into a \c std::expected.
 ///
 /// Four call shapes are accepted, tried in this order: <tt>(context, reader)</tt>, <tt>(reader)</tt>,
 /// <tt>(context, value)</tt>, <tt>(value)</tt>. The last two are the interface functions were written against before
-/// extraction ran off a \c reader; they get a subtree materialised by \c read_value. Either a bare \c T or a
+/// deserialization ran off a \c reader; they get a subtree materialised by \c read_value. Either a bare \c T or a
 /// \c std::expected<T, ast_node_type> is an acceptable return.
-template <typename T, typename FExtract>
+template <typename T, typename FDeserialize>
 JSONV_NODISCARD
-std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_context& context, reader& from)
+std::expected<T, ast_node_type>
+invoke_deserialize(const FDeserialize& func, deserialization_context& context, reader& from)
 {
     auto normalise = [](auto&& result) -> std::expected<T, ast_node_type>
                      {
@@ -1189,15 +1197,15 @@ std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_
                                   }
                               };
 
-    if constexpr (std::invocable<const FExtract&, extraction_context&, reader&>)
+    if constexpr (std::invocable<const FDeserialize&, deserialization_context&, reader&>)
     {
         return normalise_consumed(func(context, from));
     }
-    else if constexpr (std::invocable<const FExtract&, reader&>)
+    else if constexpr (std::invocable<const FDeserialize&, reader&>)
     {
         return normalise_consumed(func(from));
     }
-    else if constexpr (std::invocable<const FExtract&, extraction_context&, const value&>)
+    else if constexpr (std::invocable<const FDeserialize&, deserialization_context&, const value&>)
     {
         // `get()` is a `const value&`, which is the signature the `invocable` check above tested. Handing over a
         // mutable one would let a callable overloaded on both pick the other overload.
@@ -1222,9 +1230,9 @@ std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_
     }
     else
     {
-        static_assert(std::invocable<const FExtract&, const value&>,
-                      "An extraction function must be callable as (extraction_context&, reader&), (reader&), "
-                      "(extraction_context&, const value&) or (const value&)"
+        static_assert(std::invocable<const FDeserialize&, const value&>,
+                      "A deserialization function must be callable as (deserialization_context&, reader&), (reader&), "
+                      "(deserialization_context&, const value&) or (const value&)"
                      );
 
         borrowed_subtree subtree(context, from);
@@ -1248,314 +1256,326 @@ std::expected<T, ast_node_type> invoke_extract(const FExtract& func, extraction_
     }
 }
 
-/// The type an extraction function extracts: its return type, with a \c std::expected unwrapped, deduced from the
-/// same four call shapes \c invoke_extract accepts and in the same order.
-template <typename FExtract>
-struct extract_function_result
+/// The type a deserialization function deserializes: its return type, with a \c std::expected unwrapped, deduced from
+/// the same four call shapes \c invoke_deserialize accepts and in the same order.
+template <typename FDeserialize>
+struct deserialize_function_result
 {
     static auto deduce()
     {
-        if constexpr (std::invocable<const FExtract&, extraction_context&, reader&>)
-            return std::type_identity<std::invoke_result_t<const FExtract&, extraction_context&, reader&>>();
-        else if constexpr (std::invocable<const FExtract&, reader&>)
-            return std::type_identity<std::invoke_result_t<const FExtract&, reader&>>();
-        else if constexpr (std::invocable<const FExtract&, extraction_context&, const value&>)
-            return std::type_identity<std::invoke_result_t<const FExtract&, extraction_context&, const value&>>();
+        if constexpr (std::invocable<const FDeserialize&, deserialization_context&, reader&>)
+            return std::type_identity<std::invoke_result_t<const FDeserialize&, deserialization_context&, reader&>>();
+        else if constexpr (std::invocable<const FDeserialize&, reader&>)
+            return std::type_identity<std::invoke_result_t<const FDeserialize&, reader&>>();
+        else if constexpr (std::invocable<const FDeserialize&, deserialization_context&, const value&>)
+            return std::type_identity<
+                std::invoke_result_t<const FDeserialize&, deserialization_context&, const value&>>();
         else
-            return std::type_identity<std::invoke_result_t<const FExtract&, const value&>>();
+            return std::type_identity<std::invoke_result_t<const FDeserialize&, const value&>>();
     }
 
     using type = expected_value_or_self_t<std::remove_cvref_t<typename decltype(deduce())::type>>;
 };
 
-template <typename FExtract>
-using extract_function_result_t = typename extract_function_result<FExtract>::type;
+template <typename FDeserialize>
+using deserialize_function_result_t = typename deserialize_function_result<FDeserialize>::type;
 
-/// \c extract_entry for a \c T, which also owns the storage the \c T is built in.
+/// \c deserialize_entry for a \c T, which also owns the storage the \c T is built in.
 template <typename T>
 JSONV_NODISCARD
-T extract_entry(extraction_context& context, reader& from, source_lifetime lifetime)
+T deserialize_entry(deserialization_context& context, reader& from, source_lifetime lifetime)
 {
     alignas(T) std::byte place[sizeof(T)];
-    extract_entry(context,
-                  typeid(T),
-                  from,
-                  static_cast<void*>(place),
-                  [](void* p) noexcept { std::destroy_at(std::launder(static_cast<T*>(p))); },
-                  lifetime
-                 );
+    deserialize_entry(context,
+                      typeid(T),
+                      from,
+                      static_cast<void*>(place),
+                      [](void* p) noexcept { std::destroy_at(std::launder(static_cast<T*>(p))); },
+                      lifetime
+                     );
 
     T*   ptr     = std::launder(reinterpret_cast<T*>(place));
     auto destroy = on_scope_exit([ptr] { std::destroy_at(ptr); });
     return std::move(*ptr);
 }
 
-/// Extract a \c T from JSON \a source text through \a context.
+/// Deserialize a \c T from JSON \a source text through \a context.
 ///
-/// A \c std::string rvalue is taken over: it is moved into a reader which lives as long as this call, so the extraction
-/// is told its source is temporary and refuses to hand back views of it. Anything else is read where it is, through a
+/// A \c std::string rvalue is taken over: it is moved into a reader which lives as long as this call, so the
+/// deserialization is told its source is temporary and refuses to hand back views of it. Anything else is read where it
+/// is, through a
 /// \c std::string_view, and views of it are the caller's to keep valid -- that includes an rvalue of any other string
 /// type, such as a \c std::pmr::string, which outlives this call as every temporary argument does.
 template <typename T, typename TSource>
 JSONV_NODISCARD
-T extract_text(TSource&& source, const parse_options& parse_opts, extraction_context& context)
+T deserialize_text(TSource&& source, const parse_options& parse_opts, deserialization_context& context)
 {
     if constexpr (std::is_same_v<TSource, std::string>)
     {
         reader from(std::forward<TSource>(source), parse_opts);
-        return extract_entry<T>(context, from, source_lifetime::extraction);
+        return deserialize_entry<T>(context, from, source_lifetime::deserialization);
     }
     else
     {
         // Forwarded, so the conversion used is the one the constraint on the entry point accepted: a type may convert
         // to text only as an rvalue, or differently as an lvalue and as an rvalue.
         reader from(std::string_view(std::forward<TSource>(source)), parse_opts);
-        return extract_entry<T>(context, from, source_lifetime::caller);
+        return deserialize_entry<T>(context, from, source_lifetime::caller);
     }
 }
 
-/// \c extract_text through a context of its own, built from \a fmts and \a options.
+/// \c deserialize_text through a context of its own, built from \a fmts and \a options.
 template <typename T, typename TSource>
 JSONV_NODISCARD
-T extract_text(TSource&&              source,
-               const parse_options&   parse_opts,
-               const formats&         fmts,
-               const extract_options& options
-              )
+T deserialize_text(TSource&&              source,
+                   const parse_options&   parse_opts,
+                   const formats&         fmts,
+                   const deserialize_options& options
+                  )
 {
-    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
-    return extract_text<T>(std::forward<TSource>(source), parse_opts, context);
+    deserialization_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return deserialize_text<T>(std::forward<TSource>(source), parse_opts, context);
 }
 
 }
 
 template <typename T>
-T extraction_context::extract(const value& from)
+T deserialization_context::deserialize(const value& from)
 {
     reader rdr = reader::from_value(from);
-    return detail::extract_entry<T>(*this, rdr, detail::source_lifetime::caller);
+    return detail::deserialize_entry<T>(*this, rdr, detail::source_lifetime::caller);
 }
 
-/// Extract a C++ value from \a from using the provided \a fmts.
+/// Deserialize a C++ value from \a from using the provided \a fmts.
 template <typename T>
 JSONV_NODISCARD
-T extract(const value& from, const formats& fmts)
+T deserialize(const value& from, const formats& fmts)
 {
-    extraction_context context(fmts);
-    return context.extract<T>(from);
+    deserialization_context context(fmts);
+    return context.deserialize<T>(from);
 }
 
-/// Extract a C++ value from \a from using the provided \a fmts and \a options.
+/// Deserialize a C++ value from \a from using the provided \a fmts and \a options.
 template <typename T>
 JSONV_NODISCARD
-T extract(const value& from, const formats& fmts, const extract_options& options)
+T deserialize(const value& from, const formats& fmts, const deserialize_options& options)
 {
-    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
-    return context.extract<T>(from);
+    deserialization_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return context.deserialize<T>(from);
 }
 
-/// Extract a C++ value from \a from using \c jsonv::formats::global().
+/// Deserialize a C++ value from \a from using \c jsonv::formats::global().
 template <typename T>
 JSONV_NODISCARD
-T extract(const value& from)
+T deserialize(const value& from)
 {
-    extraction_context context;
-    return context.extract<T>(from);
+    deserialization_context context;
+    return context.deserialize<T>(from);
 }
 
-/// Extract a C++ value from \a from using \c jsonv::formats::global() and the provided \a options.
+/// Deserialize a C++ value from \a from using \c jsonv::formats::global() and the provided \a options.
 template <typename T>
 JSONV_NODISCARD
-T extract(const value& from, const extract_options& options)
+T deserialize(const value& from, const deserialize_options& options)
 {
-    extraction_context context(formats::global(), std::nullopt, jsonv::path(), nullptr, options);
-    return context.extract<T>(from);
+    deserialization_context context(formats::global(), std::nullopt, jsonv::path(), nullptr, options);
+    return context.deserialize<T>(from);
 }
 
 /// \{
 
-/// Extract a C++ value from a \a reader using \a fmts (by default \c jsonv::formats::global()) and \a options.
+/// Deserialize a C++ value from a \a reader using \a fmts (by default \c jsonv::formats::global()) and \a options.
 ///
 /// A reader on \c ast_node_type::document_start -- a freshly-created one -- is read as a whole document. It is checked
-/// with \c reader::validate first, so a source which did not parse is reported as that rather than as whatever an
-/// extractor made of the \c ast_node_type::error node it ran into; its \c document_start is stepped over, so neither
-/// the caller nor any \c extractor has to; and the value read must be the whole document, so the reader is left on
+/// with \c reader::validate first, so a source which did not parse is reported as that rather than as whatever a
+/// deserializer made of the \c ast_node_type::error node it ran into; its \c document_start is stepped over, so neither
+/// the caller nor any \c deserializer has to; and the value read must be the whole document, so the reader is left on
 /// \c ast_node_type::document_end. A reader the caller has already positioned gets none of this: the value under its
-/// cursor is extracted and the cursor left one past it, as \c reader::next_value would, whatever surrounds it. The
-/// exception is a reader on an \c ast_node_type::error node, which has no value to extract and is reported as the
+/// cursor is deserialized and the cursor left one past it, as \c reader::next_value would, whatever surrounds it. The
+/// exception is a reader on an \c ast_node_type::error node, which has no value to deserialize and is reported as the
 /// parse failure it is.
 ///
-/// Anything extracted as a view of the source -- a \c std::string_view -- views the reader's storage. Through the
+/// Anything deserialized as a view of the source -- a \c std::string_view -- views the reader's storage. Through the
 /// rvalue overloads, a reader which \c reader::owns_source dies with the call, so such views are refused; one over
 /// storage the caller owns, like <tt>reader(std::string_view)</tt>, is viewed as usual.
 ///
-/// \throws extraction_error if the source did not parse, the value could not be extracted or, for a whole document,
-///                          something follows the value.
+/// \throws deserialization_error if the source did not parse, the value could not be deserialized or, for a whole
+///                               document, something follows the value.
 template <typename T>
 JSONV_NODISCARD
-T extract(reader& from, const formats& fmts = formats::global(), const extract_options& options = extract_options())
+T deserialize(reader&                    from,
+              const formats&             fmts    = formats::global(),
+              const deserialize_options& options = deserialize_options()
+             )
 {
-    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
-    return detail::extract_entry<T>(context, from, detail::source_lifetime::caller);
+    deserialization_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return detail::deserialize_entry<T>(context, from, detail::source_lifetime::caller);
 }
 
-/// Extract a C++ value from a \a reader using \c jsonv::formats::global() and the provided \a options.
+/// Deserialize a C++ value from a \a reader using \c jsonv::formats::global() and the provided \a options.
 template <typename T>
 JSONV_NODISCARD
-T extract(reader& from, const extract_options& options)
+T deserialize(reader& from, const deserialize_options& options)
 {
-    return extract<T>(from, formats::global(), options);
+    return deserialize<T>(from, formats::global(), options);
 }
 
-/// Extract a C++ value from a \a reader which may own its source, using \a fmts and \a options.
+/// Deserialize a C++ value from a \a reader which may own its source, using \a fmts and \a options.
 template <typename T>
 JSONV_NODISCARD
-T extract(reader&& from, const formats& fmts = formats::global(), const extract_options& options = extract_options())
+T deserialize(reader&&                   from,
+              const formats&             fmts    = formats::global(),
+              const deserialize_options& options = deserialize_options()
+             )
 {
-    extraction_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
-    return detail::extract_entry<T>(context,
-                                    from,
-                                    from.owns_source() ? detail::source_lifetime::extraction
-                                                       : detail::source_lifetime::caller
-                                   );
+    deserialization_context context(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    return detail::deserialize_entry<T>(context,
+                                        from,
+                                        from.owns_source() ? detail::source_lifetime::deserialization
+                                                           : detail::source_lifetime::caller
+                                       );
 }
 
-/// Extract a C++ value from a \a reader which may own its source, using \c jsonv::formats::global() and the provided
+/// Deserialize a C++ value from a \a reader which may own its source, using \c jsonv::formats::global() and the
+/// provided
 /// \a options.
 template <typename T>
 JSONV_NODISCARD
-T extract(reader&& from, const extract_options& options)
+T deserialize(reader&& from, const deserialize_options& options)
 {
-    return extract<T>(std::move(from), formats::global(), options);
+    return deserialize<T>(std::move(from), formats::global(), options);
 }
 /// \}
 
 /// \{
 
-/// Extract a C++ value from a \a reader through a \a context the caller built, exactly as the overloads above do with
-/// one built from \c formats and \c extract_options.
+/// Deserialize a C++ value from a \a reader through a \a context the caller built, exactly as the overloads above do
+/// with one built from \c formats and \c deserialize_options.
 ///
-/// Everything \a context was created with applies: its \c formats and \c extract_options, and also what the overloads
-/// above have no way to be given -- the version, user data and base path its extractors see, and the
-/// \c extraction_context::source_name its problems are reported in. A failed call throws the problems it recorded and
+/// Everything \a context was created with applies: its \c formats and \c deserialize_options, and also what the
+/// overloads above have no way to be given -- the version, user data and base path its deserializers see, and the \c
+/// deserialization_context::source_name its problems are reported in. A failed call throws the problems it recorded and
 /// takes them off \a context, which is left holding what it held before.
 ///
-/// An \c extraction_context is single-use, so build one for each document and do not hand this the one an \c extractor
-/// was given -- whatever that extraction has in progress would be applied to a document it knows nothing about.
+/// A \c deserialization_context is single-use, so build one for each document and do not hand this the one a \c
+/// deserializer was given -- whatever that deserialization has in progress would be applied to a document it knows
+/// nothing about.
 ///
-/// \throws extraction_error for the same reasons as the overloads above.
+/// \throws deserialization_error for the same reasons as the overloads above.
 template <typename T>
 JSONV_NODISCARD
-T extract(reader& from, extraction_context& context)
+T deserialize(reader& from, deserialization_context& context)
 {
-    return detail::extract_entry<T>(context, from, detail::source_lifetime::caller);
+    return detail::deserialize_entry<T>(context, from, detail::source_lifetime::caller);
 }
 
 template <typename T>
 JSONV_NODISCARD
-T extract(reader&& from, extraction_context& context)
+T deserialize(reader&& from, deserialization_context& context)
 {
-    return detail::extract_entry<T>(context,
-                                    from,
-                                    from.owns_source() ? detail::source_lifetime::extraction
-                                                       : detail::source_lifetime::caller
-                                   );
+    return detail::deserialize_entry<T>(context,
+                                        from,
+                                        from.owns_source() ? detail::source_lifetime::deserialization
+                                                           : detail::source_lifetime::caller
+                                       );
 }
 /// \}
 
 /// \{
 
-/// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts, using \a fmts (by default
+/// Deserialize a C++ value directly from JSON \a source text, parsed with \a parse_opts, using \a fmts (by default
 /// \c jsonv::formats::global()) and \a options.
 ///
 /// \a source is anything which converts to \c std::string_view: a string literal, a \c std::string, a
 /// \c std::string_view. Note what that means for a C++ string: it is JSON text to be parsed, not a JSON string, so
-/// <tt>extract<std::string>(R"("fire")")</tt> is \c "fire" and <tt>extract<std::string>("fire")</tt> is a parse
-/// failure. Wrap it in a \c value -- <tt>extract<std::string>(value("fire"))</tt> -- to mean the string.
+/// <tt>deserialize<std::string>(R"("fire")")</tt> is \c "fire" and <tt>deserialize<std::string>("fire")</tt> is a parse
+/// failure. Wrap it in a \c value -- <tt>deserialize<std::string>(value("fire"))</tt> -- to mean the string.
 ///
 /// A \c std::string rvalue is taken over for the call and freed when it returns, so views of it are refused, as for a
-/// tree materialised during extraction (see \c extraction_context::source_is_temporary). Every other source is read
-/// where it is, without copying, and a \c std::string_view extracted from it points into it.
+/// tree materialised during deserialization (see \c deserialization_context::source_is_temporary). Every other source
+/// is read where it is, without copying, and a \c std::string_view deserialized from it points into it.
 ///
 /// This reads the whole document, exactly as the \c reader overloads do given a fresh \c reader.
 ///
-/// \throws extraction_error if \a source is not valid JSON, the value could not be extracted, or something follows it.
+/// \throws deserialization_error if \a source is not valid JSON, the value could not be deserialized, or something
+///                               follows it.
 /// \throws std::invalid_argument if \a parse_opts asks for a \c parse_options::max_structure_depth beyond the limit,
 ///                               as \c jsonv::parse does.
 template <typename T, typename TSource>
     requires std::convertible_to<TSource, std::string_view>
 JSONV_NODISCARD
-T extract(TSource&&              source,
-          const formats&         fmts    = formats::global(),
-          const extract_options& options = extract_options()
-         )
+T deserialize(TSource&&              source,
+              const formats&         fmts    = formats::global(),
+              const deserialize_options& options = deserialize_options()
+             )
 {
-    return detail::extract_text<T>(std::forward<TSource>(source), parse_options::create_default(), fmts, options);
+    return detail::deserialize_text<T>(std::forward<TSource>(source), parse_options::create_default(), fmts, options);
 }
 
-/// Extract a C++ value from JSON \a source text using \c jsonv::formats::global() and the provided \a options.
+/// Deserialize a C++ value from JSON \a source text using \c jsonv::formats::global() and the provided \a options.
 template <typename T, typename TSource>
     requires std::convertible_to<TSource, std::string_view>
 JSONV_NODISCARD
-T extract(TSource&& source, const extract_options& options)
+T deserialize(TSource&& source, const deserialize_options& options)
 {
-    return detail::extract_text<T>(std::forward<TSource>(source),
-                                   parse_options::create_default(),
-                                   formats::global(),
-                                   options
-                                  );
+    return detail::deserialize_text<T>(std::forward<TSource>(source),
+                                       parse_options::create_default(),
+                                       formats::global(),
+                                       options
+                                      );
 }
 
-/// Extract a C++ value from JSON \a source text parsed with \a parse_opts, using \a fmts and \a options.
+/// Deserialize a C++ value from JSON \a source text parsed with \a parse_opts, using \a fmts and \a options.
 template <typename T, typename TSource>
     requires std::convertible_to<TSource, std::string_view>
 JSONV_NODISCARD
-T extract(TSource&&              source,
-          const parse_options&   parse_opts,
-          const formats&         fmts    = formats::global(),
-          const extract_options& options = extract_options()
-         )
+T deserialize(TSource&&              source,
+              const parse_options&   parse_opts,
+              const formats&         fmts    = formats::global(),
+              const deserialize_options& options = deserialize_options()
+             )
 {
-    return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, fmts, options);
+    return detail::deserialize_text<T>(std::forward<TSource>(source), parse_opts, fmts, options);
 }
 
-/// Extract a C++ value from JSON \a source text parsed with \a parse_opts, using \c jsonv::formats::global() and the
-/// provided \a options.
+/// Deserialize a C++ value from JSON \a source text parsed with \a parse_opts, using \c jsonv::formats::global() and
+/// the provided \a options.
 template <typename T, typename TSource>
     requires std::convertible_to<TSource, std::string_view>
 JSONV_NODISCARD
-T extract(TSource&& source, const parse_options& parse_opts, const extract_options& options)
+T deserialize(TSource&& source, const parse_options& parse_opts, const deserialize_options& options)
 {
-    return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, formats::global(), options);
+    return detail::deserialize_text<T>(std::forward<TSource>(source), parse_opts, formats::global(), options);
 }
 /// \}
 
 /// \{
 
-/// Extract a C++ value directly from JSON \a source text, parsed with \a parse_opts where they are given, through a
+/// Deserialize a C++ value directly from JSON \a source text, parsed with \a parse_opts where they are given, through a
 /// \a context the caller built.
 ///
 /// \a source is read exactly as the overloads above read it, a \c std::string rvalue included, and \a context is used
-/// as the \c reader overload taking an \c extraction_context uses it: everything it was created with applies, and the
-/// problems a failed call throws are taken off it. Build one for each document.
+/// as the \c reader overload taking a \c deserialization_context uses it: everything it was created with applies, and
+/// the problems a failed call throws are taken off it. Build one for each document.
 ///
-/// \throws extraction_error if \a source is not valid JSON, the value could not be extracted, or something follows it.
+/// \throws deserialization_error if \a source is not valid JSON, the value could not be deserialized, or something
+///                               follows it.
 /// \throws std::invalid_argument if \a parse_opts asks for a \c parse_options::max_structure_depth beyond the limit,
 ///                               as \c jsonv::parse does.
 template <typename T, typename TSource>
     requires std::convertible_to<TSource, std::string_view>
 JSONV_NODISCARD
-T extract(TSource&& source, extraction_context& context)
+T deserialize(TSource&& source, deserialization_context& context)
 {
-    return detail::extract_text<T>(std::forward<TSource>(source), parse_options::create_default(), context);
+    return detail::deserialize_text<T>(std::forward<TSource>(source), parse_options::create_default(), context);
 }
 
 template <typename T, typename TSource>
     requires std::convertible_to<TSource, std::string_view>
 JSONV_NODISCARD
-T extract(TSource&& source, const parse_options& parse_opts, extraction_context& context)
+T deserialize(TSource&& source, const parse_options& parse_opts, deserialization_context& context)
 {
-    return detail::extract_text<T>(std::forward<TSource>(source), parse_opts, context);
+    return detail::deserialize_text<T>(std::forward<TSource>(source), parse_opts, context);
 }
 /// \}
 

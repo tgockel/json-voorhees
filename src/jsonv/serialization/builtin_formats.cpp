@@ -1,9 +1,9 @@
 /// \file
 /// The built-in \c formats::defaults, \c formats::global and \c formats::coerce registries.
 ///
-/// Every extractor here reads the AST node the \c reader is sitting on. These are the leaves of every extraction, so
-/// this is where the \c value middleman stops being allocated: pulling an \c int out of JSON text now parses the token
-/// and nothing else.
+/// Every deserializer here reads the AST node the \c reader is sitting on. These are the leaves of every
+/// deserialization, so this is where the \c value middleman stops being allocated: pulling an \c int out of JSON text
+/// now parses the token and nothing else.
 ///
 /// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
@@ -19,7 +19,7 @@
 #include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
-#include <jsonv/serialization/function_extractor.hpp>
+#include <jsonv/serialization/function_deserializer.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/value.hpp>
 
@@ -50,22 +50,23 @@ namespace
 // Reading a scalar                                                                                                   //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Turn an exception thrown by an \c ast_node accessor into an \c extraction_error::problem at \a from.
+/// Turn an exception thrown by an \c ast_node accessor into a \c deserialization_error::problem at \a from.
 ///
 /// The nodes own the mechanism -- decoding an escape, parsing a number -- and know neither where in the document they
 /// came from nor what the caller wanted. Translating here is what gives the failure a path.
 JSONV_NODISCARD
-std::unexpected<ast_node_type> problem_from_exception(extraction_context& context, reader& from)
+std::unexpected<ast_node_type> problem_from_exception(deserialization_context& context, reader& from)
 {
     return context.problem(context.problem_path(from), std::current_exception());
 }
 
-/// Record that the node \a from is on is not one this extractor accepts, having \a wanted something else.
+/// Record that the node \a from is on is not one this deserializer accepts, having \a wanted something else.
 ///
-/// \c extraction_context::expect is the right tool wherever the list of acceptable node types is short enough to read
-/// back in a message. The coercing extractors accept most of the tape, so they say what they wanted instead.
+/// \c deserialization_context::expect is the right tool wherever the list of acceptable node types is short enough to
+/// read back in a message. The coercing deserializers accept most of the tape, so they say what they wanted instead.
 JSONV_NODISCARD
-std::unexpected<ast_node_type> problem_wrong_type(extraction_context& context, reader& from, std::string_view wanted)
+std::unexpected<ast_node_type>
+problem_wrong_type(deserialization_context& context, reader& from, std::string_view wanted)
 {
     auto               found = from.current_type();
     std::ostringstream os;
@@ -82,7 +83,7 @@ std::unexpected<ast_node_type> problem_wrong_type(extraction_context& context, r
 /// A \c string_canonical node is a view of the source text with no translation to do, which is the whole reason the
 /// two node types exist; \c string_escaped has to be decoded.
 JSONV_NODISCARD
-std::expected<std::string, ast_node_type> read_string(extraction_context& context, reader& from)
+std::expected<std::string, ast_node_type> read_string(deserialization_context& context, reader& from)
 {
     // A lent `value` holds the decoded string already. The token a value-backed reader would synthesise for it is a
     // quoted copy in its arena, which this would only copy again.
@@ -100,20 +101,20 @@ std::expected<std::string, ast_node_type> read_string(extraction_context& contex
     {
         // `parse_index` validates the *syntax* of an escape without decoding it, so a well-formed `\uD800` with no
         // low surrogate to pair with is only caught here. That is a problem with the document at a place in it, not an
-        // escaping exception for the caller of `extract` to deal with.
+        // escaping exception for the caller of `deserialize` to deal with.
         return problem_from_exception(context, from);
     }
 }
 
 /// Check that the reader is on a number, recording a problem naming what was found if it is not.
 ///
-/// This is \c extraction_context::expect over the two numeric node types, except where the reader is lending a
+/// This is \c deserialization_context::expect over the two numeric node types, except where the reader is lending a
 /// \c value. A value-backed reader renders a \c kind::decimal into a token with \c format_decimal, which has nowhere
 /// to put a non-finite \c double, so such a value arrives as \c literal_null -- what encoding it writes, and not what
 /// something reading the tree should conclude it holds. Where there is a \c value to ask, its \c kind decides and the
 /// rendering does not.
 JSONV_NODISCARD
-std::expected<void, ast_node_type> expect_number(extraction_context& context, reader& from)
+std::expected<void, ast_node_type> expect_number(deserialization_context& context, reader& from)
 {
     if (auto lent = from.current_value())
     {
@@ -130,7 +131,7 @@ std::expected<void, ast_node_type> expect_number(extraction_context& context, re
 /// \c ast_node::integer::value() would wrap a magnitude beyond \c std::int64_t into the negatives, or refuse one
 /// beyond \c std::uint64_t, rather than round it to the nearest \c double.
 JSONV_NODISCARD
-std::expected<double, ast_node_type> read_decimal(extraction_context& context, reader& from)
+std::expected<double, ast_node_type> read_decimal(deserialization_context& context, reader& from)
 {
     // The `value` is the number; the token is a rendering of it. See `expect_number`.
     if (auto lent = from.current_value())
@@ -153,7 +154,8 @@ std::expected<double, ast_node_type> read_decimal(extraction_context& context, r
 /// message does not depend on whether the number was read from text or from a \c value.
 template <typename T, typename TLiteral>
 JSONV_NODISCARD
-std::unexpected<ast_node_type> problem_out_of_range(extraction_context& context, reader& from, const TLiteral& literal)
+std::unexpected<ast_node_type>
+problem_out_of_range(deserialization_context& context, reader& from, const TLiteral& literal)
 {
     std::ostringstream os;
 
@@ -172,7 +174,7 @@ std::unexpected<ast_node_type> problem_out_of_range(extraction_context& context,
 /// rather than its two's-complement reinterpretation.
 template <typename T>
 JSONV_NODISCARD
-std::expected<T, ast_node_type> read_integer(extraction_context& context, reader& from)
+std::expected<T, ast_node_type> read_integer(deserialization_context& context, reader& from)
 {
     // A lent `value` already holds the number as a `std::int64_t`, which is all a value-backed reader's token is a
     // rendering of -- so this is the check `from_chars` would make of that token, without formatting it to find out.
@@ -224,7 +226,7 @@ bool is_zero_integer(const ast_node& node)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 JSONV_NODISCARD
-std::expected<value, ast_node_type> extract_value(extraction_context& context, reader& from)
+std::expected<value, ast_node_type> deserialize_value(deserialization_context& context, reader& from)
 {
     // A value-backed reader is already holding the tree, so copy what it lends rather than rebuilding one token at a
     // time -- which would also drop what a `value` can hold and JSON cannot, such as a non-finite `kind::decimal`.
@@ -239,7 +241,7 @@ std::expected<value, ast_node_type> extract_value(extraction_context& context, r
 }
 
 JSONV_NODISCARD
-std::expected<std::string, ast_node_type> extract_string(extraction_context& context, reader& from)
+std::expected<std::string, ast_node_type> deserialize_string(deserialization_context& context, reader& from)
 {
     auto matched = context.expect(from, { ast_node_type::string_canonical, ast_node_type::string_escaped });
     if (!matched)
@@ -253,7 +255,7 @@ std::expected<std::string, ast_node_type> extract_string(extraction_context& con
 }
 
 JSONV_NODISCARD
-std::expected<std::string_view, ast_node_type> extract_string_view(extraction_context& context, reader& from)
+std::expected<std::string_view, ast_node_type> deserialize_string_view(deserialization_context& context, reader& from)
 {
     auto matched = context.expect(from, { ast_node_type::string_canonical, ast_node_type::string_escaped });
     if (!matched)
@@ -262,12 +264,12 @@ std::expected<std::string_view, ast_node_type> extract_string_view(extraction_co
     std::string_view out;
     if (context.source_is_temporary())
     {
-        // The source is storage the extraction owns -- a tree materialised for the occasion, or text handed over to
-        // it -- so a view of it would name storage which is already gone by the time the caller has it.
+        // The source is storage the deserialization owns -- a tree materialised for the occasion, or text handed over
+        // to it -- so a view of it would name storage which is already gone by the time the caller has it.
         return context.problem(context.problem_path(from),
-                               "Cannot extract a std::string_view from a source which is freed when extraction "
-                               "finishes: the string it would refer to is owned by the extraction. Extract a "
-                               "std::string instead."
+                               "Cannot deserialize a std::string_view from a source which is freed when "
+                               "deserialization finishes: the string it would refer to is owned by the "
+                               "deserialization. Deserialize a std::string instead."
                               );
     }
     else if (auto borrowed = from.current_value())
@@ -284,8 +286,9 @@ std::expected<std::string_view, ast_node_type> extract_string_view(extraction_co
     else
     {
         return context.problem(context.problem_path(from),
-                               "Cannot extract a std::string_view from a JSON string written with escape sequences: "
-                               "it has no decoded form in the source to refer to. Extract a std::string instead."
+                               "Cannot deserialize a std::string_view from a JSON string written with escape "
+                               "sequences: it has no decoded form in the source to refer to. Deserialize a "
+                               "std::string instead."
                               );
     }
 
@@ -294,7 +297,7 @@ std::expected<std::string_view, ast_node_type> extract_string_view(extraction_co
 }
 
 JSONV_NODISCARD
-std::expected<bool, ast_node_type> extract_boolean(extraction_context& context, reader& from)
+std::expected<bool, ast_node_type> deserialize_boolean(deserialization_context& context, reader& from)
 {
     auto matched = context.expect(from, { ast_node_type::literal_true, ast_node_type::literal_false });
     if (!matched)
@@ -307,7 +310,7 @@ std::expected<bool, ast_node_type> extract_boolean(extraction_context& context, 
 
 template <typename T>
 JSONV_NODISCARD
-std::expected<T, ast_node_type> extract_integer(extraction_context& context, reader& from)
+std::expected<T, ast_node_type> deserialize_integer(deserialization_context& context, reader& from)
 {
     auto matched = context.expect(from, ast_node_type::integer);
     if (!matched)
@@ -323,7 +326,7 @@ std::expected<T, ast_node_type> extract_integer(extraction_context& context, rea
 /// The default formats accept an \c integer where a \c double is wanted, which is what \c value::as_decimal has always
 /// done.
 JSONV_NODISCARD
-std::expected<double, ast_node_type> extract_decimal(extraction_context& context, reader& from)
+std::expected<double, ast_node_type> deserialize_decimal(deserialization_context& context, reader& from)
 {
     auto matched = expect_number(context, from);
     if (!matched)
@@ -337,9 +340,9 @@ std::expected<double, ast_node_type> extract_decimal(extraction_context& context
 }
 
 JSONV_NODISCARD
-std::expected<float, ast_node_type> extract_float(extraction_context& context, reader& from)
+std::expected<float, ast_node_type> deserialize_float(deserialization_context& context, reader& from)
 {
-    auto out = extract_decimal(context, from);
+    auto out = deserialize_decimal(context, from);
     if (!out)
         return std::unexpected(out.error());
 
@@ -350,7 +353,10 @@ template <typename T>
 void register_integer_adapter(formats& fmt, duplicate_type_action on_duplicate = duplicate_type_action::exception)
 {
     static auto instance =
-        make_adapter([] (extraction_context& context, reader& from) { return extract_integer<T>(context, from); },
+        make_adapter([] (deserialization_context& context, reader& from)
+                     {
+                         return deserialize_integer<T>(context, from);
+                     },
                      [] (const T& from) { return value(static_cast<std::int64_t>(from)); }
                     );
     fmt.register_adapter(&instance, on_duplicate);
@@ -360,15 +366,15 @@ formats create_default_formats()
 {
     formats fmt;
 
-    static auto json_adapter = make_adapter(extract_value, [] (const value& from) { return from; });
+    static auto json_adapter = make_adapter(deserialize_value, [] (const value& from) { return from; });
     fmt.register_adapter(&json_adapter);
 
-    static auto string_adapter = make_adapter(extract_string, [] (const std::string& from) { return value(from); });
+    static auto string_adapter = make_adapter(deserialize_string, [] (const std::string& from) { return value(from); });
     fmt.register_adapter(&string_adapter);
 
     // The only built-in which hands back a view of what it was given, and so the only one which has to care where that
     // storage came from.
-    static auto string_view_adapter = make_adapter(extract_string_view,
+    static auto string_view_adapter = make_adapter(deserialize_string_view,
                                                    [] (const std::string_view& from) { return value(from); }
                                                   );
     fmt.register_adapter(&string_view_adapter);
@@ -378,7 +384,7 @@ formats create_default_formats()
     static auto char_ptr_serializer = make_serializer<char*>([] (char* from) { return value(from); });
     fmt.register_serializer(&char_ptr_serializer);
 
-    static auto bool_adapter = make_adapter(extract_boolean, [] (const bool& from) { return value(from); });
+    static auto bool_adapter = make_adapter(deserialize_boolean, [] (const bool& from) { return value(from); });
     fmt.register_adapter(&bool_adapter);
 
     register_integer_adapter<std::int8_t>(fmt);
@@ -397,9 +403,9 @@ formats create_default_formats()
     register_integer_adapter<long>(fmt, duplicate_type_action::ignore);
     register_integer_adapter<unsigned long>(fmt, duplicate_type_action::ignore);
 
-    static auto double_adapter = make_adapter(extract_decimal, [] (const double& from) { return value(from); });
+    static auto double_adapter = make_adapter(deserialize_decimal, [] (const double& from) { return value(from); });
     fmt.register_adapter(&double_adapter);
-    static auto float_adapter = make_adapter(extract_float, [] (const float& from) { return value(from); });
+    static auto float_adapter = make_adapter(deserialize_float, [] (const float& from) { return value(from); });
     fmt.register_adapter(&float_adapter);
 
     return fmt;
@@ -416,7 +422,7 @@ formats create_default_formats()
 /// has to say where a failure was.
 template <typename FCoerce>
 JSONV_NODISCARD
-auto coerce_checked(extraction_context& context, reader& from, const value& source, const FCoerce& coerce)
+auto coerce_checked(deserialization_context& context, reader& from, const value& source, const FCoerce& coerce)
     -> std::expected<std::remove_cvref_t<decltype(coerce(source))>, ast_node_type>
 {
     try
@@ -435,7 +441,7 @@ auto coerce_checked(extraction_context& context, reader& from, const value& sour
 /// and what counts as a number there is for \c coerce_integer and \c coerce_decimal to say.
 template <typename FCoerce>
 JSONV_NODISCARD
-auto coerce_from_string(extraction_context& context, reader& from, const FCoerce& coerce)
+auto coerce_from_string(deserialization_context& context, reader& from, const FCoerce& coerce)
     -> std::expected<std::remove_cvref_t<decltype(coerce(std::declval<const value&>()))>, ast_node_type>
 {
     auto text = read_string(context, from);
@@ -445,7 +451,7 @@ auto coerce_from_string(extraction_context& context, reader& from, const FCoerce
     return coerce_checked(context, from, value(*std::move(text)), coerce);
 }
 
-/// The subtree the reader is lending, which the coercing extractors answer from in preference to the tape.
+/// The subtree the reader is lending, which the coercing deserializers answer from in preference to the tape.
 ///
 /// \c coerce_string, \c coerce_boolean and friends are what these rules *are*, so handing them the tree they were
 /// written against is both the most faithful answer and the cheapest one -- a composite is weighed or encoded where
@@ -456,7 +462,7 @@ auto coerce_from_string(extraction_context& context, reader& from, const FCoerce
 ///          \a from untouched for the caller to read off the tape.
 template <typename FCoerce>
 JSONV_NODISCARD
-auto coerce_lent_value(extraction_context& context, reader& from, const FCoerce& coerce)
+auto coerce_lent_value(deserialization_context& context, reader& from, const FCoerce& coerce)
     -> std::optional<std::expected<std::remove_cvref_t<decltype(coerce(std::declval<const value&>()))>, ast_node_type>>
 {
     auto lent = from.current_value();
@@ -471,7 +477,7 @@ auto coerce_lent_value(extraction_context& context, reader& from, const FCoerce&
 }
 
 JSONV_NODISCARD
-std::expected<std::string, ast_node_type> coerce_extract_string(extraction_context& context, reader& from)
+std::expected<std::string, ast_node_type> coerce_deserialize_string(deserialization_context& context, reader& from)
 {
     if (auto lent = coerce_lent_value(context, from, coerce_string))
         return *std::move(lent);
@@ -503,7 +509,7 @@ std::expected<std::string, ast_node_type> coerce_extract_string(extraction_conte
 }
 
 JSONV_NODISCARD
-std::expected<bool, ast_node_type> coerce_extract_boolean(extraction_context& context, reader& from)
+std::expected<bool, ast_node_type> coerce_deserialize_boolean(deserialization_context& context, reader& from)
 {
     if (auto lent = coerce_lent_value(context, from, coerce_boolean))
         return *std::move(lent);
@@ -565,7 +571,7 @@ std::expected<bool, ast_node_type> coerce_extract_boolean(extraction_context& co
 /// magnitude beyond those bounds has no \c std::int64_t to convert to -- the conversion is undefined rather than
 /// saturating -- and NaN has no meaningful clamp at all, so both are decided there rather than by the hardware.
 JSONV_NODISCARD
-std::expected<std::int64_t, ast_node_type> coerce_decimal_to_integer(extraction_context& context, reader& from)
+std::expected<std::int64_t, ast_node_type> coerce_decimal_to_integer(deserialization_context& context, reader& from)
 {
     auto number = read_decimal(context, from);
     if (!number)
@@ -581,7 +587,7 @@ std::expected<std::int64_t, ast_node_type> coerce_decimal_to_integer(extraction_
 /// destination is this layer's question, and the answer is a problem rather than a modular wrap.
 template <typename T>
 JSONV_NODISCARD
-std::expected<T, ast_node_type> narrow_checked(extraction_context& context, reader& from, std::int64_t wide)
+std::expected<T, ast_node_type> narrow_checked(deserialization_context& context, reader& from, std::int64_t wide)
 {
     if (!std::in_range<T>(wide))
         return problem_out_of_range<T>(context, from, wide);
@@ -593,7 +599,7 @@ std::expected<T, ast_node_type> narrow_checked(extraction_context& context, read
 
 template <typename T>
 JSONV_NODISCARD
-std::expected<T, ast_node_type> coerce_extract_integer(extraction_context& context, reader& from)
+std::expected<T, ast_node_type> coerce_deserialize_integer(deserialization_context& context, reader& from)
 {
     if (auto lent = from.current_value())
     {
@@ -642,7 +648,7 @@ std::expected<T, ast_node_type> coerce_extract_integer(extraction_context& conte
 }
 
 JSONV_NODISCARD
-std::expected<double, ast_node_type> coerce_extract_decimal(extraction_context& context, reader& from)
+std::expected<double, ast_node_type> coerce_deserialize_decimal(deserialization_context& context, reader& from)
 {
     if (auto lent = coerce_lent_value(context, from, coerce_decimal))
         return *std::move(lent);
@@ -675,9 +681,9 @@ std::expected<double, ast_node_type> coerce_extract_decimal(extraction_context& 
 }
 
 JSONV_NODISCARD
-std::expected<float, ast_node_type> coerce_extract_float(extraction_context& context, reader& from)
+std::expected<float, ast_node_type> coerce_deserialize_float(deserialization_context& context, reader& from)
 {
-    auto out = coerce_extract_decimal(context, from);
+    auto out = coerce_deserialize_decimal(context, from);
     if (!out)
         return std::unexpected(out.error());
 
@@ -685,49 +691,49 @@ std::expected<float, ast_node_type> coerce_extract_float(extraction_context& con
 }
 
 template <typename T>
-void register_integer_coerce_extractor(formats&              fmt,
-                                       duplicate_type_action on_duplicate = duplicate_type_action::exception
-                                      )
+void register_integer_coerce_deserializer(formats&              fmt,
+                                          duplicate_type_action on_duplicate = duplicate_type_action::exception
+                                         )
 {
     static auto instance =
-        make_extractor([] (extraction_context& context, reader& from)
-                       {
-                           return coerce_extract_integer<T>(context, from);
-                       }
-                      );
-    fmt.register_extractor(&instance, on_duplicate);
+        make_deserializer([] (deserialization_context& context, reader& from)
+                          {
+                              return coerce_deserialize_integer<T>(context, from);
+                          }
+                         );
+    fmt.register_deserializer(&instance, on_duplicate);
 }
 
 formats create_coerce_formats()
 {
     formats fmt;
 
-    static auto string_extractor = make_extractor(coerce_extract_string);
-    fmt.register_extractor(&string_extractor);
+    static auto string_deserializer = make_deserializer(coerce_deserialize_string);
+    fmt.register_deserializer(&string_deserializer);
 
-    static auto bool_extractor = make_extractor(coerce_extract_boolean);
-    fmt.register_extractor(&bool_extractor);
+    static auto bool_deserializer = make_deserializer(coerce_deserialize_boolean);
+    fmt.register_deserializer(&bool_deserializer);
 
-    register_integer_coerce_extractor<std::int8_t>(fmt);
-    register_integer_coerce_extractor<std::uint8_t>(fmt);
-    register_integer_coerce_extractor<std::int16_t>(fmt);
-    register_integer_coerce_extractor<std::uint16_t>(fmt);
-    register_integer_coerce_extractor<std::int32_t>(fmt);
-    register_integer_coerce_extractor<std::uint32_t>(fmt);
-    register_integer_coerce_extractor<std::int64_t>(fmt);
-    register_integer_coerce_extractor<std::uint64_t>(fmt);
+    register_integer_coerce_deserializer<std::int8_t>(fmt);
+    register_integer_coerce_deserializer<std::uint8_t>(fmt);
+    register_integer_coerce_deserializer<std::int16_t>(fmt);
+    register_integer_coerce_deserializer<std::uint16_t>(fmt);
+    register_integer_coerce_deserializer<std::int32_t>(fmt);
+    register_integer_coerce_deserializer<std::uint32_t>(fmt);
+    register_integer_coerce_deserializer<std::int64_t>(fmt);
+    register_integer_coerce_deserializer<std::uint64_t>(fmt);
 
     // These common types are usually covered by the explicitly-sized integers, but try to add them for platforms like
     // OSX and Windows.
-    register_integer_coerce_extractor<std::size_t>(fmt, duplicate_type_action::ignore);
-    register_integer_coerce_extractor<std::ptrdiff_t>(fmt, duplicate_type_action::ignore);
-    register_integer_coerce_extractor<long>(fmt, duplicate_type_action::ignore);
-    register_integer_coerce_extractor<unsigned long>(fmt, duplicate_type_action::ignore);
+    register_integer_coerce_deserializer<std::size_t>(fmt, duplicate_type_action::ignore);
+    register_integer_coerce_deserializer<std::ptrdiff_t>(fmt, duplicate_type_action::ignore);
+    register_integer_coerce_deserializer<long>(fmt, duplicate_type_action::ignore);
+    register_integer_coerce_deserializer<unsigned long>(fmt, duplicate_type_action::ignore);
 
-    static auto double_extractor = make_extractor(coerce_extract_decimal);
-    fmt.register_extractor(&double_extractor);
-    static auto float_extractor = make_extractor(coerce_extract_float);
-    fmt.register_extractor(&float_extractor);
+    static auto double_deserializer = make_deserializer(coerce_deserialize_decimal);
+    fmt.register_deserializer(&double_deserializer);
+    static auto float_deserializer = make_deserializer(coerce_deserialize_float);
+    fmt.register_deserializer(&float_deserializer);
 
     return fmt;
 }

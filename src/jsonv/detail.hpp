@@ -34,7 +34,7 @@ inline constexpr std::size_t number_token_max = 64U;
 /// Format \a value as the JSON token text for a number, writing into \a buffer and returning a view of what was
 /// written. These are the single definition of what a number looks like in JSON Voorhees: \c ostream_encoder writes
 /// through them, and \c reader::impl_value synthesises its tokens with them, so the text an encoded document carries
-/// and the text a value-sourced reader hands an extractor cannot drift apart.
+/// and the text a value-sourced reader hands a deserializer cannot drift apart.
 ///
 /// \param buffer Storage of at least \c number_token_max bytes. The returned view points into it.
 /// \returns A view of \a buffer holding the token; \c nullopt if \c std::to_chars failed. That cannot happen for a

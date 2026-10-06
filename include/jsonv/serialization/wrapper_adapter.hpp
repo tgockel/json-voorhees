@@ -37,17 +37,17 @@ class wrapper_adapter :
 
 protected:
     JSONV_NODISCARD
-    virtual std::expected<TWrapper, ast_node_type> create(extraction_context& context, reader& from) const override
+    virtual std::expected<TWrapper, ast_node_type> create(deserialization_context& context, reader& from) const override
     {
-        // Nothing to decide and nothing to position: the wrapped type's extractor reads the same value this one was
-        // handed and leaves the cursor where this one owes it.
-        // `extraction_context::extract` reports an ordinary failure by returning, so anything which *throws* here
-        // does so having already stepped the cursor: a `TWrapper` which rejects what it was handed, or a move of
-        // the extracted value. Either way the failure is behind the cursor rather than in front of it, and saying
-        // so is what stops whatever recovers from this skipping the following sibling as well.
+        // Nothing to decide and nothing to position: the wrapped type's deserializer reads the same value this one was
+        // handed and leaves the cursor where this one owes it. `deserialization_context::deserialize` reports an
+        // ordinary failure by returning, so anything which *throws* here does so having already stepped the cursor: a
+        // `TWrapper` which rejects what it was handed, or a move of the deserialized value. Either way the failure is
+        // behind the cursor rather than in front of it, and saying so is what stops whatever recovers from this
+        // skipping the following sibling as well.
         try
         {
-            auto element = context.extract<element_type>(from);
+            auto element = context.deserialize<element_type>(from);
             if (!element)
                 return std::unexpected(element.error());
 

@@ -127,10 +127,10 @@ namespace detail
 
 /// Read ahead of a \c reader without moving it.
 ///
-/// A forward cursor cannot read one subtree twice, and some extractors need to: \c polymorphic_adapter has to find its
-/// discriminator, wherever in the object it is, before it knows which type to extract the object as. Rather than rewind
-/// the reader, which would make every position-keyed note an extraction leaves about it ambiguous, this opens a second
-/// one on the same node.
+/// A forward cursor cannot read one subtree twice, and some deserializers need to: \c polymorphic_adapter has to find
+/// its discriminator, wherever in the object it is, before it knows which type to deserialize the object as. Rather
+/// than rewind the reader, which would make every position-keyed note a deserialization leaves about it ambiguous, this
+/// opens a second one on the same node.
 class JSONV_LOCAL reader_lookahead final
 {
 public:

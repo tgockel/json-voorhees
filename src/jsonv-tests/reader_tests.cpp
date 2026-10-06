@@ -75,7 +75,7 @@ struct example_data_type
 };
 
 /// Which \c reader the walk is against. Every example is walked both ways: the same document reached through the
-/// parser and through an in-memory \c value has to produce the same node sequence, or an extractor written against
+/// parser and through an in-memory \c value has to produce the same node sequence, or a deserializer written against
 /// one source would silently misbehave on the other.
 enum class walk_source
 {
@@ -738,7 +738,7 @@ TEST(reader_expect_type_list_of_one)
 }
 
 /// Expecting nothing at all is a mistake in the caller, not a property of the JSON, so it throws rather than travelling
-/// through the error channel extractors handle.
+/// through the error channel deserializers handle.
 ///
 /// \see https://github.com/tgockel/json-voorhees/issues/223
 TEST(reader_expect_empty_type_list_throws)
@@ -966,7 +966,7 @@ struct my_object
 };
 
 /// The example on the \c reader class documentation.
-std::optional<my_object> extract_my_object(jsonv::reader& from)
+std::optional<my_object> deserialize_my_object(jsonv::reader& from)
 {
     if (!from.expect(jsonv::ast_node_type::object_begin))
         return std::nullopt;
@@ -1049,12 +1049,12 @@ std::optional<std::int64_t> find_a(jsonv::reader& from)
 }
 
 /// \see https://github.com/tgockel/json-voorhees/issues/223
-TEST(reader_docs_extract_my_object)
+TEST(reader_docs_deserialize_my_object)
 {
     {
         jsonv::reader reader(R"({ "a": 7 })");
         ensure(reader.next_token());
-        auto res = extract_my_object(reader);
+        auto res = deserialize_my_object(reader);
         ensure(res.has_value());
         ensure_eq(std::int64_t(7), res->a);
     }
@@ -1063,7 +1063,7 @@ TEST(reader_docs_extract_my_object)
         // Members which are not "a" are skipped whatever their shape, and order does not matter.
         jsonv::reader reader(R"({ "z": [ 1, { "a": 100 } ], "a": 7, "y": "ignored" })");
         ensure(reader.next_token());
-        auto res = extract_my_object(reader);
+        auto res = deserialize_my_object(reader);
         ensure(res.has_value());
         ensure_eq(std::int64_t(7), res->a);
     }
@@ -1072,7 +1072,7 @@ TEST(reader_docs_extract_my_object)
         // An empty object leaves the default in place rather than failing.
         jsonv::reader reader("{}");
         ensure(reader.next_token());
-        auto res = extract_my_object(reader);
+        auto res = deserialize_my_object(reader);
         ensure(res.has_value());
         ensure_eq(std::int64_t(0), res->a);
     }
@@ -1083,7 +1083,7 @@ TEST(reader_docs_extract_my_object)
         // and produce a `key_canonical` node, quietly making this a duplicate of the case above.
         jsonv::reader reader("{ \"\\u0061\": 7 }");
         ensure(reader.next_token());
-        auto res = extract_my_object(reader);
+        auto res = deserialize_my_object(reader);
         ensure(res.has_value());
         ensure_eq(std::int64_t(7), res->a);
     }
@@ -1092,7 +1092,7 @@ TEST(reader_docs_extract_my_object)
         // An escaped key which is not "a" takes the skip path.
         jsonv::reader reader("{ \"a\\u0062\": 1, \"a\": 7 }");
         ensure(reader.next_token());
-        auto res = extract_my_object(reader);
+        auto res = deserialize_my_object(reader);
         ensure(res.has_value());
         ensure_eq(std::int64_t(7), res->a);
     }
@@ -1100,7 +1100,7 @@ TEST(reader_docs_extract_my_object)
     {
         jsonv::reader reader("[1]");
         ensure(reader.next_token());
-        ensure(!extract_my_object(reader).has_value());
+        ensure(!deserialize_my_object(reader).has_value());
     }
 }
 
@@ -1184,8 +1184,8 @@ enum class path_checking
 /// Walk \a source both ways -- as a `value` and as the text that value encodes to -- and require the two readers to
 /// report the same document, node for node.
 ///
-/// This is the property the whole implementation exists for: `extract<T>(const value&)` reaches an extractor through
-/// a reader, and it has to see what it would have seen had the document arrived as text.
+/// This is the property the whole implementation exists for: `deserialize<T>(const value&)` reaches a deserializer
+/// through a reader, and it has to see what it would have seen had the document arrived as text.
 static void ensure_value_walk_matches_text(const jsonv::value& source,
                                            path_checking       check_paths = path_checking::on
                                           )
@@ -1392,7 +1392,7 @@ TEST(reader_from_value_number_edges)
 }
 
 /// A non-finite `double` has no JSON representation, and the encoder writes `null` for one. A value-sourced reader
-/// has to agree, or a NaN would mean one thing in an encoded document and another through an extractor.
+/// has to agree, or a NaN would mean one thing in an encoded document and another through a deserializer.
 TEST(reader_from_value_non_finite_decimal_is_null)
 {
     for (double x : { std::numeric_limits<double>::quiet_NaN(),
@@ -1547,7 +1547,7 @@ static std::size_t next_value_expected(std::string_view text, std::size_t idx, s
 /// walk *and* across the two sources, at every position: an oracle written only against the reader under test would
 /// happily confirm whatever that reader does.
 ///
-/// The failure this guards against is quiet. An extractor which skips an uninteresting member whose value is an
+/// The failure this guards against is quiet. A deserializer which skips an uninteresting member whose value is an
 /// object would, on a reader left sitting on that object's `}`, read it as the end of the enclosing object and drop
 /// every member after it -- against one source only.
 static void ensure_next_value_agrees(const jsonv::value& source)
@@ -1632,7 +1632,7 @@ TEST(reader_next_value_over_a_member_lands_on_the_next_key)
 
 /// The contract the arena exists for: a view taken from `current` stays readable after the reader has moved on. A
 /// `parse_index` source provides that for free by pointing into the source text, and two reader sources disagreeing
-/// about it would be a miserable bug to find in an extractor.
+/// about it would be a miserable bug to find in a deserializer.
 TEST(reader_from_value_views_survive_next_token)
 {
     auto reader = jsonv::reader::from_value(jsonv::parse(R"({ "key": "value", "n": 12345 })"));

@@ -29,7 +29,7 @@ namespace jsonv
 /// \c std::int64_t / \c double and strings as decoded bytes -- has to write token text somewhere. That somewhere has
 /// to hand out **stable** addresses: a \c std::string_view taken from \c reader::current has to stay readable after
 /// \c reader::next_token, because that is what a \c parse_index -sourced reader provides for free by pointing into
-/// the source text. Two reader sources disagreeing about it would be an unpleasant bug to find in an extractor.
+/// the source text. Two reader sources disagreeing about it would be an unpleasant bug to find in a deserializer.
 ///
 /// So this is a bump allocator over chunks which are never reused or freed while it lives. Only numbers, strings and
 /// keys need it -- every other token is a view into a static string -- and the base memoizes \c load_current, so it

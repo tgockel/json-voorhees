@@ -1,5 +1,5 @@
 /// \file
-/// Extraction of C++ types from JSON values.
+/// Deserialization of C++ types from JSON values.
 ///
 /// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
 ///
@@ -8,7 +8,7 @@
 /// version.
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
-#include <jsonv/serialization/extract.hpp>
+#include <jsonv/serialization/deserialize.hpp>
 #include <jsonv/demangle.hpp>
 #include <jsonv/detail.hpp>
 #include <jsonv/parse.hpp>
@@ -30,16 +30,16 @@ namespace jsonv
 {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extractor                                                                                                          //
+// deserializer                                                                                                       //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extractor::~extractor() noexcept = default;
+deserializer::~deserializer() noexcept = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extraction_error::problem                                                                                          //
+// deserialization_error::problem                                                                                     //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extraction_error::problem::problem(jsonv::path path, std::string message, std::exception_ptr cause) noexcept :
+deserialization_error::problem::problem(jsonv::path path, std::string message, std::exception_ptr cause) noexcept :
         _path(std::move(path)),
         _message(std::move(message)),
         _cause(std::move(cause))
@@ -48,11 +48,11 @@ extraction_error::problem::problem(jsonv::path path, std::string message, std::e
         _message = "Unknown problem";
 }
 
-extraction_error::problem::problem(jsonv::path path, std::string message) noexcept :
+deserialization_error::problem::problem(jsonv::path path, std::string message) noexcept :
         problem(std::move(path), std::move(message), nullptr)
 { }
 
-extraction_error::problem::problem(jsonv::path path, std::exception_ptr cause) noexcept :
+deserialization_error::problem::problem(jsonv::path path, std::exception_ptr cause) noexcept :
         problem(std::move(path),
                 [&]() -> std::string
                 {
@@ -76,15 +76,15 @@ extraction_error::problem::problem(jsonv::path path, std::exception_ptr cause) n
 { }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extraction_error                                                                                                   //
+// deserialization_error                                                                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string make_extraction_error_errmsg(const extraction_error::problem_list& problems)
+static std::string make_deserialization_error_errmsg(const deserialization_error::problem_list& problems)
 {
     std::ostringstream os;
 
     auto write_problem =
-        [&](const extraction_error::problem& problem)
+        [&](const deserialization_error::problem& problem)
         {
             // An empty path is not the root of the document but no position at all, so it gets no `#.` either.
             if (!problem.source_name().empty())
@@ -98,22 +98,23 @@ static std::string make_extraction_error_errmsg(const extraction_error::problem_
                 os << " at " << problem.path();
             }
 
-            // The separator is unconditional: an empty path used to run "Extraction error" straight into the message.
+            // The separator is unconditional: an empty path used to run "Deserialization error" straight into the
+            // message.
             os << ": " << problem.message();
         };
 
     if (problems.size() == 0U)
     {
-        os << "Extraction error with unspecified problem";
+        os << "Deserialization error with unspecified problem";
     }
     else if (problems.size() == 1U)
     {
-        os << "Extraction error";
+        os << "Deserialization error";
         write_problem(problems[0]);
     }
     else if (problems.size() > 1U)
     {
-        os << problems.size() << " extraction errors:";
+        os << problems.size() << " deserialization errors:";
 
         for (const auto& problem : problems)
         {
@@ -126,46 +127,46 @@ static std::string make_extraction_error_errmsg(const extraction_error::problem_
     return std::move(os).str();
 }
 
-/// Establish what \c extraction_error::problems documents: there is always at least one \c problem.
+/// Establish what \c deserialization_error::problems documents: there is always at least one \c problem.
 ///
 /// \c path and \c nested_ptr each guard the empty case themselves and hand back a static empty value, which left
 /// \c problems -- the one accessor with nothing sensible to fall back on -- returning an empty list against its own
 /// documentation. A caller which iterates \c problems to report what went wrong and a caller which reads \c what
 /// should not disagree about whether anything did.
-static extraction_error::problem_list& ensure_nonempty(extraction_error::problem_list& problems)
+static deserialization_error::problem_list& ensure_nonempty(deserialization_error::problem_list& problems)
 {
     if (problems.empty())
-        problems.emplace_back(jsonv::path(), "Unspecified extraction error");
+        problems.emplace_back(jsonv::path(), "Unspecified deserialization error");
 
     return problems;
 }
 
-extraction_error::extraction_error(problem_list problems) noexcept :
+deserialization_error::deserialization_error(problem_list problems) noexcept :
         // The base is initialised first, so normalising here is also what `_problems` below ends up with.
-        std::runtime_error(make_extraction_error_errmsg(ensure_nonempty(problems))),
+        std::runtime_error(make_deserialization_error_errmsg(ensure_nonempty(problems))),
         _problems(std::move(problems))
 { }
 
 template <typename... TArgs>
-extraction_error::extraction_error(std::in_place_t, TArgs&&... args) noexcept :
-        extraction_error(problem_list({ problem(std::forward<TArgs>(args)...) }))
+deserialization_error::deserialization_error(std::in_place_t, TArgs&&... args) noexcept :
+        deserialization_error(problem_list({ problem(std::forward<TArgs>(args)...) }))
 { }
 
-extraction_error::extraction_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept :
-        extraction_error(std::in_place, std::move(path), std::move(message), std::move(cause))
+deserialization_error::deserialization_error(jsonv::path path, std::string message, std::exception_ptr cause) noexcept :
+        deserialization_error(std::in_place, std::move(path), std::move(message), std::move(cause))
 { }
 
-extraction_error::extraction_error(jsonv::path path, std::string message) noexcept :
-        extraction_error(std::in_place, std::move(path), std::move(message))
+deserialization_error::deserialization_error(jsonv::path path, std::string message) noexcept :
+        deserialization_error(std::in_place, std::move(path), std::move(message))
 { }
 
-extraction_error::extraction_error(jsonv::path path, std::exception_ptr cause) noexcept :
-        extraction_error(std::in_place, std::move(path), std::move(cause))
+deserialization_error::deserialization_error(jsonv::path path, std::exception_ptr cause) noexcept :
+        deserialization_error(std::in_place, std::move(path), std::move(cause))
 { }
 
-extraction_error::~extraction_error() noexcept = default;
+deserialization_error::~deserialization_error() noexcept = default;
 
-const path& extraction_error::path() const noexcept
+const path& deserialization_error::path() const noexcept
 {
     if (_problems.empty())
     {
@@ -178,7 +179,7 @@ const path& extraction_error::path() const noexcept
     }
 }
 
-const std::string& extraction_error::source_name() const noexcept
+const std::string& deserialization_error::source_name() const noexcept
 {
     if (_problems.empty())
     {
@@ -191,7 +192,7 @@ const std::string& extraction_error::source_name() const noexcept
     }
 }
 
-const std::exception_ptr& extraction_error::nested_ptr() const noexcept
+const std::exception_ptr& deserialization_error::nested_ptr() const noexcept
 {
     if (_problems.empty())
     {
@@ -205,41 +206,41 @@ const std::exception_ptr& extraction_error::nested_ptr() const noexcept
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extract_options                                                                                                    //
+// deserialize_options                                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extract_options::extract_options() noexcept = default;
+deserialize_options::deserialize_options() noexcept = default;
 
-extract_options::~extract_options() noexcept = default;
+deserialize_options::~deserialize_options() noexcept = default;
 
-extract_options extract_options::create_default()
+deserialize_options deserialize_options::create_default()
 {
-    return extract_options();
+    return deserialize_options();
 }
 
-extract_options& extract_options::failure_mode(on_error mode)
+deserialize_options& deserialize_options::failure_mode(on_error mode)
 {
     _failure_mode = mode;
     return *this;
 }
 
-extract_options& extract_options::max_failures(size_type limit)
+deserialize_options& deserialize_options::max_failures(size_type limit)
 {
     _max_failures = limit;
     return *this;
 }
 
-extract_options& extract_options::on_duplicate_key(duplicate_key_action action)
+deserialize_options& deserialize_options::on_duplicate_key(duplicate_key_action action)
 {
     _on_duplicate_key = action;
     return *this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extraction_context::path_scope                                                                                     //
+// deserialization_context::path_scope                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extraction_context::path_scope::path_scope(extraction_context& context, std::size_t index) noexcept :
+deserialization_context::path_scope::path_scope(deserialization_context& context, std::size_t index) noexcept :
         _context(&context),
         _parent(context._innermost),
         _element(std::in_place_type<std::size_t>, index)
@@ -247,7 +248,7 @@ extraction_context::path_scope::path_scope(extraction_context& context, std::siz
     context._innermost = this;
 }
 
-extraction_context::path_scope::path_scope(extraction_context& context, std::string_view key) noexcept :
+deserialization_context::path_scope::path_scope(deserialization_context& context, std::string_view key) noexcept :
         _context(&context),
         _parent(context._innermost),
         _element(std::in_place_type<std::string_view>, key)
@@ -255,7 +256,7 @@ extraction_context::path_scope::path_scope(extraction_context& context, std::str
     context._innermost = this;
 }
 
-extraction_context::path_scope::path_scope(extraction_context& context, path_element elem) :
+deserialization_context::path_scope::path_scope(deserialization_context& context, path_element elem) :
         _context(&context),
         _parent(context._innermost),
         _element(std::in_place_type<path_element>, std::move(elem))
@@ -263,7 +264,7 @@ extraction_context::path_scope::path_scope(extraction_context& context, path_ele
     context._innermost = this;
 }
 
-extraction_context::path_scope::~path_scope() noexcept
+deserialization_context::path_scope::~path_scope() noexcept
 {
     // Unlinking rather than restoring a saved copy is the whole point: this runs on the success path of every element
     // of every array and must not allocate or free. It is also why scopes have to be destroyed in reverse order of
@@ -271,7 +272,7 @@ extraction_context::path_scope::~path_scope() noexcept
     _context->_innermost = _parent;
 }
 
-void extraction_context::path_scope::append_to(jsonv::path& out) const
+void deserialization_context::path_scope::append_to(jsonv::path& out) const
 {
     if (_parent)
         _parent->append_to(out);
@@ -285,30 +286,30 @@ void extraction_context::path_scope::append_to(jsonv::path& out) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// extraction_context                                                                                                 //
+// deserialization_context                                                                                            //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-extraction_context::extraction_context(jsonv::formats                fmt,
-                                       std::optional<jsonv::version> ver,
-                                       jsonv::path                   p,
-                                       const void*                   userdata,
-                                       extract_options               options,
-                                       std::string                   source_name
-                                      ) :
-        // Neither `formats` nor `extract_options` can be moved yet (#286).
+deserialization_context::deserialization_context(jsonv::formats                fmt,
+                                                 std::optional<jsonv::version> ver,
+                                                 jsonv::path                   p,
+                                                 const void*                   userdata,
+                                                 deserialize_options           options,
+                                                 std::string                   source_name
+                                                ) :
+        // Neither `formats` nor `deserialize_options` can be moved yet (#286).
         context(std::move(fmt), ver, userdata), // NOLINT(performance-move-const-arg)
         _options(std::move(options)),           // NOLINT(performance-move-const-arg)
         _base_path(std::move(p)),
         _source_name(std::move(source_name))
 { }
 
-extraction_context::extraction_context() :
+deserialization_context::deserialization_context() :
         context()
 { }
 
-extraction_context::~extraction_context() noexcept = default;
+deserialization_context::~deserialization_context() noexcept = default;
 
-path extraction_context::path() const
+path deserialization_context::path() const
 {
     jsonv::path out(_base_path);
     if (_innermost)
@@ -316,7 +317,7 @@ path extraction_context::path() const
     return out;
 }
 
-std::string_view extraction_context::encoded_source() const
+std::string_view deserialization_context::encoded_source() const
 {
     const auto* scope = _innermost_source;
     if (!scope || scope->_showing != detail::source_scope::shows::value_and_text)
@@ -330,7 +331,7 @@ std::string_view extraction_context::encoded_source() const
     return *scope->_encoded;
 }
 
-optional<const value&> extraction_context::source_value() const
+optional<const value&> deserialization_context::source_value() const
 {
     using shows = detail::source_scope::shows;
 
@@ -377,7 +378,7 @@ static path safe_current_path(const reader& from) noexcept
 /// The structure enclosing wherever \a from is.
 ///
 /// Used when the bridge has already walked the cursor past the value which failed: naming the cursor would blame the
-/// next sibling, which is both wrong and -- since it is a value which extracted perfectly well -- actively
+/// next sibling, which is both wrong and -- since it is a value which deserialized perfectly well -- actively
 /// misleading. The enclosing structure is still true of the value that failed. Dropping the trailing element is what
 /// gets there, except when the cursor has landed on a closing token, where \c reader::current_path already names the
 /// structure rather than a member of it.
@@ -407,16 +408,16 @@ static path enclosing_path(const reader& from) noexcept
     return out;
 }
 
-path extraction_context::problem_path(const reader& from) const
+path deserialization_context::problem_path(const reader& from) const
 {
-    // A scope says where the *extractor* is, which is authoritative over anything derived from the reader.
+    // A scope says where the *deserializer* is, which is authoritative over anything derived from the reader.
     if (_innermost || !_base_path.empty())
         return path();
     else
         return safe_current_path(from);
 }
 
-path extraction_context::take_failure_path(const reader& from)
+path deserialization_context::take_failure_path(const reader& from)
 {
     std::optional<jsonv::path> deposited = std::move(_failure_path);
     _failure_path.reset();
@@ -436,16 +437,16 @@ path extraction_context::take_failure_path(const reader& from)
     }
 }
 
-bool extraction_context::recover() const noexcept
+bool deserialization_context::recover() const noexcept
 {
     // The problem is already recorded, so the question is whether there is room for another one.
-    return _options.failure_mode() == extract_options::on_error::collect_all
+    return _options.failure_mode() == deserialize_options::on_error::collect_all
         && _problems.size() < _options.max_failures();
 }
 
-bool extraction_context::recover(const extraction_error& ex)
+bool deserialization_context::recover(const deserialization_error& ex)
 {
-    if (_options.failure_mode() != extract_options::on_error::collect_all)
+    if (_options.failure_mode() != deserialize_options::on_error::collect_all)
         return false;
 
     // The problems are still in `ex`, so the question is whether folding them would overrun the budget. Declining
@@ -460,7 +461,7 @@ bool extraction_context::recover(const extraction_error& ex)
     return true;
 }
 
-void extraction_context::note_value_consumed(const reader& from) noexcept
+void deserialization_context::note_value_consumed(const reader& from) noexcept
 {
     _consumed_failed_value = &from;
 
@@ -490,16 +491,16 @@ void extraction_context::note_value_consumed(const reader& from) noexcept
     }
 }
 
-void extraction_context::skip_failed_value(reader& from) noexcept
+void deserialization_context::skip_failed_value(reader& from) noexcept
 {
     // Matched against the reader the note was left for rather than merely taken: an adapter on the bridge may run
-    // nested extractions through readers of its own, and a note left on one of those must not answer for a position
-    // in this one.
+    // nested deserializations through readers of its own, and a note left on one of those must not answer for a
+    // position in this one.
     if (std::exchange(_consumed_failed_value, nullptr) != &from)
         (void) from.next_value();
 }
 
-extraction_context::problem_list extraction_context::take_problems_since(problem_list::size_type mark)
+deserialization_context::problem_list deserialization_context::take_problems_since(problem_list::size_type mark)
 {
     using std::begin;
     using std::end;
@@ -537,7 +538,7 @@ std::string_view describe(ast_node_type type)
     }
 }
 
-std::expected<void, ast_node_type> extraction_context::expect(reader& from, ast_node_type type)
+std::expected<void, ast_node_type> deserialization_context::expect(reader& from, ast_node_type type)
 {
     auto matched = from.expect(type);
     if (matched)
@@ -552,9 +553,9 @@ std::expected<void, ast_node_type> extraction_context::expect(reader& from, ast_
     return std::unexpected(matched.error());
 }
 
-std::expected<void, ast_node_type> extraction_context::expect(reader&                              from,
-                                                              std::initializer_list<ast_node_type> types
-                                                             )
+std::expected<void, ast_node_type> deserialization_context::expect(reader&                              from,
+                                                                   std::initializer_list<ast_node_type> types
+                                                                  )
 {
     auto matched = from.expect(types);
     if (matched)
@@ -587,10 +588,11 @@ std::expected<void, ast_node_type> extraction_context::expect(reader&           
     return std::unexpected(matched.error());
 }
 
-std::expected<void, ast_node_type> extraction_context::extract(const std::type_info& type, reader& from, void* into)
+std::expected<void, ast_node_type>
+deserialization_context::deserialize(const std::type_info& type, reader& from, void* into)
 {
     // A deposited location lives and dies with this call: whatever leaves one does so while this call is unwinding,
-    // and the handlers below are what read it. Clearing on the way in matters too, because `formats::extract` is
+    // and the handlers below are what read it. Clearing on the way in matters too, because `formats::deserialize` is
     // public and reaches the bridge without passing through here -- a caller who catches that exception themselves
     // leaves a location behind which belongs to nothing.
     _failure_path.reset();
@@ -598,26 +600,26 @@ std::expected<void, ast_node_type> extraction_context::extract(const std::type_i
 
     // Cleared on the way in but deliberately *not* on the way out: the note is left by a destructor running as this
     // call unwinds and is read by whoever recovers from the failure, which is after this returns. Bounding it to one
-    // extraction is what keeps a note nobody collects from answering for an unrelated position later.
+    // deserialization is what keeps a note nobody collects from answering for an unrelated position later.
     _consumed_failed_value = nullptr;
 
-    // An object's hooks are shown it -- before the walk and once it reaches the `}` -- and a hook is free to extract
-    // something else through this context. Nothing that extraction runs is part of the object -- and the DSL's adapter
-    // is not the only extractor which might ask -- so it is shown nothing. Part-way through a walk there is nothing
-    // showing to hide, so the ordinary path pays for the test and no more.
+    // An object's hooks are shown it -- before the walk and once it reaches the `}` -- and a hook is free to
+    // deserialize something else through this context. Nothing that deserialization runs is part of the object -- and
+    // the DSL's adapter is not the only deserializer which might ask -- so it is shown nothing. Part-way through a walk
+    // there is nothing showing to hide, so the ordinary path pays for the test and no more.
     std::optional<detail::source_scope> hide_source;
     if (_innermost_source && _innermost_source->_showing != detail::source_scope::shows::nothing)
         hide_source.emplace(*this);
 
     try
     {
-        return formats().extract(type, from, into, *this);
+        return formats().deserialize(type, from, into, *this);
     }
-    catch (const extraction_error& ex)
+    catch (const deserialization_error& ex)
     {
         // An adapter on the value bridge reports failure by throwing, since that is the interface it was written
         // against. Fold what it collected onto this context so the path and message survive the boundary, then carry
-        // on down the std::expected channel the rest of the pipeline speaks. `detail::extract_entry`, which the
+        // on down the std::expected channel the rest of the pipeline speaks. `detail::deserialize_entry`, which the
         // value-based overload runs through, hands its problems to the exception rather than leaving them here, so
         // nothing is recorded twice.
         for (const auto& p : ex.problems())
@@ -639,23 +641,23 @@ std::expected<void, ast_node_type> extraction_context::extract(const std::type_i
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// detail::extract_entry                                                                                              //
+// detail::deserialize_entry                                                                                          //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void detail::extract_entry(extraction_context&   context,
-                           const std::type_info& type,
-                           reader&               from,
-                           void*                 into,
-                           void               (* destroy)(void*) noexcept,
-                           source_lifetime       lifetime
-                          )
+void detail::deserialize_entry(deserialization_context&   context,
+                               const std::type_info& type,
+                               reader&               from,
+                               void*                 into,
+                               void               (* destroy)(void*) noexcept,
+                               source_lifetime       lifetime
+                              )
 {
     // Only what this call records belongs to the exception it throws. The `value` bridge enters here with a context
-    // part-way through an extraction of its own, and whatever that already holds is for its own caller to report.
+    // part-way through a deserialization of its own, and whatever that already holds is for its own caller to report.
     const auto mark = context.problems().size();
 
     // A depth rather than a flag, so it nests with any `borrowed_subtree` beneath it.
-    const bool owned = lifetime == source_lifetime::extraction;
+    const bool owned = lifetime == source_lifetime::deserialization;
     if (owned)
         ++context._temporary_source_depth;
     auto release_source = on_scope_exit([&] { if (owned) --context._temporary_source_depth; });
@@ -665,8 +667,8 @@ void detail::extract_entry(extraction_context&   context,
     const auto entry_type     = from.good() ? std::optional(from.current_type()) : std::nullopt;
     const bool whole_document = entry_type == ast_node_type::document_start;
 
-    // An `error` node under the cursor means the parse failed there, so there is no value to extract whether or not the
-    // caller positioned the reader. It has to be asked about separately because it is not always preceded by a
+    // An `error` node under the cursor means the parse failed there, so there is no value to deserialize whether or not
+    // the caller positioned the reader. It has to be asked about separately because it is not always preceded by a
     // `document_start`: a parse which fails before writing one -- a `max_structure_depth` of 0 does -- leaves a tape
     // which is nothing else.
     if (whole_document || entry_type == ast_node_type::error)
@@ -677,28 +679,28 @@ void detail::extract_entry(extraction_context&   context,
         }
         catch (const parse_error& ex)
         {
-            // An extractor walking a tape which stopped at an `error` node can only say what it expected to find there
-            // instead, which describes the symptom. The parse knows what actually went wrong.
+            // A deserializer walking a tape which stopped at an `error` node can only say what it expected to find
+            // there instead, which describes the symptom. The parse knows what actually went wrong.
             (void) context.problem(context.problem_path(from),
                                    std::string("Could not parse JSON: ") + ex.what(),
                                    std::current_exception()
                                   );
-            throw extraction_error(context.take_problems_since(mark));
+            throw deserialization_error(context.take_problems_since(mark));
         }
     }
 
-    // The one place `document_start` is stepped over, so that no extractor is ever entered on one.
+    // The one place `document_start` is stepped over, so that no deserializer is ever entered on one.
     if (whole_document)
         (void) from.next_token();
 
-    if (!context.extract(type, from, into))
+    if (!context.deserialize(type, from, into))
     {
-        // An extractor is meant to record why it failed, but nothing makes it. Recording the stand-in here, rather than
-        // leaving `extraction_error` to make one up, is what puts it in the document the context names.
+        // A deserializer is meant to record why it failed, but nothing makes it. Recording the stand-in here, rather
+        // than leaving `deserialization_error` to make one up, is what puts it in the document the context names.
         if (context.problems().size() == mark)
-            (void) context.problem(jsonv::path(), "Unspecified extraction error");
+            (void) context.problem(jsonv::path(), "Unspecified deserialization error");
 
-        throw extraction_error(context.take_problems_since(mark));
+        throw deserialization_error(context.take_problems_since(mark));
     }
 
     if (!whole_document)
@@ -714,14 +716,14 @@ void detail::extract_entry(extraction_context&   context,
     }
 
     // The value did not take up the whole document. A source with anything after its value fails to parse, so this is
-    // an extractor which left the cursor somewhere other than one past its value. `expect` names what was found
+    // a deserializer which left the cursor somewhere other than one past its value. `expect` names what was found
     // instead, but reading `current` off an exhausted reader throws, so that case gets a message of its own.
     if (from.good())
         (void) context.expect(from, ast_node_type::document_end);
     else
-        (void) context.problem(context.problem_path(from), "Extraction read past the end of the document");
+        (void) context.problem(context.problem_path(from), "Deserialization read past the end of the document");
 
-    throw extraction_error(context.take_problems_since(mark));
+    throw deserialization_error(context.take_problems_since(mark));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -729,7 +731,7 @@ void detail::extract_entry(extraction_context&   context,
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// \param depth How many structures enclose this value below where the read began.
-static value read_value_impl(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth);
+static value read_value_impl(reader& from, deserialize_options::duplicate_key_action on_duplicate, std::size_t depth);
 
 static std::string read_key(const reader& from)
 {
@@ -744,7 +746,7 @@ static std::string read_key(const reader& from)
     {
         std::ostringstream os;
         os << "Read node of type " << describe(node.type()) << " when expecting an object key";
-        throw extraction_error(safe_current_path(from), std::move(os).str());
+        throw deserialization_error(safe_current_path(from), std::move(os).str());
     }
     }
 }
@@ -753,14 +755,14 @@ namespace
 {
 
 /// A key refused for repeating, part-way through reading a \c value. Its path is the reader's, which is the whole
-/// answer only for an extraction with no location of its own; so it also says how much of that path lies below where
-/// the read began, which is the part the reader is still right about. See \c relocate.
+/// answer only for a deserialization with no location of its own; so it also says how much of that path lies below
+/// where the read began, which is the part the reader is still right about. See \c relocate.
 class duplicate_key_error final :
-        public extraction_error
+        public deserialization_error
 {
 public:
     explicit duplicate_key_error(jsonv::path where, std::string message, std::size_t below) noexcept :
-            extraction_error(std::move(where), std::move(message)),
+            deserialization_error(std::move(where), std::move(message)),
             _below(below)
     { }
 
@@ -787,20 +789,20 @@ private:
 }
 
 /// Translate \a ex for \a context. Where the context has a location of its own -- a base path, or a scope saying where
-/// the extractor is -- that location is authoritative over the reader's, as \c extraction_context::problem_path has
-/// it, and only the part below where the read began is the reader's to add. With none, the reader's path stands.
-static extraction_error relocate(const extraction_context& context, const duplicate_key_error& ex)
+/// the deserializer is -- that location is authoritative over the reader's, as \c deserialization_context::problem_path
+/// has it, and only the part below where the read began is the reader's to add. With none, the reader's path stands.
+static deserialization_error relocate(const deserialization_context& context, const duplicate_key_error& ex)
 {
     jsonv::path located = context.path();
     if (located.empty())
-        return extraction_error(ex.path(), ex.problems().front().message());
+        return deserialization_error(ex.path(), ex.problems().front().message());
 
     const jsonv::path& found = ex.path();
     const auto         below = static_cast<std::ptrdiff_t>(std::min(ex.below(), found.size()));
     for (auto iter = found.end() - below; iter != found.end(); ++iter)
         located += *iter;
 
-    return extraction_error(std::move(located), ex.problems().front().message());
+    return deserialization_error(std::move(located), ex.problems().front().message());
 }
 
 /// Step \a from over what is left of a structure which failed to read part-way through, up to and including its
@@ -830,7 +832,7 @@ static void finish_structure(reader& from, ast_node_type close)
     }
 }
 
-static value read_object(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth)
+static value read_object(reader& from, deserialize_options::duplicate_key_action on_duplicate, std::size_t depth)
 {
     // Step off the `{` and onto the first key, or onto the `}` of an empty object -- before anything which can fail,
     // so that a failure always has the object to finish walking rather than still in front of the cursor.
@@ -851,9 +853,9 @@ static value read_object(reader& from, extract_options::duplicate_key_action on_
 
             // Settled while the cursor is still on the key, so a refusal names the key which repeated. The default
             // keeps whichever value comes last, which the assignment below does without having to look first.
-            const bool repeated = on_duplicate != extract_options::duplicate_key_action::replace
+            const bool repeated = on_duplicate != deserialize_options::duplicate_key_action::replace
                                && out.count(key) != 0U;
-            if (repeated && on_duplicate == extract_options::duplicate_key_action::exception)
+            if (repeated && on_duplicate == deserialize_options::duplicate_key_action::exception)
                 throw_duplicate_key(from, key, depth);
 
             if (!from.next_token())
@@ -871,7 +873,7 @@ static value read_object(reader& from, extract_options::duplicate_key_action on_
 
             // Assignment rather than `insert`, which keeps the *first* of a duplicated key. `parse_index::extract_tree`
             // defaults to `duplicate_key_action::replace`, and a reader disagreeing with `parse` about which of
-            // `{"x":1,"x":2}` survives would make extracting from text and extracting from the parsed tree select
+            // `{"x":1,"x":2}` survives would make deserializing from text and deserializing from the parsed tree select
             // different data.
             out[std::move(key)] = std::move(member);
         }
@@ -882,10 +884,10 @@ static value read_object(reader& from, extract_options::duplicate_key_action on_
         throw;
     }
 
-    throw extraction_error(jsonv::path(), "Unterminated object");
+    throw deserialization_error(jsonv::path(), "Unterminated object");
 }
 
-static value read_array(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth)
+static value read_array(reader& from, deserialize_options::duplicate_key_action on_duplicate, std::size_t depth)
 {
     // Step off the `[` and onto the first element, or onto the `]` of an empty array -- before anything which can
     // fail, for the same reason as in `read_object`.
@@ -911,7 +913,7 @@ static value read_array(reader& from, extract_options::duplicate_key_action on_d
         throw;
     }
 
-    throw extraction_error(jsonv::path(), "Unterminated array");
+    throw deserialization_error(jsonv::path(), "Unterminated array");
 }
 
 static value read_scalar(const ast_node& node)
@@ -935,7 +937,7 @@ static value read_scalar(const ast_node& node)
     }
 }
 
-static value read_value_impl(reader& from, extract_options::duplicate_key_action on_duplicate, std::size_t depth)
+static value read_value_impl(reader& from, deserialize_options::duplicate_key_action on_duplicate, std::size_t depth)
 {
     const auto& node = from.current();
     switch (node.type())
@@ -968,7 +970,7 @@ static value read_value_impl(reader& from, extract_options::duplicate_key_action
 
     std::ostringstream os;
     os << "Unexpected token of type " << describe(node.type()) << " while reading a value";
-    throw extraction_error(safe_current_path(from), std::move(os).str());
+    throw deserialization_error(safe_current_path(from), std::move(os).str());
 }
 
 /// Is a node the whole of a value, rather than the opening of a structure which has to be walked to be read?
@@ -989,7 +991,7 @@ static bool is_scalar(ast_node_type type)
     }
 }
 
-detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& from) :
+detail::borrowed_subtree::borrowed_subtree(deserialization_context& context, reader& from) :
         _context(&context),
         _from(&from),
         _borrowed(),
@@ -1015,11 +1017,11 @@ detail::borrowed_subtree::borrowed_subtree(extraction_context& context, reader& 
     else
     {
         // A structure has to be walked to be read, so the cursor is past it by the time this returns and `commit` has
-        // nothing left to do. This is the one shape whose failures name the following sibling rather than the
-        // structure itself: extracting from a `value` never reaches it, since that reader lends instead, and cases 07
-        // through 09 remove it for text by giving these adapters a reader of their own. Noting the position up front
-        // instead would mean building a path before every successful extraction, which on a text-backed reader
-        // rescans from the start of the document and turns a streaming loop quadratic.
+        // nothing left to do. This is the one shape whose failures name the following sibling rather than the structure
+        // itself: deserializing from a `value` never reaches it, since that reader lends instead, and cases 07 through
+        // 09 remove it for text by giving these adapters a reader of their own. Noting the position up front instead
+        // would mean building a path before every successful deserialization, which on a text-backed reader rescans
+        // from the start of the document and turns a streaming loop quadratic.
         //
         // A structure which fails to materialise is walked past all the same, and with no object constructed there is
         // no destructor to say so -- which is why this is the overload that tells the context.
@@ -1046,7 +1048,7 @@ detail::borrowed_subtree::~borrowed_subtree() noexcept
     if (!_advanced || std::uncaught_exceptions() <= _uncaught_on_entry)
         return;
 
-    // A live scope already says where the extractor is and wins over anything derived from the reader, so there is
+    // A live scope already says where the deserializer is and wins over anything derived from the reader, so there is
     // nothing to look up -- which also means not decoding the keys a lookup would walk through.
     if (_context->_innermost || !_context->_base_path.empty())
         return;
@@ -1054,7 +1056,7 @@ detail::borrowed_subtree::~borrowed_subtree() noexcept
     // Leaving through a throw, having already walked the cursor past the value which failed. The handler which turns
     // that into a problem runs *after* this destructor, and by then the cursor names an unrelated sibling -- so say
     // where the failure belongs now, while there is still something true to say about it. Nothing named the position
-    // before the walk because doing so would mean building a path before every successful extraction.
+    // before the walk because doing so would mean building a path before every successful deserialization.
     try
     {
         _context->_failure_path.emplace(enclosing_path(*_from));
@@ -1084,23 +1086,23 @@ void detail::borrowed_subtree::commit()
 }
 
 /// \ref read_value, settling a repeated key by \a on_duplicate.
-static value read_value_settling(reader& from, extract_options::duplicate_key_action on_duplicate)
+static value read_value_settling(reader& from, deserialize_options::duplicate_key_action on_duplicate)
 {
     if (from.good() && from.current_type() == ast_node_type::document_start)
         (void) from.next_token();
 
     if (!from.good())
-        throw extraction_error(jsonv::path(), "Unexpected end of input while reading a value");
+        throw deserialization_error(jsonv::path(), "Unexpected end of input while reading a value");
 
     return read_value_impl(from, on_duplicate, 0U);
 }
 
 value read_value(reader& from)
 {
-    return read_value_settling(from, extract_options::duplicate_key_action::replace);
+    return read_value_settling(from, deserialize_options::duplicate_key_action::replace);
 }
 
-value read_value(extraction_context& context, reader& from)
+value read_value(deserialization_context& context, reader& from)
 {
     if (from.good() && from.current_type() == ast_node_type::document_start)
         (void) from.next_token();
@@ -1129,7 +1131,7 @@ value read_value(extraction_context& context, reader& from)
     }
 }
 
-value detail::peek_value(const extraction_context& context, const reader& from)
+value detail::peek_value(const deserialization_context& context, const reader& from)
 {
     // A scalar is one token, which a reader over text can read where it sits -- opening a second cursor to read it
     // costs an allocation, which is all looking up a number in an `enum_adapter` would otherwise pay. A value-backed
@@ -1154,7 +1156,7 @@ std::optional<parse_index::const_iterator> detail::bookmark(const reader& from) 
     return reader_lookahead::mark(from);
 }
 
-value detail::peek_value_at(const extraction_context& context, const reader& from, parse_index::const_iterator at)
+value detail::peek_value_at(const deserialization_context& context, const reader& from, parse_index::const_iterator at)
 {
     reader probe = reader_lookahead::open(from, at);
     try
@@ -1167,7 +1169,7 @@ value detail::peek_value_at(const extraction_context& context, const reader& fro
     }
 }
 
-value detail::peek_members(const extraction_context&                 context,
+value detail::peek_members(const deserialization_context&                 context,
                            const reader&                             from,
                            const std::set<std::string, std::less<>>& keys
                           )
@@ -1207,9 +1209,9 @@ value detail::peek_members(const extraction_context&                 context,
             // A repeat is settled as `read_object` settles one, and on the key for the same reason. The object being
             // walked is where the read began, so it is no structures deep.
             const bool repeated = wanted
-                               && on_duplicate != extract_options::duplicate_key_action::replace
+                               && on_duplicate != deserialize_options::duplicate_key_action::replace
                                && out.count(*wanted) != 0U;
-            if (repeated && on_duplicate == extract_options::duplicate_key_action::exception)
+            if (repeated && on_duplicate == deserialize_options::duplicate_key_action::exception)
                 throw_duplicate_key(probe, *wanted, 0U);
 
             // Onto the member's value, whether or not it is wanted. A document which ends here has nothing more to

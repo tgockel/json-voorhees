@@ -17,7 +17,7 @@
 #include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
 #include <jsonv/serialization_builder.hpp>
-#include <jsonv/serialization/function_extractor.hpp>
+#include <jsonv/serialization/function_deserializer.hpp>
 #include <jsonv/value.hpp>
 
 #include <algorithm>
@@ -108,7 +108,7 @@ struct tags
     explicit operator std::vector<std::string>() const { return raw; }
 };
 
-/// A wrapper which rejects what it is handed, so construction throws once the inner extraction has already stepped
+/// A wrapper which rejects what it is handed, so construction throws once the inner deserialization has already stepped
 /// the cursor past the value.
 struct positive
 {
@@ -149,7 +149,7 @@ struct picky_optional
     const std::int64_t& operator*() const { return *held; }
 };
 
-/// A comparator which throws, so `std::set::insert` fails after the element has been extracted -- a failure inside
+/// A comparator which throws, so `std::set::insert` fails after the element has been deserialized -- a failure inside
 /// the container's own loop rather than inside an element.
 struct throwing_less
 {
@@ -290,19 +290,19 @@ const formats& post_commit_move_formats()
     static const formats instance =
         [] ()
         {
-            static auto extractor =
-                make_extractor([] (const value& from) -> std::expected<late_move_item, ast_node_type>
-                               {
-                                   return std::expected<late_move_item, ast_node_type>(std::in_place,
-                                                                                       from.as_integer()
-                                                                                      );
-                               });
+            static auto deserializer =
+                make_deserializer([] (const value& from) -> std::expected<late_move_item, ast_node_type>
+                                  {
+                                      return std::expected<late_move_item, ast_node_type>(std::in_place,
+                                                                                          from.as_integer()
+                                                                                         );
+                                  });
 
             formats out = formats::compose({ formats_builder()
                                                  .register_container<std::vector<late_move_item>>(),
                                              formats::defaults()
                                            });
-            out.register_extractor(&extractor);
+            out.register_deserializer(&deserializer);
             return out;
         }();
 
@@ -316,11 +316,11 @@ const formats& throwing_move_formats()
     static const formats instance =
         [] ()
         {
-            static auto extractor =
-                make_extractor([] (extraction_context& context, reader& from)
+            static auto deserializer =
+                make_deserializer([] (deserialization_context& context, reader& from)
                                    -> std::expected<throwing_move_item, ast_node_type>
                                {
-                                   auto raw = context.extract<std::int64_t>(from);
+                                   auto raw = context.deserialize<std::int64_t>(from);
                                    if (!raw)
                                        return std::unexpected(raw.error());
 
@@ -335,7 +335,7 @@ const formats& throwing_move_formats()
                                                  .register_container<std::vector<throwing_move_item>>(),
                                              formats::defaults()
                                            });
-            out.register_extractor(&extractor);
+            out.register_deserializer(&deserializer);
             return out;
         }();
 
@@ -391,8 +391,8 @@ struct polygon final :
     std::string_view name() const override { return "polygon"; }
 };
 
-/// A subtype whose move survives the extraction which builds it and refuses the one after, which is \c extract handing
-/// the built object back to \c polymorphic_adapter -- after the cursor has stepped past what it was built from.
+/// A subtype whose move survives the deserialization which builds it and refuses the one after, which is \c deserialize
+/// handing the built object back to \c polymorphic_adapter -- after the cursor has stepped past what it was built from.
 struct late_move_shape final :
         shape
 {
@@ -433,7 +433,7 @@ struct other_tag final :
 };
 
 /// Two subtypes whose discriminator is an object, bound whole as a \c value member -- which the built-in \c value
-/// extractor materialises, rather than the DSL walking it.
+/// deserializer materialises, rather than the DSL walking it.
 struct first_nested final :
         shape
 {
@@ -454,15 +454,15 @@ struct second_nested final :
 /// subtype matches should never reach it.
 std::size_t polygon_discriminator_calls = 0U;
 
-/// Name the shape \a extracted holds, or say why there is none.
-std::string_view name_of(const std::expected<std::unique_ptr<shape>, ast_node_type>& extracted)
+/// Name the shape \a deserialized holds, or say why there is none.
+std::string_view name_of(const std::expected<std::unique_ptr<shape>, ast_node_type>& deserialized)
 {
-    if (!extracted)
+    if (!deserialized)
         return "<failed>";
-    else if (!*extracted)
+    else if (!*deserialized)
         return "<null>";
     else
-        return (*extracted)->name();
+        return (*deserialized)->name();
 }
 
 const formats& composite_formats()
@@ -531,45 +531,45 @@ const formats& composite_formats()
     return instance;
 }
 
-extract_options collecting(extract_options::size_type max_failures = 10U)
+deserialize_options collecting(deserialize_options::size_type max_failures = 10U)
 {
-    return extract_options::create_default()
-                .failure_mode(extract_options::on_error::collect_all)
+    return deserialize_options::create_default()
+                .failure_mode(deserialize_options::on_error::collect_all)
                 .max_failures(max_failures);
 }
 
-/// Extract a \c T out of the middle of an array and report the token the reader is sitting on afterwards. Every
-/// extractor owes its caller the same thing -- one position past the value it read -- and getting that wrong shows up
-/// as a sibling consumed twice or not at all.
+/// Deserialize a \c T out of the middle of an array and report the token the reader is sitting on afterwards. Every
+/// deserializer owes its caller the same thing -- one position past the value it read -- and getting that wrong shows
+/// up as a sibling consumed twice or not at all.
 template <typename T>
-std::string_view token_after_extracting(std::string_view source)
+std::string_view token_after_deserializing(std::string_view source)
 {
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
     reader             rdr(source);
 
     (void) rdr.next_token();   // onto the `[`
     (void) rdr.next_token();   // onto the value to read
 
-    auto out = cxt.extract<T>(rdr);
+    auto out = cxt.deserialize<T>(rdr);
     ensure(out.has_value());
     ensure(rdr.good());
     return rdr.current().token_raw();
 }
 
-/// The problem an extraction of \c T from \a source must fail with, as the single entry it reports.
+/// The problem a deserialization of \c T from \a source must fail with, as the single entry it reports.
 template <typename T>
-extraction_error::problem refused(std::string_view source)
+deserialization_error::problem refused(std::string_view source)
 {
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
     auto               rdr = open(source);
 
-    auto out = cxt.extract<T>(rdr);
+    auto out = cxt.deserialize<T>(rdr);
     ensure(!out.has_value());
     ensure_eq(1U, cxt.problems().size());
     return cxt.problems().at(0);
 }
 
-bool mentions(const extraction_error::problem& problem, std::string_view text)
+bool mentions(const deserialization_error::problem& problem, std::string_view text)
 {
     return problem.message().find(text) != std::string::npos;
 }
@@ -585,10 +585,10 @@ TEST(composite_container_reads_a_vector_of_scalars)
     for (bool from_value : { false, true })
     {
         const value        tree = parse(R"([ 1, 2, 3 ])");
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value ? open_value(tree) : open(R"([ 1, 2, 3 ])");
 
-        auto out = cxt.extract<std::vector<std::int64_t>>(rdr);
+        auto out = cxt.deserialize<std::vector<std::int64_t>>(rdr);
         ensure(out.has_value());
         ensure_eq(3U, out->size());
         ensure_eq(1, out->at(0));
@@ -603,10 +603,10 @@ TEST(composite_container_reads_an_empty_array)
     for (bool from_value : { false, true })
     {
         const value        tree = parse("[]");
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value ? open_value(tree) : open("[]");
 
-        auto out = cxt.extract<std::vector<std::int64_t>>(rdr);
+        auto out = cxt.deserialize<std::vector<std::int64_t>>(rdr);
         ensure(out.has_value());
         ensure(out->empty());
         ensure(cxt.problems().empty());
@@ -617,21 +617,21 @@ TEST(composite_container_reads_containers_without_reserve)
 {
     // `std::list`, `std::set` and `std::deque` have nothing to reserve, which is the arm of `reserve_if_possible`
     // that has to compile away rather than fail to compile.
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
 
-    auto strings = [&] { auto r = open(R"([ "a", "b" ])");  return cxt.extract<std::list<std::string>>(r);  }();
+    auto strings = [&] { auto r = open(R"([ "a", "b" ])");  return cxt.deserialize<std::list<std::string>>(r);  }();
     ensure(strings.has_value());
     ensure_eq(2U, strings->size());
     ensure_eq(std::string("a"), strings->front());
     ensure_eq(std::string("b"), strings->back());
 
-    auto ints = [&] { auto r = open(R"([ 3, 1, 2, 1 ])"); return cxt.extract<std::set<std::int64_t>>(r); }();
+    auto ints = [&] { auto r = open(R"([ 3, 1, 2, 1 ])"); return cxt.deserialize<std::set<std::int64_t>>(r); }();
     ensure(ints.has_value());
     ensure_eq(3U, ints->size());
     ensure(ints->count(1) == 1U);
     ensure(ints->count(3) == 1U);
 
-    auto decimals = [&] { auto r = open(R"([ 1.5, 2.5 ])"); return cxt.extract<std::deque<double>>(r); }();
+    auto decimals = [&] { auto r = open(R"([ 1.5, 2.5 ])"); return cxt.deserialize<std::deque<double>>(r); }();
     ensure(decimals.has_value());
     ensure_eq(2U, decimals->size());
     ensure_eq(1.5, decimals->at(0));
@@ -645,12 +645,12 @@ TEST(composite_container_reads_a_vector_of_a_user_type)
     for (bool from_value : { false, true })
     {
         const value        tree = parse(R"([ { "a": 1, "b": 2, "c": 3 }, { "a": 4, "b": 5, "c": 6 } ])");
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value
                                ? open_value(tree)
                                : open(R"([ { "a": 1, "b": 2, "c": 3 }, { "a": 4, "b": 5, "c": 6 } ])");
 
-        auto out = cxt.extract<std::vector<triple>>(rdr);
+        auto out = cxt.deserialize<std::vector<triple>>(rdr);
         ensure(out.has_value());
         ensure_eq(2U, out->size());
         ensure_eq((triple{ 1, 2, 3 }), out->at(0));
@@ -662,9 +662,9 @@ TEST(composite_container_reads_a_vector_of_a_user_type)
 TEST(composite_container_lands_one_past_the_array)
 {
     // The cursor contract, which is where a nested container mistake surfaces as a sibling consumed twice or skipped.
-    ensure_eq(std::string_view("3"), token_after_extracting<std::vector<std::int64_t>>(R"([ [ 1, 2 ], 3 ])"));
-    ensure_eq(std::string_view("3"), token_after_extracting<std::vector<std::int64_t>>(R"([ [], 3 ])"));
-    ensure_eq(std::string_view("3"), token_after_extracting<std::vector<triple>>(
+    ensure_eq(std::string_view("3"), token_after_deserializing<std::vector<std::int64_t>>(R"([ [ 1, 2 ], 3 ])"));
+    ensure_eq(std::string_view("3"), token_after_deserializing<std::vector<std::int64_t>>(R"([ [], 3 ])"));
+    ensure_eq(std::string_view("3"), token_after_deserializing<std::vector<triple>>(
                                          R"([ [ { "a": 1, "b": 2, "c": 3 } ], 3 ])"
                                      ));
 }
@@ -674,10 +674,10 @@ TEST(composite_nested_containers_walk_without_double_consuming)
     for (bool from_value : { false, true })
     {
         const value        tree = parse(R"([ [ 1, 2 ], [], [ 3 ] ])");
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value ? open_value(tree) : open(R"([ [ 1, 2 ], [], [ 3 ] ])");
 
-        auto out = cxt.extract<std::vector<std::vector<std::int64_t>>>(rdr);
+        auto out = cxt.deserialize<std::vector<std::vector<std::int64_t>>>(rdr);
         ensure(out.has_value());
         ensure_eq(3U, out->size());
         ensure_eq(2U, out->at(0).size());
@@ -707,10 +707,10 @@ TEST(composite_container_of_a_non_array_is_refused)
 
     for (const auto& c : cases)
     {
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = open(c.source);
 
-        auto out = cxt.extract<std::vector<std::int64_t>>(rdr);
+        auto out = cxt.deserialize<std::vector<std::int64_t>>(rdr);
         ensure(!out.has_value());
 
         // The error channel carries the type actually found rather than the `error` sentinel, so a caller can branch
@@ -736,10 +736,10 @@ TEST(composite_container_from_a_truncated_document)
     // loop meets that node where the rest of the array should have been.
     for (std::string_view source : { R"([ 1, 2)", R"([)" })
     {
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = open(source);
 
-        auto out = cxt.extract<std::vector<std::int64_t>>(rdr);
+        auto out = cxt.deserialize<std::vector<std::int64_t>>(rdr);
         ensure(!out.has_value());
         ensure(!cxt.problems().empty());
         ensure(mentions(cxt.problems().at(0), "Unterminated array"));
@@ -757,10 +757,10 @@ TEST(composite_container_reserves_from_the_element_count)
         source += (idx == 0U ? "1" : ",1");
     source += "]";
 
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
     auto               rdr = open(source);
 
-    auto out = cxt.extract<std::vector<std::int64_t>>(rdr);
+    auto out = cxt.deserialize<std::vector<std::int64_t>>(rdr);
     ensure(out.has_value());
     ensure_eq(count, out->size());
 
@@ -778,10 +778,10 @@ TEST(composite_container_collect_all_resumes_after_a_nested_container)
         const std::string_view text = R"([ [ 1, "x" ], [ 2 ], [ 3, "y" ] ])";
         const value            tree = parse(text);
 
-        extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = from_value ? open_value(tree) : open(text);
 
-        ensure(!cxt.extract<std::vector<std::vector<std::int64_t>>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<std::vector<std::int64_t>>>(rdr).has_value());
         ensure_eq(2U, cxt.problems().size());
         ensure_eq(path::create("[0][1]"), cxt.problems().at(0).path());
         ensure_eq(path::create("[2][1]"), cxt.problems().at(1).path());
@@ -791,18 +791,18 @@ TEST(composite_container_collect_all_resumes_after_a_nested_container)
 
 TEST(composite_construction_failure_does_not_swallow_the_next_element)
 {
-    // A wrapper or optional whose constructor rejects the value fails *after* the inner extraction stepped the
+    // A wrapper or optional whose constructor rejects the value fails *after* the inner deserialization stepped the
     // cursor past it. Recovering by stepping again would skip the following element -- losing it, losing whatever it
     // had to report, and renumbering the rest.
     for (bool optional_like : { false, true })
     {
-        extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open("[ -1, -2, 5 ]");
 
         if (optional_like)
-            ensure(!cxt.extract<std::vector<picky_optional>>(rdr).has_value());
+            ensure(!cxt.deserialize<std::vector<picky_optional>>(rdr).has_value());
         else
-            ensure(!cxt.extract<std::vector<positive>>(rdr).has_value());
+            ensure(!cxt.deserialize<std::vector<positive>>(rdr).has_value());
 
         ensure_eq(2U, cxt.problems().size());
         ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
@@ -814,10 +814,10 @@ TEST(composite_construction_failure_on_the_last_element_does_not_invent_a_proble
 {
     // The same step, taken at the end of the array, used to walk off the `]` and leave the loop reporting an
     // unterminated array on top of the real failure.
-    extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+    deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
     auto               rdr = open("[ 5, -1 ]");
 
-    ensure(!cxt.extract<std::vector<positive>>(rdr).has_value());
+    ensure(!cxt.deserialize<std::vector<positive>>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(path::create("[1]"), cxt.problems().at(0).path());
 }
@@ -827,10 +827,10 @@ TEST(composite_insertion_failure_does_not_end_the_enclosing_array)
     // An insertion which throws leaves the cursor inside the array being built, which means nothing to the loop
     // above it: resuming there reads the inner `]` as the *outer* array's end and stops, so the second failure is
     // never seen. The container finishes walking its own array before letting the failure out.
-    extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+    deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
     auto               rdr = open("[ [ 1, 2, 3 ], [ 4, 5 ] ]");
 
-    ensure(!cxt.extract<std::vector<refusing_set>>(rdr).has_value());
+    ensure(!cxt.deserialize<std::vector<refusing_set>>(rdr).has_value());
     ensure_eq(2U, cxt.problems().size());
     ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
     ensure_eq(path::create("[1]"), cxt.problems().at(1).path());
@@ -843,10 +843,10 @@ TEST(composite_insertion_failure_with_a_structured_tail_finds_its_own_end)
     // of *those* and land back inside the container being built, so the loop above would read its `]` as the outer
     // array's end and stop after one problem. Stepping over whole child values is what finds the right closing
     // token.
-    extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+    deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
     auto               rdr = open("[ [ [1], [2], [3] ], [ [4], [5] ] ]");
 
-    ensure(!cxt.extract<std::vector<refusing_vector_set>>(rdr).has_value());
+    ensure(!cxt.deserialize<std::vector<refusing_vector_set>>(rdr).has_value());
     ensure_eq(2U, cxt.problems().size());
     ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
     ensure_eq(path::create("[1]"), cxt.problems().at(1).path());
@@ -857,20 +857,20 @@ TEST(composite_optional_default_construction_failure_does_not_swallow_the_next_e
     // The `null` branch steps the cursor before it builds anything, so an optional-like type which refuses to
     // default-construct fails with the value behind it just as the converting constructor does.
     {
-        extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open("[ null, null, 5 ]");
 
-        ensure(!cxt.extract<std::vector<fussy_optional>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<fussy_optional>>(rdr).has_value());
         ensure_eq(2U, cxt.problems().size());
         ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
         ensure_eq(path::create("[1]"), cxt.problems().at(1).path());
     }
 
     {
-        extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open("[ 5, null ]");
 
-        ensure(!cxt.extract<std::vector<fussy_optional>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<fussy_optional>>(rdr).has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure_eq(path::create("[1]"), cxt.problems().at(0).path());
     }
@@ -881,20 +881,20 @@ TEST(composite_container_move_failure_keeps_the_following_diagnostics)
     // Moving the built container into the result fails *after* its closing token has been read, so there is nothing
     // left to walk -- resynchronising anyway would consume the following sibling and lose what it had to report.
     {
-        extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open(R"([ [ 9 ], [ "y" ] ])");
 
-        ensure(!cxt.extract<std::vector<fragile>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<fragile>>(rdr).has_value());
         ensure_eq(2U, cxt.problems().size());
         ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
         ensure_eq(path::create("[1][0]"), cxt.problems().at(1).path());
     }
 
     {
-        extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open("[ [ 1 ], [ 9 ] ]");
 
-        ensure(!cxt.extract<std::vector<fragile>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<fragile>>(rdr).has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure_eq(path::create("[1]"), cxt.problems().at(0).path());
     }
@@ -903,14 +903,14 @@ TEST(composite_container_move_failure_keeps_the_following_diagnostics)
 TEST(composite_construction_failure_names_the_enclosing_structure)
 {
     // With no `path_scope` above it there is nothing but the reader to ask, and by the time construction fails the
-    // cursor names the *next* sibling. Reporting that would blame a value which extracted perfectly well, so the
+    // cursor names the *next* sibling. Reporting that would blame a value which deserialized perfectly well, so the
     // enclosing structure is reported instead -- the same approximation the `value` bridge makes, and for the same
-    // reason: naming the position exactly would mean building a path before every successful extraction.
-    extraction_context cxt(composite_formats());
+    // reason: naming the position exactly would mean building a path before every successful deserialization.
+    deserialization_context cxt(composite_formats());
     auto               rdr = open("[ -1, 2 ]");
     (void) rdr.next_token();   // onto `-1`, which is `[0]`
 
-    ensure(!cxt.extract<positive>(rdr).has_value());
+    ensure(!cxt.deserialize<positive>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(jsonv::path(), cxt.problems().at(0).path());
 }
@@ -922,10 +922,10 @@ TEST(composite_callable_result_move_failure_keeps_the_following_diagnostics)
     // produced into the pipeline's `std::expected` fails with that value behind the cursor. Stepping over it again
     // would lose the next element's own failure, and at the end of the array invent one.
     {
-        extraction_context cxt(throwing_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(throwing_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open(R"([ 9, "x" ])");
 
-        ensure(!cxt.extract<std::vector<throwing_move_item>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<throwing_move_item>>(rdr).has_value());
         ensure_eq(2U, cxt.problems().size());
         ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
         ensure_eq(path::create("[1]"), cxt.problems().at(1).path());
@@ -933,10 +933,10 @@ TEST(composite_callable_result_move_failure_keeps_the_following_diagnostics)
     }
 
     {
-        extraction_context cxt(throwing_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(throwing_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open("[ 1, 9 ]");
 
-        ensure(!cxt.extract<std::vector<throwing_move_item>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<throwing_move_item>>(rdr).has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure_eq(path::create("[1]"), cxt.problems().at(0).path());
     }
@@ -953,20 +953,20 @@ TEST(composite_post_commit_move_failure_keeps_the_following_diagnostics)
     // normalising the callable's result, which the bridge still owns) and refuses the rest. If a toolchain elides
     // the return move entirely, the next move is the container's and this reports one problem instead of two.
     {
-        extraction_context cxt(post_commit_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(post_commit_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open(R"([ 9, "x" ])");
 
-        ensure(!cxt.extract<std::vector<late_move_item>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<late_move_item>>(rdr).has_value());
         ensure_eq(2U, cxt.problems().size());
         ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
         ensure_eq(path::create("[1]"), cxt.problems().at(1).path());
     }
 
     {
-        extraction_context cxt(post_commit_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(post_commit_move_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open("[ 1, 9 ]");
 
-        ensure(!cxt.extract<std::vector<late_move_item>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<late_move_item>>(rdr).has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure_eq(path::create("[1]"), cxt.problems().at(0).path());
     }
@@ -980,24 +980,24 @@ TEST(composite_optional_reads_null_a_value_and_an_object)
 {
     for (bool from_value : { false, true })
     {
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
 
         const value none_tree = parse("null");
         auto        none_rdr  = from_value ? open_value(none_tree) : open("null");
-        auto        none      = cxt.extract<std::optional<std::int64_t>>(none_rdr);
+        auto        none      = cxt.deserialize<std::optional<std::int64_t>>(none_rdr);
         ensure(none.has_value());
         ensure(!none->has_value());
 
         const value some_tree = parse("5");
         auto        some_rdr  = from_value ? open_value(some_tree) : open("5");
-        auto        some      = cxt.extract<std::optional<std::int64_t>>(some_rdr);
+        auto        some      = cxt.deserialize<std::optional<std::int64_t>>(some_rdr);
         ensure(some.has_value());
         ensure(some->has_value());
         ensure_eq(5, **some);
 
         const value obj_tree = parse(R"({ "a": 1, "b": 2, "c": 3 })");
         auto        obj_rdr  = from_value ? open_value(obj_tree) : open(R"({ "a": 1, "b": 2, "c": 3 })");
-        auto        obj      = cxt.extract<std::optional<triple>>(obj_rdr);
+        auto        obj      = cxt.deserialize<std::optional<triple>>(obj_rdr);
         ensure(obj.has_value());
         ensure(obj->has_value());
         ensure_eq((triple{ 1, 2, 3 }), **obj);
@@ -1008,9 +1008,9 @@ TEST(composite_optional_reads_null_a_value_and_an_object)
 
 TEST(composite_optional_lands_one_past_the_value)
 {
-    ensure_eq(std::string_view("2"), token_after_extracting<std::optional<std::int64_t>>(R"([ null, 2 ])"));
-    ensure_eq(std::string_view("2"), token_after_extracting<std::optional<std::int64_t>>(R"([ 5, 2 ])"));
-    ensure_eq(std::string_view("2"), token_after_extracting<std::optional<triple>>(
+    ensure_eq(std::string_view("2"), token_after_deserializing<std::optional<std::int64_t>>(R"([ null, 2 ])"));
+    ensure_eq(std::string_view("2"), token_after_deserializing<std::optional<std::int64_t>>(R"([ 5, 2 ])"));
+    ensure_eq(std::string_view("2"), token_after_deserializing<std::optional<triple>>(
                                          R"([ { "a": 1, "b": 2, "c": 3 }, 2 ])"
                                      ));
 }
@@ -1020,7 +1020,7 @@ TEST(composite_optional_non_finite_decimal_is_not_none)
     // A value-backed reader has no token for a non-finite `kind::decimal` and renders it as `null` -- what encoding
     // the value writes, not what the tree holds. Going by the node type alone would turn a NaN into an empty
     // optional, so the `value` is asked where there is one to ask.
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
 
     for (double number : { std::numeric_limits<double>::quiet_NaN(),
                            std::numeric_limits<double>::infinity(),
@@ -1030,7 +1030,7 @@ TEST(composite_optional_non_finite_decimal_is_not_none)
         const value tree = value(number);
         auto        rdr  = open_value(tree);
 
-        auto out = cxt.extract<std::optional<double>>(rdr);
+        auto out = cxt.deserialize<std::optional<double>>(rdr);
         ensure(out.has_value());
         ensure(out->has_value());
 
@@ -1043,7 +1043,7 @@ TEST(composite_optional_non_finite_decimal_is_not_none)
     // A real null is still none.
     const value null_tree = value();
     auto        null_rdr  = open_value(null_tree);
-    auto        none      = cxt.extract<std::optional<double>>(null_rdr);
+    auto        none      = cxt.deserialize<std::optional<double>>(null_rdr);
     ensure(none.has_value());
     ensure(!none->has_value());
 
@@ -1056,10 +1056,10 @@ TEST(composite_optional_of_a_bad_value_is_refused)
     ensure(mentions(problem, "when expecting integer"));
 
     // And nested, where the element scope names where it was.
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
     auto               rdr = open(R"([ null, "x" ])");
 
-    auto out = cxt.extract<std::vector<std::int64_t>>(rdr);
+    auto out = cxt.deserialize<std::vector<std::int64_t>>(rdr);
     ensure(!out.has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
@@ -1074,10 +1074,10 @@ TEST(composite_wrapper_round_trips)
     for (bool from_value : { false, true })
     {
         const value        tree = parse("7");
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value ? open_value(tree) : open("7");
 
-        auto out = cxt.extract<user_id>(rdr);
+        auto out = cxt.deserialize<user_id>(rdr);
         ensure(out.has_value());
         ensure_eq(user_id(7), *out);
         ensure(cxt.problems().empty());
@@ -1088,19 +1088,19 @@ TEST(composite_wrapper_round_trips)
 
 TEST(composite_wrapper_lands_one_past_the_value)
 {
-    ensure_eq(std::string_view("2"), token_after_extracting<user_id>(R"([ 7, 2 ])"));
+    ensure_eq(std::string_view("2"), token_after_deserializing<user_id>(R"([ 7, 2 ])"));
 
     // A wrapper over a structure is where a pass-through has something to get wrong: the cursor contract is whatever
-    // the wrapped type's extractor honours, and this one reads a whole array.
-    ensure_eq(std::string_view("2"), token_after_extracting<tags>(R"([ [ "a", "b" ], 2 ])"));
+    // the wrapped type's deserializer honours, and this one reads a whole array.
+    ensure_eq(std::string_view("2"), token_after_deserializing<tags>(R"([ [ "a", "b" ], 2 ])"));
 }
 
 TEST(composite_wrapper_of_a_container_passes_through)
 {
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
     auto               rdr = open(R"([ "a", "b" ])");
 
-    auto out = cxt.extract<tags>(rdr);
+    auto out = cxt.deserialize<tags>(rdr);
     ensure(out.has_value());
     ensure_eq(2U, out->raw.size());
     ensure_eq(std::string("a"), out->raw.at(0));
@@ -1137,10 +1137,10 @@ TEST(composite_polymorphic_finds_the_discriminator_wherever_it_is)
         const value tree = parse(text);
         for (bool from_value : { false, true })
         {
-            extraction_context cxt(composite_formats());
+            deserialization_context cxt(composite_formats());
             auto               rdr = from_value ? open_value(tree) : open(text);
 
-            auto out = cxt.extract<std::unique_ptr<shape>>(rdr);
+            auto out = cxt.deserialize<std::unique_ptr<shape>>(rdr);
             ensure_eq(std::string_view("square"), name_of(out));
             ensure_eq(4, dynamic_cast<const square&>(**out).side);
             ensure(cxt.problems().empty());
@@ -1157,10 +1157,10 @@ TEST(composite_polymorphic_general_discriminator_sees_the_whole_value)
     {
         polygon_discriminator_calls = 0U;
 
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value ? open_value(tree) : open(text);
 
-        auto out = cxt.extract<std::unique_ptr<shape>>(rdr);
+        auto out = cxt.deserialize<std::unique_ptr<shape>>(rdr);
         ensure_eq(std::string_view("polygon"), name_of(out));
         ensure_eq(5, dynamic_cast<const polygon&>(**out).sides);
         ensure_eq(1U, polygon_discriminator_calls);
@@ -1176,13 +1176,13 @@ TEST(composite_polymorphic_keeps_registration_order)
 
     for (bool from_value : { false, true })
     {
-        extraction_context unique_cxt(composite_formats());
+        deserialization_context unique_cxt(composite_formats());
         auto               unique_rdr = from_value ? open_value(tree) : open(text);
-        ensure_eq(std::string_view("circle"), name_of(unique_cxt.extract<std::unique_ptr<shape>>(unique_rdr)));
+        ensure_eq(std::string_view("circle"), name_of(unique_cxt.deserialize<std::unique_ptr<shape>>(unique_rdr)));
 
-        extraction_context shared_cxt(composite_formats());
+        deserialization_context shared_cxt(composite_formats());
         auto               shared_rdr = from_value ? open_value(tree) : open(text);
-        auto               shared     = shared_cxt.extract<std::shared_ptr<shape>>(shared_rdr);
+        auto               shared     = shared_cxt.deserialize<std::shared_ptr<shape>>(shared_rdr);
         ensure(shared.has_value());
         ensure_eq(std::string_view("square"), (*shared)->name());
     }
@@ -1200,9 +1200,9 @@ TEST(composite_polymorphic_discriminator_matches_like_parse)
         const value tree = parse(text);
         for (bool from_value : { false, true })
         {
-            extraction_context cxt(composite_formats());
+            deserialization_context cxt(composite_formats());
             auto               rdr = from_value ? open_value(tree) : open(text);
-            ensure_eq(std::string_view("square"), name_of(cxt.extract<std::unique_ptr<shape>>(rdr)));
+            ensure_eq(std::string_view("square"), name_of(cxt.deserialize<std::unique_ptr<shape>>(rdr)));
         }
     }
 }
@@ -1212,18 +1212,18 @@ TEST(composite_polymorphic_null_input_is_an_empty_pointer)
     const value tree = parse("null");
     for (bool from_value : { false, true })
     {
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value ? open_value(tree) : open("null");
-        ensure_eq(std::string_view("<null>"), name_of(cxt.extract<std::unique_ptr<shape>>(rdr)));
+        ensure_eq(std::string_view("<null>"), name_of(cxt.deserialize<std::unique_ptr<shape>>(rdr)));
     }
 }
 
 TEST(composite_polymorphic_lands_one_past_the_value)
 {
     ensure_eq(std::string_view("7"),
-              token_after_extracting<std::unique_ptr<shape>>(R"([ { "radius": 1, "kind": "circle" }, 7 ])"));
-    ensure_eq(std::string_view("7"), token_after_extracting<std::unique_ptr<shape>>(R"([ { "sides": 3 }, 7 ])"));
-    ensure_eq(std::string_view("7"), token_after_extracting<std::unique_ptr<shape>>(R"([ null, 7 ])"));
+              token_after_deserializing<std::unique_ptr<shape>>(R"([ { "radius": 1, "kind": "circle" }, 7 ])"));
+    ensure_eq(std::string_view("7"), token_after_deserializing<std::unique_ptr<shape>>(R"([ { "sides": 3 }, 7 ])"));
+    ensure_eq(std::string_view("7"), token_after_deserializing<std::unique_ptr<shape>>(R"([ null, 7 ])"));
 }
 
 TEST(composite_polymorphic_no_match_names_the_value)
@@ -1249,10 +1249,10 @@ TEST(composite_polymorphic_no_match_describes_what_it_cannot_render)
                            .subtype<circle>("circle")
                    .compose_checked(formats::defaults());
 
-    extraction_context cxt(fmts);
+    deserialization_context cxt(fmts);
     auto               rdr = open(R"({ "kind": "hexagon", "size": 1e400 })");
 
-    ensure(!cxt.extract<std::unique_ptr<shape>>(rdr).has_value());
+    ensure(!cxt.deserialize<std::unique_ptr<shape>>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string("No discriminators matched JSON value"), cxt.problems().at(0).message());
 
@@ -1267,10 +1267,10 @@ TEST(composite_polymorphic_subtype_failure_is_placed_in_the_document)
 
     for (bool from_value : { false, true })
     {
-        extraction_context cxt(composite_formats());
+        deserialization_context cxt(composite_formats());
         auto               rdr = from_value ? open_value(tree) : open(text);
 
-        ensure(!cxt.extract<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure_eq(path::create("[1].radius"), cxt.problems().at(0).path());
         ensure(mentions(cxt.problems().at(0), "when expecting integer"));
@@ -1286,10 +1286,10 @@ TEST(composite_polymorphic_collect_all_resumes_after_an_unmatched_element)
 
     for (bool from_value : { false, true })
     {
-        extraction_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(composite_formats(), std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = from_value ? open_value(tree) : open(text);
 
-        ensure(!cxt.extract<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
         ensure_eq(2U, cxt.problems().size());
         ensure_eq(path::create("[0]"), cxt.problems().at(0).path());
         ensure_eq(path::create("[2]"), cxt.problems().at(1).path());
@@ -1310,10 +1310,10 @@ TEST(composite_polymorphic_keyed_match_does_not_read_the_rest_of_the_object)
 
     polygon_discriminator_calls = 0U;
 
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
     auto               rdr = open(text);
 
-    auto out = cxt.extract<std::unique_ptr<shape>>(rdr);
+    auto out = cxt.deserialize<std::unique_ptr<shape>>(rdr);
     ensure_eq(std::string_view("circle"), name_of(out));
     ensure_eq(3, dynamic_cast<const circle&>(**out).radius);
     ensure_eq(0U, polygon_discriminator_calls);
@@ -1323,13 +1323,13 @@ TEST(composite_polymorphic_keyed_match_does_not_read_the_rest_of_the_object)
 TEST(composite_polymorphic_keyed_subtype_views_the_source)
 {
     // Nothing is materialised on the way to a keyed subtype, so it reads the document itself -- and a view it holds
-    // names the document rather than a copy that dies before extraction returns.
+    // names the document rather than a copy that dies before deserialization returns.
     const std::string source = R"({ "kind": "label", "text": "a long string value which is not copied anywhere" })";
 
-    extraction_context cxt(composite_formats());
+    deserialization_context cxt(composite_formats());
     auto               rdr = open(source);
 
-    auto out = cxt.extract<std::unique_ptr<shape>>(rdr);
+    auto out = cxt.deserialize<std::unique_ptr<shape>>(rdr);
     ensure(cxt.problems().empty());
     ensure_eq(std::string_view("label"), name_of(out));
 
@@ -1340,8 +1340,8 @@ TEST(composite_polymorphic_keyed_subtype_views_the_source)
 
 TEST(composite_polymorphic_discriminator_cannot_keep_a_view_of_its_copy)
 {
-    // From text, a general discriminator is shown a copy built for it, which dies before extraction returns -- so a
-    // view of it is refused, as it was when the bridge built that copy. From a `value` it is the caller's own tree,
+    // From text, a general discriminator is shown a copy built for it, which dies before deserialization returns -- so
+    // a view of it is refused, as it was when the bridge built that copy. From a `value` it is the caller's own tree,
     // which a view may name. Either way the subtype it chooses reads the document, and views that.
     std::optional<bool> viewed;
 
@@ -1349,14 +1349,14 @@ TEST(composite_polymorphic_discriminator_cannot_keep_a_view_of_its_copy)
                        .type<label>()
                            .member("text", &label::text)
                        .polymorphic_type<std::unique_ptr<shape>>()
-                           .subtype<label>([&viewed] (extraction_context& context, const value& from)
+                           .subtype<label>([&viewed] (deserialization_context& context, const value& from)
                                            {
                                                try
                                                {
-                                                   (void) context.extract<std::string_view>(from.at("text"));
+                                                   (void) context.deserialize<std::string_view>(from.at("text"));
                                                    viewed = true;
                                                }
-                                               catch (const extraction_error&)
+                                               catch (const deserialization_error&)
                                                {
                                                    viewed = false;
                                                }
@@ -1372,10 +1372,10 @@ TEST(composite_polymorphic_discriminator_cannot_keep_a_view_of_its_copy)
     {
         viewed.reset();
 
-        extraction_context cxt(fmts);
+        deserialization_context cxt(fmts);
         auto               rdr = from_value ? open_value(tree) : open(source);
 
-        auto out = cxt.extract<std::unique_ptr<shape>>(rdr);
+        auto out = cxt.deserialize<std::unique_ptr<shape>>(rdr);
         ensure(cxt.problems().empty());
         ensure_eq(std::string_view("label"), name_of(out));
         ensure(viewed.has_value());
@@ -1392,14 +1392,15 @@ TEST(composite_polymorphic_subtype_move_failure_keeps_the_following_diagnostics)
     // The subtype is built and the cursor is past it before its move refuses, so whatever recovers has to resume at
     // the next element rather than step over it -- which would lose the circle's problem, or, at the end of the
     // array, invent an `Unterminated array`.
-    static auto extractor =
-        make_extractor([] (extraction_context& context, reader& from) -> std::expected<late_move_shape, ast_node_type>
-                       {
-                           value read = read_value(context, from);
-                           return std::expected<late_move_shape, ast_node_type>(std::in_place,
-                                                                                read.at("raw").as_integer()
-                                                                               );
-                       });
+    static auto deserializer =
+        make_deserializer([] (deserialization_context& context, reader& from)
+                              -> std::expected<late_move_shape, ast_node_type>
+                          {
+                              value read = read_value(context, from);
+                              return std::expected<late_move_shape, ast_node_type>(std::in_place,
+                                                                                   read.at("raw").as_integer()
+                                                                                  );
+                          });
 
     // `late_move_shape` has no serializer, so this cannot go through `compose_checked`.
     formats fmts = formats::compose({ formats_builder()
@@ -1411,23 +1412,23 @@ TEST(composite_polymorphic_subtype_move_failure_keeps_the_following_diagnostics)
                                           .register_container<std::vector<std::unique_ptr<shape>>>(),
                                       formats::defaults()
                                     });
-    fmts.register_extractor(&extractor);
+    fmts.register_deserializer(&deserializer);
 
     {
-        extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open(R"([ { "kind": "late", "raw": 9 }, { "kind": "circle", "radius": "x" } ])");
 
-        ensure(!cxt.extract<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
         ensure_eq(2U, cxt.problems().size());
         ensure(mentions(cxt.problems().at(0), "move refuses"));
         ensure_eq(path::create("[1].radius"), cxt.problems().at(1).path());
     }
 
     {
-        extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, collecting());
+        deserialization_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, collecting());
         auto               rdr = open(R"([ { "kind": "late", "raw": 1 }, { "kind": "late", "raw": 9 } ])");
 
-        ensure(!cxt.extract<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
+        ensure(!cxt.deserialize<std::vector<std::unique_ptr<shape>>>(rdr).has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure(mentions(cxt.problems().at(0), "move refuses"));
     }
@@ -1454,28 +1455,28 @@ TEST(composite_polymorphic_repeated_discriminator_agrees_with_the_subtype)
 
     const std::string_view text = R"({ "kind": "plain", "kind": "other" })";
 
-    using action = extract_options::duplicate_key_action;
+    using action = deserialize_options::duplicate_key_action;
     for (auto [on_duplicate, expected] : { std::pair(action::ignore, std::string("plain")),
                                            std::pair(action::replace, std::string("other")),
                                          }
         )
     {
-        auto options = extract_options::create_default().on_duplicate_key(on_duplicate);
+        auto options = deserialize_options::create_default().on_duplicate_key(on_duplicate);
 
         {
-            extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
+            deserialization_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
             auto               rdr = open(text);
 
-            auto out = cxt.extract<std::unique_ptr<shape>>(rdr);
+            auto out = cxt.deserialize<std::unique_ptr<shape>>(rdr);
             ensure_eq(std::string_view(expected), name_of(out));
             ensure_eq(value(expected), to_json(*out, fmts).at("kind"));
         }
 
         {
-            extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
+            deserialization_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
             auto               rdr = open(text);
 
-            auto out = cxt.extract<std::shared_ptr<shape>>(rdr);
+            auto out = cxt.deserialize<std::shared_ptr<shape>>(rdr);
             ensure(out.has_value());
             ensure_eq(std::string_view(expected), (*out)->name());
         }
@@ -1484,8 +1485,8 @@ TEST(composite_polymorphic_repeated_discriminator_agrees_with_the_subtype)
 
 TEST(composite_polymorphic_repeated_key_inside_a_discriminator_agrees_with_the_subtype)
 {
-    // The repeat is inside the discriminator's value, so it is settled by whatever materialises that value -- the
-    // peek for choosing, the built-in `value` extractor for building. The two have to settle it alike, or the subtype
+    // The repeat is inside the discriminator's value, so it is settled by whatever materialises that value -- the peek
+    // for choosing, the built-in `value` deserializer for building. The two have to settle it alike, or the subtype
     // built holds a discriminator for the other one and `check` refuses to write it out again.
     formats fmts = formats_builder()
                        .type<first_nested>()
@@ -1499,28 +1500,28 @@ TEST(composite_polymorphic_repeated_key_inside_a_discriminator_agrees_with_the_s
 
     const std::string_view text = R"({ "kind": { "n": 1, "n": 2 } })";
 
-    using action = extract_options::duplicate_key_action;
+    using action = deserialize_options::duplicate_key_action;
     for (auto [on_duplicate, expected, kind] : { std::tuple(action::ignore,  "first_nested",  R"({ "n": 1 })"),
                                                  std::tuple(action::replace, "second_nested", R"({ "n": 2 })"),
                                                }
         )
     {
-        auto options = extract_options::create_default().on_duplicate_key(on_duplicate);
+        auto options = deserialize_options::create_default().on_duplicate_key(on_duplicate);
 
-        extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
+        deserialization_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
         auto               rdr = open(text);
 
-        auto out = cxt.extract<std::unique_ptr<shape>>(rdr);
+        auto out = cxt.deserialize<std::unique_ptr<shape>>(rdr);
         ensure_eq(std::string_view(expected), name_of(out));
         ensure_eq(parse(kind), to_json(*out, fmts).at("kind"));
     }
 
-    auto options = extract_options::create_default().on_duplicate_key(action::exception);
+    auto options = deserialize_options::create_default().on_duplicate_key(action::exception);
 
-    extraction_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
+    deserialization_context cxt(fmts, std::nullopt, jsonv::path(), nullptr, options);
     auto               rdr = open(text);
 
-    ensure(!cxt.extract<std::unique_ptr<shape>>(rdr).has_value());
+    ensure(!cxt.deserialize<std::unique_ptr<shape>>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string(R"(Duplicate key in object: "n")"), cxt.problems().at(0).message());
     ensure(rdr.current_type() == ast_node_type::object_begin);
@@ -1529,7 +1530,7 @@ TEST(composite_polymorphic_repeated_key_inside_a_discriminator_agrees_with_the_s
 TEST(composite_polymorphic_refused_discriminator_is_placed_where_the_context_says)
 {
     // A repeated discriminator is refused while choosing, which reads ahead with a second cursor -- but where the
-    // refusal belongs is still the extraction's to say, as it would be for the subtype reading the same key.
+    // refusal belongs is still the deserialization's to say, as it would be for the subtype reading the same key.
     formats fmts = formats_builder()
                        .type<first_nested>()
                            .member("kind", &first_nested::kind)
@@ -1537,20 +1538,23 @@ TEST(composite_polymorphic_refused_discriminator_is_placed_where_the_context_say
                            .subtype<first_nested>(parse(R"({ "n": 1 })"))
                    .compose_checked(formats::defaults());
 
-    const auto options = extract_options::create_default()
-                             .on_duplicate_key(extract_options::duplicate_key_action::exception);
+    const auto options = deserialize_options::create_default()
+                             .on_duplicate_key(deserialize_options::duplicate_key_action::exception);
 
     auto placed = [&] (std::string_view text, jsonv::path base, std::optional<std::string_view> scope)
                   {
-                      extraction_context                            cxt(fmts, std::nullopt, std::move(base), nullptr,
-                                                                        options
-                                                                       );
-                      std::optional<extraction_context::path_scope> named;
+                      deserialization_context                            cxt(fmts,
+                                                                             std::nullopt,
+                                                                             std::move(base),
+                                                                             nullptr,
+                                                                             options
+                                                                            );
+                      std::optional<deserialization_context::path_scope> named;
                       if (scope)
                           named.emplace(cxt, *scope);
 
                       auto rdr = open(text);
-                      ensure(!cxt.extract<std::unique_ptr<shape>>(rdr).has_value());
+                      ensure(!cxt.deserialize<std::unique_ptr<shape>>(rdr).has_value());
                       ensure_eq(1U, cxt.problems().size());
                       ensure(mentions(cxt.problems().at(0), "Duplicate key in object"));
                       return cxt.problems().at(0).path();

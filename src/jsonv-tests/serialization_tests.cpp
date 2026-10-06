@@ -16,8 +16,8 @@
 #include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
 #include <jsonv/serialization/adapter_for.hpp>
-#include <jsonv/serialization/extractor_construction.hpp>
-#include <jsonv/serialization/function_extractor.hpp>
+#include <jsonv/serialization/deserializer_construction.hpp>
+#include <jsonv/serialization/function_deserializer.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/detail/scope_exit.hpp>
@@ -50,10 +50,10 @@ struct my_thing
     int b;
     std::string c;
 
-    my_thing(const value& from, extraction_context& cxt) :
-            a(cxt.extract<int>(from.at("a"))),
-            b(cxt.extract<int>(from.at("b"))),
-            c(cxt.extract<std::string>(from.at("c")))
+    my_thing(const value& from, deserialization_context& cxt) :
+            a(cxt.deserialize<int>(from.at("a"))),
+            b(cxt.deserialize<int>(from.at("b"))),
+            c(cxt.deserialize<std::string>(from.at("c")))
     { }
 
     my_thing(int a, int b, std::string c) :
@@ -62,9 +62,9 @@ struct my_thing
             c(std::move(c))
     { }
 
-    static const extractor* get_extractor()
+    static const deserializer* get_deserializer()
     {
-        static extractor_construction<my_thing> instance;
+        static deserializer_construction<my_thing> instance;
         return &instance;
     }
 
@@ -125,8 +125,8 @@ TEST(formats_static_results_inequality)
 TEST(formats_throws_on_duplicate)
 {
     formats fmt;
-    fmt.register_extractor(my_thing::get_extractor());
-    ensure_throws(std::invalid_argument, fmt.register_extractor(my_thing::get_extractor()));
+    fmt.register_deserializer(my_thing::get_deserializer());
+    ensure_throws(std::invalid_argument, fmt.register_deserializer(my_thing::get_deserializer()));
     fmt.register_serializer(my_thing::get_serializer());
     ensure_throws(std::invalid_argument, fmt.register_serializer(my_thing::get_serializer()));
 }
@@ -140,8 +140,8 @@ struct tagged
     std::int64_t tag;
 };
 
-/// Extracts anything as a \c tagged carrying this adapter's tag and serializes any \c tagged as that tag, so which of
-/// several registrations for \c tagged a lookup reached shows in what it produces.
+/// Deserializes anything as a \c tagged carrying this adapter's tag and serializes any \c tagged as that tag, so which
+/// of several registrations for \c tagged a lookup reached shows in what it produces.
 class tagged_adapter final :
         public adapter_for<tagged>
 {
@@ -151,7 +151,7 @@ public:
     { }
 
 protected:
-    std::expected<tagged, ast_node_type> create(extraction_context&, reader& from) const override
+    std::expected<tagged, ast_node_type> create(deserialization_context&, reader& from) const override
     {
         (void) from.next_value();
         return tagged{ _tag };
@@ -166,23 +166,23 @@ private:
     std::int64_t _tag;
 };
 
-/// What a \c formats does with a \c tagged: the \c extractor and \c serializer a lookup finds and the tag each one
+/// What a \c formats does with a \c tagged: the \c deserializer and \c serializer a lookup finds and the tag each one
 /// produces, with null and 0 where it finds none.
 struct tagged_lookup
 {
-    const extractor*  ex         = nullptr;
-    std::int64_t      extracted  = 0;
-    const serializer* ser        = nullptr;
-    std::int64_t      serialized = 0;
+    const deserializer* ex           = nullptr;
+    std::int64_t        deserialized = 0;
+    const serializer*   ser          = nullptr;
+    std::int64_t        serialized   = 0;
 
     explicit tagged_lookup(const formats& fmts)
     {
         try
         {
-            ex        = &fmts.get_extractor(typeid(tagged));
-            extracted = extract<tagged>(null, fmts).tag;
+            ex        = &fmts.get_deserializer(typeid(tagged));
+            deserialized = deserialize<tagged>(null, fmts).tag;
         }
-        catch (const no_extractor&)
+        catch (const no_deserializer&)
         { }
 
         try
@@ -198,17 +198,17 @@ struct tagged_lookup
 
     friend std::ostream& operator<<(std::ostream& os, const tagged_lookup& self)
     {
-        return os << "extracted " << self.extracted << " by " << self.ex
+        return os << "deserialized " << self.deserialized << " by " << self.ex
                   << ", serialized " << self.serialized << " by " << self.ser;
     }
 };
 
 }
 
-TEST(formats_refused_adapter_registration_takes_back_its_extractor)
+TEST(formats_refused_adapter_registration_takes_back_its_deserializer)
 {
-    // An adapter registers its extractor before its serializer, so a serializer already there for the type is only
-    // found once the extractor is in -- and refusing the registration then has to take that extractor back out.
+    // An adapter registers its deserializer before its serializer, so a serializer already there for the type is only
+    // found once the deserializer is in -- and refusing the registration then has to take that deserializer back out.
     const auto existing = std::make_shared<tagged_adapter>(2);
     const auto incoming = std::make_shared<tagged_adapter>(3);
 
@@ -232,7 +232,7 @@ namespace
 /// takes a share of what it registers, and the call itself.
 struct registration
 {
-    bool extracts;
+    bool deserializes;
     bool serializes;
     bool shares;
     void (*perform)(formats&, const std::shared_ptr<const adapter>&, duplicate_type_action);
@@ -241,9 +241,9 @@ struct registration
 const registration registrations[] =
 {
     { true,  false, false, [] (formats& fmts, const auto& adp, auto action)
-                           { fmts.register_extractor(adp.get(), action); } },
+                           { fmts.register_deserializer(adp.get(), action); } },
     { true,  false, true,  [] (formats& fmts, const auto& adp, auto action)
-                           { fmts.register_extractor(std::shared_ptr<const extractor>(adp), action); } },
+                           { fmts.register_deserializer(std::shared_ptr<const deserializer>(adp), action); } },
     { false, true,  false, [] (formats& fmts, const auto& adp, auto action)
                            { fmts.register_serializer(adp.get(), action); } },
     { false, true,  true,  [] (formats& fmts, const auto& adp, auto action)
@@ -261,10 +261,10 @@ const registration registrations[] =
 ///
 /// An attempt which fails has to leave the \c formats doing exactly what it did before, holding no share of the new
 /// adapter. The one which goes through has to have done what its action says: a direction it registers answers with
-/// the new adapter unless \c ignore found an entry there, which \a local_extractor and \a local_serializer tell. An
+/// the new adapter unless \c ignore found an entry there, which \a local_deserializer and \a local_serializer tell. An
 /// entry in a base does not count, since \c ignore only looks at the \c formats it is given.
 template <typename FPrepare>
-void check_failed_registrations(const FPrepare& prepare, bool local_extractor, bool local_serializer)
+void check_failed_registrations(const FPrepare& prepare, bool local_deserializer, bool local_serializer)
 {
     const std::shared_ptr<const adapter> incoming = std::make_shared<tagged_adapter>(3);
 
@@ -308,10 +308,10 @@ void check_failed_registrations(const FPrepare& prepare, bool local_extractor, b
 
                 const bool    replace  = action == duplicate_type_action::replace;
                 tagged_lookup expected = before;
-                if (reg.extracts && (replace || !local_extractor))
+                if (reg.deserializes && (replace || !local_deserializer))
                 {
                     expected.ex        = incoming.get();
-                    expected.extracted = 3;
+                    expected.deserialized = 3;
                 }
                 if (reg.serializes && (replace || !local_serializer))
                 {
@@ -338,7 +338,7 @@ TEST(formats_failed_registration_keeps_half_an_adapter)
     // Registering an adapter over half of one finds one entry and adds the other, so the entry it found is only safe if
     // failing to add the other leaves it alone.
     const auto existing = std::make_shared<tagged_adapter>(2);
-    check_failed_registrations([&] { formats fmts; fmts.register_extractor(existing); return fmts; }, true, false);
+    check_failed_registrations([&] { formats fmts; fmts.register_deserializer(existing); return fmts; }, true, false);
     check_failed_registrations([&] { formats fmts; fmts.register_serializer(existing); return fmts; }, false, true);
 }
 
@@ -371,7 +371,7 @@ TEST(formats_failed_registration_takes_back_what_it_added)
 
 #endif
 
-TEST(extract_basics)
+TEST(deserialize_basics)
 {
     value val = parse(R"({
                         "i": 5,
@@ -380,36 +380,36 @@ TEST(extract_basics)
                         "a": [ 1, 2, 3 ],
                         "o": { "i": 5, "d": 4.5 }
                       })");
-    extraction_context cxt(formats::defaults());
+    deserialization_context cxt(formats::defaults());
     ensure(cxt.user_data() == nullptr);
-    ensure_eq(val, cxt.extract<value>(val));
-    ensure_eq(5, cxt.extract<std::int8_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint8_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::int16_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint16_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::int32_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint32_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::int64_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint64_t>(val.at("i")));
-    ensure_eq(4.5f, cxt.extract<float>(val.at("d")));
-    ensure_eq(4.5, cxt.extract<double>(val.at("d")));
-    ensure_eq("thing", cxt.extract<std::string>(val.at("s")));
+    ensure_eq(val, cxt.deserialize<value>(val));
+    ensure_eq(5, cxt.deserialize<std::int8_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint8_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::int16_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint16_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::int32_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint32_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::int64_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint64_t>(val.at("i")));
+    ensure_eq(4.5f, cxt.deserialize<float>(val.at("d")));
+    ensure_eq(4.5, cxt.deserialize<double>(val.at("d")));
+    ensure_eq("thing", cxt.deserialize<std::string>(val.at("s")));
     try
     {
-        extraction_context::path_scope scope(cxt, "o");
-        (void) cxt.extract<unassociated>(val.at("o"));
-        ensure(!"extraction_error was not thrown");
+        deserialization_context::path_scope scope(cxt, "o");
+        (void) cxt.deserialize<unassociated>(val.at("o"));
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const extraction_error& extract_err)
+    catch (const deserialization_error& deserialize_err)
     {
-        ensure_eq(path::create(".o"), extract_err.path());
-        ensure(extract_err.nested_ptr());
+        ensure_eq(path::create(".o"), deserialize_err.path());
+        ensure(deserialize_err.nested_ptr());
 
         try
         {
-            std::rethrow_exception(extract_err.nested_ptr());
+            std::rethrow_exception(deserialize_err.nested_ptr());
         }
-        catch (const no_extractor& noex)
+        catch (const no_deserializer& noex)
         {
             ensure_eq(demangle(typeid(unassociated).name()), noex.type_name());
             ensure(noex.type_index() == std::type_index(typeid(unassociated)));
@@ -417,49 +417,49 @@ TEST(extract_basics)
     }
 }
 
-TEST(extract_object)
+TEST(deserialize_object)
 {
     formats fmts = formats::compose({ formats::defaults() });
-    fmts.register_extractor(my_thing::get_extractor());
+    fmts.register_deserializer(my_thing::get_deserializer());
 
-    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
+    my_thing res = deserialize<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
     to_string(res);
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
-TEST(extract_object_with_unique_extractor)
+TEST(deserialize_object_with_unique_deserializer)
 {
     formats fmts = formats::compose({ formats::defaults() });
-    fmts.register_extractor(std::unique_ptr<extractor>(new extractor_construction<my_thing>()));
+    fmts.register_deserializer(std::unique_ptr<deserializer>(new deserializer_construction<my_thing>()));
 
-    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
+    my_thing res = deserialize<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
-TEST(extract_object_search)
+TEST(deserialize_object_search)
 {
     formats base_fmts;
-    base_fmts.register_extractor(my_thing::get_extractor());
+    base_fmts.register_deserializer(my_thing::get_deserializer());
     formats fmts = formats::compose({ formats::defaults(), base_fmts });
 
-    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
+    my_thing res = deserialize<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"), fmts);
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
-TEST(extract_object_with_globals)
+TEST(deserialize_object_with_globals)
 {
     {
         formats base_fmts;
-        base_fmts.register_extractor(my_thing::get_extractor());
+        base_fmts.register_deserializer(my_thing::get_deserializer());
         formats::set_global(formats::compose({ formats::defaults(), base_fmts }));
     }
     auto reset_global_on_exit = jsonv::detail::on_scope_exit([] { formats::reset_global(); });
 
-    my_thing res = extract<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"));
+    my_thing res = deserialize<my_thing>(parse(R"({ "a": 1, "b": 2, "c": "thing" })"));
     ensure_eq(my_thing(1, 2, "thing"), res);
 }
 
-TEST(extract_coerce)
+TEST(deserialize_coerce)
 {
     value val = parse(R"({
                         "i": 5,
@@ -468,58 +468,59 @@ TEST(extract_coerce)
                         "a": [ 1, 2, 3 ],
                         "o": { "i": 5, "d": 4.5 }
                       })");
-    extraction_context cxt(formats::coerce());
+    deserialization_context cxt(formats::coerce());
 
     // regular
-    ensure_eq(val, cxt.extract<value>(val));
-    ensure_eq(5, cxt.extract<std::int8_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint8_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::int16_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint16_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::int32_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint32_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::int64_t>(val.at("i")));
-    ensure_eq(5, cxt.extract<std::uint64_t>(val.at("i")));
-    ensure_eq(4.5f, cxt.extract<float>(val.at("d")));
-    ensure_eq(4.5, cxt.extract<double>(val.at("d")));
-    ensure_eq("10", cxt.extract<std::string>(val.at("s")));
+    ensure_eq(val, cxt.deserialize<value>(val));
+    ensure_eq(5, cxt.deserialize<std::int8_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint8_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::int16_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint16_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::int32_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint32_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::int64_t>(val.at("i")));
+    ensure_eq(5, cxt.deserialize<std::uint64_t>(val.at("i")));
+    ensure_eq(4.5f, cxt.deserialize<float>(val.at("d")));
+    ensure_eq(4.5, cxt.deserialize<double>(val.at("d")));
+    ensure_eq("10", cxt.deserialize<std::string>(val.at("s")));
 
     // some coercing...
-    ensure_eq("5", cxt.extract<std::string>(val.at("i")));
-    ensure_eq(10, cxt.extract<int>(val.at("s")));
+    ensure_eq("5", cxt.deserialize<std::string>(val.at("i")));
+    ensure_eq(10, cxt.deserialize<int>(val.at("s")));
 }
 
-// Tests that even if we throw a completely bogus exception type, the extraction_context wraps it in an extraction_error
-TEST(extractor_throws_random_thing)
+// Tests that even if we throw a completely bogus exception type, the deserialization_context wraps it in a
+// deserialization_error
+TEST(deserializer_throws_random_thing)
 {
-    static auto instance = make_extractor([] (const value& from) -> unassociated { throw from; });
+    static auto instance = make_deserializer([] (const value& from) -> unassociated { throw from; });
     formats locals;
-    locals.register_extractor(&instance);
+    locals.register_deserializer(&instance);
 
     value val = object({ { "a", 1 } });
 
-    extraction_context cxt(locals);
-    ensure_throws(extraction_error, cxt.extract<unassociated>(val));
-    ensure_throws(extraction_error, cxt.extract<unassociated>(val.at("a")));
+    deserialization_context cxt(locals);
+    ensure_throws(deserialization_error, cxt.deserialize<unassociated>(val));
+    ensure_throws(deserialization_error, cxt.deserialize<unassociated>(val.at("a")));
 }
 
 // For a non-const lvalue, a constructor taking a forwarding reference is a better match than the copy constructor. Left
 // unconstrained, copying an adapter tried to build the wrapped function from the adapter and did not compile.
 TEST(function_adapters_copy_from_non_const)
 {
-    auto extract_fn = [] (const value& from) { return from.as_integer() + 1; };
-    function_extractor<std::int64_t, decltype(extract_fn)> extractor(extract_fn);
-    function_extractor<std::int64_t, decltype(extract_fn)> extractor_copy(extractor);
+    auto deserialize_fn = [] (const value& from) { return from.as_integer() + 1; };
+    function_deserializer<std::int64_t, decltype(deserialize_fn)> deserializer(deserialize_fn);
+    function_deserializer<std::int64_t, decltype(deserialize_fn)> deserializer_copy(deserializer);
 
     auto serialize_fn = [] (const serialization_context&, const std::int64_t& from) { return value(from + 1); };
     function_serializer<std::int64_t, decltype(serialize_fn)> serializer(serialize_fn);
     function_serializer<std::int64_t, decltype(serialize_fn)> serializer_copy(serializer);
 
     formats locals;
-    locals.register_extractor(&extractor_copy);
+    locals.register_deserializer(&deserializer_copy);
     locals.register_serializer(&serializer_copy);
 
-    ensure_eq(8, extraction_context(locals).extract<std::int64_t>(value(7)));
+    ensure_eq(8, deserialization_context(locals).deserialize<std::int64_t>(value(7)));
     ensure_eq(value(8), serialization_context(locals).to_json(std::int64_t(7)));
 }
 

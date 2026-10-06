@@ -1064,12 +1064,12 @@ namespace
 
 value extract_single(parse_index::const_iterator& iter,
                      parse_index::const_iterator  last,
-                     const extract_options&       options
+                     const deserialize_options&       options
                     );
 
 value extract_object(parse_index::const_iterator& iter,
                      parse_index::const_iterator  last,
-                     const extract_options&       options
+                     const deserialize_options&       options
                     )
 {
     auto first_token = *iter;
@@ -1104,14 +1104,14 @@ value extract_object(parse_index::const_iterator& iter,
 
         switch (options.on_duplicate_key())
         {
-        case extract_options::duplicate_key_action::replace:
+        case deserialize_options::duplicate_key_action::replace:
             out[std::move(key)] = std::move(val);
             break;
-        case extract_options::duplicate_key_action::ignore:
+        case deserialize_options::duplicate_key_action::ignore:
             if (out.find(key) == out.end_object())
                 out[std::move(key)] = std::move(val);
             break;
-        case extract_options::duplicate_key_action::exception:
+        case deserialize_options::duplicate_key_action::exception:
             if (out.find(key) == out.end_object())
             {
                 out[std::move(key)] = std::move(val);
@@ -1120,7 +1120,7 @@ value extract_object(parse_index::const_iterator& iter,
             {
                 std::ostringstream os;
                 os << "Duplicate key in object: \"" << key << "\"";
-                throw extraction_error(path(), std::move(os).str());
+                throw deserialization_error(path(), std::move(os).str());
             }
             break;
         }
@@ -1132,7 +1132,7 @@ value extract_object(parse_index::const_iterator& iter,
 
 value extract_array(parse_index::const_iterator& iter,
                     parse_index::const_iterator  last,
-                    const extract_options&       options
+                    const deserialize_options&       options
                    )
 {
     auto first_token = *iter;
@@ -1167,7 +1167,7 @@ value extract_array(parse_index::const_iterator& iter,
 
 value extract_single(parse_index::const_iterator& iter,
                      parse_index::const_iterator  last,
-                     const extract_options&       options
+                     const deserialize_options&       options
                     )
 {
     if (iter == last)
@@ -1201,7 +1201,7 @@ value extract_single(parse_index::const_iterator& iter,
 
 }
 
-value parse_index::extract_tree(const extract_options& options) const
+value parse_index::extract_tree(const deserialize_options& options) const
 {
     if (!_impl)
         throw std::invalid_argument("AST index was not initialized");
@@ -1236,7 +1236,7 @@ value parse_index::extract_tree(const extract_options& options) const
 
 value parse_index::extract_tree() const
 {
-    return extract_tree(extract_options::create_default());
+    return extract_tree(deserialize_options::create_default());
 }
 
 }

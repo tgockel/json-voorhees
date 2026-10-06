@@ -41,35 +41,35 @@ duplicate_type_error::duplicate_type_error(const std::string& operation, const s
 duplicate_type_error::~duplicate_type_error() noexcept = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// no_extractor                                                                                                       //
+// no_deserializer                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string make_no_serializer_extractor_errmsg(const char* kind, const std::type_index& type)
+static std::string make_no_serializer_deserializer_errmsg(const char* kind, const std::type_index& type)
 {
     std::ostringstream ss;
     ss << "Could not find " << kind << " for type: " << demangle(type.name());
     return ss.str();
 }
 
-no_extractor::no_extractor(const std::type_index& type) :
-        runtime_error(make_no_serializer_extractor_errmsg("extractor", type)),
+no_deserializer::no_deserializer(const std::type_index& type) :
+        runtime_error(make_no_serializer_deserializer_errmsg("deserializer", type)),
         _type_index(type),
         _type_name(demangle(type.name()))
 { }
 
-no_extractor::no_extractor(const std::type_info& type) :
-        no_extractor(std::type_index(type))
+no_deserializer::no_deserializer(const std::type_info& type) :
+        no_deserializer(std::type_index(type))
 { }
 
-no_extractor::~no_extractor() noexcept
+no_deserializer::~no_deserializer() noexcept
 { }
 
-std::type_index no_extractor::type_index() const
+std::type_index no_deserializer::type_index() const
 {
     return _type_index;
 }
 
-std::string_view no_extractor::type_name() const
+std::string_view no_deserializer::type_name() const
 {
     return _type_name;
 }
@@ -79,7 +79,7 @@ std::string_view no_extractor::type_name() const
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 no_serializer::no_serializer(const std::type_index& type) :
-        runtime_error(make_no_serializer_extractor_errmsg("serializer", type)),
+        runtime_error(make_no_serializer_deserializer_errmsg("serializer", type)),
         _type_index(type),
         _type_name(demangle(type.name()))
 { }
@@ -108,16 +108,16 @@ std::string_view no_serializer::type_name() const
 struct JSONV_LOCAL formats::data
 {
 public:
-    using roots_list      = std::vector<std::shared_ptr<const data>>;
-    using extractor_map   = std::unordered_map<std::type_index, const extractor*>;
-    using serializer_map  = std::unordered_map<std::type_index, const serializer*>;
-    using owned_items_set = std::unordered_set<std::shared_ptr<const void>>;
+    using roots_list       = std::vector<std::shared_ptr<const data>>;
+    using deserializer_map = std::unordered_map<std::type_index, const deserializer*>;
+    using serializer_map   = std::unordered_map<std::type_index, const serializer*>;
+    using owned_items_set  = std::unordered_set<std::shared_ptr<const void>>;
 
 public:
     /// The previous data this comes from...this allows us to make a huge tree of formats with custom extension points.
     roots_list roots;
 
-    extractor_map extractors;
+    deserializer_map deserializers;
 
     owned_items_set owned_items;
 
@@ -128,12 +128,12 @@ public:
     { }
 
 public:
-    const extractor* find_extractor(const std::type_index& typeidx) const
+    const deserializer* find_deserializer(const std::type_index& typeidx) const
     {
-        return find_impl<extractor>(this,
-                                    typeidx,
-                                    [] (const data* self) -> const extractor_map& { return self->extractors; }
-                                   );
+        return find_impl<deserializer>(this,
+                                       typeidx,
+                                       [] (const data* self) -> const deserializer_map& { return self->deserializers; }
+                                      );
     }
 
     const serializer* find_serializer(const std::type_index& typeidx) const
@@ -169,7 +169,7 @@ public:
     }
 
 public:
-    /// What \c insert_extractor or \c insert_serializer did to the entry for one type, so that a registration which
+    /// What \c insert_deserializer or \c insert_serializer did to the entry for one type, so that a registration which
     /// fails further on can put the entry back as it found it. The iterator stays good because a registration changes
     /// each map at most once and does nothing to that map afterward.
     template <typename TMap>
@@ -190,34 +190,34 @@ public:
         }
     };
 
-    insertion<extractor_map> insert_extractor(const extractor* ex, duplicate_type_action action)
+    insertion<deserializer_map> insert_deserializer(const deserializer* ex, duplicate_type_action action)
     {
         std::type_index typeidx(ex->get_type());
-        auto iter = extractors.find(typeidx);
-        if (iter != end(extractors))
+        auto iter = deserializers.find(typeidx);
+        if (iter != end(deserializers))
         {
             if (duplicate_type_action::exception == action)
             {
-                throw duplicate_type_error("an extractor", typeidx);
+                throw duplicate_type_error("a deserializer", typeidx);
             }
 
-            const extractor* previous = iter->second;
+            const deserializer* previous = iter->second;
             if (duplicate_type_action::replace == action)
             {
                 iter->second = ex;
             }
 
-            return { extractors, iter, previous };
+            return { deserializers, iter, previous };
         }
         else
         {
-            return { extractors, extractors.emplace(typeidx, ex).first, nullptr };
+            return { deserializers, deserializers.emplace(typeidx, ex).first, nullptr };
         }
     }
 
-    void insert_extractor(std::shared_ptr<const extractor> ex, duplicate_type_action action)
+    void insert_deserializer(std::shared_ptr<const deserializer> ex, duplicate_type_action action)
     {
-        auto inserted = insert_extractor(ex.get(), action);
+        auto inserted = insert_deserializer(ex.get(), action);
         auto rollback = detail::on_scope_exit([&inserted] { inserted.revert(); });
         owned_items.insert(std::move(ex));
         rollback.release();
@@ -258,7 +258,7 @@ public:
 
     void insert_adapter(const adapter* adp, duplicate_type_action action)
     {
-        auto inserted = insert_extractor(adp, action);
+        auto inserted = insert_deserializer(adp, action);
         auto rollback = detail::on_scope_exit([&inserted] { inserted.revert(); });
         insert_serializer(adp, action);
         rollback.release();
@@ -266,7 +266,7 @@ public:
 
     void insert_adapter(std::shared_ptr<const adapter> adp, duplicate_type_action action)
     {
-        auto inserted_ex = insert_extractor(adp.get(), action);
+        auto inserted_ex = insert_deserializer(adp.get(), action);
         auto rollback_ex = detail::on_scope_exit([&inserted_ex] { inserted_ex.revert(); });
         auto inserted_ser = insert_serializer(adp.get(), action);
         auto rollback_ser = detail::on_scope_exit([&inserted_ser] { inserted_ser.revert(); });
@@ -302,27 +302,27 @@ formats formats::compose(const list& bases)
 formats::~formats() noexcept
 { }
 
-const extractor& formats::get_extractor(std::type_index type) const
+const deserializer& formats::get_deserializer(std::type_index type) const
 {
-    const extractor* ex = _data->find_extractor(type);
+    const deserializer* ex = _data->find_deserializer(type);
     if (ex)
         return *ex;
     else
-        throw no_extractor(type);
+        throw no_deserializer(type);
 }
 
-const extractor& formats::get_extractor(const std::type_info& type) const
+const deserializer& formats::get_deserializer(const std::type_info& type) const
 {
-    return get_extractor(std::type_index(type));
+    return get_deserializer(std::type_index(type));
 }
 
-std::expected<void, ast_node_type> formats::extract(const std::type_info& type,
-                                                    reader&               from,
-                                                    void*                 into,
-                                                    extraction_context&   context
-                                                   ) const
+std::expected<void, ast_node_type> formats::deserialize(const std::type_info& type,
+                                                        reader&               from,
+                                                        void*                 into,
+                                                        deserialization_context&   context
+                                                       ) const
 {
-    return get_extractor(type).extract(context, from, into);
+    return get_deserializer(type).deserialize(context, from, into);
 }
 
 const serializer& formats::get_serializer(std::type_index type) const
@@ -347,14 +347,14 @@ value formats::to_json(const std::type_info& type,
     return get_serializer(type).to_json(context, from);
 }
 
-void formats::register_extractor(const extractor* ex, duplicate_type_action action)
+void formats::register_deserializer(const deserializer* ex, duplicate_type_action action)
 {
-    _data->insert_extractor(ex, action);
+    _data->insert_deserializer(ex, action);
 }
 
-void formats::register_extractor(std::shared_ptr<const extractor> ex, duplicate_type_action action)
+void formats::register_deserializer(std::shared_ptr<const deserializer> ex, duplicate_type_action action)
 {
-    _data->insert_extractor(std::move(ex), action);
+    _data->insert_deserializer(std::move(ex), action);
 }
 
 void formats::register_serializer(const serializer* ser, duplicate_type_action action)

@@ -218,7 +218,7 @@ value integer_node_value(const ast_node::integer& node)
     else if (val.error() == std::errc::result_out_of_range)
     {
         // JSON puts no bound on an integer, so a literal too large for 64 bits is still a number and has a nearest
-        // `double`. Keeping it as a decimal rather than refusing the document is what the `double` extractor already
+        // `double`. Keeping it as a decimal rather than refusing the document is what the `double` deserializer already
         // does with the same token, and the kind is what tells a caller who asks for `as_integer` that it was not one.
         // An integer token cannot underflow, so the only failure left is a magnitude with no finite `double` either.
         auto   end = characters.data() + characters.size();

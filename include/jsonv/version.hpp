@@ -18,8 +18,8 @@
 namespace jsonv
 {
 
-/// Represents a version used to extract and encode JSON objects from C++ classes. This is useful for API versioning: if
-/// you need certain fields to be serialized only after a certain version or only before a different one.
+/// Represents a version used to deserialize and encode JSON objects from C++ classes. This is useful for API
+/// versioning: if you need certain fields to be serialized only after a certain version or only before a different one.
 struct JSONV_PUBLIC version
 {
 public:

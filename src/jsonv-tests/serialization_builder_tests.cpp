@@ -12,7 +12,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
-#include <jsonv/serialization/function_extractor.hpp>
+#include <jsonv/serialization/function_deserializer.hpp>
 
 #include <array>
 #include <optional>
@@ -107,7 +107,7 @@ TEST(serialization_builder_members)
     value encoded = to_json(p, fmt);
     ensure_eq(expected, encoded);
 
-    person q = extract<person>(encoded, fmt);
+    person q = deserialize<person>(encoded, fmt);
     ensure_eq(expected, encoded);
 }
 
@@ -158,14 +158,14 @@ TEST(serialization_builder_container_members)
                            );
     auto encoded = to_json(p, fmt);
     ensure_eq(expected, encoded);
-    person q = extract<person>(encoded, fmt);
+    person q = deserialize<person>(encoded, fmt);
     ensure_eq(p, q);
 }
 
 TEST(serialization_builder_extract_extra_keys)
 {
     std::set<std::string> extra_keys;
-    auto extra_keys_handler = [&extra_keys] (extraction_context&, std::set<std::string> x)
+    auto extra_keys_handler = [&extra_keys] (deserialization_context&, std::set<std::string> x)
                               {
                                   extra_keys = std::move(x);
                               };
@@ -188,14 +188,14 @@ TEST(serialization_builder_extract_extra_keys)
                            }
                           );
 
-    person q = extract<person>(encoded, fmt);
+    person q = deserialize<person>(encoded, fmt);
     ensure_eq(p, q);
     ensure(extra_keys == std::set<std::string>({ "extra1", "extra2" }));
 }
 
 TEST(serialization_builder_post_extract_single)
 {
-    auto post_extract_handler = [] (const extraction_context&, person&& p) -> person
+    auto post_extract_handler = [] (const deserialization_context&, person&& p) -> person
                               {
                                   p.age++;
                                   return p;
@@ -212,19 +212,19 @@ TEST(serialization_builder_post_extract_single)
 
     person p("Bob", "Builder", 29);
     auto encoded = to_json(p, fmt);
-    person q = extract<person>(encoded, fmt);
+    person q = deserialize<person>(encoded, fmt);
     ensure_eq(person("Bob", "Builder", 30), q);
 }
 
 TEST(serialization_builder_post_extract_multi)
 {
-    auto post_extract_handler_1 = [] (const extraction_context&, person&& p)
+    auto post_extract_handler_1 = [] (const deserialization_context&, person&& p)
                                 {
                                     p.age++;
                                     return p;
                                 };
 
-    auto post_extract_handler_2 = [] (const extraction_context&, person&& p)
+    auto post_extract_handler_2 = [] (const deserialization_context&, person&& p)
                                 {
                                     p.lastname = "Mc" + p.lastname;
                                     return p;
@@ -242,7 +242,7 @@ TEST(serialization_builder_post_extract_multi)
 
     person p("Bob", "Builder", 29);
     auto encoded = to_json(p, fmt);
-    person q = extract<person>(encoded, fmt);
+    person q = deserialize<person>(encoded, fmt);
     ensure_eq(person("Bob", "McBuilder", 30), q);
 }
 
@@ -258,10 +258,10 @@ TEST(serialization_builder_defaults)
                         .member("winning_numbers",  &person::winning_numbers)
                             // Computed from a sibling, which the default can read because it is taken once the walk
                             // is done -- for the `null` below as much as for a key which never arrived.
-                            .default_value([] (extraction_context& cxt)
+                            .default_value([] (deserialization_context& cxt)
                                            {
                                                const value& source = cxt.source_value().value();
-                                               return cxt.extract<std::vector<long>>(source.at("favorite_numbers"));
+                                               return cxt.deserialize<std::vector<long>>(source.at("favorite_numbers"));
                                            }
                                           )
                             .default_on_null()
@@ -276,16 +276,16 @@ TEST(serialization_builder_defaults)
                            { "winning_numbers",  null                 },
                          }
                         );
-    ensure_eq(p, extract<person>(input, fmt));
-    ensure_eq(p, extract<person>(std::string_view(to_string(input)), fmt));
+    ensure_eq(p, deserialize<person>(input, fmt));
+    ensure_eq(p, deserialize<person>(std::string_view(to_string(input)), fmt));
 
     value missing = input;
     missing.erase("winning_numbers");
-    ensure_eq(p, extract<person>(missing, fmt));
-    ensure_eq(p, extract<person>(std::string_view(to_string(missing)), fmt));
+    ensure_eq(p, deserialize<person>(missing, fmt));
+    ensure_eq(p, deserialize<person>(std::string_view(to_string(missing)), fmt));
 
     auto encoded = to_json(p, fmt);
-    person q = extract<person>(encoded, fmt);
+    person q = deserialize<person>(encoded, fmt);
     ensure_eq(p, q);
 }
 
@@ -305,7 +305,7 @@ TEST(serialization_builder_defaults_are_taken_from_a_document_missing_them)
                         .member("winning_numbers",  &person::winning_numbers)
                             .default_value(std::vector<long>())
                             .default_on_null()
-                        .post_extract([] (extraction_context&, person&& out) -> person
+                        .post_extract([] (deserialization_context&, person&& out) -> person
                                       {
                                           if (out.winning_numbers.empty())
                                               out.winning_numbers.assign(begin(out.favorite_numbers),
@@ -325,7 +325,7 @@ TEST(serialization_builder_defaults_are_taken_from_a_document_missing_them)
                          }
                         );
 
-    person q = extract<person>(input, fmt);
+    person q = deserialize<person>(input, fmt);
     ensure_eq(person("Bob", "Builder", 20, { 1, 2, 3, 4 }, { 1, 2, 3, 4 }), q);
 }
 
@@ -416,7 +416,7 @@ TEST(serialization_builder_extra_unchecked_key)
                                 { "w", "Only serialized before 5.0" }
                               }
                              );
-    bar x = jsonv::extract<bar>(val, format);
+    bar x = jsonv::deserialize<bar>(val, format);
 }
 
 TEST(serialization_builder_extra_unchecked_key_throws)
@@ -424,7 +424,7 @@ TEST(serialization_builder_extra_unchecked_key_throws)
     jsonv::formats local_formats =
         jsonv::formats_builder()
             .type<foo>()
-               .on_extract_extra_keys(jsonv::throw_extra_keys_extraction_error)
+               .on_extract_extra_keys(jsonv::throw_extra_keys_deserialization_error)
                .member("a", &foo::a)
                .member("b", &foo::b)
                    .default_value(10)
@@ -448,10 +448,10 @@ TEST(serialization_builder_extra_unchecked_key_throws)
                              );
     try
     {
-        (void) jsonv::extract<bar>(val, format);
-        throw std::runtime_error("Should have thrown an extraction_error");
+        (void) jsonv::deserialize<bar>(val, format);
+        throw std::runtime_error("Should have thrown a deserialization_error");
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         ensure_eq(path({"x"}), err.path());
     }
@@ -470,7 +470,7 @@ TEST(serialization_builder_type_based_default_value)
         ;
     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
 
-    auto f = jsonv::extract<foo>(value(), format);
+    auto f = jsonv::deserialize<foo>(value(), format);
     auto e = foo::create_default();
     ensure_eq(e.a, f.a);
     ensure_eq(e.b, f.b);
@@ -556,25 +556,25 @@ TEST(serialization_builder_enum_strings)
             .register_containers<ring, std::vector>()
             .check_references();
 
-    ensure(ring::fire  == jsonv::extract<ring>(jsonv::value("fire"),  formats));
-    ensure(ring::wind  == jsonv::extract<ring>(jsonv::value("wind"),  formats));
-    ensure(ring::water == jsonv::extract<ring>(jsonv::value("water"), formats));
-    ensure(ring::earth == jsonv::extract<ring>(jsonv::value("earth"), formats));
-    ensure(ring::heart == jsonv::extract<ring>(jsonv::value("heart"), formats));
+    ensure(ring::fire  == jsonv::deserialize<ring>(jsonv::value("fire"),  formats));
+    ensure(ring::wind  == jsonv::deserialize<ring>(jsonv::value("wind"),  formats));
+    ensure(ring::water == jsonv::deserialize<ring>(jsonv::value("water"), formats));
+    ensure(ring::earth == jsonv::deserialize<ring>(jsonv::value("earth"), formats));
+    ensure(ring::heart == jsonv::deserialize<ring>(jsonv::value("heart"), formats));
 
     // A C++ string is JSON text, so the same string written as a document needs its quotes.
-    ensure(ring::fire  == jsonv::extract<ring>(R"("fire")", formats));
+    ensure(ring::fire  == jsonv::deserialize<ring>(R"("fire")", formats));
 
     jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
     std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
-    std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
+    std::vector<ring> val = jsonv::deserialize<std::vector<ring>>(jsons, formats);
     ensure(val == exp);
 
     value enc = jsonv::to_json(exp, formats);
     ensure(enc == jsons);
 
-    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(jsonv::value("FIRE"),    formats));
-    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(jsonv::value("useless"), formats));
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<ring>(jsonv::value("FIRE"),    formats));
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<ring>(jsonv::value("useless"), formats));
 }
 
 TEST(serialization_builder_enum_strings_icase)
@@ -595,21 +595,21 @@ TEST(serialization_builder_enum_strings_icase)
             .register_containers<ring, std::vector>()
             .check_references(jsonv::formats::defaults());
 
-    ensure(ring::fire  == jsonv::extract<ring>(jsonv::value("fiRe"),  formats));
-    ensure(ring::wind  == jsonv::extract<ring>(jsonv::value("wIND"),  formats));
-    ensure(ring::water == jsonv::extract<ring>(jsonv::value("Water"), formats));
-    ensure(ring::earth == jsonv::extract<ring>(jsonv::value("EARTH"), formats));
-    ensure(ring::heart == jsonv::extract<ring>(jsonv::value("HEART"), formats));
+    ensure(ring::fire  == jsonv::deserialize<ring>(jsonv::value("fiRe"),  formats));
+    ensure(ring::wind  == jsonv::deserialize<ring>(jsonv::value("wIND"),  formats));
+    ensure(ring::water == jsonv::deserialize<ring>(jsonv::value("Water"), formats));
+    ensure(ring::earth == jsonv::deserialize<ring>(jsonv::value("EARTH"), formats));
+    ensure(ring::heart == jsonv::deserialize<ring>(jsonv::value("HEART"), formats));
 
     jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
     std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
-    std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
+    std::vector<ring> val = jsonv::deserialize<std::vector<ring>>(jsons, formats);
     ensure(val == exp);
 
     value enc = jsonv::to_json(exp, formats);
     ensure(enc == jsons);
 
-    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(jsonv::value("useless"), formats));
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<ring>(jsonv::value("useless"), formats));
 }
 
 TEST(serialization_builder_enum_strings_icase_multimapping)
@@ -633,25 +633,25 @@ TEST(serialization_builder_enum_strings_icase_multimapping)
             .register_containers<ring, std::vector>()
             .check_references(jsonv::formats::defaults());
 
-    ensure(ring::fire  == jsonv::extract<ring>(jsonv::value("fiRe"),  formats));
-    ensure(ring::fire  == jsonv::extract<ring>(666,     formats));
-    ensure(ring::wind  == jsonv::extract<ring>(jsonv::value("wIND"),  formats));
-    ensure(ring::water == jsonv::extract<ring>(jsonv::value("Water"), formats));
-    ensure(ring::earth == jsonv::extract<ring>(jsonv::value("EARTH"), formats));
-    ensure(ring::earth == jsonv::extract<ring>(true, formats));
-    ensure(ring::heart == jsonv::extract<ring>(jsonv::value("HEART"), formats));
-    ensure(ring::heart == jsonv::extract<ring>(jsonv::value("useless"), formats));
+    ensure(ring::fire  == jsonv::deserialize<ring>(jsonv::value("fiRe"),  formats));
+    ensure(ring::fire  == jsonv::deserialize<ring>(666,     formats));
+    ensure(ring::wind  == jsonv::deserialize<ring>(jsonv::value("wIND"),  formats));
+    ensure(ring::water == jsonv::deserialize<ring>(jsonv::value("Water"), formats));
+    ensure(ring::earth == jsonv::deserialize<ring>(jsonv::value("EARTH"), formats));
+    ensure(ring::earth == jsonv::deserialize<ring>(true, formats));
+    ensure(ring::heart == jsonv::deserialize<ring>(jsonv::value("HEART"), formats));
+    ensure(ring::heart == jsonv::deserialize<ring>(jsonv::value("useless"), formats));
 
     jsonv::value jsons = jsonv::array({ "fire", "wind", "water", "earth", "heart" });
     std::vector<ring> exp = { ring::fire, ring::wind, ring::water, ring::earth, ring::heart };
-    std::vector<ring> val = jsonv::extract<std::vector<ring>>(jsons, formats);
+    std::vector<ring> val = jsonv::deserialize<std::vector<ring>>(jsons, formats);
     ensure(val == exp);
 
     value enc = jsonv::to_json(exp, formats);
     ensure(enc == jsons);
 
-    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(false, formats));
-    ensure_throws(jsonv::extraction_error, jsonv::extract<ring>(5,     formats));
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<ring>(false, formats));
+    ensure_throws(jsonv::deserialization_error, jsonv::deserialize<ring>(5,     formats));
 }
 
 namespace
@@ -750,7 +750,7 @@ TEST(serialization_builder_polymorphic_direct)
 
     auto fmts = make_fmts(b_derived::json_adapt, c_derived::json_adapt);
     value input = array({ object({{ "type", "a" }}), object({{ "type", "b" }}), object({{ "type", "c" }}) });
-    auto output = extract<std::vector<std::unique_ptr<base>>>(input, fmts);
+    auto output = deserialize<std::vector<std::unique_ptr<base>>>(input, fmts);
 
     ensure(output.at(0)->get() == "a");
     ensure(output.at(1)->get() == "b");
@@ -779,16 +779,19 @@ TEST(serialization_builder_duplicate_type_actions)
 {
     // Make one adapter that serializes and deserializes an int directly.
     static const auto adapter1 = make_adapter(
-        [](const extraction_context&, const value& v) { return sometype{v.as_integer()}; },
+        [](const deserialization_context&, const value& v) { return sometype{v.as_integer()}; },
         [](const serialization_context&, const sometype& v) { return value(v.v); });
 
     // Make another adapter that adds one each time an int is serialized and deserialized.
     static const auto adapter2 = make_adapter(
-        [](const extraction_context&, const value& v) { return sometype{v.as_integer() + 1}; },
+        [](const deserialization_context&, const value& v) { return sometype{v.as_integer() + 1}; },
         [](const serialization_context&, const sometype& v) { return value(v.v + 1); });
 
     // Helper that serializes then deserializes an integer and returns the result.
-    static const auto serde = [] (int v, const formats& f) { return extract<sometype>(to_json(sometype{v}, f), f).v; };
+    static const auto serde = [] (int v, const formats& f)
+                              {
+                                  return deserialize<sometype>(to_json(sometype{v}, f), f).v;
+                              };
 
     // Initial adapter registration.
     formats_builder builder;
@@ -858,7 +861,7 @@ formats triple_formats()
 
 /// A reader over \a source, stepped off `document_start` and onto the value itself.
 ///
-/// The DSL tests mostly extract from a `jsonv::value`, which is the shorter spelling -- but a value has already had
+/// The DSL tests mostly deserialize from a `jsonv::value`, which is the shorter spelling -- but a value has already had
 /// its duplicate keys collapsed and spells every key canonically, so the two things only a *text* source can present
 /// have to be read as text.
 reader open(std::string_view source)
@@ -868,10 +871,10 @@ reader open(std::string_view source)
     return out;
 }
 
-extract_options collecting(extract_options::size_type max_failures = 10U)
+deserialize_options collecting(deserialize_options::size_type max_failures = 10U)
 {
-    return extract_options::create_default()
-                .failure_mode(extract_options::on_error::collect_all)
+    return deserialize_options::create_default()
+                .failure_mode(deserialize_options::on_error::collect_all)
                 .max_failures(max_failures);
 }
 
@@ -882,7 +885,7 @@ TEST(serialization_builder_skips_an_unknown_nested_key)
     // An unrecognised key is stepped over with `reader::next_value`, which crosses the whole subtree in one move on a
     // tape-backed reader rather than walking into it. The member after it is what proves the cursor landed in the
     // right place: leaving the walk inside `ignored` would read its members as this object's.
-    extraction_context cxt(triple_formats());
+    deserialization_context cxt(triple_formats());
     auto               rdr = open(R"({
                                        "a": 1,
                                        "ignored": { "a": 90, "deeper": [ 1, 2, { "b": 3 }, [ [ [ 4 ] ] ] ] },
@@ -890,7 +893,7 @@ TEST(serialization_builder_skips_an_unknown_nested_key)
                                        "c": 3
                                      })");
 
-    auto out = cxt.extract<triple>(rdr);
+    auto out = cxt.deserialize<triple>(rdr);
     ensure(out.has_value());
     ensure(cxt.problems().empty());
     ensure_eq(triple({ 1, 2, 3 }), *out);
@@ -900,7 +903,7 @@ TEST(serialization_builder_skips_an_unknown_trailing_key)
 {
     // The last key in the object claims no member, so the step over it has to land on the `}` rather than past it.
     ensure_eq(triple({ 1, 2, 3 }),
-              extract<triple>(parse(R"({ "a": 1, "b": 2, "c": 3, "extra": [ 1, 2, 3 ] })"), triple_formats())
+              deserialize<triple>(parse(R"({ "a": 1, "b": 2, "c": 3, "extra": [ 1, 2, 3 ] })"), triple_formats())
              );
 }
 
@@ -910,10 +913,10 @@ TEST(serialization_builder_skips_an_only_unknown_key)
     // required.
     try
     {
-        (void) extract<triple>(parse(R"({ "extra": 1 })"), triple_formats(), collecting());
-        ensure(!"extraction_error was not thrown");
+        (void) deserialize<triple>(parse(R"({ "extra": 1 })"), triple_formats(), collecting());
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         ensure_eq(3U, err.problems().size());
         ensure_eq(std::string("Missing required field a"), err.problems().at(0).message());
@@ -925,7 +928,7 @@ TEST(serialization_builder_members_in_any_document_order)
 {
     // Declaration order is what the members are *reported* in; it is not the order they are read in any more.
     ensure_eq(triple({ 1, 2, 3 }),
-              extract<triple>(parse(R"({ "c": 3, "a": 1, "b": 2 })"), triple_formats())
+              deserialize<triple>(parse(R"({ "c": 3, "a": 1, "b": 2 })"), triple_formats())
              );
 }
 
@@ -941,7 +944,7 @@ TEST(serialization_builder_empty_object_takes_every_default)
                             .default_value(9)
                   .compose_checked(formats::defaults());
 
-    ensure_eq(triple({ 7, 8, 9 }), extract<triple>(parse("{}"), fmt));
+    ensure_eq(triple({ 7, 8, 9 }), deserialize<triple>(parse("{}"), fmt));
 }
 
 TEST(serialization_builder_empty_object_still_requires_a_member_without_one)
@@ -957,20 +960,20 @@ TEST(serialization_builder_empty_object_still_requires_a_member_without_one)
 
     try
     {
-        (void) extract<triple>(parse("{}"), fmt);
-        ensure(!"extraction_error was not thrown");
+        (void) deserialize<triple>(parse("{}"), fmt);
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         ensure_eq(1U, err.problems().size());
         ensure_eq(std::string("Missing required field b"), err.problems().at(0).message());
     }
 }
 
-TEST(serialization_builder_default_on_null_without_a_default_extracts_the_null)
+TEST(serialization_builder_default_on_null_without_a_default_deserializes_the_null)
 {
     // `default_on_null` is only considered when there is a default to take. Without one, a `null` is a value like any
-    // other and goes to the member's own extractor, which can say what is wrong with the document. It used to be
+    // other and goes to the member's own deserializer, which can say what is wrong with the document. It used to be
     // handed to the default factory nobody provided, and failed as a `std::bad_function_call`.
     formats fmt = formats_builder()
                     .type<triple>()
@@ -980,10 +983,10 @@ TEST(serialization_builder_default_on_null_without_a_default_extracts_the_null)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
 
-    extraction_context cxt(fmt);
+    deserialization_context cxt(fmt);
     auto               rdr = open(R"({ "a": null, "b": 2, "c": 3 })");
 
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.deserialize<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string("Read node of type null when expecting integer"), cxt.problems().at(0).message());
     ensure_eq(path::create(".a"), cxt.problems().at(0).path());
@@ -991,15 +994,15 @@ TEST(serialization_builder_default_on_null_without_a_default_extracts_the_null)
 
     // Nor does the flag make the member optional. A missing key is still a missing required field, which is the gated
     // branch the `null` one now matches.
-    extraction_context missing(fmt);
+    deserialization_context missing(fmt);
     auto               missing_rdr = open(R"({ "b": 2, "c": 3 })");
 
-    ensure(!missing.extract<triple>(missing_rdr).has_value());
+    ensure(!missing.deserialize<triple>(missing_rdr).has_value());
     ensure_eq(1U, missing.problems().size());
     ensure_eq(std::string("Missing required field a"), missing.problems().at(0).message());
 }
 
-TEST(serialization_builder_type_default_on_null_without_a_default_extracts_the_null)
+TEST(serialization_builder_type_default_on_null_without_a_default_deserializes_the_null)
 {
     // The type-level pair follows the same rule. With no `type_default_value`, a `null` is read like any other value,
     // and a type described by the DSL is read from an object.
@@ -1011,10 +1014,10 @@ TEST(serialization_builder_type_default_on_null_without_a_default_extracts_the_n
                         .type_default_on_null()
                   .compose_checked(formats::defaults());
 
-    extraction_context cxt(fmt);
+    deserialization_context cxt(fmt);
     auto               rdr = open("null");
 
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.deserialize<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string("Read node of type null when expecting object"), cxt.problems().at(0).message());
     ensure(!cxt.problems().at(0).nested_ptr());
@@ -1023,8 +1026,8 @@ TEST(serialization_builder_type_default_on_null_without_a_default_extracts_the_n
 TEST(serialization_builder_null_takes_the_default_only_when_asked)
 {
     // A `null` takes the default only where both were asked for, in whichever order they were declared: the gate is
-    // asked at extraction time, not when the flag is set. A member with a `default_value` alone still reads an
-    // explicit `null` as a value to extract, since its default is for a key which is missing.
+    // asked at deserialization time, not when the flag is set. A member with a `default_value` alone still reads an
+    // explicit `null` as a value to deserialize, since its default is for a key which is missing.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
@@ -1035,12 +1038,12 @@ TEST(serialization_builder_null_takes_the_default_only_when_asked)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
 
-    ensure_eq(triple({ 7, 2, 3 }), extract<triple>(parse(R"({ "a": null, "b": 2, "c": 3 })"), fmt));
+    ensure_eq(triple({ 7, 2, 3 }), deserialize<triple>(parse(R"({ "a": null, "b": 2, "c": 3 })"), fmt));
 
-    extraction_context cxt(fmt);
+    deserialization_context cxt(fmt);
     auto               rdr = open(R"({ "a": 1, "b": null, "c": 3 })");
 
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.deserialize<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string("Read node of type null when expecting integer"), cxt.problems().at(0).message());
     ensure_eq(path::create(".b"), cxt.problems().at(0).path());
@@ -1053,7 +1056,7 @@ TEST(serialization_builder_alternate_name_prefers_the_declared_one)
     // about which one the type prefers. A key which loses that race is not an extra key either -- a member answers
     // for every name it has.
     //
-    // Read as text on purpose. A `jsonv::value` is a sorted map, so extracting one only ever presents the two
+    // Read as text on purpose. A `jsonv::value` is a sorted map, so deserializing one only ever presents the two
     // spellings in collating order and an implementation which took the last of them would pass half the time by
     // accident.
     std::set<std::string> extra_keys;
@@ -1064,7 +1067,7 @@ TEST(serialization_builder_alternate_name_prefers_the_declared_one)
                             .alternate_name("A")
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .on_extract_extra_keys([&extra_keys] (extraction_context&, std::set<std::string> found)
+                        .on_extract_extra_keys([&extra_keys] (deserialization_context&, std::set<std::string> found)
                                                {
                                                    extra_keys = std::move(found);
                                                }
@@ -1075,16 +1078,16 @@ TEST(serialization_builder_alternate_name_prefers_the_declared_one)
                                      R"({ "a": 1, "A": 50, "b": 2, "c": 3 })"
                                    })
     {
-        extraction_context cxt(fmt);
+        deserialization_context cxt(fmt);
         auto               rdr = open(source);
 
-        auto out = cxt.extract<triple>(rdr);
+        auto out = cxt.deserialize<triple>(rdr);
         ensure(out.has_value());
         ensure(cxt.problems().empty());
         ensure_eq(triple({ 1, 2, 3 }), *out);
     }
 
-    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(R"({ "A": 50, "a": 1, "b": 2, "c": 3 })"), fmt));
+    ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(parse(R"({ "A": 50, "a": 1, "b": 2, "c": 3 })"), fmt));
     ensure(extra_keys.empty());
 }
 
@@ -1105,10 +1108,10 @@ TEST(serialization_builder_alternate_names_rank_against_each_other)
                                      R"({ "second_alternate": 50, "first_alternate": 1, "b": 2, "c": 3 })"
                                    })
     {
-        extraction_context cxt(fmt);
+        deserialization_context cxt(fmt);
         auto               rdr = open(source);
 
-        auto out = cxt.extract<triple>(rdr);
+        auto out = cxt.deserialize<triple>(rdr);
         ensure(out.has_value());
         ensure(cxt.problems().empty());
         ensure_eq(triple({ 1, 2, 3 }), *out);
@@ -1127,22 +1130,22 @@ TEST(serialization_builder_an_alternate_name_is_not_a_duplicate_key)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
 
-    auto strict = extract_options::create_default()
-                      .on_duplicate_key(extract_options::duplicate_key_action::exception);
+    auto strict = deserialize_options::create_default()
+                      .on_duplicate_key(deserialize_options::duplicate_key_action::exception);
 
-    extraction_context cxt(fmt, std::nullopt, jsonv::path(), nullptr, strict);
+    deserialization_context cxt(fmt, std::nullopt, jsonv::path(), nullptr, strict);
     auto               rdr = open(R"({ "a": 1, "A": 50, "b": 2, "c": 3 })");
 
-    auto out = cxt.extract<triple>(rdr);
+    auto out = cxt.deserialize<triple>(rdr);
     ensure(out.has_value());
     ensure(cxt.problems().empty());
     ensure_eq(triple({ 1, 2, 3 }), *out);
 
     // The same name twice still is one.
-    extraction_context repeated(fmt, std::nullopt, jsonv::path(), nullptr, strict);
+    deserialization_context repeated(fmt, std::nullopt, jsonv::path(), nullptr, strict);
     auto               repeated_rdr = open(R"({ "a": 1, "a": 50, "b": 2, "c": 3 })");
 
-    ensure(!repeated.extract<triple>(repeated_rdr).has_value());
+    ensure(!repeated.deserialize<triple>(repeated_rdr).has_value());
     ensure_eq(std::string("Duplicate key in object: \"a\""), repeated.problems().at(0).message());
 }
 
@@ -1164,10 +1167,10 @@ TEST(serialization_builder_a_superseded_alternate_is_not_validated)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
 
-    extraction_context cxt(fmt);
+    deserialization_context cxt(fmt);
     auto               rdr = open(R"({ "a": 1, "A": 5000, "b": 2, "c": 3 })");
 
-    auto out = cxt.extract<triple>(rdr);
+    auto out = cxt.deserialize<triple>(rdr);
     ensure(out.has_value());
     ensure(cxt.problems().empty());
     ensure_eq(triple({ 1, 2, 3 }), *out);
@@ -1187,10 +1190,10 @@ TEST(serialization_builder_names_the_key_the_document_used)
 
     try
     {
-        (void) extract<triple>(parse(R"({ "A": "not a number", "b": 2, "c": 3 })"), fmt);
-        ensure(!"extraction_error was not thrown");
+        (void) deserialize<triple>(parse(R"({ "A": "not a number", "b": 2, "c": 3 })"), fmt);
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         ensure_eq(path::create(".A"), err.path());
     }
@@ -1207,10 +1210,10 @@ TEST(serialization_builder_matches_an_escaped_key)
                         .member("c",    &triple::c)
                   .compose_checked(formats::defaults());
 
-    extraction_context cxt(fmt);
+    deserialization_context cxt(fmt);
     auto               rdr = open(R"({ "a\nb": 1, "b": 2, "c": 3 })");
 
-    auto out = cxt.extract<triple>(rdr);
+    auto out = cxt.deserialize<triple>(rdr);
     ensure(out.has_value());
     ensure(cxt.problems().empty());
     ensure_eq(triple({ 1, 2, 3 }), *out);
@@ -1218,7 +1221,7 @@ TEST(serialization_builder_matches_an_escaped_key)
 
 TEST(serialization_builder_names_an_escaped_key_it_failed_in)
 {
-    // The decoded key outlives the member's extraction, so it is still there to name the failure.
+    // The decoded key outlives the member's deserialization, so it is still there to name the failure.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a\nb", &triple::a)
@@ -1226,10 +1229,10 @@ TEST(serialization_builder_names_an_escaped_key_it_failed_in)
                         .member("c",    &triple::c)
                   .compose_checked(formats::defaults());
 
-    extraction_context cxt(fmt);
+    deserialization_context cxt(fmt);
     auto               rdr = open(R"({ "a\nb": "not a number", "b": 2, "c": 3 })");
 
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.deserialize<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     // Spelled as an element rather than through `path::create`, which parses its argument and has no syntax for a
     // key containing a newline.
@@ -1238,12 +1241,12 @@ TEST(serialization_builder_names_an_escaped_key_it_failed_in)
 
 TEST(serialization_builder_duplicate_key_replaces_by_default)
 {
-    // `extract_options::duplicate_key_action::replace` is the default and means the last spelling of a key wins,
+    // `deserialize_options::duplicate_key_action::replace` is the default and means the last spelling of a key wins,
     // which is what `parse_index::extract_tree` does with one.
-    extraction_context cxt(triple_formats());
+    deserialization_context cxt(triple_formats());
     auto               rdr = open(R"({ "a": 1, "b": 2, "c": 3, "a": 99 })");
 
-    auto out = cxt.extract<triple>(rdr);
+    auto out = cxt.deserialize<triple>(rdr);
     ensure(out.has_value());
     ensure(cxt.problems().empty());
     ensure_eq(triple({ 99, 2, 3 }), *out);
@@ -1251,16 +1254,16 @@ TEST(serialization_builder_duplicate_key_replaces_by_default)
 
 TEST(serialization_builder_duplicate_key_can_keep_the_first)
 {
-    extraction_context cxt(triple_formats(),
-                           std::nullopt,
-                           jsonv::path(),
-                           nullptr,
-                           extract_options::create_default()
-                               .on_duplicate_key(extract_options::duplicate_key_action::ignore)
-                          );
+    deserialization_context cxt(triple_formats(),
+                                std::nullopt,
+                                jsonv::path(),
+                                nullptr,
+                                deserialize_options::create_default()
+                                    .on_duplicate_key(deserialize_options::duplicate_key_action::ignore)
+                               );
     auto rdr = open(R"({ "a": 1, "b": 2, "c": 3, "a": 99 })");
 
-    auto out = cxt.extract<triple>(rdr);
+    auto out = cxt.deserialize<triple>(rdr);
     ensure(out.has_value());
     ensure(cxt.problems().empty());
     ensure_eq(triple({ 1, 2, 3 }), *out);
@@ -1268,16 +1271,16 @@ TEST(serialization_builder_duplicate_key_can_keep_the_first)
 
 TEST(serialization_builder_duplicate_key_can_be_refused)
 {
-    extraction_context cxt(triple_formats(),
-                           std::nullopt,
-                           jsonv::path(),
-                           nullptr,
-                           extract_options::create_default()
-                               .on_duplicate_key(extract_options::duplicate_key_action::exception)
-                          );
+    deserialization_context cxt(triple_formats(),
+                                std::nullopt,
+                                jsonv::path(),
+                                nullptr,
+                                deserialize_options::create_default()
+                                    .on_duplicate_key(deserialize_options::duplicate_key_action::exception)
+                               );
     auto rdr = open(R"({ "a": 1, "b": 2, "c": 3, "a": 99 })");
 
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.deserialize<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string("Duplicate key in object: \"a\""), cxt.problems().at(0).message());
 }
@@ -1286,10 +1289,10 @@ TEST(serialization_builder_refuses_a_non_object)
 {
     // The walk asks for `{` and says what it found instead. This used to be a `kind_error` out of `value::find`,
     // because each member looked itself up in something which was not an object.
-    extraction_context cxt(triple_formats());
+    deserialization_context cxt(triple_formats());
     auto               rdr = open("5");
 
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.deserialize<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure(cxt.problems().at(0).message().find("object") != std::string::npos);
 }
@@ -1311,14 +1314,14 @@ TEST(serialization_builder_check_input_rejects_a_member)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
 
-    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(R"({ "a": 1, "b": 2, "c": 3 })"), fmt));
+    ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(parse(R"({ "a": 1, "b": 2, "c": 3 })"), fmt));
 
     try
     {
-        (void) extract<triple>(parse(R"({ "a": -1, "b": 2, "c": 3 })"), fmt);
-        ensure(!"extraction_error was not thrown");
+        (void) deserialize<triple>(parse(R"({ "a": -1, "b": 2, "c": 3 })"), fmt);
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         ensure(err.problems().at(0).nested_ptr());
         ensure_throws(std::logic_error, (std::rethrow_exception(err.problems().at(0).nested_ptr()), 0));
@@ -1367,7 +1370,7 @@ TEST(serialization_builder_more_members_than_a_word_has_bits)
     for (std::size_t idx = 66U; idx-- > 0U; )
         source["m" + std::to_string(idx)] = value(std::int64_t(idx) * 10);
 
-    wide out = extract<wide>(source, fmt);
+    wide out = deserialize<wide>(source, fmt);
     for (std::size_t idx = 0U; idx < 66U; ++idx)
         ensure_eq(std::int64_t(idx) * 10, out.v[idx]);
     for (std::size_t idx = 66U; idx < count; ++idx)
@@ -1393,10 +1396,10 @@ TEST(serialization_builder_more_members_than_a_word_has_bits)
 
     try
     {
-        (void) extract<wide>(source, strict_builder.compose_checked(formats::defaults()));
-        ensure(!"extraction_error was not thrown");
+        (void) deserialize<wide>(source, strict_builder.compose_checked(formats::defaults()));
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         ensure_eq(std::string("Missing required field m66"), err.problems().at(0).message());
     }
@@ -1414,7 +1417,7 @@ TEST(serialization_builder_a_failed_type_default_does_not_eat_the_next_value)
                                              .member("b", &triple::b)
                                              .member("c", &triple::c)
                                              .type_default_on_null()
-                                             .type_default_value([] (extraction_context&) -> triple
+                                             .type_default_value([] (deserialization_context&) -> triple
                                                                  {
                                                                      throw std::runtime_error("no default to give");
                                                                  }
@@ -1425,13 +1428,13 @@ TEST(serialization_builder_a_failed_type_default_does_not_eat_the_next_value)
 
     try
     {
-        (void) extract<std::vector<triple>>(parse(R"([ null, { "a": "bad", "b": 2, "c": 3 } ])"),
-                                            fmt,
-                                            collecting()
-                                           );
-        ensure(!"extraction_error was not thrown");
+        (void) deserialize<std::vector<triple>>(parse(R"([ null, { "a": "bad", "b": 2, "c": 3 } ])"),
+                                                fmt,
+                                                collecting()
+                                               );
+        ensure(!"deserialization_error was not thrown");
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         // The factory's failure at `[0]`, and then the element after it -- not just the first.
         ensure_eq(2U, err.problems().size());
@@ -1455,17 +1458,17 @@ TEST(serialization_builder_strict_duplicates_do_not_depend_on_key_order)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
 
-    auto strict = extract_options::create_default()
-                      .on_duplicate_key(extract_options::duplicate_key_action::exception);
+    auto strict = deserialize_options::create_default()
+                      .on_duplicate_key(deserialize_options::duplicate_key_action::exception);
 
     for (std::string_view source : { R"({ "A": 1, "a": 2, "A": 3, "b": 2, "c": 3 })",
                                      R"({ "A": 1, "A": 3, "a": 2, "b": 2, "c": 3 })"
                                    })
     {
-        extraction_context cxt(fmt, std::nullopt, jsonv::path(), nullptr, strict);
+        deserialization_context cxt(fmt, std::nullopt, jsonv::path(), nullptr, strict);
         auto               rdr = open(source);
 
-        ensure(!cxt.extract<triple>(rdr).has_value());
+        ensure(!cxt.deserialize<triple>(rdr).has_value());
         ensure_eq(1U, cxt.problems().size());
         ensure_eq(std::string("Duplicate key in object: \"A\""), cxt.problems().at(0).message());
     }
@@ -1475,13 +1478,13 @@ TEST(serialization_builder_strict_duplicates_cover_unrecognised_keys)
 {
     // The policy is about the document repeating a key, which has nothing to do with whether this type happens to
     // want it -- and it is what `parse_index::extract_tree` refuses for the same document.
-    auto strict = extract_options::create_default()
-                      .on_duplicate_key(extract_options::duplicate_key_action::exception);
+    auto strict = deserialize_options::create_default()
+                      .on_duplicate_key(deserialize_options::duplicate_key_action::exception);
 
-    extraction_context cxt(triple_formats(), std::nullopt, jsonv::path(), nullptr, strict);
+    deserialization_context cxt(triple_formats(), std::nullopt, jsonv::path(), nullptr, strict);
     auto               rdr = open(R"({ "a": 1, "b": 2, "c": 3, "extra": 1, "extra": 2 })");
 
-    ensure(!cxt.extract<triple>(rdr).has_value());
+    ensure(!cxt.deserialize<triple>(rdr).has_value());
     ensure_eq(1U, cxt.problems().size());
     ensure_eq(std::string("Duplicate key in object: \"extra\""), cxt.problems().at(0).message());
 }
@@ -1505,7 +1508,7 @@ formats refusing_triple_formats()
                 .member("a", &triple::a)
                 .member("b", &triple::b)
                 .member("c", &triple::c)
-                .post_extract([] (const extraction_context& context, triple&& out)
+                .post_extract([] (const deserialization_context& context, triple&& out)
                               {
                                   if (out.a < 0)
                                       throw std::invalid_argument("Negative a in "
@@ -1520,20 +1523,20 @@ formats refusing_triple_formats()
     return instance;
 }
 
-/// The message of the problem extracting \a source as a \c triple through \c refusing_triple_formats raised.
+/// The message of the problem deserializing \a source as a \c triple through \c refusing_triple_formats raised.
 template <typename TSource>
 std::string refusal_message(const TSource& source)
 {
     try
     {
-        (void) extract<triple>(source, refusing_triple_formats());
+        (void) deserialize<triple>(source, refusing_triple_formats());
     }
-    catch (const extraction_error& err)
+    catch (const deserialization_error& err)
     {
         return err.problems().at(0).message();
     }
 
-    ensure(!"extraction_error was not thrown");
+    ensure(!"deserialization_error was not thrown");
     return std::string();
 }
 
@@ -1565,14 +1568,14 @@ TEST(serialization_builder_encoded_source_is_the_object_not_the_document)
     // The inner object's hook runs part-way through the walk of the outer one and is shown only its own object. The
     // outer one's runs after the inner has returned and is shown the whole outer object again.
     std::vector<std::string> seen;
-    auto record = [&seen] (const extraction_context& context) { seen.emplace_back(context.encoded_source()); };
+    auto record = [&seen] (const deserialization_context& context) { seen.emplace_back(context.encoded_source()); };
 
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .post_extract([record] (const extraction_context& context, triple&& out)
+                        .post_extract([record] (const deserialization_context& context, triple&& out)
                                       {
                                           record(context);
                                           return out;
@@ -1581,7 +1584,7 @@ TEST(serialization_builder_encoded_source_is_the_object_not_the_document)
                     .type<wrapper>()
                         .member("inner", &wrapper::inner)
                         .member("d",     &wrapper::d)
-                        .post_extract([record] (const extraction_context& context, wrapper&& out)
+                        .post_extract([record] (const deserialization_context& context, wrapper&& out)
                                       {
                                           record(context);
                                           return out;
@@ -1592,14 +1595,14 @@ TEST(serialization_builder_encoded_source_is_the_object_not_the_document)
     const std::string_view inner = R"({ "c": 3, "a": 1,   "b": 2 })";
     const std::string      outer = R"({ "d": 4, "inner": )" + std::string(inner) + R"(, "e": [ "unclaimed" ] })";
 
-    (void) extract<wrapper>(std::string_view(outer), fmt);
+    (void) deserialize<wrapper>(std::string_view(outer), fmt);
     ensure_eq(2U, seen.size());
     ensure_eq(std::string(inner), seen.at(0));
     ensure_eq(outer, seen.at(1));
 
     seen.clear();
     const value tree = parse(outer);
-    (void) extract<wrapper>(tree, fmt);
+    (void) deserialize<wrapper>(tree, fmt);
     ensure_eq(2U, seen.size());
     ensure_eq(to_string(tree.at("inner")), seen.at(0));
     ensure_eq(to_string(tree), seen.at(1));
@@ -1616,13 +1619,14 @@ TEST(serialization_builder_encoded_source_reaches_every_hook_after_the_walk)
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                            .default_value([&seen] (const extraction_context& context)
+                            .default_value([&seen] (const deserialization_context& context)
                                            {
                                                seen.emplace_back(context.encoded_source());
                                                return std::int64_t(3);
                                            }
                                           )
-                        .on_extract_extra_keys([&seen] (const extraction_context& context, const std::set<std::string>&)
+                        .on_extract_extra_keys([&seen]
+                                               (const deserialization_context& context, const std::set<std::string>&)
                                                {
                                                    seen.emplace_back(context.encoded_source());
                                                }
@@ -1631,7 +1635,7 @@ TEST(serialization_builder_encoded_source_reaches_every_hook_after_the_walk)
 
     const std::string_view text = R"({ "a": 1, "b": 2, "extra": true })";
 
-    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(text, fmt));
+    ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(text, fmt));
     ensure_eq(2U, seen.size());
     ensure_eq(std::string(text), seen.at(0));
     ensure_eq(std::string(text), seen.at(1));
@@ -1642,19 +1646,19 @@ TEST(serialization_builder_encoded_source_is_empty_until_the_object_closes)
     // Until the walk reaches the `}` there is no whole object to quote, whichever source it is read from: not in
     // `pre_extract`, and not in a member's `check_input` -- including one inside a nested object, whose enclosing
     // object is no more finished than it is.
-    const extraction_context* current = nullptr;
+    const deserialization_context* current = nullptr;
     std::vector<std::string>  seen;
     auto record = [&current, &seen] { seen.emplace_back(current->encoded_source()); };
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([record] (const extraction_context&) { record(); })
+                        .pre_extract([record] (const deserialization_context&) { record(); })
                         .member("a", &triple::a)
                             .check_input([record] (const std::int64_t&) { record(); })
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                     .type<wrapper>()
-                        .pre_extract([record] (const extraction_context&) { record(); })
+                        .pre_extract([record] (const deserialization_context&) { record(); })
                         .member("inner", &wrapper::inner)
                         .member("d",     &wrapper::d)
                             .check_input([record] (const std::int64_t&) { record(); })
@@ -1664,18 +1668,18 @@ TEST(serialization_builder_encoded_source_is_empty_until_the_object_closes)
 
     for (bool from_text : { true, false })
     {
-        extraction_context cxt(fmt);
+        deserialization_context cxt(fmt);
         current = &cxt;
         seen.clear();
 
         if (from_text)
         {
             auto rdr = open(text);
-            ensure(cxt.extract<wrapper>(rdr).has_value());
+            ensure(cxt.deserialize<wrapper>(rdr).has_value());
         }
         else
         {
-            (void) cxt.extract<wrapper>(parse(text));
+            (void) cxt.deserialize<wrapper>(parse(text));
         }
 
         // Both `pre_extract`s, then the inner `check_input` and then the outer one.
@@ -1686,18 +1690,18 @@ TEST(serialization_builder_encoded_source_is_empty_until_the_object_closes)
         ensure(cxt.encoded_source().empty());
     }
 
-    ensure(extraction_context().encoded_source().empty());
+    ensure(deserialization_context().encoded_source().empty());
 }
 
 TEST(serialization_builder_encoded_source_hides_an_enclosing_object)
 {
-    // A hook is free to extract something else. That extraction's hooks are shown their own object or nothing, never
-    // the object whose hook started it -- and once it has returned, that object is shown again.
+    // A hook is free to deserialize something else. That deserialization's hooks are shown their own object or nothing,
+    // never the object whose hook started it -- and once it has returned, that object is shown again.
     std::vector<std::string> seen;
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([&seen] (const extraction_context& context)
+                        .pre_extract([&seen] (const deserialization_context& context)
                                      {
                                          seen.emplace_back(context.encoded_source());
                                      }
@@ -1707,12 +1711,12 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object)
                         .member("c", &triple::c)
                     .type<wrapper>()
                         .member("d", &wrapper::d)
-                        .post_extract([&seen] (extraction_context& context, wrapper&& out)
+                        .post_extract([&seen] (deserialization_context& context, wrapper&& out)
                                       {
                                           seen.emplace_back(context.encoded_source());
 
                                           auto rdr = open(R"({ "a": 1, "b": 2, "c": 3 })");
-                                          out.inner = context.extract<triple>(rdr).value();
+                                          out.inner = context.deserialize<triple>(rdr).value();
 
                                           seen.emplace_back(context.encoded_source());
                                           return out;
@@ -1722,7 +1726,7 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object)
 
     const std::string_view text = R"({ "d": 4 })";
 
-    ensure_eq(triple({ 1, 2, 3 }), extract<wrapper>(text, fmt).inner);
+    ensure_eq(triple({ 1, 2, 3 }), deserialize<wrapper>(text, fmt).inner);
     ensure_eq(3U, seen.size());
     ensure_eq(std::string(text), seen.at(0));
     ensure_eq(std::string(),     seen.at(1));
@@ -1732,7 +1736,7 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object)
 namespace
 {
 
-/// Extracted by a hand-written extractor rather than the DSL, keeping what \c encoded_source showed it.
+/// Deserialized by a hand-written deserializer rather than the DSL, keeping what \c encoded_source showed it.
 struct source_probe
 {
     std::string seen;
@@ -1740,29 +1744,29 @@ struct source_probe
 
 }
 
-TEST(serialization_builder_encoded_source_hides_an_enclosing_object_from_any_extractor)
+TEST(serialization_builder_encoded_source_hides_an_enclosing_object_from_any_deserializer)
 {
-    // The DSL's adapter is not the only extractor a hook might start, and one written by hand makes no scope of its own
-    // to hide the enclosing object behind. It is shown nothing all the same, whether it is reached through a reader or
-    // through a `value` -- and once it has returned, the hook's own object is shown again.
-    static auto probe = make_extractor([] (extraction_context& context, reader& from) -> source_probe
-                                       {
-                                           (void) from.next_value();
-                                           return source_probe{ std::string(context.encoded_source()) };
-                                       });
+    // The DSL's adapter is not the only deserializer a hook might start, and one written by hand makes no scope of its
+    // own to hide the enclosing object behind. It is shown nothing all the same, whether it is reached through a reader
+    // or through a `value` -- and once it has returned, the hook's own object is shown again.
+    static auto probe = make_deserializer([] (deserialization_context& context, reader& from) -> source_probe
+                                          {
+                                              (void) from.next_value();
+                                              return source_probe{ std::string(context.encoded_source()) };
+                                          });
 
     std::vector<std::string> seen;
 
     formats dsl = formats_builder()
                     .type<wrapper>()
                         .member("d", &wrapper::d)
-                        .post_extract([&seen] (extraction_context& context, wrapper&& out)
+                        .post_extract([&seen] (deserialization_context& context, wrapper&& out)
                                       {
                                           seen.emplace_back(context.encoded_source());
 
                                           auto rdr = open("42");
-                                          seen.push_back(context.extract<source_probe>(rdr)->seen);
-                                          seen.push_back(context.extract<source_probe>(value(42)).seen);
+                                          seen.push_back(context.deserialize<source_probe>(rdr)->seen);
+                                          seen.push_back(context.deserialize<source_probe>(value(42)).seen);
 
                                           seen.emplace_back(context.encoded_source());
                                           return out;
@@ -1771,7 +1775,7 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object_from_any_ext
                   .compose_checked(formats::defaults());
 
     formats fmt = formats::compose({ dsl });
-    fmt.register_extractor(&probe);
+    fmt.register_deserializer(&probe);
 
     const std::string_view text = R"({ "d": 4 })";
     const value            tree = parse(text);
@@ -1780,9 +1784,9 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object_from_any_ext
     {
         seen.clear();
         if (from_text)
-            (void) extract<wrapper>(text, fmt);
+            (void) deserialize<wrapper>(text, fmt);
         else
-            (void) extract<wrapper>(tree, fmt);
+            (void) deserialize<wrapper>(tree, fmt);
 
         const std::string outer = from_text ? std::string(text) : to_string(tree);
         ensure_eq(4U, seen.size());
@@ -1799,7 +1803,7 @@ TEST(serialization_builder_encoded_source_reaches_every_default)
     // never arrived or held a `null` standing for the default under `default_on_null`, which means the same thing.
     // The setter of a member whose key held a value runs as the walk meets it, before there is a `}`, and is shown
     // nothing.
-    const extraction_context* current = nullptr;
+    const deserialization_context* current = nullptr;
     std::vector<std::string>  seen;
 
     formats fmt = formats_builder()
@@ -1814,7 +1818,7 @@ TEST(serialization_builder_encoded_source_reaches_every_default)
                                                   x.c = c;
                                               }
                                              )
-                            .default_value([&seen] (const extraction_context& context)
+                            .default_value([&seen] (const deserialization_context& context)
                                            {
                                                seen.emplace_back(context.encoded_source());
                                                return std::int64_t(3);
@@ -1825,18 +1829,18 @@ TEST(serialization_builder_encoded_source_reaches_every_default)
 
     auto run = [&] (std::string_view text, bool from_text)
                {
-                   extraction_context cxt(fmt);
+                   deserialization_context cxt(fmt);
                    current = &cxt;
                    seen.clear();
 
                    if (from_text)
                    {
                        auto rdr = open(text);
-                       ensure(cxt.extract<triple>(rdr).has_value());
+                       ensure(cxt.deserialize<triple>(rdr).has_value());
                    }
                    else
                    {
-                       (void) cxt.extract<triple>(parse(text));
+                       (void) cxt.deserialize<triple>(parse(text));
                    }
 
                    return seen;
@@ -1871,13 +1875,13 @@ TEST(serialization_builder_encoded_source_encodes_a_value_once)
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .post_extract([&first] (const extraction_context& context, triple&& out)
+                        .post_extract([&first] (const deserialization_context& context, triple&& out)
                                       {
                                           first = context.encoded_source().data();
                                           return out;
                                       }
                                      )
-                        .post_extract([&first, &same] (const extraction_context& context, triple&& out)
+                        .post_extract([&first, &same] (const deserialization_context& context, triple&& out)
                                       {
                                           same = context.encoded_source().data() == first;
                                           return out;
@@ -1885,7 +1889,7 @@ TEST(serialization_builder_encoded_source_encodes_a_value_once)
                                      )
                   .compose_checked(formats::defaults());
 
-    (void) extract<triple>(object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }), fmt);
+    (void) deserialize<triple>(object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }), fmt);
     ensure(first != nullptr);
     ensure(same);
 }
@@ -1900,7 +1904,7 @@ TEST(serialization_builder_default_value_reads_its_siblings)
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                            .default_value([] (extraction_context& context)
+                            .default_value([] (deserialization_context& context)
                                            {
                                                const value& source = context.source_value().value();
                                                return source.at("a").as_integer() + source.at("b").as_integer();
@@ -1915,12 +1919,14 @@ TEST(serialization_builder_default_value_reads_its_siblings)
                                  }
         )
     {
-        ensure_eq(triple({ 1, 2, 3 }), extract<triple>(text, fmt));
-        ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(text), fmt));
+        ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(text, fmt));
+        ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(parse(text), fmt));
     }
 
-    // A value for the key is extracted rather than defaulted, wherever a `null` for it was.
-    ensure_eq(triple({ 1, 2, 7 }), extract<triple>(std::string_view(R"({ "c": null, "a": 1, "b": 2, "c": 7 })"), fmt));
+    // A value for the key is deserialized rather than defaulted, wherever a `null` for it was.
+    ensure_eq(triple({ 1, 2, 7 }),
+              deserialize<triple>(std::string_view(R"({ "c": null, "a": 1, "b": 2, "c": 7 })"), fmt)
+             );
 }
 
 TEST(serialization_builder_null_default_waits_for_the_walk)
@@ -1968,7 +1974,7 @@ TEST(serialization_builder_null_default_waits_for_the_walk)
         const std::string_view text = R"({ "c": null, "b": 2, "a": null })";
 
         order.clear();
-        auto out = from_text ? extract<triple>(text, fmt) : extract<triple>(parse(text), fmt);
+        auto out = from_text ? deserialize<triple>(text, fmt) : deserialize<triple>(parse(text), fmt);
         ensure_eq(triple({ 10, 2, 30 }), out);
         ensure(order == std::vector<std::string>({ "b", "a", "c" }));
     }
@@ -1996,7 +2002,8 @@ TEST(serialization_builder_null_default_keeps_its_claim_with_many_names)
     // A `null` taking the default is still a claim by the name it came under, however far down the member's list of
     // names that is: a repeat of the name is settled against it as against any claim. The way the walk remembers that
     // the claim was a `null` must not make the claim look like none at all.
-    for (auto action : { extract_options::duplicate_key_action::ignore, extract_options::duplicate_key_action::replace })
+    for (auto action : { deserialize_options::duplicate_key_action::ignore,
+                         deserialize_options::duplicate_key_action::replace })
     {
         auto builder = formats_builder();
         auto member  = builder.type<many_named>().member("a0", &many_named::a);
@@ -2008,11 +2015,11 @@ TEST(serialization_builder_null_default_keeps_its_claim_with_many_names)
 
         // Only text can say a key twice; a `value` has already settled which of the two it keeps.
         const std::string_view text     = R"({ "a32767": null, "a32767": 9 })";
-        const auto             options  = extract_options().on_duplicate_key(action);
-        const std::int64_t     expected = action == extract_options::duplicate_key_action::ignore ? 7 : 9;
+        const auto             options  = deserialize_options().on_duplicate_key(action);
+        const std::int64_t     expected = action == deserialize_options::duplicate_key_action::ignore ? 7 : 9;
 
-        ensure_eq(expected, extract<many_named>(text, fmt, options).a);
-        ensure_eq(7,        extract<many_named>(parse(R"({ "a32767": null })"), fmt, options).a);
+        ensure_eq(expected, deserialize<many_named>(text, fmt, options).a);
+        ensure_eq(7,        deserialize<many_named>(parse(R"({ "a32767": null })"), fmt, options).a);
     }
 }
 
@@ -2036,7 +2043,7 @@ TEST(serialization_builder_null_default_on_a_type_too_wide_to_track_inline)
 
     for (bool from_text : { true, false })
     {
-        auto out = from_text ? extract<wide>(text, fmt) : extract<wide>(parse(text), fmt);
+        auto out = from_text ? deserialize<wide>(text, fmt) : deserialize<wide>(parse(text), fmt);
         for (std::size_t idx = 0U; idx < 70U; ++idx)
             ensure_eq(idx == 66U ? 500 : std::int64_t(idx), out.values[idx]);
     }
@@ -2052,7 +2059,8 @@ TEST(serialization_builder_extra_keys_handler_reads_their_values)
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .on_extract_extra_keys([&seen] (extraction_context& context, const std::set<std::string>& keys)
+                        .on_extract_extra_keys([&seen]
+                                               (deserialization_context& context, const std::set<std::string>& keys)
                                                {
                                                    const value& source = context.source_value().value();
                                                    for (const auto& key : keys)
@@ -2067,7 +2075,7 @@ TEST(serialization_builder_extra_keys_handler_reads_their_values)
     for (bool from_text : { true, false })
     {
         seen = object();
-        auto out = from_text ? extract<triple>(text, fmt) : extract<triple>(parse(text), fmt);
+        auto out = from_text ? deserialize<triple>(text, fmt) : deserialize<triple>(parse(text), fmt);
         ensure_eq(triple({ 1, 2, 3 }), out);
         ensure_eq(expected, seen);
     }
@@ -2078,7 +2086,7 @@ TEST(serialization_builder_pre_extract_reads_the_document)
     // Run before the walk, `pre_extract` can refuse a document by what it says before any member has been read.
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([] (extraction_context& context)
+                        .pre_extract([] (deserialization_context& context)
                                      {
                                          const value& source = context.source_value().value();
                                          if (source.count("schema") == 0U || source.at("schema") != value(2))
@@ -2093,17 +2101,17 @@ TEST(serialization_builder_pre_extract_reads_the_document)
     const std::string_view current  = R"({ "schema": 2, "a": 1, "b": 2, "c": 3 })";
     const std::string_view outdated = R"({ "schema": 1, "a": 1, "b": 2, "c": 3 })";
 
-    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(current, fmt));
-    ensure_eq(triple({ 1, 2, 3 }), extract<triple>(parse(current), fmt));
-    ensure_throws(extraction_error, extract<triple>(outdated, fmt));
-    ensure_throws(extraction_error, extract<triple>(parse(outdated), fmt));
+    ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(current, fmt));
+    ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(parse(current), fmt));
+    ensure_throws(deserialization_error, deserialize<triple>(outdated, fmt));
+    ensure_throws(deserialization_error, deserialize<triple>(parse(outdated), fmt));
 }
 
 namespace
 {
 
-/// What \c extraction_context::source_value showed, as text: the encoding of the value, or "nothing".
-std::string shown(const extraction_context& context)
+/// What \c deserialization_context::source_value showed, as text: the encoding of the value, or "nothing".
+std::string shown(const deserialization_context& context)
 {
     auto source = context.source_value();
     return source ? to_string(*source) : std::string("nothing");
@@ -2119,9 +2127,9 @@ TEST(serialization_builder_pre_extract_is_shown_what_the_reader_is_on)
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([&seen] (extraction_context& context) { seen.push_back(shown(context)); })
+                        .pre_extract([&seen] (deserialization_context& context) { seen.push_back(shown(context)); })
                         .type_default_on_null()
-                        .type_default_value([&seen] (extraction_context& context)
+                        .type_default_value([&seen] (deserialization_context& context)
                                             {
                                                 seen.push_back(shown(context));
                                                 return triple({ 0, 0, 0 });
@@ -2135,13 +2143,14 @@ TEST(serialization_builder_pre_extract_is_shown_what_the_reader_is_on)
     for (bool from_text : { true, false })
     {
         seen.clear();
-        auto out = from_text ? extract<triple>(std::string_view("null"), fmt) : extract<triple>(null, fmt);
+        auto out = from_text ? deserialize<triple>(std::string_view("null"), fmt) : deserialize<triple>(null, fmt);
         ensure_eq(triple({ 0, 0, 0 }), out);
         ensure(seen == std::vector<std::string>({ "null", "nothing" }));
 
         seen.clear();
-        ensure_throws(extraction_error,
-                      from_text ? extract<triple>(std::string_view("[ 1 ]"), fmt) : extract<triple>(array({ 1 }), fmt)
+        ensure_throws(deserialization_error,
+                      from_text ? deserialize<triple>(std::string_view("[ 1 ]"), fmt)
+                                : deserialize<triple>(array({ 1 }), fmt)
                      );
         ensure(seen == std::vector<std::string>({ to_string(array({ 1 })) }));
     }
@@ -2151,7 +2160,7 @@ TEST(serialization_builder_source_value_is_empty_during_the_walk)
 {
     // A member's `check_input` and setter run as the walk meets their key, and are shown nothing -- including in a
     // nested object, whose enclosing object is part-way through its own walk.
-    const extraction_context* current = nullptr;
+    const deserialization_context* current = nullptr;
     std::vector<std::string>  seen;
     auto record = [&current, &seen] { seen.push_back(shown(*current)); };
 
@@ -2171,31 +2180,31 @@ TEST(serialization_builder_source_value_is_empty_during_the_walk)
 
     for (bool from_text : { true, false })
     {
-        extraction_context cxt(fmt);
+        deserialization_context cxt(fmt);
         current = &cxt;
         seen.clear();
 
         if (from_text)
         {
             auto rdr = open(text);
-            ensure(cxt.extract<wrapper>(rdr).has_value());
+            ensure(cxt.deserialize<wrapper>(rdr).has_value());
         }
         else
         {
-            (void) cxt.extract<wrapper>(parse(text));
+            (void) cxt.deserialize<wrapper>(parse(text));
         }
 
         ensure(seen == std::vector<std::string>({ "nothing", "nothing" }));
         ensure(!cxt.source_value());
     }
 
-    ensure(!extraction_context().source_value());
+    ensure(!deserialization_context().source_value());
 }
 
 namespace
 {
 
-/// Extracted by a hand-written extractor rather than the DSL, keeping what \c source_value showed it.
+/// Deserialized by a hand-written deserializer rather than the DSL, keeping what \c source_value showed it.
 struct source_value_probe
 {
     std::string seen;
@@ -2205,40 +2214,40 @@ struct source_value_probe
 
 TEST(serialization_builder_source_value_hides_an_enclosing_object)
 {
-    // A hook is free to extract something else. What that extraction runs is shown its own object or nothing, never the
-    // object whose hook started it -- whether it is the DSL's or an extractor written by hand -- and once it has
-    // returned, that object is shown again.
-    static auto probe = make_extractor([] (extraction_context& context, reader& from) -> source_value_probe
-                                       {
-                                           (void) from.next_value();
-                                           return source_value_probe{ shown(context) };
-                                       });
+    // A hook is free to deserialize something else. What that deserialization runs is shown its own object or nothing,
+    // never the object whose hook started it -- whether it is the DSL's or a deserializer written by hand -- and once
+    // it has returned, that object is shown again.
+    static auto probe = make_deserializer([] (deserialization_context& context, reader& from) -> source_value_probe
+                                          {
+                                              (void) from.next_value();
+                                              return source_value_probe{ shown(context) };
+                                          });
 
     std::vector<std::string> seen;
 
     formats dsl = formats_builder()
                     .type<triple>()
-                        .pre_extract([&seen] (extraction_context& context) { seen.push_back(shown(context)); })
+                        .pre_extract([&seen] (deserialization_context& context) { seen.push_back(shown(context)); })
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                     .type<wrapper>()
-                        .pre_extract([&seen] (extraction_context& context)
+                        .pre_extract([&seen] (deserialization_context& context)
                                      {
                                          seen.push_back(shown(context));
 
                                          auto rdr = open("42");
-                                         seen.push_back(context.extract<source_value_probe>(rdr)->seen);
+                                         seen.push_back(context.deserialize<source_value_probe>(rdr)->seen);
                                      }
                                     )
                         .member("d", &wrapper::d)
-                        .post_extract([&seen] (extraction_context& context, wrapper&& out)
+                        .post_extract([&seen] (deserialization_context& context, wrapper&& out)
                                       {
                                           seen.push_back(shown(context));
 
                                           auto rdr = open(R"({ "c": 3, "b": 2, "a": 1 })");
-                                          out.inner = context.extract<triple>(rdr).value();
-                                          seen.push_back(context.extract<source_value_probe>(value(42)).seen);
+                                          out.inner = context.deserialize<triple>(rdr).value();
+                                          seen.push_back(context.deserialize<source_value_probe>(value(42)).seen);
 
                                           seen.push_back(shown(context));
                                           return out;
@@ -2247,14 +2256,14 @@ TEST(serialization_builder_source_value_hides_an_enclosing_object)
                   .compose_checked(formats::defaults());
 
     formats fmt = formats::compose({ dsl });
-    fmt.register_extractor(&probe);
+    fmt.register_deserializer(&probe);
 
     const std::string_view text = R"({ "d": 4 })";
 
     for (bool from_text : { true, false })
     {
         seen.clear();
-        auto out = from_text ? extract<wrapper>(text, fmt) : extract<wrapper>(parse(text), fmt);
+        auto out = from_text ? deserialize<wrapper>(text, fmt) : deserialize<wrapper>(parse(text), fmt);
         ensure_eq(triple({ 1, 2, 3 }), out.inner);
 
         const std::string outer = to_string(parse(text));
@@ -2268,21 +2277,21 @@ TEST(serialization_builder_source_value_is_read_from_text_once)
     // From text, the first hook to ask has the object read, and every hook after it -- before the walk or after -- is
     // shown the same one. From a value, every hook is shown the caller's own tree.
     std::vector<const value*> seen;
-    auto record = [&seen] (const extraction_context& context) { seen.push_back(&context.source_value().value()); };
+    auto record = [&seen] (const deserialization_context& context) { seen.push_back(&context.source_value().value()); };
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([record] (extraction_context& context) { record(context); })
+                        .pre_extract([record] (deserialization_context& context) { record(context); })
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                            .default_value([record] (extraction_context& context)
+                            .default_value([record] (deserialization_context& context)
                                            {
                                                record(context);
                                                return std::int64_t(3);
                                            }
                                           )
-                        .post_extract([record] (extraction_context& context, triple&& out)
+                        .post_extract([record] (deserialization_context& context, triple&& out)
                                       {
                                           record(context);
                                           return out;
@@ -2292,21 +2301,21 @@ TEST(serialization_builder_source_value_is_read_from_text_once)
 
     const std::string_view text = R"({ "a": 1, "b": 2 })";
 
-    (void) extract<triple>(text, fmt);
+    (void) deserialize<triple>(text, fmt);
     ensure_eq(3U, seen.size());
     ensure(seen.at(0) == seen.at(1));
     ensure(seen.at(0) == seen.at(2));
 
     seen.clear();
     const value tree = parse(text);
-    (void) extract<triple>(tree, fmt);
+    (void) deserialize<triple>(tree, fmt);
     ensure(seen == std::vector<const value*>({ &tree, &tree, &tree }));
 }
 
 namespace
 {
 
-/// A name and a nickname, both views of whatever they were extracted from. The nickname defaults to the name.
+/// A name and a nickname, both views of whatever they were deserialized from. The nickname defaults to the name.
 struct nicknamed
 {
     std::string_view name;
@@ -2318,13 +2327,13 @@ formats nicknamed_formats()
     static const formats instance =
         formats_builder()
             .type<nicknamed>()
-                .pre_extract([] (extraction_context& context) { (void) context.source_value(); })
+                .pre_extract([] (deserialization_context& context) { (void) context.source_value(); })
                 .member("name", &nicknamed::name)
                 .member("nick", &nicknamed::nick)
-                    .default_value([] (extraction_context& context)
+                    .default_value([] (deserialization_context& context)
                                    {
                                        const value& source = context.source_value().value();
-                                       return context.extract<std::string_view>(source.at("name"));
+                                       return context.deserialize<std::string_view>(source.at("name"));
                                    }
                                   )
         .compose_checked(formats::defaults());
@@ -2336,17 +2345,18 @@ formats nicknamed_formats()
 
 TEST(serialization_builder_source_value_read_from_text_is_temporary)
 {
-    // What is read out of text for a hook dies with the extraction, so a view of it would dangle: extracting one is
-    // refused. A member read during the walk still views the text, even though `pre_extract` had the object read.
+    // What is read out of text for a hook dies with the deserialization, so a view of it would dangle: deserializing
+    // one is refused. A member read during the walk still views the text, even though `pre_extract` had the object
+    // read.
     const std::string text = R"({ "name": "Robert", "nick": "Bob" })";
 
-    auto out = extract<nicknamed>(std::string_view(text), nicknamed_formats());
+    auto out = deserialize<nicknamed>(std::string_view(text), nicknamed_formats());
     ensure_eq("Robert", out.name);
     ensure_eq("Bob",    out.nick);
     ensure(out.name.data() == text.data() + text.find("Robert"));
 
-    ensure_throws(extraction_error,
-                  extract<nicknamed>(std::string_view(R"({ "name": "Robert" })"), nicknamed_formats())
+    ensure_throws(deserialization_error,
+                  deserialize<nicknamed>(std::string_view(R"({ "name": "Robert" })"), nicknamed_formats())
                  );
 }
 
@@ -2355,7 +2365,7 @@ TEST(serialization_builder_source_value_lent_from_a_value_may_be_viewed)
     // From a value, the hook is lent the caller's own tree, which a view may name.
     const value tree = object({ { "name", "Robert" } });
 
-    auto out = extract<nicknamed>(tree, nicknamed_formats());
+    auto out = deserialize<nicknamed>(tree, nicknamed_formats());
     ensure_eq("Robert", out.nick);
     ensure(out.nick.data() == tree.at("name").as_string_view().data());
 }

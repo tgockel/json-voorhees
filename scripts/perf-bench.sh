@@ -6,8 +6,8 @@
 #   scripts/perf-bench.sh                          # parse_index rows, one trial each
 #   scripts/perf-bench.sh -n 3                     # three trials per row (medians shown)
 #   scripts/perf-bench.sh -f parse_index/canada    # rows under benchmark/parse_index/canada
-#   scripts/perf-bench.sh -f extract               # every extraction row
-#   scripts/perf-bench.sh -f extract/citm          # extraction rows over citm_catalog.json
+#   scripts/perf-bench.sh -f deserialize           # every deserialization row
+#   scripts/perf-bench.sh -f deserialize/citm      # deserialization rows over citm_catalog.json
 #
 # -f is read from just after "benchmark/", so it names the group of rows before the
 # input: "-f canada" matches nothing, and a filter which matches nothing is an error.
@@ -21,10 +21,10 @@
 #     "ifstream/" rows time the full parse() including extract to jsonv::value.
 #     parse_index is only ~9% of full parse() on canada.json — see
 #     .agents/perf-baseline.txt for context.
-#   - The "extract/<case>/<pipeline>" rows time extraction to a C++ type three ways
-#     over the same input: "parse_then_extract" is parse() to a jsonv::value and
-#     then extract from that, "from_text" extracts off the parse index without a
-#     value, and "from_value" extracts from a value parsed before the clock starts.
+#   - The "deserialize/<case>/<pipeline>" rows time deserialization to a C++ type three ways
+#     over the same input: "parse_then_deserialize" is parse() to a jsonv::value and
+#     then deserialize from that, "from_text" deserializes off the parse index without a
+#     value, and "from_value" deserializes from a value parsed before the clock starts.
 #     They run 10 iterations rather than 100, to keep the check target quick.
 #   - An existing build/ must be configured Release (or with no build type, which
 #     CMakeLists.txt turns into Release) and without JSONV_SANITIZE. Anything else is

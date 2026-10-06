@@ -61,7 +61,7 @@
      - Added `reader::from_value`, which reads an in-memory `value` directly. The header has always named `value`
        as one of the sources a `reader` accepts, but the implementation behind it was never written: the
        constructor was declared and never defined, so calling it was a link error. It now walks the tree with an
-       explicit frame stack, synthesising token text into an arena as it goes, which keeps `extract<T>(const
+       explicit frame stack, synthesising token text into an arena as it goes, which keeps `deserialize<T>(const
        value&)` a tree walk instead of a round trip out through the encoder and back through the parser. This is
        a named factory rather than a constructor because `value` converts implicitly from `std::string`, which
        would have made `reader(some_std_string)` ambiguous against the JSON-source overload. Strings and keys
@@ -73,7 +73,7 @@
        to step off the close would have skipped the following key.
      - `reader::expect` and the new `ast_node::expect` report a type mismatch by returning
        `std::expected<void, ast_node_type>` carrying the type actually found, rather than throwing
-       `extraction_error` and building a message. Which node types are acceptable is a question about the JSON
+       `deserialization_error` and building a message. Which node types are acceptable is a question about the JSON
        source, not about the correctness of the program asking, so the caller decides whether a mismatch is an
        error -- and trying a type no longer costs a throw. `reader::current_as` returns
        `std::expected<TAstNode, ast_node_type>` in the same way. Expecting an empty list of types still throws
@@ -119,7 +119,7 @@
      - Fixed a document which ends while an array or object is still open being reported as a mismatched close.
        `[1, 2` failed with "mismatched closing character", although it holds no closing character at all, while `{`
        failed with "input ended unexpectedly", so which of the two a truncated document got depended on where it was
-       cut. An extraction from one carried the same message. The parser closed the document before looking at what
+       cut. A deserialization from one carried the same message. The parser closed the document before looking at what
        was still open. It now reports `ast_error::unexpected_eof` at the end of the input, and the tape stops at the
        `error` node rather than carrying a `document_end` for a document which never ended (#262).
      - Fixed `parse_index::parse` accepting a value which follows another with no `,` between them. `[1 2]` parsed as
@@ -141,11 +141,11 @@
        2.0 parser never read it: every parse takes the whole of its input as one document, and anything after the
        value fails with `ast_error::expected_eof` (#261).
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
-       (things like allowing ECMAScript-style block comments `/* ... */`) and extraction-specific options and errors
-       (things like what to do if an object has the same key).
+       (things like allowing ECMAScript-style block comments `/* ... */`) and deserialization-specific options and
+       errors (things like what to do if an object has the same key).
      - `parse_options` refuses comments by default. RFC 8259 has no comments, but a default-constructed
        `parse_options` accepted `/* ... */` anywhere whitespace may go, so `parse`, `parse_index::parse`, a `reader`
-       over text and `extract<T>` from text all read a dialect of JSON unless told otherwise. They now read the
+       over text and `deserialize<T>` from text all read a dialect of JSON unless told otherwise. They now read the
        standard, and `parse_options().comments(true)` is how to read configuration files and other input which
        uses comments. This is a behavioural break for anyone relying on the old default: text with a comment in it
        which used to parse now fails to. `create_strict()` refused comments already and is unchanged (#186).
@@ -185,7 +185,7 @@
        `UINT64_MAX` saturated to that value and one below `INT64_MIN` to that one, so `18446744073709551616` and
        `12345678901234567890123` both parsed to `-1` -- indistinguishable from `18446744073709551615` -- with nothing
        to say the number had been lost. `parse` now reads such a literal as the nearest `double`, which is what the
-       `double` extractor already made of it, so it is a `kind::decimal`: `as_integer` refuses it and `as_decimal`
+       `double` deserializer already made of it, so it is a `kind::decimal`: `as_integer` refuses it and `as_decimal`
        has it. `ast_node::integer::value()` has no `double` to give and throws `std::invalid_argument` instead, and
        so does `parse` for a literal no `double` holds either, as it already did for `1e400`. A literal from 2^63
        through `UINT64_MAX` still keeps its bits as a negative `std::int64_t`. `coerce_integer` of a string holding
@@ -235,170 +235,170 @@
        over text it is cheap. `writer::write(const value&)` and `encoder::encode` share one walk, so an `encoder`
        subclass, the pretty printer included, sees exactly the sequence of hook calls it saw before (#319).
    - Serialization
-     - Extraction to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle man,
-       saving time and memory. The `benchmark/extract/` rows in `jsonv-tests` measure it: on `citm_catalog.json`,
-       extracting a `std::vector` of DSL-described records from the text takes a little over half as long as `parse`
-       followed by `extract` from the result, and a type which reads two of each record's nine members takes under a
-       quarter as long, since the members it skips are never built (#234).
-     - `extractor::extract` reads from a `reader` instead of a `value`. It is now
-       `extract(extraction_context&, reader&, void*) const` and returns `std::expected<void, ast_node_type>`: on success
-       the reader is left one past the value which was read, and on failure nothing has been built, what went wrong is
-       recorded on the context, and the `ast_node_type` carried is the type actually found when a mismatch was the
-       trouble. This is the interface everything else in this section is built on, and a source break for anything
-       implementing `extractor` directly -- `get_type` is also `noexcept` now, so an override has to be too.
-       `adapter_for<T>::create` and `extractor_for<T>::create` change the same way, taking
-       `(extraction_context&, reader&)` and returning `std::expected<T, ast_node_type>`. An adapter written against the
-       old `create(const extraction_context&, const value&)` keeps its body by deriving from the new
+     - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
+       man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on
+       `citm_catalog.json`, deserializing a `std::vector` of DSL-described records from the text takes a little over
+       half as long as `parse` followed by `deserialize` from the result, and a type which reads two of each record's
+       nine members takes under a quarter as long, since the members it skips are never built (#234).
+     - `deserializer::deserialize` reads from a `reader` instead of a `value`. It is now
+       `deserialize(deserialization_context&, reader&, void*) const` and returns `std::expected<void, ast_node_type>`:
+       on success the reader is left one past the value which was read, and on failure nothing has been built, what went
+       wrong is recorded on the context, and the `ast_node_type` carried is the type actually found when a mismatch was
+       the trouble. This is the interface everything else in this section is built on, and a source break for anything
+       implementing `deserializer` directly -- `get_type` is also `noexcept` now, so an override has to be too.
+       `adapter_for<T>::create` and `deserializer_for<T>::create` change the same way, taking
+       `(deserialization_context&, reader&)` and returning `std::expected<T, ast_node_type>`. An adapter written against
+       the old `create(const deserialization_context&, const value&)` keeps its body by deriving from the new
        `value_adapter_for<T>` instead and dropping the `const` from its context: that `create` is handed the value read
        into a `value`, and so keeps paying for the tree the reader exists to avoid (#226).
-     - `make_extractor`, `make_adapter` and `extractor_construction` take the reader forms alongside the old ones. A
-       function may be called as `(extraction_context&, reader&)` or `(reader&)` as well as
-       `(extraction_context&, const value&)` or `(const value&)`, and may return the extracted type or a `std::expected`
-       of it; an extracting constructor may take `(reader&, extraction_context&)` or `(reader&)` as well as the `value`
-       forms. The `value` forms are handed the subtree read into a `value` by the new `read_value` -- or, when the
-       reader was made by `reader::from_value`, the caller's own `value`, lent by the new `reader::current_value` -- so
-       they keep compiling and keep paying for the tree they always built. What a function extracts is deduced from what
-       it returns, so `make_extractor` and `make_adapter` are a single overload each (#226).
-     - `extraction_context` is mutable and no longer copyable: problems are recorded on it, through `problem`, and
-       recording one changes it. Everything which extracts through one therefore takes it by non-`const` reference --
-       an `extractor`, an extracting constructor, and the callbacks able to extract: `polymorphic_adapter`'s match
-       predicates and the serialization builder's `pre_extract`, `post_extract`, `on_extract_extra_keys`,
+     - `make_deserializer`, `make_adapter` and `deserializer_construction` take the reader forms alongside the old ones.
+       A function may be called as `(deserialization_context&, reader&)` or `(reader&)` as well as
+       `(deserialization_context&, const value&)` or `(const value&)`, and may return the deserialized type or a
+       `std::expected` of it; a deserializing constructor may take `(reader&, deserialization_context&)` or `(reader&)`
+       as well as the `value` forms. The `value` forms are handed the subtree read into a `value` by the new
+       `read_value` -- or, when the reader was made by `reader::from_value`, the caller's own `value`, lent by the new
+       `reader::current_value` -- so they keep compiling and keep paying for the tree they always built. What a function
+       deserializes is deduced from what it returns, so `make_deserializer` and `make_adapter` are a single overload
+       each (#226).
+     - `deserialization_context` is mutable and no longer copyable: problems are recorded on it, through `problem`, and
+       recording one changes it. Everything which deserializes through one therefore takes it by non-`const` reference
+       -- a `deserializer`, a deserializing constructor, and the callbacks able to deserialize: `polymorphic_adapter`'s
+       match predicates and the serialization builder's `pre_extract`, `post_extract`, `on_extract_extra_keys`,
        `default_value` and `type_default_value`. A callable which declares its context `const` still binds, and only has
-       to change if it extracts through it. `extraction_context::extract<T>(reader&)` reports failure by returning a
-       `std::expected` rather than by throwing, while `extract<T>(const value&)` still throws. `expect` and `current_as`
-       check the node a reader is on and record a mismatch with the "Read node of type X when expecting Y" message which
-       `reader::expect` no longer builds (#226).
-     - `serialization.hpp` is split into `serialization/formats.hpp`, `context.hpp`, `extract.hpp`, `serializer.hpp` and
-       `adapter.hpp`. It still includes all of them, so no `#include` has to change. In the move, `context_base` became
-       `context` -- the base of `extraction_context` and `serialization_context` -- and `context::version` returns
-       `const std::optional<jsonv::version>&`, with both contexts taking a `std::optional<jsonv::version>` which
+       to change if it deserializes through it. `deserialization_context::deserialize<T>(reader&)` reports failure by
+       returning a `std::expected` rather than by throwing, while `deserialize<T>(const value&)` still throws. `expect`
+       and `current_as` check the node a reader is on and record a mismatch with the "Read node of type X when expecting
+       Y" message which `reader::expect` no longer builds (#226).
+     - `serialization.hpp` is split into `serialization/formats.hpp`, `context.hpp`, `deserialize.hpp`, `serializer.hpp`
+       and `adapter.hpp`. It still includes all of them, so no `#include` has to change. In the move, `context_base`
+       became `context` -- the base of `deserialization_context` and `serialization_context` -- and `context::version`
+       returns `const std::optional<jsonv::version>&`, with both contexts taking a `std::optional<jsonv::version>` which
        defaults to `std::nullopt`. A default-constructed `jsonv::version` is `0.0`, and every caller had to know that it
        meant "unspecified" rather than "version zero"; `std::nullopt` now says the first and `jsonv::version()` the
        second. That is a behaviour change for a context created with `jsonv::version()` on purpose, which the
        serialization builder's `since`, `until`, `after` and `before` now compare against `0.0` rather than treating as
        unversioned (#225).
-     - Extracting from an in-memory `value` no longer formats every number into text. A reader over a `value`
+     - Deserializing from an in-memory `value` no longer formats every number into text. A reader over a `value`
        synthesised a token for each scalar as soon as anything asked what it was on, which `container_adapter` and the
-       builder's member loop did for every element, and the extractors then either ignored the text -- a `double` was
+       builder's member loop did for every element, and the deserializers then either ignored the text -- a `double` was
        already read from the `value` -- or parsed it straight back. They now ask `reader::current_type` and read the
-       lent `value`, so the token is built only for an extractor which asks for the node itself. Extracting the
+       lent `value`, so the token is built only for a deserializer which asks for the node itself. Deserializing the
        coordinates of `canada.json` from a parsed `value` takes about a sixth less time, which puts it below
-       extracting them from the text, and `parse` followed by `extract` gains the same few milliseconds (#238).
-     - `extract_options::on_error` and `max_failures` are now honoured. Both have been documented since the type was
-       introduced and neither was ever consumed: `extraction_context` held no `extract_options`, so there was nowhere
-       to pass one, and the only reader of the type was `parse_index::extract_tree` for `on_duplicate_key`. The
-       context now carries options, and `collect_all` keeps extracting past a problem wherever a composite knows
+       deserializing them from the text, and `parse` followed by `deserialize` gains the same few milliseconds (#238).
+     - `deserialize_options::on_error` and `max_failures` are now honoured. Both have been documented since the type was
+       introduced and neither was ever consumed: `deserialization_context` held no `deserialize_options`, so there was
+       nowhere to pass one, and the only reader of the type was `parse_index::extract_tree` for `on_duplicate_key`. The
+       context now carries options, and `collect_all` keeps deserializing past a problem wherever a composite knows
        where to resume -- an array's next element, an object's next key -- so one bad member no longer hides every
-       problem after it. Collecting gathers diagnostics and does not produce partially-extracted objects: an
-       extraction which recovered from anything still throws, carrying what it found. A failure with no enclosing
-       composite to resume into ends extraction whatever the mode, which is why `extraction_context::recover` is
-       asked by the loop rather than decided for it. `max_failures` is the threshold extraction stops at rather than
-       a cap on the reported list -- a failure which reports several problems at once is taken whole -- and a limit
+       problem after it. Collecting gathers diagnostics and does not produce partially-deserialized objects: a
+       deserialization which recovered from anything still throws, carrying what it found. A failure with no enclosing
+       composite to resume into ends deserialization whatever the mode, which is why `deserialization_context::recover`
+       is asked by the loop rather than decided for it. `max_failures` is the threshold deserialization stops at rather
+       than a cap on the reported list -- a failure which reports several problems at once is taken whole -- and a limit
        of `0` or `1` makes the first problem the last, which is `fail_immediately` in all but name (#227).
      - Fixed `collect_all` losing everything after a structure which failed to read out of text. Materialising a
-       structure -- for the `value` extractor, for an adapter on the `value` bridge, or for `coerce` to turn into a
+       structure -- for the `value` deserializer, for an adapter on the `value` bridge, or for `coerce` to turn into a
        string -- walks the cursor into it, and a scalar inside which could not be read, such as a number no `double`
        holds or an escape which does not decode, left the cursor there. The array around it then took the
        structure's own close for its own, so every element after it went unread and unreported. `read_value` now
        walks the rest of a structure which fails part-way through, leaving the cursor one past it as success does,
-       and the new `read_value(extraction_context&, reader&)` also tells the context that the value is behind the
-       cursor, so a composite recovering from it resumes at the next sibling. The built-in extractors use it.
-     - The built-in extractors in `formats::defaults` and `formats::coerce` now read the AST node the reader is
+       and the new `read_value(deserialization_context&, reader&)` also tells the context that the value is behind the
+       cursor, so a composite recovering from it resumes at the next sibling. The built-in deserializers use it.
+     - The built-in deserializers in `formats::defaults` and `formats::coerce` now read the AST node the reader is
        sitting on instead of a `value` materialised for them, which is what makes the claim above true: these are the
-       leaves of every extraction, so this is where the middle man stops being allocated. Extracting a `std::string`
-       out of JSON text costs one allocation -- the string handed back -- where it cost four, and every other
-       built-in costs none. `std::string_view` is now a view of the source rather than a refusal, since a canonical
-       string token *is* the string; the source has to outlive the view, which for a `reader` over text means the
-       text. A string the source spelt with escape sequences has no decoded form in it to view and is still refused,
-       as is one belonging to a tree the pipeline materialised and is about to free. A bad escape -- a `\uD800` with
-       no low surrogate, which the parser accepts because it validates an escape's syntax without decoding it -- is
-       now a problem in the extraction's list with a path rather than a `parse_error` thrown out of `extract`. This
-       resolves the three `TODO(#150)` markers in `ast.cpp`: the extractors own the policy, and the nodes keep the
+       leaves of every deserialization, so this is where the middle man stops being allocated. Deserializing a
+       `std::string` out of JSON text costs one allocation -- the string handed back -- where it cost four, and every
+       other built-in costs none. `std::string_view` is now a view of the source rather than a refusal, since a
+       canonical string token *is* the string; the source has to outlive the view, which for a `reader` over text means
+       the text. A string the source spelt with escape sequences has no decoded form in it to view and is still refused,
+       as is one belonging to a tree the pipeline materialised and is about to free. A bad escape -- a `\uD800` with no
+       low surrogate, which the parser accepts because it validates an escape's syntax without decoding it -- is now a
+       problem in the deserialization's list with a path rather than a `parse_error` thrown out of `deserialize`. This
+       resolves the three `TODO(#150)` markers in `ast.cpp`: the deserializers own the policy, and the nodes keep the
        mechanism they always had (#229).
-     - Integer extraction reports a literal which does not fit the destination instead of wrapping it. It read
+     - Integer deserialization reports a literal which does not fit the destination instead of wrapping it. It read
        through `ast_node::integer::value()`, which saturated to the bound of `std::int64_t`, and then narrowed that
-       result modularly, so `extract<std::uint8_t>` of `999` produced `231` and `extract<std::int8_t>` of `200`
-       produced `-56`. The token is now read against the destination type directly, so both are reported failures
-       naming the literal and the type it did not fit. A negative literal is likewise out of range for an unsigned
-       destination rather than its two's-complement reinterpretation, which is a compatibility break worth calling
-       out: `to_json` writes a `std::uint64_t` above `INT64_MAX` as a negative number, because `value` holds integers
-       as `std::int64_t`, and `extract<std::uint64_t>` used to reinterpret that back. It now refuses, so such a value
+       result modularly, so `deserialize<std::uint8_t>` of `999` produced `231` and `deserialize<std::int8_t>` of `200`
+       produced `-56`. The token is now read against the destination type directly, so both are reported failures naming
+       the literal and the type it did not fit. A negative literal is likewise out of range for an unsigned destination
+       rather than its two's-complement reinterpretation, which is a compatibility break worth calling out: `to_json`
+       writes a `std::uint64_t` above `INT64_MAX` as a negative number, because `value` holds integers as
+       `std::int64_t`, and `deserialize<std::uint64_t>` used to reinterpret that back. It now refuses, so such a value
        no longer round-trips. The document said `-1`, every other JSON reader sees `-1`, and reading it back as
        `18446744073709551615` was two mistakes cancelling.
      - `double` and `float` read the number token with the decimal node's parser, which accepts the integer grammar
        as a subset, so an integer literal beyond `std::int64_t` rounds to the nearest `double` rather than being
        wrapped or refused as it is by the integer accessor.
-     - All of the above is about what the *source text* says. Extracting from an in-memory `value` reads what the
+     - All of the above is about what the *source text* says. Deserializing from an in-memory `value` reads what the
        `value` holds, which for a literal from 2^63 through `UINT64_MAX` is the wrapped, negative number `parse`
        recorded (#229).
-     - `extraction_context::problem_path` is public. An extractor which rejects a value for a reason other than its
-       node type -- a number outside the range of what it builds, say -- wants the answer `expect` and `current_as`
-       already report through, and had no way to ask for it. Relatedly, a mismatch naming several acceptable node
-       types no longer repeats a description they share: expecting a string now reports "when expecting string"
-       rather than "when expecting one of string, string" (#229).
-     - Fixed `extraction_error` built from an empty `problem_list` leaving `problems()` empty, which its own
+     - `deserialization_context::problem_path` is public. A deserializer which rejects a value for a reason other than
+       its node type -- a number outside the range of what it builds, say -- wants the answer `expect` and `current_as`
+       already report through, and had no way to ask for it. Relatedly, a mismatch naming several acceptable node types
+       no longer repeats a description they share: expecting a string now reports "when expecting string" rather than
+       "when expecting one of string, string" (#229).
+     - Fixed `deserialization_error` built from an empty `problem_list` leaving `problems()` empty, which its own
        documentation says cannot happen. `path()` and `nested_ptr()` each guarded the empty case and returned a
        static empty value; `problems()` has nothing to fall back on and was missed, so a caller iterating it to
        report what went wrong got nothing while a caller reading `what()` got a description. The list is now
        normalised when the error is built, which gives `problems().size() == 1` and a different `what()` for that
        case (#245).
-     - Extraction no longer allocates to say where it is. `extraction_context` names its position with a chain of
-       `path_scope` guards living on the C++ stack -- a push is two stores, a pop is one -- and materialises a
-       `jsonv::path` only when `path()` is called, which happens only when a problem is recorded. The two places
-       which name a position on every element of every document now push one of those guards directly:
-       `container_adapter` pushes the element's index and the serialization builder's member loop pushes the key the
-       document used. Both previously went through `extraction_context::extract_sub`, which takes its subpath by
-       value, so every element built a `std::vector<path_element>` and every member built one more -- and, for a key
-       too long for the small-string buffer, two copies of that key, since the `path_element` is copied once into
-       the call and again on the way into the vector. Extracting an array of `n` objects with `m` members apiece
-       performed `n * (m + 1)` heap allocations for the path vectors alone on a wholly successful extraction, and
-       `n * (3m + 1)` in total once the member names stopped fitting in a small string -- all to describe a position
-       nothing would go on to ask for. It now performs none. The member loop also stops looking itself up twice: it
-       held the iterator its own search returned and then asked `value::at_path` to `count` and `at` the same key
-       over again, so each member cost three map lookups where one will do. What a failure reports is unchanged,
-       down to the path of a member matched through an `alternate_name`, which is still the key the document used
-       rather than the declared one. `extract_sub` itself is removed, by #232 (#228).
+     - Deserialization no longer allocates to say where it is. `deserialization_context` names its position with a chain
+       of `path_scope` guards living on the C++ stack -- a push is two stores, a pop is one -- and materialises a
+       `jsonv::path` only when `path()` is called, which happens only when a problem is recorded. The two places which
+       name a position on every element of every document now push one of those guards directly: `container_adapter`
+       pushes the element's index and the serialization builder's member loop pushes the key the document used. Both
+       previously went through `extraction_context::extract_sub`, which takes its subpath by value, so every element
+       built a `std::vector<path_element>` and every member built one more -- and, for a key too long for the
+       small-string buffer, two copies of that key, since the `path_element` is copied once into the call and again on
+       the way into the vector. Deserializing an array of `n` objects with `m` members apiece performed `n * (m + 1)`
+       heap allocations for the path vectors alone on a wholly successful deserialization, and `n * (3m + 1)` in total
+       once the member names stopped fitting in a small string -- all to describe a position nothing would go on to ask
+       for. It now performs none. The member loop also stops looking itself up twice: it held the iterator its own
+       search returned and then asked `value::at_path` to `count` and `at` the same key over again, so each member cost
+       three map lookups where one will do. What a failure reports is unchanged, down to the path of a member matched
+       through an `alternate_name`, which is still the key the document used rather than the declared one. `extract_sub`
+       itself is removed, by #232 (#228).
      - `container_adapter`, `optional_adapter` and `wrapper_adapter` read the reader directly instead of a `value`
-       materialised for them. A `std::vector<my_type>` built the whole array as a `value` and then extracted each
-       element out of it, so a large array was built twice; it is now walked once. The array's opening token carries
-       how many elements follow it, so a container which can be told its size is told it rather than doubling its way
-       there -- the count is bounded by what is on the tape even when the parse which produced it failed part-way
-       through, which is what makes it safe to hand to `reserve`. This is a source break for anyone deriving from one
-       of the three and overriding `create(extraction_context&, const value&)`: the base is now `adapter_for` and the
-       hook takes a `reader`. `polymorphic_adapter` followed in #236 and `enum_adapter` in #237 (#230).
-     - `std::vector<std::string_view>` extracted from JSON text is a view of the source rather than a refusal. It was
-       refused for a structural reason rather than a semantic one: the container materialised the whole array and
-       every element then saw `extraction_context::source_is_temporary`, because a view of that temporary would name
-       storage freed as the extraction unwound. With nothing materialised each element views the document exactly as
-       a lone `std::string_view` does, and is valid for exactly as long as that source is. A string the source spelt
-       with escape sequences is still refused, and a value-backed source still borrows the caller's storage rather
-       than the reader's arena (#230).
+       materialised for them. A `std::vector<my_type>` built the whole array as a `value` and then deserialized each
+       element out of it, so a large array was built twice; it is now walked once. The array's opening token carries how
+       many elements follow it, so a container which can be told its size is told it rather than doubling its way there
+       -- the count is bounded by what is on the tape even when the parse which produced it failed part-way through,
+       which is what makes it safe to hand to `reserve`. This is a source break for anyone deriving from one of the
+       three and overriding `create(deserialization_context&, const value&)`: the base is now `adapter_for` and the hook
+       takes a `reader`. `polymorphic_adapter` followed in #236 and `enum_adapter` in #237 (#230).
+     - `std::vector<std::string_view>` deserialized from JSON text is a view of the source rather than a refusal. It was
+       refused for a structural reason rather than a semantic one: the container materialised the whole array and every
+       element then saw `deserialization_context::source_is_temporary`, because a view of that temporary would name
+       storage freed as the deserialization unwound. With nothing materialised each element views the document exactly
+       as a lone `std::string_view` does, and is valid for exactly as long as that source is. A string the source spelt
+       with escape sequences is still refused, and a value-backed source still borrows the caller's storage rather than
+       the reader's arena (#230).
      - `std::optional<T>` reads what the `value` holds rather than what encoding it would write. A value-backed
        reader has no token for a non-finite `kind::decimal` and renders one as `null`, so deciding "none" from the
        node type alone turned a `std::optional<double>` holding a NaN into an empty one. Where there is a `value` to
-       ask, its `kind` decides -- the same line the numeric extractors already drew for the same reason (#230).
-     - Added `extraction_context::skip_failed_value` and `extraction_context::note_value_consumed`, which are what a
-       composite honouring
-       `extract_options::on_error::collect_all` should step over a failed element with. `reader::next_value` alone is
-       not enough and the recovery example on `extraction_context::recover` said otherwise: an adapter on the `value`
-       bridge reading a structure out of JSON *text* has already walked the cursor past it, because materialising it
-       is what does the walking, so a loop stepping again skipped the following sibling entirely -- dropping it from
-       the result, dropping every problem it had to report, and renumbering everything after it. Collecting over an
-       array of three objects where the first and third were bad reported the first and the *second*, and never read
-       the third. Whatever fails with the value behind it rather than in front of it now says so through
-       `note_value_consumed`, keyed to the reader it consumed it from, and the note lives and dies with one call to
-       `extract`. The bridge says it for itself; so does a container which read its own closing token, and a wrapper
-       or optional whose construction rejects a value the extraction below it already stepped over. The note also
-       settles *where* the failure was, since the cursor no longer says: the enclosing structure, which is still true
-       of the value that failed, where the next sibling is both false and actively misleading. That is the same
-       approximation the bridge already made, and for the same reason -- naming the position exactly would mean
-       building a path before every successful extraction, which on a text source rescans from the start of the
-       document. This was unreachable until a composite walked the reader per element, which is what made it
-       visible (#230).
+       ask, its `kind` decides -- the same line the numeric deserializers already drew for the same reason (#230).
+     - Added `deserialization_context::skip_failed_value` and `deserialization_context::note_value_consumed`, which are
+       what a composite honouring `deserialize_options::on_error::collect_all` should step over a failed element with.
+       `reader::next_value` alone is not enough and the recovery example on `deserialization_context::recover` said
+       otherwise: an adapter on the `value` bridge reading a structure out of JSON *text* has already walked the cursor
+       past it, because materialising it is what does the walking, so a loop stepping again skipped the following
+       sibling entirely -- dropping it from the result, dropping every problem it had to report, and renumbering
+       everything after it. Collecting over an array of three objects where the first and third were bad reported the
+       first and the *second*, and never read the third. Whatever fails with the value behind it rather than in front of
+       it now says so through `note_value_consumed`, keyed to the reader it consumed it from, and the note lives and
+       dies with one call to `deserialize`. The bridge says it for itself; so does a container which read its own
+       closing token, and a wrapper or optional whose construction rejects a value the deserialization below it already
+       stepped over. The note also settles *where* the failure was, since the cursor no longer says: the enclosing
+       structure, which is still true of the value that failed, where the next sibling is both false and actively
+       misleading. That is the same approximation the bridge already made, and for the same reason -- naming the
+       position exactly would mean building a path before every successful deserialization, which on a text source
+       rescans from the start of the document. This was unreachable until a composite walked the reader per element,
+       which is what made it visible (#230).
      - The same note covers every way an adapter can fail once it has stepped the cursor, which is more ways than it
        first appears: a wrapper or optional whose constructor refuses the value handed to it, an optional-like type
-       which refuses to default-construct on `null`, the moves at the end of `adapter_for::extract` and
-       `extractor_for::extract` which place the created object into the caller's storage, and both of the moves a
+       which refuses to default-construct on `null`, the moves at the end of `adapter_for::deserialize` and
+       `deserializer_for::deserialize` which place the created object into the caller's storage, and both of the moves a
        registered callable's result makes on its way out -- the one which normalises it into the `std::expected` the
        pipeline speaks, and, for a callable written against `value`, the return which happens once the bridge has
        committed and can no longer report it. All of these are the caller's own types and all of them can throw after
@@ -407,78 +407,78 @@
      - `container_adapter` finishes walking its array before letting an exception out of the element loop. Inserting
        into the container is the caller's code -- a `std::set` comparator or a move constructor may throw -- and a
        failure there used to leave the cursor stranded between two elements. A loop above it resumed at that token
-       and read the inner `]` as its own end, so extracting a `std::vector<std::set<T>>` under `collect_all` where
+       and read the inner `]` as its own end, so deserializing a `std::vector<std::set<T>>` under `collect_all` where
        two of the sets were bad reported one of them and stopped. The walk steps over whole child values rather than
        leaving "the current structure", because a child which is itself an array or object has to be crossed rather
        than entered -- leaving one of those lands back inside the container being built. A failure after the closing
        token has already been read has nothing left to walk and skips this entirely, which is what keeps a throwing
        move of the finished container from consuming the sibling after it (#230).
      - The serialization builder DSL reads the reader directly instead of a `value` materialised for it, which is
-       what takes the last composite most users actually extract through off the bridge. It is not a change of
+       what takes the last composite most users actually deserialize through off the bridge. It is not a change of
        signature so much as a change of who drives the loop: each member used to be handed the whole parent object
        and look itself up in it by name, walking its `alternate_name`s until one hit, which is random access into
        something a forward cursor cannot offer. The walk now goes the other way -- over the document's keys, each
        dispatched to the member which claims it -- so a type described by the DSL is read in one pass instead of
        being built as a tree and then read out of that tree. A key which claims no member is stepped over whole,
        which on a tape-backed reader costs one move however large the subtree under it is (#231).
-     - Extraction of a DSL-described type runs in **document order** rather than member-declaration order. Which
+     - Deserialization of a DSL-described type runs in **document order** rather than member-declaration order. Which
        member reports a problem first changes with it, and so does the order of any side effects a caller's mutator
        has. Declaration order still decides two things: which name wins when a member and an `alternate_name` of
        another both appear, and the order the members no key claimed are reported or defaulted in, since that pass
        happens after the walk (#231).
-     - Three type-level hooks lose their `const value&` parameter, which is the price of the above and a source
-       break for anyone using them: `pre_extract` is now `void(extraction_context&)`, the `on_extract_extra_keys`
-       handler is `void(extraction_context&, std::set<std::string>)`, and a member's `default_value` factory is
-       `TMember(extraction_context&)`. `throw_extra_keys_extraction_error` follows the second of those and never
-       read its `value` anyway. A forward cursor cannot hand a callback the object it is part-way through reading,
-       and a missing key is only known to be missing once every key which was there has gone by. What the parameter
-       gave them -- most sharply a default computed from a sibling member -- they ask the context for instead, through
-       `extraction_context::source_value` (#235). `type_default_value` is unaffected: it took only the context
+     - Three type-level hooks lose their `const value&` parameter, which is the price of the above and a source break
+       for anyone using them: `pre_extract` is now `void(deserialization_context&)`, the `on_extract_extra_keys` handler
+       is `void(deserialization_context&, std::set<std::string>)`, and a member's `default_value` factory is
+       `TMember(deserialization_context&)`. `throw_extra_keys_deserialization_error` follows the second of those and
+       never read its `value` anyway. A forward cursor cannot hand a callback the object it is part-way through reading,
+       and a missing key is only known to be missing once every key which was there has gone by. What the parameter gave
+       them -- most sharply a default computed from a sibling member -- they ask the context for instead, through
+       `deserialization_context::source_value` (#235). `type_default_value` is unaffected: it took only the context
        already (#231).
-     - `extraction_context::encoded_source` quotes the object a DSL-described type is being extracted from, so a
+     - `deserialization_context::encoded_source` quotes the object a DSL-described type is being deserialized from, so a
        `post_extract` which refuses the object can say which one it was. It is there for the hooks which run once the
        walk reaches the object's `}` -- `on_extract_extra_keys` and every member's `default_value` as well as
-       `post_extract` -- and is empty anywhere else, including inside anything one of those hooks goes on to extract
-       through its context. Read from JSON text it is a view of exactly what was written; read from a `value` it is
-       that value's compact encoding, made the first time a hook asks, so an extraction which never asks pays nothing
-       for it from either. It is text to quote; `extraction_context::source_value` is the tree to query (#134).
-     - `extraction_context::source_value` gives the hooks of a DSL-described type the object they are about, as a
+       `post_extract` -- and is empty anywhere else, including inside anything one of those hooks goes on to deserialize
+       through its context. Read from JSON text it is a view of exactly what was written; read from a `value` it is that
+       value's compact encoding, made the first time a hook asks, so a deserialization which never asks pays nothing for
+       it from either. It is text to quote; `deserialization_context::source_value` is the tree to query (#134).
+     - `deserialization_context::source_value` gives the hooks of a DSL-described type the object they are about, as a
        `value` to read members out of: `pre_extract` can refuse a document by a version member, a `default_value` can
-       compute from a sibling, and an `on_extract_extra_keys` handler can read the values of the keys it is handed.
-       It returns a `jsonv::optional<const value&>`, which is empty anywhere else -- a member's `check_input` or setter
-       during the walk, a `type_default_value` standing in for a `null`, anything a hook goes on to extract through its
-       context, and anything outside DSL extraction. `pre_extract` is shown the value the reader is on, which is not
-       necessarily an object. Read from a `value`, it is the caller's own tree. Read from text, the first hook to ask
-       has the object read into a `value` through a second cursor -- from where the reader is, before the walk, or
+       compute from a sibling, and an `on_extract_extra_keys` handler can read the values of the keys it is handed. It
+       returns a `jsonv::optional<const value&>`, which is empty anywhere else -- a member's `check_input` or setter
+       during the walk, a `type_default_value` standing in for a `null`, anything a hook goes on to deserialize through
+       its context, and anything outside DSL deserialization. `pre_extract` is shown the value the reader is on, which
+       is not necessarily an object. Read from a `value`, it is the caller's own tree. Read from text, the first hook to
+       ask has the object read into a `value` through a second cursor -- from where the reader is, before the walk, or
        from a position on the tape kept from the object's `{`, after it -- and the hooks after it are shown the same
-       one. Keeping that position allocates nothing, so an extraction which never asks costs what it did. What is read
-       from text belongs to the extraction, so while it is being lent `source_is_temporary` is `true`, and a
-       `std::string_view` extracted from it is refused rather than left to dangle (#235).
+       one. Keeping that position allocates nothing, so a deserialization which never asks costs what it did. What is
+       read from text belongs to the deserialization, so while it is being lent `source_is_temporary` is `true`, and a
+       `std::string_view` deserialized from it is refused rather than left to dangle (#235).
      - A `null` which takes a member's default under `default_on_null` has it applied once the walk is done, in
        declaration order with the defaults of the keys which never arrived, rather than as the walk meets the `null`.
        That is what the option always said a `null` means, and it is what lets that default read and quote the whole
        object. Its setter now runs after every member the document did give a value, rather than in document order
        (#235).
-     - Finding the keys which claimed no member is now free. It used to be a second scan over the materialised
-       object, registered as a `pre_extract` and comparing every key against every member; the walk now knows which
-       keys those were because it is the thing which failed to place them. It is also no longer a `pre_extract`, so
-       it runs after the walk rather than before it -- a handler which throws, as `throw_extra_keys_extraction_error`
-       does, now does so with the object already read rather than untouched. The set of names is only built when a
-       handler was registered (#231).
-     - `extract_options::on_duplicate_key` is honoured by DSL extraction. It was not before, and not by omission:
-       on a `value` the duplicate had already been collapsed by the parse, and on JSON text the bridge's own
-       materialisation kept the last spelling whatever the option said. The walk sees both keys, so it can answer
-       for them -- `replace` extracts the later one over the earlier, `ignore` steps over it, and `exception`
-       reports `Duplicate key in object: "..."`, the same message `parse_index::extract_tree` raises for the same
-       document. `exception` is asked of every key on the way past rather than only of the ones a member answers to:
-       a repeated key is the same thing to it either way, and a member reading itself from its preferred name cannot
-       tell a repeat of a name it has already passed over from a first sighting of another, so which of the two an
-       object was refused for would otherwise depend on the order it listed them in. A document repeating a key no
-       member wants is refused as well, which is again what building the `value` first would have done (#231).
+     - Finding the keys which claimed no member is now free. It used to be a second scan over the materialised object,
+       registered as a `pre_extract` and comparing every key against every member; the walk now knows which keys those
+       were because it is the thing which failed to place them. It is also no longer a `pre_extract`, so it runs after
+       the walk rather than before it -- a handler which throws, as `throw_extra_keys_deserialization_error` does, now
+       does so with the object already read rather than untouched. The set of names is only built when a handler was
+       registered (#231).
+     - `deserialize_options::on_duplicate_key` is honoured by DSL deserialization. It was not before, and not by
+       omission: on a `value` the duplicate had already been collapsed by the parse, and on JSON text the bridge's own
+       materialisation kept the last spelling whatever the option said. The walk sees both keys, so it can answer for
+       them -- `replace` deserializes the later one over the earlier, `ignore` steps over it, and `exception` reports
+       `Duplicate key in object: "..."`, the same message `parse_index::extract_tree` raises for the same document.
+       `exception` is asked of every key on the way past rather than only of the ones a member answers to: a repeated
+       key is the same thing to it either way, and a member reading itself from its preferred name cannot tell a repeat
+       of a name it has already passed over from a first sighting of another, so which of the two an object was refused
+       for would otherwise depend on the order it listed them in. A document repeating a key no member wants is refused
+       as well, which is again what building the `value` first would have done (#231).
      - `check_input` runs. The mutator it composes a check into was stored on the member and never read by anything,
        so every `check_input` in every DSL since the feature was added in 2015 has been a no-op; it is now applied
        to the value which was read, before that value reaches the member. A predicate which has never executed may
-       well reject data which has been extracting cleanly for years, which is the reason to call this out rather
+       well reject data which has been deserializing cleanly for years, which is the reason to call this out rather
        than file it as a fix (#231).
      - `alternate_name` compiles. The friendship which lets the member builder reach the member adapter's list of
        names was declared unqualified inside `jsonv::detail`, so it named a `jsonv::detail::member_adapter_builder`
@@ -494,132 +494,148 @@
        and its failure reported by the time the preferred one arrives, because a forward walk has to read a value
        when it meets it and the preferred name may never come (#231).
      - A second name for the same member is not a duplicate key. The two are different questions -- one member named
-       two ways against one key repeated -- and only the second is `extract_options::on_duplicate_key`'s to decide,
+       two ways against one key repeated -- and only the second is `deserialize_options::on_duplicate_key`'s to decide,
        so strict duplicate handling no longer refuses a document which merely uses an `alternate_name` (#231).
-     - Extracting a DSL-described type from something which is not an object reports a node type mismatch naming
+     - Deserializing a DSL-described type from something which is not an object reports a node type mismatch naming
        what was found. It used to be whatever `value::find` threw when a member looked itself up in a non-object,
        which was a `kind_error` about the wrong thing (#231).
-     - A `std::string_view` member of a DSL-described type extracted from JSON text is a view of the source rather
+     - A `std::string_view` member of a DSL-described type deserialized from JSON text is a view of the source rather
        than a refusal, for the same reason `std::vector<std::string_view>` became one in #230: the refusal was
        structural, and there is no longer a materialised tree for the view to dangle into (#231).
-     - Added `extract<T>` overloads which read JSON text and `reader`s directly, so extracting from text no longer
-       means building a `value` first. `extract<T>(text)` takes anything which converts to `std::string_view`,
-       optionally with `parse_options`; `extract<T>(reader&)` and `extract<T>(reader&&)` take a reader, the latter
-       so `extract<my_type>(jsonv::reader(text))` reads naturally. Every one takes `formats` and `extract_options`
-       as the `value` overloads do, and every one throws `extraction_error`. A reader on `document_start` is read as
-       a whole document: its source is checked with `reader::validate`, the `document_start` is stepped over -- so
-       neither the caller nor any extractor ever has to -- and the value must be all there is. A reader the caller
-       has already positioned is read from where it is, leaving the cursor one past the value. Text which does not
-       parse is reported as a problem carrying the `parse_error` as its cause, rather than as whatever an extractor
-       made of the `error` node it ran into -- including a reader positioned on that node, and a parse which failed
-       before the document began, as a `max_structure_depth` of 0 does (#232).
-     - A whole-document extraction refuses anything after the value. The parser lets trailing text through after a
-       top-level scalar -- `5 6` parses -- so without this `extract<int>("5 6")` would have been 5 where
-       `extract<int>(parse("5 6"))` always threw. The same check applies to `extract<T>(const value&)`, where the
-       only thing it can catch is an extractor which broke `extractor::extract`'s rule of leaving the cursor one past
-       its value; one which did so used to pass unnoticed at the top level and is now an error (#232).
-     - Source break: a C++ string passed to `extract<T>` is JSON text. `value` converts implicitly from
-       `const char*`, `std::string` and `std::string_view`, so `extract<ring>("fire", fmts)` used to extract from
-       the JSON *string* `"fire"`; it now parses `fire` as a document, which fails. Say `extract<ring>(value("fire"),
-       fmts)` to mean the string, or `extract<ring>(R"("fire")", fmts)` to write it as JSON. Anything else which
+     - Added `deserialize<T>` overloads which read JSON text and `reader`s directly, so deserializing from text no
+       longer means building a `value` first. `deserialize<T>(text)` takes anything which converts to
+       `std::string_view`, optionally with `parse_options`; `deserialize<T>(reader&)` and `deserialize<T>(reader&&)`
+       take a reader, the latter so `deserialize<my_type>(jsonv::reader(text))` reads naturally. Every one takes
+       `formats` and `deserialize_options` as the `value` overloads do, and every one throws `deserialization_error`. A
+       reader on `document_start` is read as a whole document: its source is checked with `reader::validate`, the
+       `document_start` is stepped over -- so neither the caller nor any deserializer ever has to -- and the value must
+       be all there is. A reader the caller has already positioned is read from where it is, leaving the cursor one past
+       the value. Text which does not parse is reported as a problem carrying the `parse_error` as its cause, rather
+       than as whatever a deserializer made of the `error` node it ran into -- including a reader positioned on that
+       node, and a parse which failed before the document began, as a `max_structure_depth` of 0 does (#232).
+     - A whole-document deserialization refuses anything after the value. The parser lets trailing text through after a
+       top-level scalar -- `5 6` parses -- so without this `deserialize<int>("5 6")` would have been 5 where
+       `deserialize<int>(parse("5 6"))` always threw. The same check applies to `deserialize<T>(const value&)`, where
+       the only thing it can catch is a deserializer which broke `deserializer::deserialize`'s rule of leaving the
+       cursor one past its value; one which did so used to pass unnoticed at the top level and is now an error (#232).
+     - Source break: a C++ string passed to `deserialize<T>` is JSON text. `value` converts implicitly from `const
+       char*`, `std::string` and `std::string_view`, so `deserialize<ring>("fire", fmts)` used to deserialize from the
+       JSON *string* `"fire"`; it now parses `fire` as a document, which fails. Say `deserialize<ring>(value("fire"),
+       fmts)` to mean the string, or `deserialize<ring>(R"("fire")", fmts)` to write it as JSON. Anything else which
        converts to `value` -- integers, `double`, `bool`, wide strings -- means what it did. This is the ambiguity
        `reader::from_value` was named to avoid (#224), settled the other way round: the text overloads are an exact
        match for a string where the conversion to `value` is not (#232).
-     - Extraction refuses to return a view of a source it was handed to own. `extract<T>(std::string&&)` takes the
-       text over and frees it on return, as `extract<T>(reader&&)` does for a reader which `reader::owns_source`, so
-       a `std::string_view` extracted from either would dangle before the caller could read it; both are refused, as
-       for a materialised tree. `extraction_context::source_is_temporary` now covers both causes. Pass a
-       `std::string_view`, a `std::string` lvalue or a reader over storage you keep to extract views (#232).
-     - Added `extract<T>(reader&, extraction_context&)`, `extract<T>(reader&&, extraction_context&)` and
-       `extract<T>(text, [parse_options,] extraction_context&)`, which extract through a context the caller built
-       rather than one made from `formats` and `extract_options`. A version, user data and a base path exist only on a
-       context, so until now nothing read from a reader or from text could be given one: the only whole-document entry
-       taking a context was `extraction_context::extract<T>(const value&)`. A failed call takes the problems it recorded
-       off the context with the exception, leaving it holding what it held before (#133).
-     - `extraction_error` says which document a problem is in as well as where in it. `extraction_context` takes the
-       name of the document -- usually the file its text was read from -- as a new last constructor argument,
-       `source_name`, and every problem recorded on it carries the name as `extraction_error::problem::source_name`.
-       `what()` joins it to the path with a `#`, as in `Extraction error at config.json#.servers[2].port: ...`, and
-       gives the name alone for a problem with no position, such as a parse failure. A problem folded in from a context
-       which named some other document keeps that name. `extraction_error::source_name` is the first problem's, as
-       `path` is, and without a name the message is unchanged. Spell out every argument before the name: a string in
-       the place of `userdata` converts to `const void*` and is taken for the user data. `extraction_error::problem`
-       and `extraction_context` both change layout (#133).
-     - Removed `extraction_context::extract_sub`. It reached into an already-materialised tree by path, which a
-       forward cursor has no equivalent for and which nothing in the library still did. Within a `value`-based
-       adapter, name the part and say where it is: `context.extract<int>(from.at("a"))` under an
-       `extraction_context::path_scope`. Also removed are the `path_scope` constructor taking a whole `jsonv::path`,
-       which only `extract_sub` used, and `extraction_context::extract(const std::type_info&, const value&, void*)`,
-       since an extraction refused after it has built its object -- something after the value -- has to destroy
-       that object, and a caller of the `void*` form had no way to let it (#232).
-     - Extracting a `value` from JSON text settles a repeated key by `extract_options::on_duplicate_key`, as `parse`
-       does under the same options: `ignore` keeps the first value, and `exception` refuses the object with
-       `Duplicate key in object: "..."` placed at the key which repeated -- below the extraction's own base path or
+     - Deserialization refuses to return a view of a source it was handed to own. `deserialize<T>(std::string&&)` takes
+       the text over and frees it on return, as `deserialize<T>(reader&&)` does for a reader which
+       `reader::owns_source`, so a `std::string_view` deserialized from either would dangle before the caller could read
+       it; both are refused, as for a materialised tree. `deserialization_context::source_is_temporary` now covers both
+       causes. Pass a `std::string_view`, a `std::string` lvalue or a reader over storage you keep to deserialize views
+       (#232).
+     - Added `deserialize<T>(reader&, deserialization_context&)`, `deserialize<T>(reader&&, deserialization_context&)`
+       and `deserialize<T>(text, [parse_options,] deserialization_context&)`, which deserialize through a context the
+       caller built rather than one made from `formats` and `deserialize_options`. A version, user data and a base path
+       exist only on a context, so until now nothing read from a reader or from text could be given one: the only
+       whole-document entry taking a context was `deserialization_context::deserialize<T>(const value&)`. A failed call
+       takes the problems it recorded off the context with the exception, leaving it holding what it held before (#133).
+     - `deserialization_error` says which document a problem is in as well as where in it. `deserialization_context`
+       takes the name of the document -- usually the file its text was read from -- as a new last constructor argument,
+       `source_name`, and every problem recorded on it carries the name as
+       `deserialization_error::problem::source_name`. `what()` joins it to the path with a `#`, as in `Deserialization
+       error at config.json#.servers[2].port: ...`, and gives the name alone for a problem with no position, such as a
+       parse failure. A problem folded in from a context which named some other document keeps that name.
+       `deserialization_error::source_name` is the first problem's, as `path` is, and without a name the message is
+       unchanged. Spell out every argument before the name: a string in the place of `userdata` converts to `const
+       void*` and is taken for the user data. `deserialization_error::problem` and `deserialization_context` both change
+       layout (#133).
+     - Removed `extraction_context::extract_sub`. It reached into an already-materialised tree by path, which a forward
+       cursor has no equivalent for and which nothing in the library still did. Within a `value`-based adapter, name the
+       part and say where it is: `context.deserialize<int>(from.at("a"))` under a `deserialization_context::path_scope`.
+       Also removed are the `path_scope` constructor taking a whole `jsonv::path`, which only `extract_sub` used, and
+       `deserialization_context::deserialize(const std::type_info&, const value&, void*)`, since a deserialization
+       refused after it has built its object -- something after the value -- has to destroy that object, and a caller of
+       the `void*` form had no way to let it (#232).
+     - Deserializing a `value` from JSON text settles a repeated key by `deserialize_options::on_duplicate_key`, as
+       `parse` does under the same options: `ignore` keeps the first value, and `exception` refuses the object with
+       `Duplicate key in object: "..."` placed at the key which repeated -- below the deserialization's own base path or
        scope where it has one, which outranks the reader's path as it does for any other problem. It kept the last
-       whatever the option said, so `extract<value>(text, options)` and `parse(text, parse_options(), options)`
-       disagreed under anything but the default. The same goes for an adapter on the `value` bridge, which is handed
-       the tree this builds, and for `read_value(extraction_context&, reader&)` generally; `read_value(reader&)` has no
+       whatever the option said, so `deserialize<value>(text, options)` and `parse(text, parse_options(), options)`
+       disagreed under anything but the default. The same goes for an adapter on the `value` bridge, which is handed the
+       tree this builds, and for `read_value(deserialization_context&, reader&)` generally; `read_value(reader&)` has no
        options and still keeps the last (#263).
      - `polymorphic_adapter` reads the reader directly instead of a `value` materialised for it. Choosing a subtype
-       means looking at the value before extracting it, which a forward cursor cannot do by itself, so the
+       means looking at the value before deserializing it, which a forward cursor cannot do by itself, so the
        discriminators are shown the value through a second cursor on the same source -- the reader itself never moves
-       backward -- and the subtype they choose is then extracted from the reader. From JSON text, a subtype registered
-       with `add_subtype_keyed`, which is what the DSL's `subtype<T>(value)` registers, is shown only the members it
-       discriminates on, found by stepping over every other member whole; a document such a subtype matches is read
-       once however large it is and wherever the discriminator sits in it. A discriminator registered with
+       backward -- and the subtype they choose is then deserialized from the reader. From JSON text, a subtype
+       registered with `add_subtype_keyed`, which is what the DSL's `subtype<T>(value)` registers, is shown only the
+       members it discriminates on, found by stepping over every other member whole; a document such a subtype matches
+       is read once however large it is and wherever the discriminator sits in it. A discriminator registered with
        `add_subtype` can ask anything of the value, so the first time one of those has to be asked the subtree is
        materialised for it, and listing the keyed subtypes first keeps any document they match from paying for that.
        From a `value` every discriminator is shown that value, as before, and registration order still decides between
        two which both match. What a discriminator is shown settles a repeated key by
-       `extract_options::on_duplicate_key` at every depth, as the DSL and, since #263, a `value` read from text do --
-       so the subtype chosen and the subtype built agree on what the document said (#236).
+       `deserialize_options::on_duplicate_key` at every depth, as the DSL and, since #263, a `value` read from text do
+       -- so the subtype chosen and the subtype built agree on what the document said (#236).
      - A subtype chosen from JSON text reads the document rather than a copy of it. A `std::string_view` member is a
        view of the source rather than a refusal, and a member a keyed subtype never reads can no longer fail it: the
        bridge built the whole object before choosing, so a number with no finite `double` anywhere in it failed every
-       subtype. A document no discriminator matches is refused with the cursor still on it, and the message names it
-       as before -- unless naming it would mean reading something which cannot be read, in which case the message
-       stops at `No discriminators matched JSON value` rather than reporting that instead. This is a source break for
-       anyone deriving from `polymorphic_adapter` and overriding `create(extraction_context&, const value&)`: the base
-       is now `adapter_for` and the hook takes a `reader` (#236).
+       subtype. A document no discriminator matches is refused with the cursor still on it, and the message names it as
+       before -- unless naming it would mean reading something which cannot be read, in which case the message stops at
+       `No discriminators matched JSON value` rather than reporting that instead. This is a source break for anyone
+       deriving from `polymorphic_adapter` and overriding `create(deserialization_context&, const value&)`: the base is
+       now `adapter_for` and the hook takes a `reader` (#236).
      - `enum_adapter` reads the reader directly instead of a `value` materialised for it. Under the library's own
        orderings -- `std::less<value>`, `value_less` and `value_less_icase`, which are what `enum_type` and
        `enum_type_icase` use -- a string read from JSON text is looked up by its text, so nothing is built to hold it;
-       one written with escapes is decoded first. A number, a boolean or `null` is read where it sits and builds
-       nothing either. Any other ordering can only be asked about a `value`, so it is still handed one. The
-       `benchmark/extract/enum_strings` rows measure it: 100000 ticket states extract from text in 21 ms rather than
-       37 ms, and from an existing `value` in 23 ms rather than 28 ms (#237).
+       one written with escapes is decoded first. A number, a boolean or `null` is read where it sits and builds nothing
+       either. Any other ordering can only be asked about a `value`, so it is still handed one. The
+       `benchmark/deserialize/enum_strings` rows measure it: 100000 ticket states deserialize from text in 21 ms rather
+       than 37 ms, and from an existing `value` in 23 ms rather than 28 ms (#237).
      - A value an `enum_adapter` has no mapping for is refused with the reader still on it, and the message now lists
-       every JSON value the mapping accepts, in the mapping's order:
-       `Invalid value for ring: "bogus" (expected one of "earth", "fire", "heart", "useless", "water", "wind")`. The
-       refusal is placed by `extraction_context::problem_path`, as every other is, so a reader positioned part-way
-       through a document reports where it is unless a scope or base path says otherwise -- the `value` bridge
-       reported the root. A `TEnum` whose move constructor throws no longer makes a collecting container skip the
-       value after it, as the bridge still does (#259). This is a source break for anyone deriving from `enum_adapter`
-       and overriding `create(extraction_context&, const value&)`: the base is now `adapter_for` and the hook takes a
-       `reader` (#237).
+       every JSON value the mapping accepts, in the mapping's order: `Invalid value for ring: "bogus" (expected one of
+       "earth", "fire", "heart", "useless", "water", "wind")`. The refusal is placed by
+       `deserialization_context::problem_path`, as every other is, so a reader positioned part-way through a document
+       reports where it is unless a scope or base path says otherwise -- the `value` bridge reported the root. A `TEnum`
+       whose move constructor throws no longer makes a collecting container skip the value after it, as the bridge still
+       does (#259). This is a source break for anyone deriving from `enum_adapter` and overriding
+       `create(deserialization_context&, const value&)`: the base is now `adapter_for` and the hook takes a `reader`
+       (#237).
+     - Source break: the type-level read interface takes serde's name. `extractor` is `deserializer` and its
+       `extract` is `deserialize`; `extraction_context` is `deserialization_context`, `extraction_error` is
+       `deserialization_error`, `extract_options` is `deserialize_options` and `no_extractor` is
+       `no_deserializer`; `extractor_for`, `extractor_construction`, `function_extractor` and `make_extractor`
+       are `deserializer_for`, `deserializer_construction`, `function_deserializer` and `make_deserializer`;
+       `formats::extract`, `get_extractor` and `register_extractor` are `deserialize`, `get_deserializer` and
+       `register_deserializer`; and the free `extract<T>` overloads are `deserialize<T>`. The headers follow:
+       `serialization/extract.hpp` is `serialization/deserialize.hpp`, and `extractor_for.hpp`,
+       `function_extractor.hpp` and `extractor_construction.hpp` are `deserializer_for.hpp`,
+       `function_deserializer.hpp` and `deserializer_construction.hpp`. A `deserialization_error`'s message
+       begins `Deserialization error`, and the `benchmark/extract/` rows are `benchmark/deserialize/`.
+       `serializer` already had the serde name, so the two directions now share a root as `reader` and `writer`
+       do. `value::extract`, `parse_index::extract_tree` and the serialization builder's `pre_extract`,
+       `post_extract` and `on_extract_extra_keys` hooks keep their names; the hooks are #328's (#318).
      - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a
        buffer was read beyond it (#188).
-     - Fixed copying a `function_extractor` or `function_serializer` from a non-const lvalue failing to compile. Their
-       constructor taking the wrapped function by forwarding reference was a better match than the copy constructor,
-       so the copy tried to build the function out of the adapter. The constructor now refuses the adapter's own type
-       (#188).
+     - Fixed copying a `function_deserializer` or `function_serializer` from a non-const lvalue failing to compile.
+       Their constructor taking the wrapped function by forwarding reference was a better match than the copy
+       constructor, so the copy tried to build the function out of the adapter. The constructor now refuses the
+       adapter's own type (#188).
      - Fixed a `formats` registration which fails taking the registrations it found down with it. Registering a shared
-       `extractor`, `serializer` or `adapter` changes the type's entry and then takes a share of the object, and when
+       `deserializer`, `serializer` or `adapter` changes the type's entry and then takes a share of the object, and when
        taking the share ran out of memory the entry was erased whether or not the call had added it. Under
        `duplicate_type_action::ignore` that deleted the mapping the call had been told to keep, under `replace` it
-       deleted the mapping rather than restoring the one it had replaced, and an adapter could lose its extractor and
-       its serializer both. Registering an adapter by pointer did the same to an extractor already there when adding
+       deleted the mapping rather than restoring the one it had replaced, and an adapter could lose its deserializer and
+       its serializer both. Registering an adapter by pointer did the same to a deserializer already there when adding
        the serializer failed, and the serialization builder registers through both under `on_duplicate_type`. A caller
-       which caught the `std::bad_alloc` and carried on got `no_extractor` or `no_serializer` -- or, in a `formats`
+       which caught the `std::bad_alloc` and carried on got `no_deserializer` or `no_serializer` -- or, in a `formats`
        composed over a base, the base's implementation without a word. A registration which throws now leaves the
        `formats` as it found it (#244).
      - Fixed `default_on_null` without a `default_value`, and `type_default_on_null` without a `type_default_value`,
        failing with `std::bad_function_call`. A `null` where either applied was handed to a default factory nobody
-       provided, so the document was refused with an `extraction_error` describing the library's internals. The flag is
-       now only considered when there is a default to take -- the test a missing key was already put to, and what the
-       DSL reference has always said for a member. A `null` with nothing to fall back on is extracted like any other
+       provided, so the document was refused with a `deserialization_error` describing the library's internals. The flag
+       is now only considered when there is a default to take -- the test a missing key was already put to, and what the
+       DSL reference has always said for a member. A `null` with nothing to fall back on is deserialized like any other
        value: for an integer member, or for the type itself, a node type mismatch naming `null` (#258).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was

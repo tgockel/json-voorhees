@@ -43,12 +43,13 @@ class optional_adapter :
 
 protected:
     JSONV_NODISCARD
-    virtual std::expected<TOptional, ast_node_type> create(extraction_context& context, reader& from) const override
+    virtual std::expected<TOptional, ast_node_type>
+    create(deserialization_context& context, reader& from) const override
     {
         // A value-backed reader renders a non-finite `kind::decimal` as `literal_null`, because the token it writes
         // has nowhere to put one -- that is what encoding the value produces, not what the tree holds. Where there is
         // a `value` to ask, its `kind` decides and the rendering does not, which is the same rule the numeric
-        // extractors follow for the same reason.
+        // deserializers follow for the same reason.
         optional<const value&> lent = from.current_value();
         bool                   none = lent ? lent->kind() == jsonv::kind::null
                                            : from.current_type() == ast_node_type::literal_null;
@@ -65,7 +66,7 @@ protected:
                 return TOptional();
             }
 
-            auto element = context.extract<element_type>(from);
+            auto element = context.deserialize<element_type>(from);
             if (!element)
                 return std::unexpected(element.error());
 

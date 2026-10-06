@@ -132,7 +132,7 @@ ast_node_type reader::current_type() const
 
 optional<const value&> reader::current_value() const noexcept
 {
-    // Asked on every scalar an extractor reads, so a reader over text answers without the virtual call.
+    // Asked on every scalar a deserializer reads, so a reader over text answers without the virtual call.
     if (_impl && _impl->value_backed())
         return _impl->borrowed_value();
     else

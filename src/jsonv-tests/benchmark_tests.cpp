@@ -207,14 +207,14 @@ private:
 object_insert_benchmark_test object_insert_benchmark_insert_instance("insert", true);
 object_insert_benchmark_test object_insert_benchmark_subscript_instance("subscript", false);
 
-// The `extract/` rows time extraction to a C++ type. Each case runs three ways over the same input and target type:
-// `parse_then_extract` builds a `value` and extracts from that, which is what extracting from text cost before #150;
-// `from_text` extracts straight off the parse index; and `from_value` extracts from a `value` parsed before the clock
-// starts, which is the case reading through `reader::from_value` must not make any slower.
+// The `deserialize/` rows time deserialization to a C++ type. Each case runs three ways over the same input and target
+// type: `parse_then_deserialize` builds a `value` and deserializes from that, which is what deserializing from text
+// cost before #150; `from_text` deserializes straight off the parse index; and `from_value` deserializes from a `value`
+// parsed before the clock starts, which is the case reading through `reader::from_value` must not make any slower.
 //
 // Fewer iterations than the rows above: every input here is over a megabyte, and at 100 iterations these rows would
 // take three times as long as the rest of the suite put together.
-static const unsigned extract_iterations = JSONV_DEBUG ? 1 : 10;
+static const unsigned deserialize_iterations = JSONV_DEBUG ? 1 : 10;
 
 namespace
 {
@@ -252,7 +252,7 @@ struct citm_performance
 };
 
 /// Every member of every performance, which is most of `citm_catalog.json`. The document's other top-level keys are
-/// objects keyed by ID, which nothing in the library extracts to.
+/// objects keyed by ID, which nothing in the library deserializes to.
 struct citm_catalog
 {
     std::vector<citm_performance> performances;
@@ -304,7 +304,7 @@ enum class ticket_state
 
 /// Built on first use from a `run_impl` rather than during static initialization, so a mistake in it fails the row
 /// which asked instead of the whole binary.
-const formats& extract_benchmark_formats()
+const formats& deserialize_benchmark_formats()
 {
     static const formats instance =
         formats_builder()
@@ -394,8 +394,8 @@ const std::vector<std::string>& benchmark_strings()
 /// plain spelling writes both as they are, and each element is `string_canonical`.
 ///
 /// The escaped document is about 30% larger, so some of the gap between the two `from_text` rows is scanning. The
-/// `parse_then_extract` rows decode while parsing, and a reader over a `value` only produces canonical strings, so the
-/// two `from_value` rows do the same work.
+/// `parse_then_deserialize` rows decode while parsing, and a reader over a `value` only produces canonical strings, so
+/// the two `from_value` rows do the same work.
 std::string synthesize_strings(bool escaped)
 {
     std::string out = "[";
@@ -444,7 +444,7 @@ const std::vector<ticket_state>& benchmark_ticket_states()
 /// `benchmark_ticket_states` as a JSON array of their spellings, 1.95 MB of `string_canonical` nodes.
 std::string synthesize_ticket_states()
 {
-    // In the order of the enumerators, and the same spellings `extract_benchmark_formats` maps them from.
+    // In the order of the enumerators, and the same spellings `deserialize_benchmark_formats` maps them from.
     static const char* const spellings[] = { "open",
                                              "closed",
                                              "pending",
@@ -553,15 +553,15 @@ void check_ticket_states(const std::vector<ticket_state>& states)
     ensure(states == benchmark_ticket_states());
 }
 
-enum class extract_pipeline
+enum class deserialize_pipeline
 {
-    parse_then_extract,
+    parse_then_deserialize,
     from_text,
     from_value,
 };
 
 template <typename T>
-class extract_benchmark_test :
+class deserialize_benchmark_test :
         public unit_test
 {
 public:
@@ -569,8 +569,8 @@ public:
     using checker = void (*)(const T&);
 
 public:
-    extract_benchmark_test(const std::string& name, extract_pipeline pipeline, loader load, checker check) :
-            unit_test("benchmark/extract/" + name),
+    deserialize_benchmark_test(const std::string& name, deserialize_pipeline pipeline, loader load, checker check) :
+            unit_test("benchmark/deserialize/" + name),
             pipeline(pipeline),
             load(load),
             check(check)
@@ -578,12 +578,12 @@ public:
 
     virtual void run_impl() override
     {
-        const formats&    fmts   = extract_benchmark_formats();
+        const formats&    fmts   = deserialize_benchmark_formats();
         const std::string src    = load();
-        const value       parsed = pipeline == extract_pipeline::from_value ? parse(src) : value();
+        const value       parsed = pipeline == deserialize_pipeline::from_value ? parse(src) : value();
 
         stopwatch timer;
-        for (unsigned cnt = 0; cnt < extract_iterations; ++cnt)
+        for (unsigned cnt = 0; cnt < deserialize_iterations; ++cnt)
         {
             // Outside the timed scope, so that the result is destroyed outside it too. The old pipeline's `value` is a
             // temporary and is torn down inside it, which is part of what that pipeline costs.
@@ -592,16 +592,16 @@ public:
                 JSONV_TEST_TIME(timer);
                 switch (pipeline)
                 {
-                case extract_pipeline::parse_then_extract:
-                    out = extract<T>(parse(src), fmts);
+                case deserialize_pipeline::parse_then_deserialize:
+                    out = deserialize<T>(parse(src), fmts);
                     break;
-                case extract_pipeline::from_text:
+                case deserialize_pipeline::from_text:
                     // An lvalue, which the reader views where it is. A `std::string` rvalue would be moved into the
                     // reader and freed inside the timed scope.
-                    out = extract<T>(src, fmts);
+                    out = deserialize<T>(src, fmts);
                     break;
-                case extract_pipeline::from_value:
-                    out = extract<T>(parsed, fmts);
+                case deserialize_pipeline::from_value:
+                    out = deserialize<T>(parsed, fmts);
                     break;
                 }
             }
@@ -611,15 +611,15 @@ public:
     }
 
 private:
-    extract_pipeline pipeline;
+    deserialize_pipeline pipeline;
     loader           load;
     checker          check;
 };
 
-class extract_benchmark_initializer
+class deserialize_benchmark_initializer
 {
 public:
-    extract_benchmark_initializer()
+    deserialize_benchmark_initializer()
     {
         add<citm_catalog>("citm_records", load_citm_catalog, check_citm_records);
         add<citm_catalog_ids>("citm_sparse", load_citm_catalog, check_citm_sparse);
@@ -632,24 +632,24 @@ public:
 private:
     template <typename T>
     void add(const std::string&                          name,
-             typename extract_benchmark_test<T>::loader  load,
-             typename extract_benchmark_test<T>::checker check
+             typename deserialize_benchmark_test<T>::loader  load,
+             typename deserialize_benchmark_test<T>::checker check
             )
     {
-        static const std::pair<extract_pipeline, const char*> pipelines[] =
+        static const std::pair<deserialize_pipeline, const char*> pipelines[] =
             {
-                { extract_pipeline::parse_then_extract, "parse_then_extract" },
-                { extract_pipeline::from_text,          "from_text"          },
-                { extract_pipeline::from_value,         "from_value"         },
+                { deserialize_pipeline::parse_then_deserialize, "parse_then_deserialize" },
+                { deserialize_pipeline::from_text,          "from_text"          },
+                { deserialize_pipeline::from_value,         "from_value"         },
             };
 
         for (const auto& [pipeline, suffix] : pipelines)
-            _tests.emplace_back(new extract_benchmark_test<T>(name + "/" + suffix, pipeline, load, check));
+            _tests.emplace_back(new deserialize_benchmark_test<T>(name + "/" + suffix, pipeline, load, check));
     }
 
 private:
     std::deque<std::unique_ptr<unit_test>> _tests;
-} extract_benchmark_initializer_instance;
+} deserialize_benchmark_initializer_instance;
 
 }
 

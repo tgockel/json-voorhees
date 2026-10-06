@@ -21,7 +21,7 @@ namespace jsonv
 /// \addtogroup Serialization
 /// \{
 
-/// Provides extra information to routines used for extraction and serialization.
+/// Provides extra information to routines used for deserialization and serialization.
 class JSONV_PUBLIC context
 {
 public:
@@ -36,7 +36,7 @@ public:
 
     virtual ~context() noexcept = 0;
 
-    /// Get the \c formats object backing extraction and encoding.
+    /// Get the \c formats object backing deserialization and encoding.
     JSONV_NODISCARD
     const jsonv::formats& formats() const
     {

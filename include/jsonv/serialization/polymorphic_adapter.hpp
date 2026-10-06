@@ -61,9 +61,9 @@ enum class keyed_subtype_action : unsigned char
 /// ]
 /// @endcode
 ///
-/// Choosing a subtype means looking at the value before extracting it, which a \c reader -- a forward cursor -- cannot
-/// do by itself. Each discriminator is shown as little of the value as answers it, read without moving the reader, and
-/// the subtype it picks is then extracted from the reader directly:
+/// Choosing a subtype means looking at the value before deserializing it, which a \c reader -- a forward cursor --
+/// cannot do by itself. Each discriminator is shown as little of the value as answers it, read without moving the
+/// reader, and the subtype it picks is then deserialized from the reader directly:
 ///
 ///  - From a \c value, every discriminator is shown that value. Nothing is copied.
 ///  - From JSON text, one registered with \c add_subtype_keyed is shown an object holding only the discriminating
@@ -71,8 +71,8 @@ enum class keyed_subtype_action : unsigned char
 ///    of the value, so the first time one of those has to be asked the subtree is materialised for it. Registering
 ///    the keyed subtypes first keeps a matching document from ever being materialised.
 ///
-/// \tparam TPointer Some pointer-like type (likely \c unique_ptr or \c shared_ptr) you wish to extract values into. It
-///                  must support \c operator*, an explicit conversion to \c bool, construction with a pointer to a
+/// \tparam TPointer Some pointer-like type (likely \c unique_ptr or \c shared_ptr) you wish to deserialize values into.
+///                  It must support \c operator*, an explicit conversion to \c bool, construction with a pointer to a
 ///                  subtype of what it contains and default construction.
 ///
 template <typename TPointer>
@@ -80,7 +80,7 @@ class polymorphic_adapter :
         public adapter_for<TPointer>
 {
 public:
-    using match_predicate = std::function<bool (extraction_context&, const value&)>;
+    using match_predicate = std::function<bool (deserialization_context&, const value&)>;
 
 public:
     polymorphic_adapter() = default;
@@ -112,7 +112,7 @@ public:
         _discriminator_keys.insert(key);
 
         match_predicate op = [key = std::move(key), expected_value = std::move(expected_value)]
-                             (extraction_context&, const value& value)
+                             (deserialization_context&, const value& value)
                              {
                                  if (!value.is_object())
                                      return false;
@@ -125,8 +125,8 @@ public:
 
     /// \{
 
-    /// When extracting a C++ value, should \c kind::null in JSON automatically become a default-constructed \c TPointer
-    /// (which is usually the \c null representation)?
+    /// When deserializing a C++ value, should \c kind::null in JSON automatically become a default-constructed \c
+    /// TPointer (which is usually the \c null representation)?
     void check_null_input(bool on)
     {
         _check_null_input = on;
@@ -156,7 +156,7 @@ public:
 
 protected:
     JSONV_NODISCARD
-    virtual std::expected<TPointer, ast_node_type> create(extraction_context& context, reader& from) const override
+    virtual std::expected<TPointer, ast_node_type> create(deserialization_context& context, reader& from) const override
     {
         // A value-backed reader renders a non-finite `kind::decimal` as `literal_null`, so where there is a `value` to
         // ask, its `kind` decides -- the same rule `optional_adapter` follows for the same reason.
@@ -207,8 +207,8 @@ protected:
         const subtype* chosen = nullptr;
         {
             // From text, a discriminator is shown a copy which dies with this call, so a view of anything in it would
-            // dangle. Saying so is what makes extracting one refuse, as it did when the bridge built that copy. From a
-            // `value` it is shown the caller's own tree, which a view may name.
+            // dangle. Saying so is what makes deserializing one refuse, as it did when the bridge built that copy. From
+            // a `value` it is shown the caller's own tree, which a view may name.
             std::optional<detail::temporary_source_scope> temporary;
             if (!lent)
                 temporary.emplace(context);
@@ -292,7 +292,7 @@ protected:
     }
 
 private:
-    using create_function = std::function<std::expected<TPointer, ast_node_type> (extraction_context&, reader&)>;
+    using create_function = std::function<std::expected<TPointer, ast_node_type> (deserialization_context&, reader&)>;
 
     struct subtype
     {
@@ -308,20 +308,20 @@ private:
     {
         _subtypes.push_back(subtype{ std::move(pred),
                                      keyed,
-                                     [] (extraction_context& context, reader& from)
+                                     [] (deserialization_context& context, reader& from)
                                              -> std::expected<TPointer, ast_node_type>
                                      {
-                                         // A failure `extract` reports is returned, not thrown. What can throw is
-                                         // everything after the cursor has stepped past the value: `extract` moving
+                                         // A failure `deserialize` reports is returned, not thrown. What can throw is
+                                         // everything after the cursor has stepped past the value: `deserialize` moving
                                          // the `T` it built out to here, the allocation, and the move into it -- all
                                          // of which fail with that value behind the cursor.
                                          try
                                          {
-                                             auto extracted = context.extract<T>(from);
-                                             if (!extracted)
-                                                 return std::unexpected(extracted.error());
+                                             auto deserialized = context.deserialize<T>(from);
+                                             if (!deserialized)
+                                                 return std::unexpected(deserialized.error());
 
-                                             return TPointer(new T(*std::move(extracted)));
+                                             return TPointer(new T(*std::move(deserialized)));
                                          }
                                          catch (...)
                                          {

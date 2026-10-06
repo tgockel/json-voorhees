@@ -31,13 +31,13 @@ template <typename FJsonCmp, typename FStrCmp>
 static void check_sort(const formats& fmts, string_list source, FJsonCmp json_cmp, FStrCmp str_cmp)
 {
     value orig = to_json(source, fmts);
-    if (source != extract<string_list>(orig, fmts))
-        throw std::logic_error("Extraction or encoding is broken");
+    if (source != deserialize<string_list>(orig, fmts))
+        throw std::logic_error("Deserialization or encoding is broken");
     
     std::sort(source.begin(),     source.end(),     str_cmp);
     std::sort(orig.begin_array(), orig.end_array(), json_cmp);
     
-    if (source != extract<string_list>(orig, fmts))
+    if (source != deserialize<string_list>(orig, fmts))
         throw std::logic_error("Sorting did not produce identical results");
 }
 

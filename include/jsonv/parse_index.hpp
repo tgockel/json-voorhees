@@ -18,7 +18,7 @@
 namespace jsonv
 {
 
-class extract_options;
+class deserialize_options;
 class parse_options;
 
 /// \addtogroup Value
@@ -178,9 +178,9 @@ public:
     /// \{
 
     /// Build a \c value from the document this index holds. Extraction is controlled by \a options where they are
-    /// given, and by \c extract_options::create_default() where they are not.
+    /// given, and by \c deserialize_options::create_default() where they are not.
     JSONV_NODISCARD
-    value extract_tree(const extract_options& options) const;
+    value extract_tree(const deserialize_options& options) const;
     JSONV_NODISCARD
     value extract_tree() const;
     /// \}
