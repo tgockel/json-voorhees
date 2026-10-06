@@ -613,11 +613,11 @@ namespace jsonv
 ///     { }
 ///
 ///     template <typename T>
-///     static T extract_member(const jsonv::value& from, jsonv::extraction_context& context, std::string_view key)
+///     static T extract_member(const jsonv::value& from, jsonv::extraction_context& context, const std::string& key)
 ///     {
 ///         jsonv::extraction_context::path_scope scope(context, key);
 ///
-///         auto member = from.find(std::string(key));
+///         auto member = from.find(key);
 ///         if (member == from.end_object())
 ///             throw jsonv::extraction_error(context.path(), "Missing required member");
 ///

@@ -740,9 +740,13 @@ public:
     /// \c jsonv::path is built until something calls \c extraction_context::path, which happens only when a problem is
     /// recorded.
     ///
-    /// The \c std::size_t and \c std::string_view overloads allocate nothing; the \a key of the latter must outlive
-    /// the scope, which is why an owning \c path_element overload exists for the callers that cannot promise it (a key
-    /// decoded from an \c ast_node_type::key_escaped node, for instance).
+    /// The overloads which view their argument allocate nothing: the \c std::size_t one, and those naming a key by
+    /// \c std::string_view, \c std::string lvalue or string literal. A key they view must outlive the scope, which is
+    /// why an owning \c path_element overload exists for the callers that cannot promise it (a key decoded from an
+    /// \c ast_node_type::key_escaped node, for instance). A \c std::string or \c char array rvalue, \c const or not, is
+    /// owned the same way rather than viewed, since it would be gone before the scope is. A <tt>const char*</tt>
+    /// variable is ambiguous between the \c std::string_view and \c path_element overloads; spell it
+    /// <tt>std::string_view(key)</tt>.
     class JSONV_PUBLIC path_scope
     {
     public:
@@ -751,6 +755,45 @@ public:
 
         /// Name the member \a key of the object being extracted, on \a context. \a key is viewed rather than copied.
         path_scope(extraction_context& context, std::string_view key) noexcept;
+
+        /// Name the member \a key of the object being extracted, on \a context. \a key is a string literal, or some
+        /// other array holding a NUL-terminated string, and is viewed rather than copied.
+        template <std::size_t N>
+        path_scope(extraction_context& context, const char (&key)[N]) noexcept :
+                path_scope(context, std::string_view(key))
+        {
+            // An array rather than a `const char*`, which a literal `0` converts to as readily as it does to the
+            // `std::size_t` overload's index: GCC calls that ambiguous and Clang does not. The key is measured rather
+            // than taken to be `N - 1` long, since an array of `char` with room to spare binds here as well.
+        }
+
+        /// Name the member \a key of the object being extracted, on \a context, keeping a copy of \a key for as long as
+        /// this scope lives. \a key is an array of \c char holding a NUL-terminated string which is about to be
+        /// destroyed, such as a member of a temporary.
+        template <std::size_t N>
+        path_scope(extraction_context& context, const char (&&key)[N]) :
+                path_scope(context, path_element(std::string_view(key)))
+        { }
+
+        /// Name the member \a key of the object being extracted, on \a context. \a key is a \c std::string, and is
+        /// viewed rather than copied.
+        template <typename TString>
+            requires std::same_as<TString, std::string>
+        path_scope(extraction_context& context, const TString& key) noexcept :
+                path_scope(context, std::string_view(key))
+        {
+            // A template rather than a `const std::string&` so that a braced `{ data, size }`, which deduces nothing,
+            // goes on reaching the `std::string_view` overload alone instead of being ambiguous with this one.
+        }
+
+        /// Name the member \a key of the object being extracted, on \a context, keeping \a key for as long as this
+        /// scope lives. \a key is a \c std::string rvalue. One which is \c const, such as one returned as a
+        /// <tt>const std::string</tt>, cannot be moved from, so it is copied rather than viewed after it is gone.
+        template <typename TString>
+            requires std::same_as<std::remove_const_t<TString>, std::string>
+        path_scope(extraction_context& context, TString&& key) :
+                path_scope(context, path_element(std::forward<TString>(key)))
+        { }
 
         /// Name \a elem on \a context, keeping a copy of it for as long as this scope lives.
         path_scope(extraction_context& context, path_element elem);

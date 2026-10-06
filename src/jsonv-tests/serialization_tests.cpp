@@ -396,7 +396,7 @@ TEST(extract_basics)
     ensure_eq("thing", cxt.extract<std::string>(val.at("s")));
     try
     {
-        extraction_context::path_scope scope(cxt, std::string_view("o"));
+        extraction_context::path_scope scope(cxt, "o");
         (void) cxt.extract<unassociated>(val.at("o"));
         ensure(!"extraction_error was not thrown");
     }

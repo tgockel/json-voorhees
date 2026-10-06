@@ -333,9 +333,9 @@ void with_nested_path_scopes(extraction_context& cxt, std::size_t depth, const F
     }
     else
     {
-        // A literal, so it outlives the scope viewing it -- which is the requirement the `string_view` form puts on
-        // its caller in exchange for not copying the key.
-        extraction_context::path_scope scope(cxt, std::string_view("k"));
+        // A literal, so it outlives the scope viewing it -- which is the requirement the forms which view a key put on
+        // their caller in exchange for not copying it.
+        extraction_context::path_scope scope(cxt, "k");
         with_nested_path_scopes(cxt, depth - 1U, at_bottom);
     }
 }
@@ -730,7 +730,7 @@ TEST(extract_path_scope_restores_on_exit)
     ensure_eq(path(), cxt.path());
 
     {
-        extraction_context::path_scope outer(cxt, std::string_view("a"));
+        extraction_context::path_scope outer(cxt, "a");
         ensure_eq(path::create(".a"), cxt.path());
 
         {
@@ -750,7 +750,7 @@ TEST(extract_path_scope_restores_when_unwound_by_an_exception)
 
     try
     {
-        extraction_context::path_scope outer(cxt, std::string_view("a"));
+        extraction_context::path_scope outer(cxt, "a");
         extraction_context::path_scope inner(cxt, path_element(std::string("owned")));
         ensure_eq(path::create(".a.owned"), cxt.path());
         throw std::runtime_error("unwind");
@@ -762,8 +762,91 @@ TEST(extract_path_scope_restores_when_unwound_by_an_exception)
 
     // An `_innermost` left naming a destroyed frame would report whatever that stack now holds rather than just
     // `.after`. ASan is where that shows up, as a stack-use-after-scope rather than a quietly wrong answer.
-    extraction_context::path_scope after(cxt, std::string_view("after"));
+    extraction_context::path_scope after(cxt, "after");
     ensure_eq(path::create(".after"), cxt.path());
+}
+
+TEST(extract_path_scope_names_a_key_however_it_is_spelt)
+{
+    // Before #299 a literal and a `std::string` both reached the `std::string_view` and `path_element` overloads
+    // through one conversion apiece, so the two most natural ways of naming a member did not compile.
+    extraction_context cxt;
+
+    {
+        extraction_context::path_scope scope(cxt, "literal");
+        ensure_eq(path::create(".literal"), cxt.path());
+    }
+
+    {
+        // Viewed rather than copied, so an edit made in place shows through.
+        std::string                    key = "lvalue";
+        extraction_context::path_scope scope(cxt, key);
+        key[0] = 'L';
+        ensure_eq(path::create(".Lvalue"), cxt.path());
+    }
+
+    {
+        const std::string              key = "constant";
+        extraction_context::path_scope scope(cxt, key);
+        ensure_eq(path::create(".constant"), cxt.path());
+    }
+
+    {
+        // Owned, since the temporary is gone by the next line. It is too long for any small-string buffer, so a scope
+        // which viewed it would be reading freed memory -- which ASan reports rather than leaving to chance.
+        extraction_context::path_scope scope(cxt, std::string("temporary_with_a_deliberately_long_name"));
+        ensure_eq(path::create(".temporary_with_a_deliberately_long_name"), cxt.path());
+    }
+
+    {
+        // Owned as well, so what the caller goes on to do with the string does not reach the scope. Were it viewed,
+        // this would read ".other".
+        std::string                    key = "moved";
+        extraction_context::path_scope scope(cxt, std::move(key));
+        key.assign("other");
+        ensure_eq(path::create(".moved"), cxt.path());
+    }
+
+    {
+        // A `const` temporary cannot be moved from, so it is copied -- but still owned rather than viewed, which ASan
+        // would report as soon as the path was read.
+        const auto make_key = [] () -> const std::string { return "constant_temporary_with_a_deliberately_long_name"; };
+
+        extraction_context::path_scope scope(cxt, make_key());
+        ensure_eq(path::create(".constant_temporary_with_a_deliberately_long_name"), cxt.path());
+    }
+
+    {
+        // An array of `char` about to be destroyed is copied for the same reason. Were it viewed, this would read
+        // ".Array".
+        char                           key[] = "array";
+        extraction_context::path_scope scope(cxt, std::move(key));
+        key[0] = 'A';
+        ensure_eq(path::create(".array"), cxt.path());
+    }
+
+    {
+        std::string_view               key = "view";
+        extraction_context::path_scope scope(cxt, key);
+        ensure_eq(path::create(".view"), cxt.path());
+    }
+
+    {
+        // A braced `{ data, size }` initializes a `std::string` as readily as a `std::string_view`. It goes on reaching
+        // the `std::string_view` overload alone because those taking a `std::string` are templates it cannot deduce.
+        const char*                    data = "braced_and_then_some";
+        extraction_context::path_scope scope(cxt, { data, 6U });
+        ensure_eq(path::create(".braced"), cxt.path());
+    }
+
+    {
+        // An index on every compiler. Taking a literal as a `const char*` would have made this ambiguous, but only on
+        // GCC.
+        extraction_context::path_scope scope(cxt, 0);
+        ensure_eq(path::create("[0]"), cxt.path());
+    }
+
+    ensure_eq(path(), cxt.path());
 }
 
 TEST(extract_path_scope_takes_precedence_over_the_readers_path)
@@ -775,7 +858,7 @@ TEST(extract_path_scope_takes_precedence_over_the_readers_path)
         (void) rdr.next_token();
 
     // The reader would say ".a"; the scope says where the *extractor* thinks it is, and wins.
-    extraction_context::path_scope scope(cxt, std::string_view("renamed"));
+    extraction_context::path_scope scope(cxt, "renamed");
     ensure(!cxt.expect(rdr, ast_node_type::integer).has_value());
     ensure_eq(path::create(".renamed"), cxt.problems().at(0).path());
 }
@@ -846,6 +929,18 @@ TEST(extract_path_scope_push_and_pop_allocate_nothing)
 
         ensure_eq(0U, cost);
         ensure(cxt.path().empty());
+    }
+
+    // A `std::string` is viewed just as a `std::string_view` is, so naming a key too long for any small-string buffer
+    // costs nothing either.
+    {
+        allocation_counter allocations;
+        {
+            extraction_context::path_scope scope(cxt, long_a);
+        }
+        const std::size_t cost = allocations.count();
+
+        ensure_eq(0U, cost);
     }
 
     // The chain still says where it is. Asked outside a counted region, because building a `jsonv::path` is exactly
@@ -1644,7 +1739,7 @@ TEST(extract_problems_survive_the_value_bridge)
 
     try
     {
-        extraction_context::path_scope scope(cxt, std::string_view("o"));
+        extraction_context::path_scope scope(cxt, "o");
         (void) cxt.extract<unassociated>(val.at("o"));
         ensure(!"extraction_error was not thrown");
     }
@@ -2270,7 +2365,7 @@ TEST(extract_explicit_location_outranks_the_reader)
     {
         extraction_context             cxt(formats::defaults());
         auto                           rdr = open("[]");
-        extraction_context::path_scope scope(cxt, std::string_view("renamed"));
+        extraction_context::path_scope scope(cxt, "renamed");
 
         ensure(!cxt.extract<std::int64_t>(rdr).has_value());
         ensure_eq(path::create(".renamed"), cxt.problems().at(0).path());

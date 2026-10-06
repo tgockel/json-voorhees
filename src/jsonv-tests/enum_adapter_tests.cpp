@@ -335,7 +335,7 @@ TEST(enum_adapter_miss_is_placed_where_the_context_says)
         }
         {
             extraction_context             cxt(ring_formats());
-            extraction_context::path_scope named(cxt, std::string_view("renamed"));
+            extraction_context::path_scope named(cxt, "renamed");
             auto                           rdr = from_value ? open_value(bogus) : open(R"("bogus")");
 
             ensure(!cxt.extract<ring>(rdr).has_value());
