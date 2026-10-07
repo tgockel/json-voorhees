@@ -1,9 +1,10 @@
 /// \file
 /// The examples the documentation teaches from, compiled and run: the serialization tutorial in \c jsonv/all.hpp, the
-/// opening example of the serialization builder DSL page, and the worked examples on \c jsonv::reader and
-/// \c jsonv::writer. Nothing else checks code written in a Doxygen comment, and these examples have drifted from the
-/// API before (#233). Each example below is the documentation's code, verbatim, except that a test asserts what an
-/// example prints; a change which breaks one here has broken it there as well, so change both.
+/// opening example of the serialization builder DSL page and the three forms of \c check from its reference, and the
+/// worked examples on \c jsonv::reader and \c jsonv::writer. Nothing else checks code written in a Doxygen comment,
+/// and these examples have drifted from the API before (#233). Each example below is the documentation's code,
+/// verbatim, except that a test asserts what an example prints; a change which breaks one here has broken it there
+/// as well, so change both.
 ///
 /// Copyright (c) 2026 by Travis Gockel. All rights reserved.
 ///
@@ -277,6 +278,12 @@ struct company
     bool                certified;
     std::vector<person> employees;
     std::list<person>   candidates;
+};
+
+/// The type the reference paragraphs hang their snippets on.
+struct my_type
+{
+    int x;
 };
 
 }
@@ -680,6 +687,28 @@ TEST(documentation_dsl_page_example)
     ensure_eq(std::string("Adam"), out.candidates.front().first_name);
     ensure_eq(std::string("Ant"), out.candidates.front().last_name);
     ensure_eq(21, out.candidates.front().age);
+}
+
+TEST(documentation_dsl_page_check_forms)
+{
+    using dsl_page::my_type;
+
+    // The three forms of `check` from the member-level reference, as the page writes them.
+    jsonv::formats fmts =
+        jsonv::formats_builder()
+            .type<my_type>()
+                .member("x", &my_type::x)
+                    .check([] (int x) { if (x < 0) throw std::logic_error("x must not be negative"); })
+                    .check([] (int x) { return x < 100; },
+                           [] (int x) { throw std::out_of_range("x must be below 100, not " + std::to_string(x)); }
+                          )
+                    .check([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
+            .compose_checked(jsonv::formats::defaults())
+        ;
+
+    ensure_eq(42, jsonv::deserialize<my_type>(R"({ "x": 42 })", fmts).x);
+    for (std::string_view refused : { R"({ "x": -2 })", R"({ "x": 100 })", R"({ "x": 7 })" })
+        ensure_throws(jsonv::deserialization_error, jsonv::deserialize<my_type>(refused, fmts));
 }
 
 TEST(documentation_reader_examples)

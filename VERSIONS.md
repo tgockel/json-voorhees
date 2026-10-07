@@ -481,6 +481,13 @@
        to the value which was read, before that value reaches the member. A predicate which has never executed may
        well reject data which has been deserializing cleanly for years, which is the reason to call this out rather
        than file it as a fix (#231).
+     - The two-argument forms of `check` compile. A predicate with a thrower, and a predicate with an exception to
+       throw, were documented from the start and had never compiled: the exception form typed its predicate `void`
+       and so could not hand it to the thrower form, and a thrower lambda was an exact match for the exception form's
+       `TException` where the thrower form needed a conversion, so both calls ended in the exception form calling
+       itself with the thrower as the exception, closure type after closure type, until the instantiation depth ran
+       out. The predicate is `bool` in both, and the exception form is constrained to a `TException` which cannot be
+       called with the value as `std::function` would call it, which is what tells an exception from a thrower (#334).
      - `alias` compiles. The friendship which lets the member builder reach the member adapter's list of
        names was declared unqualified inside `jsonv::detail`, so it named a `jsonv::detail::member_adapter_builder`
        which does not exist rather than the `jsonv::member_adapter_builder` which does. Every use of

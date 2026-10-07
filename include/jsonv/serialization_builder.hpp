@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <array>
+#include <concepts>
 #include <cstdint>
 #include <deque>
 #include <expected>
@@ -566,18 +567,23 @@ namespace jsonv
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_check check
 ///
-///  - <tt>check(std::function&lt;void (const TMember&)&gt; check)</tt>
-///  - <tt>check(std::function&lt;bool (const TMember&)&gt; check, std::function&lt;void (const TMember&)&gt; thrower)</tt>
-///  - <tt>check(std::function&lt;bool (const TMember&)&gt; check, TException ex)</tt>
+///  - <tt>check(std::function&lt;void (const TMember&)&gt; inspect)</tt>
+///  - <tt>check(std::function&lt;bool (const TMember&)&gt; accept,
+///              std::function&lt;void (const TMember&)&gt; thrower
+///             )</tt>
+///  - <tt>check(std::function&lt;bool (const TMember&)&gt; accept, TException ex)</tt>
 ///
-/// Checks the deserialized value with the given \a check function. In the first form, you are expected to throw inside
-/// the function. In the latter forms, the second parameter will be invoked (in the case of \a thrower) or thrown
-/// directly (in the case of \a ex).
+/// Checks the value read for this member before it reaches it. In the first form, \a inspect is expected to throw
+/// for itself. In the latter forms, a value \a accept returns \c false for is handed to \a thrower, or \a ex is
+/// thrown directly; \a ex may be anything which cannot be called with the value, which is what tells it from a
+/// \a thrower.
 ///
 /// \code
 ///   .member("x", &my_type::x)
-///       .check([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
-///       .check([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
+///       .check([] (int x) { if (x < 0) throw std::logic_error("x must not be negative"); })
+///       .check([] (int x) { return x < 100; },
+///              [] (int x) { throw std::out_of_range("x must be below 100, not " + std::to_string(x)); }
+///             )
 ///       .check([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
 /// \endcode
 ///
@@ -1129,28 +1135,34 @@ public:
         return *this;
     }
 
-    member_adapter_builder& check(std::function<void (const TMember&)> check)
+    member_adapter_builder& check(std::function<void (const TMember&)> inspect)
     {
-        _adapter->add_deserialization_check(std::move(check));
+        _adapter->add_deserialization_check(std::move(inspect));
         return *this;
     }
 
-    member_adapter_builder& check(std::function<bool (const TMember&)> check,
+    member_adapter_builder& check(std::function<bool (const TMember&)> accept,
                                   std::function<void (const TMember&)> thrower
                                  )
     {
-        _adapter->add_deserialization_check([check, thrower] (const TMember& value)
+        _adapter->add_deserialization_check([accept = std::move(accept), thrower = std::move(thrower)]
+                                            (const TMember& value)
             {
-                if (!check(value))
+                if (!accept(value))
                     thrower(value);
             });
         return *this;
     }
 
+    /// Constrained to a \c TException which cannot be called with the value as a non-const lvalue, which is how
+    /// \c std::function calls its target, so a \c mutable lambda counts as callable. Without the constraint every
+    /// \a thrower lambda would land here, an exact match for \c TException where the overload above needs a
+    /// conversion to \c std::function, and be thrown instead of called.
     template <typename TException>
-    member_adapter_builder& check(std::function<void (const TMember&)> check, const TException& ex)
+        requires (!std::invocable<TException&, const TMember&>)
+    member_adapter_builder& check(std::function<bool (const TMember&)> accept, TException ex)
     {
-        return check(std::move(check), [ex] (const TMember&) { throw ex; });
+        return check(std::move(accept), [ex = std::move(ex)] (const TMember&) { throw ex; });
     }
 
     /** If the key for this member is not in the object when deserializing, call this function to create a value. If a

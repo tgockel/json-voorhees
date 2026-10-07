@@ -1336,6 +1336,118 @@ TEST(serialization_builder_check_rejects_a_member)
     }
 }
 
+TEST(serialization_builder_check_with_a_thrower_rejects_a_member)
+{
+    // The predicate says whether the value is acceptable and the thrower says how to refuse it, with the value in
+    // hand. Neither two-argument form had ever compiled: a thrower lambda was an exact match for the exception form's
+    // TException, which composed it with the predicate by calling itself again, and so on until the instantiation
+    // depth ran out.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .check([] (const std::int64_t& value) { return value < 100; },
+                                   [] (const std::int64_t& value)
+                                   {
+                                       throw std::out_of_range("a must be below 100, not " + std::to_string(value));
+                                   }
+                                  )
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    ensure_eq(triple({ 99, 2, 3 }), deserialize<triple>(parse(R"({ "a": 99, "b": 2, "c": 3 })"), fmt));
+
+    try
+    {
+        (void) deserialize<triple>(parse(R"({ "a": 100, "b": 2, "c": 3 })"), fmt);
+        ensure(!"deserialization_error was not thrown");
+    }
+    catch (const deserialization_error& err)
+    {
+        ensure(err.problems().at(0).nested_ptr());
+        try
+        {
+            std::rethrow_exception(err.problems().at(0).nested_ptr());
+        }
+        catch (const std::out_of_range& ex)
+        {
+            ensure_eq(std::string("a must be below 100, not 100"), std::string(ex.what()));
+        }
+    }
+}
+
+TEST(serialization_builder_check_with_a_mutable_thrower_calls_it)
+{
+    // A thrower is anything callable with the value the way std::function calls its target: as a non-const lvalue.
+    // A mutable lambda is not callable as a const one, and a constraint which asked that question sent every
+    // mutable thrower to the exception form, which threw the lambda itself and never ran it.
+    std::vector<std::int64_t> refused;
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .check([] (const std::int64_t& value) { return value < 100; },
+                                   [&refused, calls = 0] (const std::int64_t& value) mutable
+                                   {
+                                       refused.push_back(value);
+                                       throw std::out_of_range("refusal " + std::to_string(++calls));
+                                   }
+                                  )
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    for (int attempt : { 1, 2 })
+    {
+        try
+        {
+            (void) deserialize<triple>(parse(R"({ "a": 100, "b": 2, "c": 3 })"), fmt);
+            ensure(!"deserialization_error was not thrown");
+        }
+        catch (const deserialization_error& err)
+        {
+            ensure(err.problems().at(0).nested_ptr());
+            try
+            {
+                std::rethrow_exception(err.problems().at(0).nested_ptr());
+            }
+            catch (const std::out_of_range& ex)
+            {
+                if (attempt == 1)
+                    ensure_eq(std::string("refusal 1"), std::string(ex.what()));
+            }
+        }
+    }
+    ensure(refused == std::vector<std::int64_t>({ 100, 100 }));
+}
+
+TEST(serialization_builder_check_with_an_exception_rejects_a_member)
+{
+    // The exception form takes anything which cannot be called with the value, which is what tells an exception from
+    // a thrower.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("a", &triple::a)
+                            .check([] (const std::int64_t& value) { return value % 2 == 0; },
+                                   std::logic_error("a must be even")
+                                  )
+                        .member("b", &triple::b)
+                        .member("c", &triple::c)
+                  .compose_checked(formats::defaults());
+
+    ensure_eq(triple({ 4, 2, 3 }), deserialize<triple>(parse(R"({ "a": 4, "b": 2, "c": 3 })"), fmt));
+
+    try
+    {
+        (void) deserialize<triple>(parse(R"({ "a": 3, "b": 2, "c": 3 })"), fmt);
+        ensure(!"deserialization_error was not thrown");
+    }
+    catch (const deserialization_error& err)
+    {
+        ensure(err.problems().at(0).nested_ptr());
+        ensure_throws(std::logic_error, (std::rethrow_exception(err.problems().at(0).nested_ptr()), 0));
+    }
+}
+
 
 TEST(serialization_builder_more_members_than_a_word_has_bits)
 {
