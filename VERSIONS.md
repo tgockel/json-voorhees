@@ -234,6 +234,12 @@
        names the slot the next token fills and comes off the writer's own frame stack, so unlike `reader::current_path`
        over text it is cheap. `writer::write(const value&)` and `encoder::encode` share one walk, so an `encoder`
        subclass, the pretty printer included, sees exactly the sequence of hook calls it saw before (#319).
+     - Added `value_encoder`, an `encoder` which builds a `value` from the tokens it is given: the sink for a document
+       produced token by token through a `writer` but wanted as a tree, and the mirror of `reader::from_value`.
+       `std::move(sink).take()` hands the document out and leaves the encoder ready for another; it throws
+       `std::logic_error` while a structure is still open or when nothing has been written, since a JSON document is
+       never empty. A key which repeats within an object keeps the value written last, as `parse` does by default, and
+       a second root written before `take` replaces the first (#320).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on

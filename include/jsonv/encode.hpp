@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <memory>
 
 namespace jsonv
 {
@@ -266,6 +267,91 @@ private:
     std::size_t   _indent;
     std::size_t   _indent_size;
     bool          _defer_indent;
+};
+
+/** An encoder which builds a \c value from the tokens it is given: the sink for a document which is produced token by
+ *  token through a \c writer but is wanted as a tree. It is the mirror of \c reader::from_value, which hands a tree
+ *  out as tokens.
+ *
+ *  \code
+ *  jsonv::value_encoder sink;
+ *  jsonv::writer        to(sink);
+ *  to.object_begin()
+ *      .key("a").integer(1)
+ *      .key("b").array_begin().string("x").string("y").array_end()
+ *    .object_end();
+ *  jsonv::value built = std::move(sink).take();   // {"a":1,"b":["x","y"]}
+ *  \endcode
+ *
+ *  An object is built as a \c value keeps one, so a key which repeats within it keeps the value written last, as
+ *  \c parse keeps it by default; a document built from tokens and the same document parsed from text select the same
+ *  data. The encoder holds one document at a time: a second root value written before \c take replaces the first, as
+ *  a repeated key does.
+ *
+ *  \see writer
+ *  \see reader::from_value
+**/
+class JSONV_PUBLIC value_encoder final :
+        public encoder
+{
+public:
+    /** Create an instance holding nothing. **/
+    explicit value_encoder();
+
+    // Not copyable or movable. A writer keeps a pointer to its encoder, so an encoder which moved out from under it
+    // would be a bug rather than a feature, and nothing else needs one to move.
+    value_encoder(const value_encoder&)            = delete;
+    value_encoder& operator=(const value_encoder&) = delete;
+    value_encoder(value_encoder&&)                 = delete;
+    value_encoder& operator=(value_encoder&&)      = delete;
+
+    virtual ~value_encoder() noexcept override;
+
+    /** Hand out the document written so far. This instance is left holding nothing, as it was constructed, so another
+     *  document may follow.
+     *
+     *  \throws std::logic_error if an object or array is still open, or if nothing has been written at all. A JSON
+     *                           document is never empty, so a writer which has produced nothing has not produced
+     *                           \c null.
+    **/
+    JSONV_NODISCARD
+    value take() &&;
+
+protected:
+    virtual void write_null() override;
+
+    virtual void write_object_begin() override;
+
+    virtual void write_object_end() override;
+
+    /** Keep \a key for the member whose value comes next. **/
+    virtual void write_object_key(std::string_view key) override;
+
+    /** Does nothing: a tree has no punctuation. **/
+    virtual void write_object_delimiter() override;
+
+    virtual void write_array_begin() override;
+
+    virtual void write_array_end() override;
+
+    /** Does nothing: a tree has no punctuation. **/
+    virtual void write_array_delimiter() override;
+
+    /** The string is copied into the tree as it is, valid UTF-8 or not. **/
+    virtual void write_string(std::string_view value) override;
+
+    virtual void write_integer(std::int64_t value) override;
+
+    /** Kept as given: a \c value can hold a NaN or an infinity, so nothing is substituted for one. **/
+    virtual void write_decimal(double value) override;
+
+    virtual void write_boolean(bool value) override;
+
+private:
+    class impl;
+
+private:
+    std::unique_ptr<impl> _impl;
 };
 
 }

@@ -1,10 +1,10 @@
 /// \file
 /// The examples the documentation teaches from, compiled and run: the serialization tutorial in \c jsonv/all.hpp, the
 /// opening example of the serialization builder DSL page and the three forms of \c check from its reference, and the
-/// worked examples on \c jsonv::reader and \c jsonv::writer. Nothing else checks code written in a Doxygen comment,
-/// and these examples have drifted from the API before (#233). Each example below is the documentation's code,
-/// verbatim, except that a test asserts what an example prints; a change which breaks one here has broken it there
-/// as well, so change both.
+/// worked examples on \c jsonv::reader, \c jsonv::writer and \c jsonv::value_encoder. Nothing else checks code written
+/// in a Doxygen comment, and these examples have drifted from the API before (#233). Each example below is the
+/// documentation's code, verbatim, except that a test asserts what an example prints; a change which breaks one here
+/// has broken it there as well, so change both.
 ///
 /// Copyright (c) 2026 by Travis Gockel. All rights reserved.
 ///
@@ -765,6 +765,21 @@ TEST(documentation_writer_example)
     jsonv::writer      compact_to(compact);
     writer_class::write_my_object(compact_to, writer_class::my_object{ 1, { "x", "y" } });
     ensure_eq(jsonv::to_string(jsonv::parse(R"({ "a": 1, "tags": ["x", "y"] })")), compact.str());
+}
+
+TEST(documentation_value_encoder_example)
+{
+    // The example on `jsonv::value_encoder` in `jsonv/encode.hpp`, which says in a comment what it builds.
+    jsonv::value_encoder sink;
+    jsonv::writer        to(sink);
+    to.object_begin()
+        .key("a").integer(1)
+        .key("b").array_begin().string("x").string("y").array_end()
+      .object_end();
+    jsonv::value built = std::move(sink).take();   // {"a":1,"b":["x","y"]}
+
+    ensure_eq(jsonv::parse(R"({"a":1,"b":["x","y"]})"), built);
+    ensure_eq(std::string(R"({"a":1,"b":["x","y"]})"), jsonv::to_string(built));
 }
 
 }

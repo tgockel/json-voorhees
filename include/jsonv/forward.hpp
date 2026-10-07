@@ -39,6 +39,7 @@ class reader;
 class serialization_context;
 class serializer;
 class value;
+class value_encoder;
 struct version;
 class writer;
 
