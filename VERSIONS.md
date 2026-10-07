@@ -679,6 +679,12 @@
        writer of its own. A member whose own serializer is still on the `value` bridge reports from that writer's
        root, as before, until #322 through #325: the `age` of the second element of a `std::vector<person>` member
        is still reported as `.age` rather than `.employees[1].age` (#324).
+     - `container_adapter`, `optional_adapter`, `wrapper_adapter` and `enum_adapter` serialize directly into
+       the `writer`, avoiding intermediate `value` trees. Containers write each element at its array index;
+       optionals and wrappers serialize their contents where they were placed; enums write their mapped value
+       without copying it first, or `null` if unmapped. Nested serialization errors now retain the enclosing path.
+       Source break for subclasses overriding the former typed `to_json`: override
+       `serialize(const serialization_context&, const T&, writer&) const` instead (#323).
      - Declaring a second `member` with a name already declared for the type is refused at build time with
        `std::invalid_argument`. The members used to be inserted into a `std::map`-backed object, which kept the first
        and silently dropped the second (#324).

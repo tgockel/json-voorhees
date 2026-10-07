@@ -17,6 +17,9 @@
 #include <jsonv/serialization.hpp>
 #include <jsonv/serialization/adapter_for.hpp>
 #include <jsonv/serialization/container_adapter.hpp>
+#include <jsonv/serialization/enum_adapter.hpp>
+#include <jsonv/serialization/optional_adapter.hpp>
+#include <jsonv/serialization/wrapper_adapter.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/serialization/serializer_for.hpp>
@@ -28,6 +31,8 @@
 #include <cstdint>
 #include <exception>
 #include <initializer_list>
+#include <optional>
+#include <streambuf>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -70,6 +75,24 @@ value point_value(const point& from)
 {
     return object({ { "x", from.x }, { "y", from.y } });
 }
+
+/// A wrapper whose underlying structure is serialized at the same position.
+struct point_wrapper
+{
+    using value_type = point;
+
+    point held;
+
+    explicit point_wrapper(point held = {}) : held(held) { }
+    explicit operator point() const { return held; }
+};
+
+enum class mapped_kind
+{
+    structured,
+    long_text,
+    unmapped,
+};
 
 /// Writes token by token: the interface this change introduces.
 class point_writer_serializer final :
@@ -314,6 +337,60 @@ TEST(serialize_writes_one_value_where_the_writer_is)
     ensure_eq(std::string(R"([1,"x",{"x":1,"y":2}])"), text);
 }
 
+TEST(serialize_simple_composites_preserve_values_and_placement)
+{
+    point_writer_serializer point_ser;
+    container_adapter<std::vector<std::optional<point_wrapper>>> container;
+    optional_adapter<std::optional<point_wrapper>> optional;
+    wrapper_adapter<point_wrapper> wrapper;
+    const value mapped = object({ { "points", array({ point_value(point{ 1, 2 }) }) } });
+    enum_adapter<mapped_kind> enumeration("mapped_kind", { { mapped_kind::structured, mapped } });
+    formats fmts = formats_with({ &point_ser, &container, &optional, &wrapper, &enumeration });
+    serialization_context context(fmts);
+    const std::vector<std::optional<point_wrapper>> from{ point_wrapper(point{ 1, 2 }), std::nullopt };
+    const value expected = array({ point_value(point{ 1, 2 }), null });
+
+    ensure_eq(expected, context.to_json(from));
+    ensure_eq(mapped, context.to_json(mapped_kind::structured));
+    ensure_eq(value(), context.to_json(mapped_kind::unmapped));
+    ensure_eq(array(), context.to_json(decltype(from){}));
+
+    std::ostringstream os;
+    writer to(os);
+    to.object_begin().key("items");
+    context.serialize(from, to);
+    to.key("mapped");
+    context.serialize(mapped_kind::structured, to);
+    to.key("missing");
+    context.serialize(mapped_kind::unmapped, to);
+    to.object_end();
+    ensure_eq(std::string(R"({"items":[{"x":1,"y":2},null],"mapped":{"points":[{"x":1,"y":2}]},"missing":null})"),
+              os.str());
+}
+
+TEST(serialize_simple_composites_keep_the_enclosing_error_path)
+{
+    inner_serializer inner_ser;
+    container_adapter<std::vector<std::optional<inner>>> container;
+    optional_adapter<std::optional<inner>> optional;
+    formats fmts = formats_with({ &inner_ser, &container, &optional });
+    std::ostringstream os;
+    writer to(os);
+    to.object_begin().key("items");
+    try
+    {
+        serialization_context(fmts).serialize(std::vector<std::optional<inner>>{ std::nullopt, inner{} }, to);
+        ensure(!"no_serializer was not thrown");
+    }
+    catch (const no_serializer& ex)
+    {
+        ensure_eq(path::create(".items[1].b"), ex.path());
+        ensure(ex.type_index() == std::type_index(typeid(unassociated)));
+        ensure(!ex.nested_ptr());
+    }
+    ensure_eq(std::string(R"({"items":[null,{"b":)"), os.str());
+}
+
 TEST(serialize_no_serializer_names_the_member_two_levels_down)
 {
     outer_serializer      outer_ser;
@@ -370,10 +447,8 @@ TEST(serialize_error_is_rethrown_unchanged)
     }
 }
 
-TEST(serialize_no_serializer_through_the_bridge_is_not_rewrapped)
+TEST(serialize_container_no_serializer_names_the_element)
 {
-    // A bridged composite serializes its elements through to_json, which runs a writer of its own: the failure comes
-    // out of that with no position, and the frames above let it through as it is rather than wrapping it again.
     container_adapter<std::vector<unassociated>> adapter;
     formats                                      fmts;
     fmts.register_adapter(&adapter);
@@ -386,7 +461,7 @@ TEST(serialize_no_serializer_through_the_bridge_is_not_rewrapped)
     catch (const no_serializer& ex)
     {
         ensure(ex.type_index() == std::type_index(typeid(unassociated)));
-        ensure(ex.path().empty());
+        ensure_eq(path::create("[0]"), ex.path());
         ensure(!ex.nested_ptr());
     }
 }
@@ -564,15 +639,67 @@ tree chain(std::size_t depth)
 
 }
 
+/// Discard text without allocating for an output buffer.
+class discard_streambuf final :
+        public std::streambuf
+{
+protected:
+    std::streamsize xsputn(const char*, std::streamsize count) override { return count; }
+    int_type overflow(int_type ch) override { return traits_type::not_eof(ch); }
+};
+
+TEST(serialize_simple_composites_to_text_allocate_only_for_frames)
+{
+    point_writer_serializer point_ser;
+    container_adapter<std::vector<std::vector<std::optional<point_wrapper>>>> outer;
+    container_adapter<std::vector<std::optional<point_wrapper>>> inner;
+    optional_adapter<std::optional<point_wrapper>> optional;
+    wrapper_adapter<point_wrapper> wrapper;
+    const value mapped = object({ { "a-key-longer-than-the-small-string-buffer",
+                                   array({ "a mapped string longer than the small-string buffer", 1 }) } });
+    enum_adapter<mapped_kind> enumeration("mapped_kind", { { mapped_kind::structured, mapped },
+                                                         { mapped_kind::long_text,
+                                                           "a mapped string longer than the small-string buffer" } });
+    formats fmts = formats_with({ &point_ser, &outer, &inner, &optional, &wrapper, &enumeration });
+    serialization_context context(fmts);
+    const std::vector<std::vector<std::optional<point_wrapper>>> from(
+        32U, std::vector<std::optional<point_wrapper>>(32U, point_wrapper(point{ 1, 2 })));
+    discard_streambuf buffer;
+    std::ostream os(&buffer);
+    writer to(os);
+    auto write_document = [&]
+                          {
+                              to.array_begin();
+                              context.serialize(from, to);
+                              context.serialize(mapped_kind::structured, to);
+                              context.serialize(mapped_kind::long_text, to);
+                              context.serialize(mapped_kind::unmapped, to);
+                              to.array_end();
+                          };
+
+    // Grow the writer's frame stack and key buffers once. Neither another element nor another mapped value
+    // should build a tree, so the same document costs nothing on the second pass.
+    write_document();
+    allocation_counter allocations;
+    write_document();
+    const std::size_t cost = allocations.count();
+    ensure_eq(std::size_t(0), cost);
+}
+
 TEST(serialize_bridge_moves_each_subtree_up)
 {
     // A bridged composite builds a value for each of its parts through to_json and writes the result into the writer
     // it was handed. That write has to hand the tree over whole: walking it node by node into the parent's
     // value_encoder would rebuild every level of a nested container once per enclosing level, which is quadratic in
     // the depth. Linear means the second doubling of the depth costs what the first did.
-    container_adapter<tree> adapter;
-    formats                 fmts;
-    fmts.register_adapter(&adapter);
+    auto bridge = make_serializer<tree>([] (const serialization_context& context, const tree& from)
+                                       {
+                                           value out = array();
+                                           for (const tree& child : from)
+                                               out.push_back(context.to_json(child));
+                                           return out;
+                                       });
+    formats fmts = formats_with({ &bridge });
 
     auto cost = [&](std::size_t depth)
                 {

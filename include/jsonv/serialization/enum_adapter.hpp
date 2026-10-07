@@ -218,25 +218,18 @@ protected:
         return settle(context, from, detail::peek_value(context, from));
     }
 
-    /// Still built as a tree and written whole; case 06 of #317 writes it directly.
-    virtual void serialize(const serialization_context& context, const TEnum& from, writer& to) const override
-    {
-        to.write(to_json(context, from));
-    }
-
-private:
-    JSONV_NODISCARD
-    value to_json(const serialization_context&, const TEnum& from) const
+    virtual void serialize(const serialization_context&, const TEnum& from, writer& to) const override
     {
         using std::end;
 
         auto iter = _cpp_to_val.find(from);
         if (iter != end(_cpp_to_val))
-            return iter->second;
+            to.write(iter->second);
         else
-            return null;
+            to.null();
     }
 
+private:
     using value_order = detail::enum_value_order<FValueComp>;
 
     /// Look up \a key -- a \c value, or the text of a string -- and step \a from past the value it was read from.

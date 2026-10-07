@@ -166,20 +166,12 @@ protected:
         return context.problem(context.problem_path(from), "Unterminated array");
     }
 
-    /// Still built as a tree and written whole; case 06 of #317 writes it directly.
     virtual void serialize(const serialization_context& context, const TContainer& from, writer& to) const override
     {
-        to.write(to_json(context, from));
-    }
-
-private:
-    JSONV_NODISCARD
-    value to_json(const serialization_context& context, const TContainer& from) const
-    {
-        value out = array();
+        to.array_begin();
         for (const element_type& x : from)
-            out.push_back(context.to_json(x));
-        return out;
+            context.serialize(x, to);
+        to.array_end();
     }
 };
 
