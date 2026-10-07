@@ -10,9 +10,11 @@
 #include "test.hpp"
 
 #include <jsonv/parse.hpp>
+#include <jsonv/path.hpp>
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
 #include <jsonv/serialization/function_deserializer.hpp>
+#include <jsonv/writer.hpp>
 
 #include <array>
 #include <optional>
@@ -22,6 +24,7 @@
 #include <string>
 #include <string_view>
 #include <tuple>
+#include <typeindex>
 #include <vector>
 
 namespace jsonv_test
@@ -82,6 +85,23 @@ struct sometype
     int64_t v;
 };
 
+/// The text \a from serializes to through \a context: written into a \c writer over a stream, which is where the
+/// order the DSL writes members in can be seen. A \c value built by \c to_json sorts them.
+template <typename T>
+std::string serialize_to_text(const serialization_context& context, const T& from)
+{
+    std::ostringstream os;
+    writer             to(os);
+    context.serialize(from, to);
+    return std::move(os).str();
+}
+
+template <typename T>
+std::string serialize_to_text(const formats& fmts, const T& from)
+{
+    return serialize_to_text(serialization_context(fmts), from);
+}
+
 }
 
 TEST(serialization_builder_members)
@@ -133,6 +153,16 @@ TEST(serialization_builder_members_since)
     ensure_eq(0U, to_json_ver({ 1, 0 }).count("b"));
     ensure_eq(1U, to_json_ver({ 2, 0 }).count("b"));
     ensure_eq(1U, to_json_ver({ 3, 0 }).count("b"));
+
+    // Written directly, the member is left out key and all.
+    auto text_ver = [&fmt] (const version& v)
+                    {
+                        return serialize_to_text(serialization_context(fmt, v), my_pair(5, 10));
+                    };
+
+    ensure_eq(std::string(R"({"a":5})"),        text_ver({ 1, 0 }));
+    ensure_eq(std::string(R"({"a":5,"b":10})"), text_ver({ 2, 0 }));
+    ensure_eq(std::string(R"({"a":5,"b":10})"), text_ver({ 3, 0 }));
 }
 
 TEST(serialization_builder_container_members)
@@ -361,6 +391,11 @@ TEST(serialization_builder_serialize_checks)
                            );
     value encoded = to_json(p, fmt);
     ensure_eq(expected, encoded);
+
+    // Written directly, a member its check leaves out is left out key and all.
+    ensure_eq(std::string(R"({"firstname":"Bob","lastname":"Builder","winning_numbers":[1]})"),
+              serialize_to_text(fmt, p)
+             );
 }
 
 TEST(serialization_builder_check_references_fails)
@@ -2489,6 +2524,135 @@ TEST(serialization_builder_source_value_lent_from_a_value_may_be_viewed)
     auto out = deserialize<nicknamed>(tree, nicknamed_formats());
     ensure_eq("Robert", out.nick);
     ensure(out.nick.data() == tree.at("name").as_string_view().data());
+}
+
+TEST(serialization_builder_writes_members_in_declaration_order)
+{
+    // The members used to be collected into a `value`, whose object keeps its keys sorted. Written straight into the
+    // writer, they come out in the order they were declared. The `value` `to_json` builds still sorts them, because
+    // every `value` does.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("c", &triple::c)
+                        .member("a", &triple::a)
+                        .member("b", &triple::b)
+                  .compose_checked(formats::defaults());
+
+    const triple x{ 1, 2, 3 };
+    ensure_eq(std::string(R"({"c":3,"a":1,"b":2})"), serialize_to_text(fmt, x));
+    ensure_eq(std::string(R"({"a":1,"b":2,"c":3})"), to_string(to_json(x, fmt)));
+}
+
+TEST(serialization_builder_version_checks_skip_the_key_on_the_text_path)
+{
+    // `since` is covered above; `until`, `after` and `before` compose on `serialize_if` the same way, and a member any
+    // of them leaves out is left out key and all.
+    formats fmt = formats_builder()
+                    .type<triple>()
+                        .member("c", &triple::c)
+                            .until({ 3, 0 })
+                        .member("a", &triple::a)
+                            .after({ 1, 0 })
+                        .member("b", &triple::b)
+                            .before({ 4, 0 })
+                  .compose_checked(formats::defaults());
+
+    const triple x{ 1, 2, 3 };
+    auto text_ver = [&] (std::optional<version> v)
+                    {
+                        return serialize_to_text(serialization_context(fmt, v), x);
+                    };
+
+    ensure_eq(std::string(R"({"c":3,"a":1,"b":2})"), text_ver(std::nullopt));
+    ensure_eq(std::string(R"({"c":3,"b":2})"),       text_ver(version(1, 0)));
+    ensure_eq(std::string(R"({"c":3,"a":1,"b":2})"), text_ver(version(3, 0)));
+    ensure_eq(std::string(R"({"a":1,"b":2})"),       text_ver(version(3, 5)));
+    ensure_eq(std::string(R"({"a":1})"),             text_ver(version(4, 0)));
+}
+
+TEST(serialization_builder_refuses_a_duplicate_member_name)
+{
+    // Two members under one name used to be collected into a `value`, where `insert` kept the first and dropped the
+    // second without a word. It is a mistake in the description, so it is refused where it is made.
+    try
+    {
+        formats_builder()
+            .type<triple>()
+                .member("a", &triple::a)
+                .member("a", &triple::b);
+        ensure(!"std::invalid_argument was not thrown");
+    }
+    catch (const std::invalid_argument& ex)
+    {
+        ensure(std::string(ex.what()).find("\"a\"") != std::string::npos);
+    }
+
+    // Every `member` overload reaches the same check.
+#ifndef _MSC_VER
+    ensure_throws(std::invalid_argument,
+                  formats_builder()
+                      .type<wrapped_things>()
+                          .member("x", &wrapped_things::x, &wrapped_things::x)
+                          .member("x", &wrapped_things::y, &wrapped_things::y)
+                 );
+#endif
+}
+
+namespace
+{
+
+/// Nothing registers a serializer for this.
+struct unserializable
+{ };
+
+struct inner_record
+{
+    unserializable x;
+};
+
+struct outer_record
+{
+    inner_record i;
+};
+
+}
+
+TEST(serialization_builder_names_the_member_a_serialization_error_is_at)
+{
+    // Each member used to be serialized through `to_json`, in a writer of its own, so a failure inside one reported
+    // a path from that member's root. Written into the caller's writer, the path is the member's: the `x` of the `i`
+    // of the record. `compose_checked` would refuse this `formats` for the missing serializer, which is the point.
+    formats fmt = formats::compose({ formats_builder()
+                                         .type<outer_record>()
+                                             .member("i", &outer_record::i)
+                                         .type<inner_record>()
+                                             .member("x", &inner_record::x),
+                                     formats::defaults()
+                                   });
+
+    auto path_of_failure = [] (auto&& serialize_outer) -> path
+                           {
+                               try
+                               {
+                                   serialize_outer();
+                                   ensure(!"no_serializer was not thrown");
+                                   return path();
+                               }
+                               catch (const no_serializer& ex)
+                               {
+                                   ensure(ex.type_index() == std::type_index(typeid(unserializable)));
+                                   return ex.path();
+                               }
+                           };
+
+    serialization_context context(fmt);
+    std::ostringstream    os;
+    writer                to(os);
+    ensure_eq(path::create(".i.x"), path_of_failure([&] { context.serialize(outer_record{}, to); }));
+    ensure_eq(path::create(".i.x"), path_of_failure([&] { (void) to_json(outer_record{}, fmt); }));
+
+    // What was written before the failure is left in the caller's writer, as `serialize` says it is.
+    ensure_eq(std::string(R"({"i":{"x":)"), std::move(os).str());
 }
 
 }

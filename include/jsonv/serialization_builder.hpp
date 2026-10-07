@@ -29,6 +29,7 @@
 #include <memory>
 #include <optional>
 #include <set>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -146,6 +147,19 @@ namespace jsonv
 /// \c deserialization_context::encoded_source quotes the whole of it too, which is what a hook validating the object
 /// wants to put in its message. Neither is worked out until a hook asks, so they cost a deserialization which never
 /// asks nothing.
+///
+/// \section serialization_builder_dsl_serialization Serialization
+///
+/// A type described with the DSL is serialized as an object, written into the \c writer one member at a time in the
+/// order the members were declared: each member's key, then its value through the \c serializer registered for the
+/// member's type. A member whose \ref serialization_builder_dsl_ref_member_level_serialize_if "serialize_if" -- or
+/// the \c since, \c until, \c after and \c before built on it -- says to leave it out is skipped, key and all. The DSL
+/// builds nothing in between, so what a member's serializer writes reaches the sink as it is written. A \c value made
+/// with \c to_json holds the same members sorted by key, as every \c value does, so the text written directly and the
+/// text of that \c value differ in the order of their members and in nothing else.
+///
+/// A failure inside a member is reported where it happened: the \c serialization_error carries the member's path, and
+/// a member of a member described with the DSL extends it -- <tt>.address.city</tt> for the \c city of an \c address.
 ///
 /// \section Reference
 ///
@@ -527,7 +541,8 @@ namespace jsonv
 ///
 /// Adds a member to the type we are currently building. By default, the member will be serialized with the key of the
 /// given \a name and the deserializer will search for the given \a name. If you wish to change properties of this
-/// field, use the \ref serialization_builder_dsl_ref_member.
+/// field, use the \ref serialization_builder_dsl_ref_member. Members are written in the order they are declared, and
+/// declaring a second member with a \a name already declared for the type throws \c std::invalid_argument.
 ///
 /// \code
 ///   .type<my_type>()
@@ -917,7 +932,11 @@ public:
     JSONV_NODISCARD
     virtual bool defaults_on_null() const = 0;
 
-    virtual void to_json(const serialization_context& context, const T& from, value& out) const = 0;
+    /// Write this member of \a from into \a to, which is inside the open object the member belongs to: its key, then
+    /// its value -- or nothing at all, when a \c serialize_if (or the \c since, \c until, \c after and \c before built
+    /// on it) leaves the member out. A failure writing the value is reported at the member's path, since that is where
+    /// the writer is standing.
+    virtual void serialize(const serialization_context& context, const T& from, writer& to) const = 0;
 
     /// Does this member have a default to fall back on? A member without one is required.
     JSONV_NODISCARD
@@ -998,10 +1017,14 @@ public:
         return {};
     }
 
-    virtual void to_json(const serialization_context& context, const T& from, value& out) const override
+    virtual void serialize(const serialization_context& context, const T& from, writer& to) const override
     {
-        if (should_serialize(context, from))
-            out.insert({ _names.at(0), context.to_json(_get_value(from)) });
+        const TMember& member = _get_value(from);
+        if (!_should_serialize || _should_serialize(context, member))
+        {
+            to.key(_names.at(0));
+            context.serialize(member, to);
+        }
     }
 
     JSONV_NODISCARD
@@ -1081,15 +1104,6 @@ public:
     void default_on_null(bool on)
     {
         _default_on_null = on;
-    }
-
-private:
-    bool should_serialize(const serialization_context& context, const T& from) const
-    {
-        if (_should_serialize)
-            return _should_serialize(context, _get_value(from));
-        else
-            return true;
     }
 
 private:
@@ -1291,31 +1305,24 @@ public:
         return type_default_value([value] (deserialization_context&) { return T(value); });
     }
 
+    /// \throws std::invalid_argument if a member with this \a name is already declared for \c T.
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string name, TMember T::*selector)
     {
-        std::unique_ptr<detail::member_adapter_impl<T, TMember>> ptr
-            (
-                new detail::member_adapter_impl<T, TMember>(std::move(name), selector)
-            );
-        member_adapter_builder<T, TMember> builder(formats_builder_dsl::owner, this, ptr.get());
-        _adapter->_members.emplace_back(std::move(ptr));
-        return builder;
+        return add_member(std::make_unique<detail::member_adapter_impl<T, TMember>>(std::move(name), selector));
     }
 
+    /// \throws std::invalid_argument if a member with this \a name is already declared for \c T.
     template <typename TMember>
     member_adapter_builder<T, TMember> member(std::string                              name,
                                               std::function<const TMember& (const T&)> access,
                                               std::function<void (T&, TMember&&)>      mutate
                                              )
     {
-        std::unique_ptr<detail::member_adapter_impl<T, TMember>> ptr
-            (
-                new detail::member_adapter_impl<T, TMember>(std::move(name), std::move(mutate), std::move(access))
-            );
-        member_adapter_builder<T, TMember> builder(formats_builder_dsl::owner, this, ptr.get());
-        _adapter->_members.emplace_back(std::move(ptr));
-        return builder;
+        return add_member(std::make_unique<detail::member_adapter_impl<T, TMember>>(std::move(name),
+                                                                                    std::move(mutate),
+                                                                                    std::move(access)
+                                                                                   ));
     }
 
     template <typename TMember>
@@ -1410,6 +1417,28 @@ public:
             _adapter->_unknown_members = std::move(handler);
         }
         return *this;
+    }
+
+private:
+    /// Record \a ptr as the type's next member. Every \c member overload comes through here.
+    ///
+    /// A name already declared is refused before the \c member_adapter_builder exists, so a refused member leaves no
+    /// \c reference_type behind for \c check_references to go looking for. Only the name a member is declared with is
+    /// checked: it is the key the member is written under, and a second member sharing it used to be silently dropped
+    /// when the members were collected into a \c value. An \c alias is never written, and a document offering a name
+    /// more than one member answers to is settled by declaration order, as the reference says.
+    template <typename TMember>
+    member_adapter_builder<T, TMember> add_member(std::unique_ptr<detail::member_adapter_impl<T, TMember>> ptr)
+    {
+        for (const auto& existing : _adapter->_members)
+            if (existing->primary_name() == ptr->primary_name())
+                throw std::invalid_argument("Member \"" + std::string(ptr->primary_name())
+                                            + "\" is already declared for " + demangle(typeid(T).name())
+                                           );
+
+        member_adapter_builder<T, TMember> builder(formats_builder_dsl::owner, this, ptr.get());
+        _adapter->_members.emplace_back(std::move(ptr));
+        return builder;
     }
 
 private:
@@ -1692,18 +1721,13 @@ private:
 
         virtual void serialize(const serialization_context& context, const T& from, writer& to) const override
         {
-            // Still built as a tree and written whole; case 07 of #317 writes the members directly.
-            to.write(to_json(context, from));
-        }
-
-        value to_json(const serialization_context& context, const T& from) const
-        {
-            value out = object();
+            // Each member writes its own key and value where the writer is, so the text lists them in the order they
+            // were declared. The `value` which `to_json` builds from the same tokens sorts them, as every `value` does.
+            to.object_begin();
             for (const auto& member : _members)
-                member->to_json(context, from, out);
-            return out;
+                member->serialize(context, from, to);
+            to.object_end();
         }
-
 
         std::deque<std::unique_ptr<detail::member_adapter<T>>> _members;
         pre_deserialize_func                                   _pre_deserialize;

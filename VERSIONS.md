@@ -670,6 +670,18 @@
        reads `Serialization error at .a.b serializing T: No serializer is registered`. A serializer on the `value`
        bridge serializes its parts through a writer of its own, so a failure inside one reports a path from that
        tree's root rather than the document's, until #322 through #325 take the built-ins off the bridge (#321).
+     - A type described with the serialization builder DSL is serialized through the `writer`. Each member's key and
+       value are written where the writer is, in the order the members were declared, rather than collected into a
+       `value` which was then written whole, so the text of a DSL-described type lists its members in declaration
+       order instead of sorted by key. `to_json` still sorts them, because a `value` does. A `serialization_error`
+       raised inside a member now carries that member's path, and a member of a DSL-described member extends it --
+       `.address.city` for the `city` of an `address` -- since the DSL no longer serializes each member through a
+       writer of its own. A member whose own serializer is still on the `value` bridge reports from that writer's
+       root, as before, until #322 through #325: the `age` of the second element of a `std::vector<person>` member
+       is still reported as `.age` rather than `.employees[1].age` (#324).
+     - Declaring a second `member` with a name already declared for the type is refused at build time with
+       `std::invalid_argument`. The members used to be inserted into a `std::map`-backed object, which kept the first
+       and silently dropped the second (#324).
      - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a
