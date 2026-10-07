@@ -561,6 +561,24 @@ TEST(writer_deep_nesting)
     ensure_eq(std::string(depth, '[') + std::string(depth, ']'), out.str());
 }
 
+TEST(writer_deep_nesting_write)
+{
+    // The walk an encoder producing text makes of a whole tree recurses; this is the deepest it is asked to go.
+    constexpr std::size_t depth = 4096U;
+
+    jsonv::value nested = jsonv::array();
+    for (std::size_t level = 1U; level < depth; ++level)
+    {
+        jsonv::value outer = jsonv::array();
+        outer.push_back(std::move(nested));
+        nested = std::move(outer);
+    }
+
+    std::ostringstream out;
+    jsonv::writer(out).write(nested);
+    ensure_eq(std::string(depth, '[') + std::string(depth, ']'), out.str());
+}
+
 #if JSONV_TEST_COUNTS_ALLOCATIONS
 
 TEST(writer_steady_state_allocates_nothing)

@@ -40,6 +40,16 @@ void encoder::encode(const value& source)
 
 void encoder::write_tree(const value& source)
 {
+    walk_tree(source);
+}
+
+void encoder::write_tree(value&& source)
+{
+    write_tree(source);
+}
+
+void encoder::walk_tree(const value& source)
+{
     switch (source.kind())
     {
     case kind::array:
@@ -52,7 +62,7 @@ void encoder::write_tree(const value& source)
                     first = false;
                 else
                     write_array_delimiter();
-                write_tree(sub);
+                walk_tree(sub);
             }
         }
         write_array_end();
@@ -81,7 +91,7 @@ void encoder::write_tree(const value& source)
                     write_object_delimiter();
 
                 write_object_key(entry.first);
-                write_tree(entry.second);
+                walk_tree(entry.second);
             }
         }
         write_object_end();
@@ -90,11 +100,6 @@ void encoder::write_tree(const value& source)
         write_string(source.as_string());
         break;
     }
-}
-
-void encoder::write_tree(value&& source)
-{
-    write_tree(source);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -312,11 +317,11 @@ void ostream_pretty_encoder::write_string(std::string_view value)
 
 /// The state behind a \c value_encoder: the structures being built and the document finished so far.
 ///
-/// Nothing here checks the grammar. The hooks are reachable only through a \c writer, which refuses a token the
-/// grammar does not allow before the sink sees it, and through \c encoder::write_tree, whose source is a \c value and
-/// so is well-formed by construction. A hook therefore trusts that it is called where its token belongs: a key
-/// arrives with an object open, a value inside an object arrives after a key, and an end arrives with a structure to
-/// close.
+/// Nothing here checks the grammar. The token hooks are reachable only through a \c writer, which refuses a token the
+/// grammar does not allow before the sink sees it, and a whole \c value -- well-formed by construction -- arrives
+/// through \c write_tree and is placed as it is, never walked. A hook therefore trusts that it is called where its
+/// token belongs: a key arrives with an object open, a value inside an object arrives after a key, and an end arrives
+/// with a structure to close.
 ///
 /// A hook which fails -- and only running out of memory can fail one -- leaves the tree as it was before the call,
 /// which is what the writer assumes of a sink, since it updates its own state only once the hook has returned. The
@@ -478,6 +483,11 @@ void value_encoder::write_boolean(bool value)
 void value_encoder::write_tree(value&& source)
 {
     _impl->put(std::move(source));
+}
+
+void value_encoder::write_tree(const value& source)
+{
+    _impl->put(value(source));
 }
 
 }

@@ -685,6 +685,11 @@
        without copying it first, or `null` if unmapped. Nested serialization errors now retain the enclosing path.
        Source break for subclasses overriding the former typed `to_json`: override
        `serialize(const serialization_context&, const T&, writer&) const` instead (#323).
+     - `encoder` gains a protected virtual `write_tree(const value&)` beside `write_tree(value&&)`: `encode` calls it,
+       and so does `writer::write` for a `value` it is handed as an lvalue. The default walks the tree through the token
+       hooks, as both always have, and the rvalue hook's default now goes through it. `value_encoder` overrides it to
+       copy the tree in whole rather than rebuild it one token at a time, so writing an existing `value` into one --
+       `to_json` of a `value`, or of anything holding one -- costs what copying it does (#341).
      - Declaring a second `member` with a name already declared for the type is refused at build time with
        `std::invalid_argument`. The members used to be inserted into a `std::map`-backed object, which kept the first
        and silently dropped the second (#324).

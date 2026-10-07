@@ -52,13 +52,56 @@ std::string read_file(const std::string& path)
     return std::move(buffer).str();
 }
 
-/// Check that \a source comes back equal after a trip through a \c value_encoder, both by the value walk a \c writer
-/// performs and by \c encoder::encode, which is the same walk.
+/// Write \a source through \a to one token at a time, as a serializer does. Handed the whole tree instead, a
+/// \c value_encoder copies it, and none of its token hooks are called.
+void write_tokens(jsonv::writer& to, const jsonv::value& source)
+{
+    switch (source.kind())
+    {
+    case jsonv::kind::array:
+        to.array_begin();
+        for (const jsonv::value& sub : source.as_array())
+            write_tokens(to, sub);
+        to.array_end();
+        break;
+    case jsonv::kind::boolean:
+        to.boolean(source.as_boolean());
+        break;
+    case jsonv::kind::decimal:
+        to.decimal(source.as_decimal());
+        break;
+    case jsonv::kind::integer:
+        to.integer(source.as_integer());
+        break;
+    case jsonv::kind::null:
+        to.null();
+        break;
+    case jsonv::kind::object:
+        to.object_begin();
+        for (const jsonv::value::object_value_type& entry : source.as_object())
+        {
+            to.key(entry.first);
+            write_tokens(to, entry.second);
+        }
+        to.object_end();
+        break;
+    case jsonv::kind::string:
+        to.string(source.as_string());
+        break;
+    }
+}
+
+/// Check that \a source comes back equal after a trip through a \c value_encoder: token by token, as a serializer
+/// writes it, and whole, by \c writer::write and by \c encoder::encode.
 void ensure_round_trips(const jsonv::value& source)
 {
     jsonv::value_encoder sink;
+    jsonv::writer        to(sink);
 
-    jsonv::writer(sink).write(source);
+    write_tokens(to, source);
+    ensure(std::move(sink).take() == source);
+
+    to.write(source);
     ensure(std::move(sink).take() == source);
 
     sink.encode(source);
@@ -286,7 +329,8 @@ TEST(value_encoder_deep_nesting_tokens)
     ensure_nested_arrays(std::move(sink).take(), depth);
 }
 
-/// The value walk behind `writer::write` recurses, as `encode` always has; this is the deepest it is asked to go.
+/// A tree written whole is copied, and the copy recurses as the walk a text encoder makes of it does; this is the
+/// deepest either is asked to go. `writer_deep_nesting_write` walks the same depth.
 TEST(value_encoder_deep_nesting_write_tree)
 {
     constexpr std::size_t depth = 4096U;
@@ -335,6 +379,31 @@ TEST(value_encoder_write_rvalue_takes_the_value)
     ensure_eq(jsonv::object({ { "k", make_source() }, { "l", jsonv::array({ make_source() }) } }), built);
     ensure(built.at("k").at("a").at(0).as_string().data() == member_storage);
     ensure(built.at("l").at(0).at("a").at(0).as_string().data() == element_storage);
+}
+
+TEST(value_encoder_write_lvalue_copies_the_value)
+{
+    // A tree written as an lvalue costs what copying it costs. Rebuilding it through the token hooks instead would grow
+    // every array an element at a time, where a copy allocates each array's storage once.
+    const auto source = jsonv::parse(R"({ "a": [ 1, 2, 3, 4, 5 ],
+                                         "b": { "c": [ [ 1, 2, 3 ], [ 4, 5, 6 ] ],
+                                                "d": "a string longer than the small-string buffer" } })");
+
+    std::size_t copy_cost = 0U;
+    {
+        allocation_counter allocations;
+        const jsonv::value copy(source);
+        copy_cost = allocations.count();
+    }
+
+    jsonv::value_encoder sink;
+    jsonv::writer        to(sink);
+    allocation_counter   allocations;
+    to.write(source);
+    const std::size_t write_cost = allocations.count();
+
+    ensure_eq(copy_cost, write_cost);
+    ensure(std::move(sink).take() == source);
 }
 
 TEST(value_encoder_string_costs_one_copy)

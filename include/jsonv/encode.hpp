@@ -25,9 +25,9 @@ namespace jsonv
 /** An encoder is responsible for writing values to some form of output.
  *
  *  It is a sink for the tokens of a JSON document: a \c writer drives the \c write_ hooks below one token at a time,
- *  writing the delimiters between elements and members itself, and \c encode is the one walk of a \c value which
- *  both it and \c writer::write perform. An implementation turns each token into text, as \c ostream_encoder does,
- *  or into anything else.
+ *  writing the delimiters between elements and members itself. A whole \c value, handed to \c encode or to
+ *  \c writer::write, arrives through \c write_tree, which by default walks it through those same hooks. An
+ *  implementation turns each token into text, as \c ostream_encoder does, or into anything else.
  *
  *  \see writer
 **/
@@ -36,8 +36,8 @@ class JSONV_PUBLIC encoder
 public:
     virtual ~encoder() noexcept;
 
-    /** Encode some source value into this encoder. To write a document token by token instead of from a finished
-     *  \c value, construct a \c writer over this encoder; its \c writer::write is this same walk.
+    /** Encode some source value into this encoder, through \c write_tree. To write a document token by token instead
+     *  of from a finished \c value, construct a \c writer over this encoder; its \c writer::write does the same.
     **/
     void encode(const jsonv::value& source);
 
@@ -147,18 +147,25 @@ protected:
     virtual void write_boolean(bool value) = 0;
 
     /** Write \a source and everything under it as one value, taking it over. A \c writer calls this for a \c value it
-     *  is handed as an rvalue. The default walks it through the hooks above, exactly as an lvalue is walked, which is
-     *  what a sink producing text wants; a sink which builds a tree, as \c value_encoder does, overrides it to take
-     *  the value as it is rather than rebuilding it node by node.
+     *  is handed as an rvalue. The default writes it as an lvalue is written, through the overload below; a sink
+     *  which builds a tree, as \c value_encoder does, overrides it to take the value as it is rather than copy it.
     **/
     virtual void write_tree(jsonv::value&& source);
 
-private:
-    /** Write \a source and everything under it. This is the walk behind \c encode and behind
-     *  <tt>writer::write(const value&)</tt>: a \c value is well-formed by construction, so nothing checks the grammar
-     *  inside one, and the delimiters are written here.
+    /** Write \a source and everything under it as one value. \c encode calls this, and so does a \c writer for a
+     *  \c value it is handed as an lvalue. The default walks the tree through the hooks above, with an object's
+     *  members in the order the object keeps them and the delimiters written here, which is what a sink producing
+     *  text wants: a \c value is well-formed by construction, so nothing checks the grammar inside one. A sink which
+     *  builds a tree, as \c value_encoder does, overrides it to copy the value whole rather than rebuild it node by
+     *  node.
     **/
-    void write_tree(const jsonv::value& source);
+    virtual void write_tree(const jsonv::value& source);
+
+private:
+    /** The walk behind the default \c write_tree. It recurses into itself rather than into the hook, which is for a
+     *  whole value handed in and not for each subtree of one.
+    **/
+    void walk_tree(const jsonv::value& source);
 
     /// The hooks above are driven by a \c writer, which is what keeps the sequence of calls spelling a valid document.
     friend class writer;
@@ -358,6 +365,12 @@ protected:
      *  which is what keeps a serializer on the \c value bridge linear in the depth of what it serializes.
     **/
     virtual void write_tree(jsonv::value&& source) override;
+
+    /** Copies \a source in whole. A tree written as an lvalue -- \c to_json of a \c value, or of anything holding
+     *  one -- costs what copying it does rather than a rebuild through the hooks above, which inserts each member and
+     *  grows each array one element at a time.
+    **/
+    virtual void write_tree(const jsonv::value& source) override;
 
 private:
     class impl;

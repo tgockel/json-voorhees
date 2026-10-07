@@ -170,8 +170,8 @@ public:
         after_value();
     }
 
-    /// One grammar check for the slot the whole tree fills; the walk itself is the encoder's, where \c encode has
-    /// always done it.
+    /// One grammar check for the slot the whole tree fills. What becomes of the tree is for the encoder to decide,
+    /// through the same \c encoder::write_tree hook \c encode calls.
     void write(const value& source)
     {
         before_value();

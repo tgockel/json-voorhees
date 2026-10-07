@@ -188,8 +188,9 @@ public:
     writer& string(std::string_view value);
     /// \}
 
-    /// Write the whole of \a source as one value: a tree walk which writes every node in order, with an object's
-    /// members in the order the object keeps them, which is sorted by key. This is what \c encoder::encode does.
+    /// Write the whole of \a source as one value, as \c encoder::encode does. An \c encoder producing text walks it,
+    /// writing every node in order with an object's members in the order the object keeps them, which is sorted by
+    /// key; one which builds a tree copies it as it is rather than rebuilding it node by node.
     ///
     /// \throws std::logic_error if a value is not allowed here, as for the scalar functions. Nothing has reached the
     ///                          sink.
@@ -197,8 +198,8 @@ public:
     writer& write(const value& source);
 
     /// Write the whole of \a source as one value, handing it over to the sink. An \c encoder which builds a tree takes
-    /// it as it is rather than rebuilding it node by node, and one producing text walks it exactly as the overload
-    /// above does. \a source is left moved-from.
+    /// it as it is rather than copying it, and one producing text walks it exactly as the overload above does.
+    /// \a source is left moved-from.
     ///
     /// \throws std::logic_error if a value is not allowed here, as for the scalar functions. Nothing has reached the
     ///                          sink and \a source is untouched.
