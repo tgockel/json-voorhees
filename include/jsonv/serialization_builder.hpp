@@ -98,14 +98,14 @@ namespace jsonv
 ///     jsonv::formats_builder()
 ///         .type<person>()
 ///             .member("first_name", &person::first_name)
-///                 .alternate_name("firstname")
+///                 .alias("firstname")
 ///             .member("last_name",  &person::last_name)
-///                 .alternate_name("lastname")
+///                 .alias("lastname")
 ///             .member("age",        &person::age)
 ///                 .until({ 6,1 })
 ///                 .default_value(21)
 ///                 .default_on_null()
-///                 .check_input([] (int value) { if (value < 0) throw std::logic_error("Age must be positive."); })
+///                 .check([] (int value) { if (value < 0) throw std::logic_error("Age must be positive."); })
 ///             .member("role",       &person::role)
 ///                 .since({ 2,0 })
 ///                 .default_value("Builder")
@@ -123,8 +123,8 @@ namespace jsonv
 ///
 /// A type described with the DSL is deserialized by walking its JSON object's keys in the order the document wrote
 /// them, handing each one to the member which claims it -- by the name the member was declared with, or by one of
-/// its \ref serialization_builder_dsl_ref_member_level_alternate_name "alternate names". Members are deserialized in
-/// document order rather than declaration order, so that is also the order a member's \c check_input and setter run
+/// its \ref serialization_builder_dsl_ref_member_level_alias "aliases". Members are deserialized in
+/// document order rather than declaration order, so that is also the order a member's \c check and setter run
 /// in and the order problems are reported in. Once the walk reaches the end of the object, each member no key
 /// claimed is given its \ref serialization_builder_dsl_ref_member_level_default_value "default value" or, if it has
 /// none, reported as missing; that pass, being over the members rather than the keys, goes in declaration order. A
@@ -133,17 +133,18 @@ namespace jsonv
 ///
 /// A key which no member claims is skipped rather than collected: its value is stepped over unread, in a single step
 /// however large it is, and never built into a \c value nobody asked for. Its name is all that is kept, and only when
-/// something needs it. An \ref serialization_builder_dsl_ref_type_level_on_extract_extra_keys "on_extract_extra_keys"
+/// something needs it. An \ref serialization_builder_dsl_ref_type_level_on_unknown_members "on_unknown_members"
 /// handler is handed the names of all of them once the walk is done. And a \c deserialize_options::on_duplicate_key of
 /// \c duplicate_key_action::exception remembers every key, claimed or not, so that the object is refused if one comes
 /// round again.
 ///
 /// No hook is handed the JSON being read as an argument, but every one which takes a \c deserialization_context can ask
 /// it for the object. \c deserialization_context::source_value has it as a \c value to read members out of: for
-/// \c pre_extract, before the walk, and for \c on_extract_extra_keys, every \c default_value and \c post_extract after
-/// it. Once the walk has reached the object's \c }, \c deserialization_context::encoded_source quotes the whole of it
-/// too, which is what a hook validating the object wants to put in its message. Neither is worked out until a hook
-/// asks, so they cost a deserialization which never asks nothing.
+/// \c pre_deserialize, before the walk, and for \c on_unknown_members, every \c default_value and
+/// \c post_deserialize after it. Once the walk has reached the object's \c },
+/// \c deserialization_context::encoded_source quotes the whole of it too, which is what a hook validating the object
+/// wants to put in its message. Neither is worked out until a hook asks, so they cost a deserialization which never
+/// asks nothing.
 ///
 /// \section Reference
 ///
@@ -410,31 +411,31 @@ namespace jsonv
 ///
 /// \subsubsection serialization_builder_dsl_ref_type_level Level
 ///
-/// \paragraph serialization_builder_dsl_ref_type_level_pre_extract pre_extract
+/// \paragraph serialization_builder_dsl_ref_type_level_pre_deserialize pre_deserialize
 ///
-///  - <tt>pre_extract(std::function&lt;void (deserialization_context& context)&gt; perform)</tt>
+///  - <tt>pre_deserialize(std::function&lt;void (deserialization_context& context)&gt; perform)</tt>
 ///
 /// Call the given \a perform function during the \c deserialize operation, but before performing any deserialization.
 /// This can be called multiple times -- all functions will be called in the order they are provided.
 ///
 /// The source document is not among the arguments, but \c deserialization_context::source_value has it, before any
 /// member has been read out of it. Nothing yet knows that it is an object, so it is shown as whatever it is --
-/// including a \c null that \ref serialization_builder_dsl_ref_type_level_default_on_null "type_default_on_null" goes
-/// on to replace. Its text cannot be quoted yet, so \c deserialization_context::encoded_source is empty.
+/// including a \c null that \ref serialization_builder_dsl_ref_type_level_type_default_on_null "type_default_on_null"
+/// goes on to replace. Its text cannot be quoted yet, so \c deserialization_context::encoded_source is empty.
 ///
 /// \code
 ///   .type<my_type>()
-///       .pre_extract([] (deserialization_context& context)
-///                    {
-///                        if (context.source_value().value().at("schema") != jsonv::value(2))
-///                            throw std::invalid_argument("Only schema 2 is supported");
-///                    }
-///                   )
+///       .pre_deserialize([] (deserialization_context& context)
+///                        {
+///                            if (context.source_value().value().at("schema") != jsonv::value(2))
+///                                throw std::invalid_argument("Only schema 2 is supported");
+///                        }
+///                       )
 /// \endcode
 ///
-/// \paragraph serialization_builder_dsl_ref_type_level_post_extract post_extract
+/// \paragraph serialization_builder_dsl_ref_type_level_post_deserialize post_deserialize
 ///
-///  - <tt>post_extract(std::function&lt;T (deserialization_context& context, T&& out)&gt; perform)</tt>
+///  - <tt>post_deserialize(std::function&lt;T (deserialization_context& context, T&& out)&gt; perform)</tt>
 ///
 /// Call the given \a perform function after the \c deserialize operation. All functions will be called in the order
 /// they are provided. This allows validation methods to be called on the deserialized object as part of
@@ -447,19 +448,19 @@ namespace jsonv
 ///   .type<my_type>()
 ///       .member("low",  &my_type::low)
 ///       .member("high", &my_type::high)
-///       .post_extract([] (deserialization_context& context, my_type&& out)
-///                     {
-///                         if (out.high < out.low)
-///                             throw std::invalid_argument("high is below low in "
-///                                                         + std::string(context.encoded_source())
-///                                                        );
+///       .post_deserialize([] (deserialization_context& context, my_type&& out)
+///                         {
+///                             if (out.high < out.low)
+///                                 throw std::invalid_argument("high is below low in "
+///                                                             + std::string(context.encoded_source())
+///                                                            );
 ///
-///                         return std::move(out);
-///                     }
-///                    )
+///                             return std::move(out);
+///                         }
+///                        )
 /// \endcode
 ///
-/// \paragraph serialization_builder_dsl_ref_type_level_default_on_null type_default_on_null
+/// \paragraph serialization_builder_dsl_ref_type_level_type_default_on_null type_default_on_null
 ///
 ///  - <tt>type_default_on_null()</tt>
 ///  - <tt>type_default_on_null(bool on)</tt>
@@ -481,36 +482,36 @@ namespace jsonv
 ///       .type_default_value(my_type("default"))
 /// \endcode
 ///
-/// \paragraph serialization_builder_dsl_ref_type_level_on_extract_extra_keys on_extract_extra_keys
+/// \paragraph serialization_builder_dsl_ref_type_level_on_unknown_members on_unknown_members
 ///
-///  - <tt>on_extract_extra_keys(std::function&lt;void (deserialization_context&      context,
-///                                                   std::set&lt;std::string&gt; extra_keys)&gt; action
-///                             )</tt>
+///  - <tt>on_unknown_members(std::function&lt;void (deserialization_context&      context,
+///                                                std::set&lt;std::string&gt; unknown_members)&gt; action
+///                          )</tt>
 ///
-/// When deserializing, perform some \a action if extra keys are provided. By default, extra keys are usually simply
-/// ignored, so this is useful if you wish to throw an exception (or anything you want). The \a action is handed the
-/// names of the keys which claimed no member. The walk stepped over their values rather than reading them, but the
-/// \a action can read them out of \c deserialization_context::source_value, or quote the object they are in with
-/// \c deserialization_context::encoded_source.
+/// When deserializing, perform some \a action if the object has members which no declared member claims. By default
+/// they are simply ignored, so this is useful if you wish to throw an exception (or anything you want). The \a action
+/// is handed the names of the keys which claimed no member. The walk stepped over their values rather than reading
+/// them, but the \a action can read them out of \c deserialization_context::source_value, or quote the object they
+/// are in with \c deserialization_context::encoded_source.
 ///
 /// \code
 ///   .type<my_type>()
 ///       .member("x", &my_type::x)
 ///       .member("y", &my_type::y)
-///       .on_extract_extra_keys([] (deserialization_context&, std::set<std::string> extra_keys)
-///                              {
-///                                  throw extracted_extra_keys("my_type", std::move(extra_keys));
-///                              }
-///                             )
+///       .on_unknown_members([] (deserialization_context&, std::set<std::string> unknown_members)
+///                           {
+///                               throw unknown_members_error("my_type", std::move(unknown_members));
+///                           }
+///                          )
 /// \endcode
 ///
-/// There is a convenience function named \c throw_extra_keys_deserialization_error which does this for you.
+/// There is a convenience function named \c deny_unknown_members which does this for you.
 ///
 /// \code
 ///   .type<my_type>()
 ///       .member("x", &my_type::x)
 ///       .member("y", &my_type::y)
-///       .on_extract_extra_keys(jsonv::throw_extra_keys_deserialization_error)
+///       .on_unknown_members(jsonv::deny_unknown_members)
 /// \endcode
 ///
 /// \subsubsection serialization_builder_dsl_ref_type_narrowing Narrowing
@@ -549,12 +550,12 @@ namespace jsonv
 /// Only serialize this member if the \c serialization_context was not created with a version, or its version is
 /// greater than the provided \c version.
 ///
-/// \paragraph serialization_builder_dsl_ref_member_level_alternate_name alternate_name
+/// \paragraph serialization_builder_dsl_ref_member_level_alias alias
 ///
-///  - <tt>alternate_name(std::string name)</tt>
+///  - <tt>alias(std::string name)</tt>
 ///
-/// Provide an alternate name to search for when deserializing this member. If a user provides values for multiple
-/// names, preference is given to names earlier in the list, starting with the original given name.
+/// Provide another name to look for when deserializing this member. If a document provides values under more than one
+/// of a member's names, the earliest declared is preferred, starting with the name the member was declared with.
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_before before
 ///
@@ -563,11 +564,11 @@ namespace jsonv
 /// Only serialize this member if the \c serialization_context was not created with a version, or its version is
 /// less than the provided \c version.
 ///
-/// \paragraph serialization_builder_dsl_ref_member_level_check_input check_input
+/// \paragraph serialization_builder_dsl_ref_member_level_check check
 ///
-///  - <tt>check_input(std::function&lt;void (const TMember&)&gt; check)</tt>
-///  - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, std::function&lt;void (const TMember&)&gt; thrower)</tt>
-///  - <tt>check_input(std::function&lt;bool (const TMember&)&gt; check, TException ex)</tt>
+///  - <tt>check(std::function&lt;void (const TMember&)&gt; check)</tt>
+///  - <tt>check(std::function&lt;bool (const TMember&)&gt; check, std::function&lt;void (const TMember&)&gt; thrower)</tt>
+///  - <tt>check(std::function&lt;bool (const TMember&)&gt; check, TException ex)</tt>
 ///
 /// Checks the deserialized value with the given \a check function. In the first form, you are expected to throw inside
 /// the function. In the latter forms, the second parameter will be invoked (in the case of \a thrower) or thrown
@@ -575,9 +576,9 @@ namespace jsonv
 ///
 /// \code
 ///   .member("x", &my_type::x)
-///       .check_input([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
-///       .check_input([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
-///       .check_input([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
+///       .check([] (int x) { if (x < 0) throw std::logic_error("x must be greater than 0"); })
+///       .check([] (int x) { return x < 100; }, [] (int x) { throw exceptions::less_than(100, x); })
+///       .check([] (int x) { return x % 2 == 0; }, std::logic_error("x must be divisible by 2"))
 /// \endcode
 ///
 /// \paragraph serialization_builder_dsl_ref_member_level_default_value default_value
@@ -591,8 +592,8 @@ namespace jsonv
 /// serialization_builder_dsl_ref_member_level_default_on_null "default_on_null" -- and the function can read the rest
 /// of the object through \c deserialization_context::source_value, or quote it through \c
 /// deserialization_context::encoded_source. What it reads is the JSON. A default which depends on the members as they
-/// were deserialized belongs in \ref serialization_builder_dsl_ref_type_level_post_extract, which sees the whole object
-/// once it is built.
+/// were deserialized belongs in \ref serialization_builder_dsl_ref_type_level_post_deserialize, which sees the whole
+/// object once it is built.
 ///
 /// \code
 ///  .member("x", &my_type::x)
@@ -615,9 +616,9 @@ namespace jsonv
 /// the default value taken? This option is only considered if a
 /// \ref serialization_builder_dsl_ref_member_level_default_value was provided.
 ///
-/// \paragraph serialization_builder_dsl_ref_member_level_encode_if encode_if
+/// \paragraph serialization_builder_dsl_ref_member_level_serialize_if serialize_if
 ///
-///  - <tt>encode_if(std::function&lt;bool (const serialization_context&, const TMember&amp;)&gt; check)</tt>
+///  - <tt>serialize_if(std::function&lt;bool (const serialization_context&, const TMember&amp;)&gt; check)</tt>
 ///
 /// Only serialize this member if the \a check function returns true.
 ///
@@ -749,11 +750,11 @@ public:
                                               void (T::*mutate)(TMember&&)
                                              );
 
-    adapter_builder<T>& pre_extract(typename adapter_builder<T>::pre_extract_func perform);
+    adapter_builder<T>& pre_deserialize(typename adapter_builder<T>::pre_deserialize_func perform);
 
-    adapter_builder<T>& post_extract(typename adapter_builder<T>::post_extract_func perform);
+    adapter_builder<T>& post_deserialize(typename adapter_builder<T>::post_deserialize_func perform);
 
-    adapter_builder<T>& on_extract_extra_keys(typename adapter_builder<T>::extra_keys_func handler);
+    adapter_builder<T>& on_unknown_members(typename adapter_builder<T>::unknown_members_func handler);
 
 protected:
     adapter_builder<T>* owner;
@@ -778,7 +779,7 @@ constexpr std::size_t no_deserialize_key = std::size_t(-1);
 
 /// Which member each key has claimed, and by which of that member's names.
 ///
-/// A member answers to the name it was declared with and to every \c alternate_name after it, and that list is a
+/// A member answers to the name it was declared with and to every \c alias after it, and that list is a
 /// preference order. Remembering only *that* a member was claimed cannot tell a second spelling of it from a repeat
 /// of the first, which is a different question with a different answer: the first is the document naming one member
 /// two ways, where the earliest name wins, and the second is a duplicate key, which is
@@ -892,7 +893,7 @@ public:
     /// \ref defaults_on_null says stands for the default never reaches this; the walk keeps it for the default.
     ///
     /// \param key The key the document used, which is what names this member in a problem raised inside it -- the
-    ///            declared name would be the wrong answer for a member matched through an \c alternate_name. It must
+    ///            declared name would be the wrong answer for a member matched through an \c alias. It must
     ///            outlive the call, which the caller arranges: a canonical key views the source, and an escaped one
     ///            views the \c std::string the key loop decoded it into.
     JSONV_NODISCARD
@@ -917,9 +918,9 @@ public:
     virtual bool has_default() const = 0;
 
     /// Where \a key sits in this member's list of names -- 0 for the name it was declared with, then one for each \c
-    /// alternate_name in the order they were added -- or \ref no_deserialize_key if this member does not answer to it.
+    /// alias in the order they were added -- or \ref no_deserialize_key if this member does not answer to it.
     ///
-    /// That position is the preference order `alternate_name` documents, and a forward walk has to enforce it for
+    /// That position is the preference order `alias` documents, and a forward walk has to enforce it for
     /// itself: it meets the names in the order the *document* put them, which says nothing about which one the type
     /// prefers.
     JSONV_NODISCARD
@@ -963,7 +964,7 @@ public:
         // says it is rather than underneath this member.
         //
         // `key` is the key the document actually used, which is the one to name when a member matched through an
-        // `alternate_name`. The caller keeps it alive across this call, so naming it costs nothing.
+        // `alias`. The caller keeps it alive across this call, so naming it costs nothing.
         auto deserialized = [&] () -> std::expected<TMember, ast_node_type>
                          {
                              deserialization_context::path_scope scope(context, key);
@@ -974,7 +975,7 @@ public:
         if (!deserialized)
             return std::unexpected(deserialized.error());
 
-        // `check_input` runs on the value which was read, before it reaches the setter. It throws rather than
+        // `check` runs on the value which was read, before it reaches the setter. It throws rather than
         // reporting, so it is user code the loop above has to be ready for.
         if (_deserialize_mutate)
             _set_value(out, _deserialize_mutate(*std::move(deserialized)));
@@ -993,7 +994,7 @@ public:
 
     virtual void to_json(const serialization_context& context, const T& from, value& out) const override
     {
-        if (should_encode(context, from))
+        if (should_serialize(context, from))
             out.insert({ _names.at(0), context.to_json(_get_value(from)) });
     }
 
@@ -1025,19 +1026,19 @@ public:
         return _names.at(0);
     }
 
-    void add_encode_check(std::function<bool (const serialization_context&, const TMember&)> check)
+    void add_serialize_check(std::function<bool (const serialization_context&, const TMember&)> check)
     {
-        if (_should_encode)
+        if (_should_serialize)
         {
-            auto old_check = std::move(_should_encode);
-            _should_encode = [check, old_check] (const serialization_context& context, const TMember& value)
+            auto old_check = std::move(_should_serialize);
+            _should_serialize = [check, old_check] (const serialization_context& context, const TMember& value)
                              {
                                 return check(context, value) && old_check(context, value);
                              };
         }
         else
         {
-            _should_encode = std::move(check);
+            _should_serialize = std::move(check);
         }
     }
 
@@ -1077,10 +1078,10 @@ public:
     }
 
 private:
-    bool should_encode(const serialization_context& context, const T& from) const
+    bool should_serialize(const serialization_context& context, const T& from) const
     {
-        if (_should_encode)
-            return _should_encode(context, _get_value(from));
+        if (_should_serialize)
+            return _should_serialize(context, _get_value(from));
         else
             return true;
     }
@@ -1088,7 +1089,7 @@ private:
 private:
     // Qualified: unqualified, this declares a friend `jsonv::detail::member_adapter_builder`, which is a different
     // (and nonexistent) template from the `jsonv::member_adapter_builder` which actually reaches in here. Every use
-    // of `alternate_name` failed to compile until this was spelled out.
+    // of `alias` failed to compile until this was spelled out.
     template <typename U, typename UMember>
     friend class jsonv::member_adapter_builder;
 
@@ -1096,7 +1097,7 @@ private:
     std::vector<std::string>                                           _names;
     mutator_type                                                       _set_value;
     accessor_type                                                      _get_value;
-    std::function<bool (const serialization_context&, const TMember&)> _should_encode;
+    std::function<bool (const serialization_context&, const TMember&)> _should_serialize;
     std::function<TMember (deserialization_context&)>                       _default_value;
     bool                                                               _default_on_null = false;
     std::function<TMember (TMember&&)>                                 _deserialize_mutate;
@@ -1122,21 +1123,21 @@ public:
     }
 
     /** When deserializing, also look for this \a name as a key. **/
-    member_adapter_builder& alternate_name(std::string name)
+    member_adapter_builder& alias(std::string name)
     {
         _adapter->_names.emplace_back(std::move(name));
         return *this;
     }
 
-    member_adapter_builder& check_input(std::function<void (const TMember&)> check)
+    member_adapter_builder& check(std::function<void (const TMember&)> check)
     {
         _adapter->add_deserialization_check(std::move(check));
         return *this;
     }
 
-    member_adapter_builder& check_input(std::function<bool (const TMember&)> check,
-                                        std::function<void (const TMember&)> thrower
-                                       )
+    member_adapter_builder& check(std::function<bool (const TMember&)> check,
+                                  std::function<void (const TMember&)> thrower
+                                 )
     {
         _adapter->add_deserialization_check([check, thrower] (const TMember& value)
             {
@@ -1147,9 +1148,9 @@ public:
     }
 
     template <typename TException>
-    member_adapter_builder& check_input(std::function<void (const TMember&)> check, const TException& ex)
+    member_adapter_builder& check(std::function<void (const TMember&)> check, const TException& ex)
     {
-        return check_input(std::move(check), [ex] (const TMember&) { throw ex; });
+        return check(std::move(check), [ex] (const TMember&) { throw ex; });
     }
 
     /** If the key for this member is not in the object when deserializing, call this function to create a value. If a
@@ -1178,57 +1179,57 @@ public:
         return *this;
     }
 
-    /** Only encode this member if the \a check passes. The final decision to encode is based on \e all \c check
+    /** Only serialize this member if the \a check passes. The final decision to serialize is based on \e all \c check
      *  functions.
     **/
-    member_adapter_builder& encode_if(std::function<bool (const serialization_context&, const TMember&)> check)
+    member_adapter_builder& serialize_if(std::function<bool (const serialization_context&, const TMember&)> check)
     {
-        _adapter->add_encode_check(std::move(check));
+        _adapter->add_serialize_check(std::move(check));
         return *this;
     }
 
-    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// Only serialize this member if the \c serialization_context was not created with a version, or its version
     /// is greater than or equal to \a ver.
     member_adapter_builder& since(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const TMember&)
-                         {
-                             return !context.version() || *context.version() >= ver;
-                         }
-                        );
+        return serialize_if([ver] (const serialization_context& context, const TMember&)
+                            {
+                                return !context.version() || *context.version() >= ver;
+                            }
+                           );
     }
 
-    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// Only serialize this member if the \c serialization_context was not created with a version, or its version
     /// is less than or equal to \a ver.
     member_adapter_builder& until(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const TMember&)
-                         {
-                             return !context.version() || *context.version() <= ver;
-                         }
-                        );
+        return serialize_if([ver] (const serialization_context& context, const TMember&)
+                            {
+                                return !context.version() || *context.version() <= ver;
+                            }
+                           );
     }
 
-    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// Only serialize this member if the \c serialization_context was not created with a version, or its version
     /// is greater than \a ver.
     member_adapter_builder& after(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const TMember&)
-                         {
-                             return !context.version() || *context.version() > ver;
-                         }
-                        );
+        return serialize_if([ver] (const serialization_context& context, const TMember&)
+                            {
+                                return !context.version() || *context.version() > ver;
+                            }
+                           );
     }
 
-    /// Only encode this member if the \c serialization_context was not created with a version, or its version
+    /// Only serialize this member if the \c serialization_context was not created with a version, or its version
     /// is less than \a ver.
     member_adapter_builder& before(version ver)
     {
-        return encode_if([ver] (const serialization_context& context, const TMember&)
-                         {
-                             return !context.version() || *context.version() < ver;
-                         }
-                        );
+        return serialize_if([ver] (const serialization_context& context, const TMember&)
+                            {
+                                return !context.version() || *context.version() < ver;
+                            }
+                           );
     }
 
 private:
@@ -1240,9 +1241,9 @@ class adapter_builder :
         public detail::formats_builder_dsl
 {
 public:
-    using pre_extract_func  = std::function<void (deserialization_context&)>;
-    using post_extract_func = std::function<T (deserialization_context&, T&&)>;
-    using extra_keys_func   = std::function<void (deserialization_context&, std::set<std::string>)>;
+    using pre_deserialize_func  = std::function<void (deserialization_context&)>;
+    using post_deserialize_func = std::function<T (deserialization_context&, T&&)>;
+    using unknown_members_func  = std::function<void (deserialization_context&, std::set<std::string>)>;
 
 public:
     template <typename F>
@@ -1341,60 +1342,60 @@ public:
                               );
     }
 
-    adapter_builder<T>& pre_extract(pre_extract_func perform)
+    adapter_builder<T>& pre_deserialize(pre_deserialize_func perform)
     {
-        if (_adapter->_pre_extract)
+        if (_adapter->_pre_deserialize)
         {
-            pre_extract_func old_perform = std::move(_adapter->_pre_extract);
-            _adapter->_pre_extract = [old_perform, perform] (deserialization_context& context)
-                                     {
-                                         old_perform(context);
-                                         perform(context);
-                                     };
+            pre_deserialize_func old_perform = std::move(_adapter->_pre_deserialize);
+            _adapter->_pre_deserialize = [old_perform, perform] (deserialization_context& context)
+                                         {
+                                             old_perform(context);
+                                             perform(context);
+                                         };
         }
         else
         {
-            _adapter->_pre_extract = std::move(perform);
+            _adapter->_pre_deserialize = std::move(perform);
         }
         return *this;
     }
 
-    adapter_builder<T>& post_extract(post_extract_func perform)
+    adapter_builder<T>& post_deserialize(post_deserialize_func perform)
     {
-        if (_adapter->_post_extract)
+        if (_adapter->_post_deserialize)
         {
-            post_extract_func old_perform = std::move(_adapter->_post_extract);
-            _adapter->_post_extract = [old_perform, perform] (deserialization_context& context, T&& out)
-                                     {
-                                         return perform(context, old_perform(context, std::move(out)));
-                                     };
+            post_deserialize_func old_perform = std::move(_adapter->_post_deserialize);
+            _adapter->_post_deserialize = [old_perform, perform] (deserialization_context& context, T&& out)
+                                         {
+                                             return perform(context, old_perform(context, std::move(out)));
+                                         };
         }
         else
         {
-            _adapter->_post_extract = std::move(perform);
+            _adapter->_post_deserialize = std::move(perform);
         }
         return *this;
     }
 
-    /// The handler is stored rather than desugared into a \c pre_extract, because the keys which claimed no member are
-    /// only known once the walk is done. It is still registered against the members as they stand at deserialization
-    /// time rather than at build time -- the key loop does the matching -- so declaring it before the members it
-    /// validates against keeps working.
-    adapter_builder<T>& on_extract_extra_keys(extra_keys_func handler)
+    /// The handler is stored rather than desugared into a \c pre_deserialize, because the keys which claimed no member
+    /// are only known once the walk is done. It is still registered against the members as they stand at
+    /// deserialization time rather than at build time -- the key loop does the matching -- so declaring it before the
+    /// members it validates against keeps working.
+    adapter_builder<T>& on_unknown_members(unknown_members_func handler)
     {
-        if (_adapter->_extra_keys)
+        if (_adapter->_unknown_members)
         {
-            extra_keys_func old_handler = std::move(_adapter->_extra_keys);
-            _adapter->_extra_keys = [old_handler, handler]
-                                    (deserialization_context& context, std::set<std::string> keys)
-                                    {
-                                        old_handler(context, keys);
-                                        handler(context, std::move(keys));
-                                    };
+            unknown_members_func old_handler = std::move(_adapter->_unknown_members);
+            _adapter->_unknown_members = [old_handler, handler]
+                                         (deserialization_context& context, std::set<std::string> keys)
+                                         {
+                                             old_handler(context, keys);
+                                             handler(context, std::move(keys));
+                                         };
         }
         else
         {
-            _adapter->_extra_keys = std::move(handler);
+            _adapter->_unknown_members = std::move(handler);
         }
         return *this;
     }
@@ -1415,8 +1416,8 @@ private:
             // text waits for the walk to reach the `}`, which is the first point anything knows where it ends.
             detail::source_scope source(context, from);
 
-            if (_pre_extract)
-                _pre_extract(context);
+            if (_pre_deserialize)
+                _pre_deserialize(context);
 
             // As for a member: without a default to take, a `null` is refused below as the non-object it is.
             if (_default_on_null && _create_default && detail::current_is_null(from))
@@ -1454,7 +1455,7 @@ private:
             // Both of these stay empty on the ordinary path and are built only where they are actually wanted. A
             // default-constructed container is not free everywhere -- some standard libraries allocate a debugging
             // proxy or an end sentinel for one -- and this runs once per object deserialized.
-            std::optional<std::set<std::string>> extra_keys;
+            std::optional<std::set<std::string>> unknown_members;
             std::optional<std::set<std::string>> repeated_keys;
 
             // `duplicate_key_action::exception` is the one policy which needs to know the keys themselves rather
@@ -1541,12 +1542,12 @@ private:
                     {
                         // Nothing claimed it. The whole subtree goes by in constant time on a tape-backed reader,
                         // and its name is only worth keeping if somebody registered to be told about it.
-                        if (_extra_keys)
+                        if (_unknown_members)
                         {
-                            if (!extra_keys)
-                                extra_keys.emplace();
+                            if (!unknown_members)
+                                unknown_members.emplace();
 
-                            extra_keys->emplace(key);
+                            unknown_members->emplace(key);
                         }
 
                         (void) from.next_value();
@@ -1560,7 +1561,7 @@ private:
                             // Another of this member's names, but one it already answers to by a better one. That is
                             // the document naming a member two ways rather than repeating a key, so the duplicate
                             // policy has nothing to say about it and the value goes by unread -- which is also what
-                            // keeps a `check_input` on the member from being run against a spelling it did not take.
+                            // keeps a `check` on the member from being run against a spelling it did not take.
                             (void) from.next_value();
                             continue;
                         }
@@ -1603,10 +1604,10 @@ private:
                 if (!closed)
                     return context.problem(context.problem_path(from), "Unterminated object");
 
-                // Reported before the members which never arrived, because that is the order the extra-key handler
-                // used to run in when it was a `pre_extract` -- ahead of everything the walk itself has to say.
-                if (_extra_keys && extra_keys && !extra_keys->empty())
-                    _extra_keys(context, *std::move(extra_keys));
+                // Reported before the members which never arrived: that is the order the unknown-members handler used
+                // to run in when it was a `pre_deserialize` -- ahead of everything the walk itself has to say.
+                if (_unknown_members && unknown_members && !unknown_members->empty())
+                    _unknown_members(context, *std::move(unknown_members));
 
                 for (std::size_t idx = 0U; idx < _members.size(); ++idx)
                 {
@@ -1643,7 +1644,7 @@ private:
             }
             catch (...)
             {
-                // Something left the walk: a setter, a `check_input` or a default factory, all of which are the
+                // Something left the walk: a setter, a `check` or a default factory, all of which are the
                 // caller's code. Unless this object's `}` was reached the cursor is somewhere inside it, a position
                 // only this adapter can make sense of, so finish the walk before letting the failure out. A loop
                 // above which recovers resumes at the `}`, exactly as it would from a returned failure.
@@ -1654,12 +1655,12 @@ private:
             }
 
             // Collecting gathers diagnostics; it does not make a half-populated `out` worth handing back. Reported
-            // before `_post_extract`, which has no business seeing one.
+            // before `_post_deserialize`, which has no business seeing one.
             if (recovered)
                 return std::unexpected(ast_node_type::error);
 
-            if (_post_extract)
-                out = _post_extract(context, std::move(out));
+            if (_post_deserialize)
+                out = _post_deserialize(context, std::move(out));
 
             // Only now, once nothing left is able to fail with this object in front of the cursor.
             (void) from.next_token();
@@ -1687,10 +1688,10 @@ private:
 
 
         std::deque<std::unique_ptr<detail::member_adapter<T>>> _members;
-        pre_extract_func                                       _pre_extract;
-        post_extract_func                                      _post_extract;
-        extra_keys_func                                        _extra_keys;
-        std::function<T (deserialization_context&)>                 _create_default;
+        pre_deserialize_func                                   _pre_deserialize;
+        post_deserialize_func                                  _post_deserialize;
+        unknown_members_func                                   _unknown_members;
+        std::function<T (deserialization_context&)>            _create_default;
         bool                                                   _default_on_null;
 
     private:
@@ -1742,7 +1743,7 @@ private:
         /// Run one member's part of the walk and fold however it fails into the channel the loop deals in.
         ///
         /// Deserialization reports failure by returning, but a member reaches the caller's code in three places -- the
-        /// setter, a \c check_input and a default factory -- and those report by throwing whatever they like. Giving
+        /// setter, a \c check and a default factory -- and those report by throwing whatever they like. Giving
         /// them the same shape is what keeps which members get attempted from depending on how the first failing one
         /// happened to fail.
         ///
@@ -2228,32 +2229,35 @@ adapter_builder_dsl<T>::member(std::string name,
 }
 
 template <typename T>
-adapter_builder<T>& adapter_builder_dsl<T>::pre_extract(typename adapter_builder<T>::pre_extract_func perform)
+adapter_builder<T>&
+adapter_builder_dsl<T>::pre_deserialize(typename adapter_builder<T>::pre_deserialize_func perform)
 {
-    return owner->pre_extract(std::move(perform));
+    return owner->pre_deserialize(std::move(perform));
 }
 
 template <typename T>
-adapter_builder<T>& adapter_builder_dsl<T>::post_extract(typename adapter_builder<T>::post_extract_func perform)
+adapter_builder<T>&
+adapter_builder_dsl<T>::post_deserialize(typename adapter_builder<T>::post_deserialize_func perform)
 {
-    return owner->post_extract(std::move(perform));
+    return owner->post_deserialize(std::move(perform));
 }
 
 template <typename T>
-adapter_builder<T>& adapter_builder_dsl<T>::on_extract_extra_keys(typename adapter_builder<T>::extra_keys_func handler)
+adapter_builder<T>&
+adapter_builder_dsl<T>::on_unknown_members(typename adapter_builder<T>::unknown_members_func handler)
 {
-    return owner->on_extract_extra_keys(std::move(handler));
+    return owner->on_unknown_members(std::move(handler));
 }
 
 }
 
-/** Throw a \a deserialization_error naming the \a extra_keys which claimed no member.
+/** Throw a \c deserialization_error naming the \a unknown_members, the keys which claimed no member.
  *
  *  \throws deserialization_error always.
 **/
 JSONV_NO_RETURN JSONV_PUBLIC
-void throw_extra_keys_deserialization_error(deserialization_context&          context,
-                                            const std::set<std::string>& extra_keys
-                                           );
+void deny_unknown_members(deserialization_context&     context,
+                          const std::set<std::string>& unknown_members
+                         );
 
 }

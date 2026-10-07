@@ -263,7 +263,7 @@
      - `deserialization_context` is mutable and no longer copyable: problems are recorded on it, through `problem`, and
        recording one changes it. Everything which deserializes through one therefore takes it by non-`const` reference
        -- a `deserializer`, a deserializing constructor, and the callbacks able to deserialize: `polymorphic_adapter`'s
-       match predicates and the serialization builder's `pre_extract`, `post_extract`, `on_extract_extra_keys`,
+       match predicates and the serialization builder's `pre_deserialize`, `post_deserialize`, `on_unknown_members`,
        `default_value` and `type_default_value`. A callable which declares its context `const` still binds, and only has
        to change if it deserializes through it. `deserialization_context::deserialize<T>(reader&)` reports failure by
        returning a `std::expected` rather than by throwing, while `deserialize<T>(const value&)` still throws. `expect`
@@ -357,7 +357,7 @@
        for. It now performs none. The member loop also stops looking itself up twice: it held the iterator its own
        search returned and then asked `value::at_path` to `count` and `at` the same key over again, so each member cost
        three map lookups where one will do. What a failure reports is unchanged, down to the path of a member matched
-       through an `alternate_name`, which is still the key the document used rather than the declared one. `extract_sub`
+       through an `alias`, which is still the key the document used rather than the declared one. `extract_sub`
        itself is removed, by #232 (#228).
      - `container_adapter`, `optional_adapter` and `wrapper_adapter` read the reader directly instead of a `value`
        materialised for them. A `std::vector<my_type>` built the whole array as a `value` and then deserialized each
@@ -416,38 +416,39 @@
      - The serialization builder DSL reads the reader directly instead of a `value` materialised for it, which is
        what takes the last composite most users actually deserialize through off the bridge. It is not a change of
        signature so much as a change of who drives the loop: each member used to be handed the whole parent object
-       and look itself up in it by name, walking its `alternate_name`s until one hit, which is random access into
+       and look itself up in it by name, walking its `alias`es until one hit, which is random access into
        something a forward cursor cannot offer. The walk now goes the other way -- over the document's keys, each
        dispatched to the member which claims it -- so a type described by the DSL is read in one pass instead of
        being built as a tree and then read out of that tree. A key which claims no member is stepped over whole,
        which on a tape-backed reader costs one move however large the subtree under it is (#231).
      - Deserialization of a DSL-described type runs in **document order** rather than member-declaration order. Which
        member reports a problem first changes with it, and so does the order of any side effects a caller's mutator
-       has. Declaration order still decides two things: which name wins when a member and an `alternate_name` of
+       has. Declaration order still decides two things: which name wins when a member and an `alias` of
        another both appear, and the order the members no key claimed are reported or defaulted in, since that pass
        happens after the walk (#231).
      - Three type-level hooks lose their `const value&` parameter, which is the price of the above and a source break
-       for anyone using them: `pre_extract` is now `void(deserialization_context&)`, the `on_extract_extra_keys` handler
-       is `void(deserialization_context&, std::set<std::string>)`, and a member's `default_value` factory is
-       `TMember(deserialization_context&)`. `throw_extra_keys_deserialization_error` follows the second of those and
-       never read its `value` anyway. A forward cursor cannot hand a callback the object it is part-way through reading,
+       for anyone using them: `pre_deserialize` is now `void(deserialization_context&)`, the `on_unknown_members`
+       handler is `void(deserialization_context&, std::set<std::string>)`, and a member's `default_value` factory is
+       `TMember(deserialization_context&)`. `deny_unknown_members` follows the second of those and never read its
+       `value` anyway. A forward cursor cannot hand a callback the object it is part-way through reading,
        and a missing key is only known to be missing once every key which was there has gone by. What the parameter gave
        them -- most sharply a default computed from a sibling member -- they ask the context for instead, through
        `deserialization_context::source_value` (#235). `type_default_value` is unaffected: it took only the context
        already (#231).
      - `deserialization_context::encoded_source` quotes the object a DSL-described type is being deserialized from, so a
-       `post_extract` which refuses the object can say which one it was. It is there for the hooks which run once the
-       walk reaches the object's `}` -- `on_extract_extra_keys` and every member's `default_value` as well as
-       `post_extract` -- and is empty anywhere else, including inside anything one of those hooks goes on to deserialize
-       through its context. Read from JSON text it is a view of exactly what was written; read from a `value` it is that
-       value's compact encoding, made the first time a hook asks, so a deserialization which never asks pays nothing for
-       it from either. It is text to quote; `deserialization_context::source_value` is the tree to query (#134).
+       `post_deserialize` which refuses the object can say which one it was. It is there for the hooks which run once
+       the walk reaches the object's `}` -- `on_unknown_members` and every member's `default_value` as well as
+       `post_deserialize` -- and is empty anywhere else, including inside anything one of those hooks goes on to
+       deserialize through its context. Read from JSON text it is a view of exactly what was written; read from a
+       `value` it is that value's compact encoding, made the first time a hook asks, so a deserialization which never
+       asks pays nothing for it from either. It is text to quote; `deserialization_context::source_value` is the tree
+       to query (#134).
      - `deserialization_context::source_value` gives the hooks of a DSL-described type the object they are about, as a
-       `value` to read members out of: `pre_extract` can refuse a document by a version member, a `default_value` can
-       compute from a sibling, and an `on_extract_extra_keys` handler can read the values of the keys it is handed. It
-       returns a `jsonv::optional<const value&>`, which is empty anywhere else -- a member's `check_input` or setter
-       during the walk, a `type_default_value` standing in for a `null`, anything a hook goes on to deserialize through
-       its context, and anything outside DSL deserialization. `pre_extract` is shown the value the reader is on, which
+       `value` to read members out of: `pre_deserialize` can refuse a document by a version member, a `default_value`
+       can compute from a sibling, and an `on_unknown_members` handler can read the values of the keys it is handed. It
+       returns a `jsonv::optional<const value&>`, which is empty anywhere else -- a member's `check` or setter during
+       the walk, a `type_default_value` standing in for a `null`, anything a hook goes on to deserialize through its
+       context, and anything outside DSL deserialization. `pre_deserialize` is shown the value the reader is on, which
        is not necessarily an object. Read from a `value`, it is the caller's own tree. Read from text, the first hook to
        ask has the object read into a `value` through a second cursor -- from where the reader is, before the walk, or
        from a position on the tape kept from the object's `{`, after it -- and the hooks after it are shown the same
@@ -460,11 +461,11 @@
        object. Its setter now runs after every member the document did give a value, rather than in document order
        (#235).
      - Finding the keys which claimed no member is now free. It used to be a second scan over the materialised object,
-       registered as a `pre_extract` and comparing every key against every member; the walk now knows which keys those
-       were because it is the thing which failed to place them. It is also no longer a `pre_extract`, so it runs after
-       the walk rather than before it -- a handler which throws, as `throw_extra_keys_deserialization_error` does, now
-       does so with the object already read rather than untouched. The set of names is only built when a handler was
-       registered (#231).
+       registered as a `pre_deserialize` and comparing every key against every member; the walk now knows which keys
+       those were because it is the thing which failed to place them. It is also no longer a `pre_deserialize`, so it
+       runs after the walk rather than before it -- a handler which throws, as `deny_unknown_members` does, now does so
+       with the object already read rather than untouched. The set of names is only built when a handler was registered
+       (#231).
      - `deserialize_options::on_duplicate_key` is honoured by DSL deserialization. It was not before, and not by
        omission: on a `value` the duplicate had already been collapsed by the parse, and on JSON text the bridge's own
        materialisation kept the last spelling whatever the option said. The walk sees both keys, so it can answer for
@@ -475,27 +476,27 @@
        of a name it has already passed over from a first sighting of another, so which of the two an object was refused
        for would otherwise depend on the order it listed them in. A document repeating a key no member wants is refused
        as well, which is again what building the `value` first would have done (#231).
-     - `check_input` runs. The mutator it composes a check into was stored on the member and never read by anything,
-       so every `check_input` in every DSL since the feature was added in 2015 has been a no-op; it is now applied
+     - `check` runs. The mutator it composes a check into was stored on the member and never read by anything,
+       so every `check` in every DSL since the feature was added in 2015 has been a no-op; it is now applied
        to the value which was read, before that value reaches the member. A predicate which has never executed may
        well reject data which has been deserializing cleanly for years, which is the reason to call this out rather
        than file it as a fix (#231).
-     - `alternate_name` compiles. The friendship which lets the member builder reach the member adapter's list of
+     - `alias` compiles. The friendship which lets the member builder reach the member adapter's list of
        names was declared unqualified inside `jsonv::detail`, so it named a `jsonv::detail::member_adapter_builder`
        which does not exist rather than the `jsonv::member_adapter_builder` which does. Every use of
-       `alternate_name` failed to compile, which is why nothing in the tree used one (#231).
+       `alias` failed to compile, which is why nothing in the tree used one (#231).
      - The preference order among a member's names is enforced by the walk rather than falling out of the lookup.
        Searching a materialised object went through the names in order and read only the winner; meeting them in the
        order the *document* put them says nothing about which the type prefers, so each member remembers which of
        its names it is being read from and a better-ranked one supersedes a worse. A document which spells one
        member two ways therefore resolves to the earliest declared name whichever order it used, and the spelling
-       which loses is stepped over unread -- so a `check_input` on the member never sees it. One case does not
+       which loses is stepped over unread -- so a `check` on the member never sees it. One case does not
        survive the change: where the losing spelling comes *first* and is itself malformed, it has already been read
        and its failure reported by the time the preferred one arrives, because a forward walk has to read a value
        when it meets it and the preferred name may never come (#231).
      - A second name for the same member is not a duplicate key. The two are different questions -- one member named
        two ways against one key repeated -- and only the second is `deserialize_options::on_duplicate_key`'s to decide,
-       so strict duplicate handling no longer refuses a document which merely uses an `alternate_name` (#231).
+       so strict duplicate handling no longer refuses a document which merely uses an `alias` (#231).
      - Deserializing a DSL-described type from something which is not an object reports a node type mismatch naming
        what was found. It used to be whatever `value::find` threw when a member looked itself up in a non-object,
        which was a `kind_error` about the wrong thing (#231).
@@ -611,8 +612,17 @@
        `function_deserializer.hpp` and `deserializer_construction.hpp`. A `deserialization_error`'s message
        begins `Deserialization error`, and the `benchmark/extract/` rows are `benchmark/deserialize/`.
        `serializer` already had the serde name, so the two directions now share a root as `reader` and `writer`
-       do. `value::extract`, `parse_index::extract_tree` and the serialization builder's `pre_extract`,
-       `post_extract` and `on_extract_extra_keys` hooks keep their names; the hooks are #328's (#318).
+       do. `value::extract` and `parse_index::extract_tree` keep their names; the serialization builder's hooks are
+       renamed by #328, below (#318).
+     - Source break: the serialization builder's hooks take serde's attribute names, as the layer's types took its
+       trait names. `alternate_name` is `alias`; `encode_if` is `serialize_if`, keeping its positive sense rather than
+       inverting it into serde's `skip_serializing_if`, because `since`, `until`, `after` and `before` compose on it;
+       `check_input` is `check`, which is what it does -- it checks the value read for a member, never the JSON;
+       `pre_extract` and `post_extract` are `pre_deserialize` and `post_deserialize`; and `on_extract_extra_keys` is
+       `on_unknown_members`, "members" being what RFC 8259 calls an object's name/value pairs. The handler which
+       refuses them, `throw_extra_keys_deserialization_error`, is `deny_unknown_members`, and its message begins
+       `Unknown member`. `default_value`, `default_on_null`, `type_default_value`, `type_default_on_null`, `since`,
+       `until`, `after` and `before` keep their names (#328).
      - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a

@@ -466,10 +466,10 @@ public:
     /// is about, for the hooks which validate one to put in their message.
     ///
     /// It is only there once the walk has reached the object's \c }, which is to say for what runs after it:
-    /// \c on_extract_extra_keys, every member's \c default_value and the setter that default is handed to, and
-    /// \c post_extract. What runs before or during the walk is shown nothing: \c pre_extract, which can have the
-    /// object as a \c value from \ref source_value but not its text, and a member's \c check_input and setter as its
-    /// key is read. Neither is anything a hook goes on to deserialize through \ref deserialize -- or through
+    /// \c on_unknown_members, every member's \c default_value and the setter that default is handed to, and
+    /// \c post_deserialize. What runs before or during the walk is shown nothing: \c pre_deserialize, which can have
+    /// the object as a \c value from \ref source_value but not its text, and a member's \c check and setter as its key
+    /// is read. Neither is anything a hook goes on to deserialize through \ref deserialize -- or through
     /// \c jsonv::deserialize, which comes through it -- whichever deserializer that reaches, nor anything outside DSL
     /// deserialization altogether. No object's source is empty -- the least of them is \c {} -- so an empty view always
     /// means there is nothing to quote.
@@ -487,12 +487,12 @@ public:
     std::string_view encoded_source() const;
 
     /// Get the value a type described with the serialization builder DSL is being deserialized from, for its hooks to
-    /// read members out of: a version for \c pre_extract to refuse a document by, a sibling for a \c default_value to
-    /// compute from, the values of the keys an \c on_extract_extra_keys handler is told no member claimed.
+    /// read members out of: a version for \c pre_deserialize to refuse a document by, a sibling for a \c default_value
+    /// to compute from, the values of the keys an \c on_unknown_members handler is told no member claimed.
     ///
-    /// It is there for the hooks which take a \c deserialization_context: \c pre_extract, before the walk, is shown the
-    /// value the reader is on, which is not necessarily an object; and \c on_extract_extra_keys, every member's \c
-    /// default_value and \c post_extract, after it, are shown the object. A member's \c check_input and setter run
+    /// It is there for the hooks which take a \c deserialization_context: \c pre_deserialize, before the walk, is shown
+    /// the value the reader is on, which is not necessarily an object; and \c on_unknown_members, every member's
+    /// \c default_value and \c post_deserialize, after it, are shown the object. A member's \c check and setter run
     /// during the walk and are shown nothing, as is a \c type_default_value standing in for a \c null. So, as for \ref
     /// encoded_source, is anything a hook goes on to deserialize through \ref deserialize, and anything outside DSL
     /// deserialization altogether.
@@ -979,9 +979,9 @@ private:
 /// Say, for as long as this lives, which object \c deserialization_context::source_value and
 /// \c deserialization_context::encoded_source answer for, and whether they answer at all.
 ///
-/// The serialization builder's adapter makes one for each object it deserializes, before \c pre_extract runs, on the
-/// value its reader is on. That shows the value but not its text, since nothing knows where it ends until it has been
-/// walked. \c open hides both for the walk, and \c close shows both for what runs after it. \c
+/// The serialization builder's adapter makes one for each object it deserializes, before \c pre_deserialize runs, on
+/// the value its reader is on. That shows the value but not its text, since nothing knows where it ends until it has
+/// been walked. \c open hides both for the walk, and \c close shows both for what runs after it. \c
 /// deserialization_context::deserialize makes one which shows nothing around any deserialization started while
 /// something is showing -- by one of those hooks, deserializing something else -- so that nothing the second
 /// deserialization runs, whichever deserializer runs it, is shown an object it is not part of.

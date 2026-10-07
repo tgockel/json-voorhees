@@ -162,20 +162,20 @@ TEST(serialization_builder_container_members)
     ensure_eq(p, q);
 }
 
-TEST(serialization_builder_extract_extra_keys)
+TEST(serialization_builder_unknown_members)
 {
-    std::set<std::string> extra_keys;
-    auto extra_keys_handler = [&extra_keys] (deserialization_context&, std::set<std::string> x)
-                              {
-                                  extra_keys = std::move(x);
-                              };
+    std::set<std::string> unknown_members;
+    auto unknown_members_handler = [&unknown_members] (deserialization_context&, std::set<std::string> x)
+                                   {
+                                       unknown_members = std::move(x);
+                                   };
 
     formats fmt = formats_builder()
                     .type<person>()
                         .member("firstname", &person::firstname)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
-                        .on_extract_extra_keys(extra_keys_handler)
+                        .on_unknown_members(unknown_members_handler)
                     .compose_checked(formats::defaults())
                 ;
 
@@ -190,20 +190,20 @@ TEST(serialization_builder_extract_extra_keys)
 
     person q = deserialize<person>(encoded, fmt);
     ensure_eq(p, q);
-    ensure(extra_keys == std::set<std::string>({ "extra1", "extra2" }));
+    ensure(unknown_members == std::set<std::string>({ "extra1", "extra2" }));
 }
 
-TEST(serialization_builder_post_extract_single)
+TEST(serialization_builder_post_deserialize_single)
 {
-    auto post_extract_handler = [] (const deserialization_context&, person&& p) -> person
-                              {
-                                  p.age++;
-                                  return p;
-                              };
+    auto post_deserialize_handler = [] (const deserialization_context&, person&& p) -> person
+                                  {
+                                      p.age++;
+                                      return p;
+                                  };
 
     formats fmt = formats_builder()
                     .type<person>()
-                        .post_extract(post_extract_handler)
+                        .post_deserialize(post_deserialize_handler)
                         .member("firstname", &person::firstname)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
@@ -216,24 +216,24 @@ TEST(serialization_builder_post_extract_single)
     ensure_eq(person("Bob", "Builder", 30), q);
 }
 
-TEST(serialization_builder_post_extract_multi)
+TEST(serialization_builder_post_deserialize_multi)
 {
-    auto post_extract_handler_1 = [] (const deserialization_context&, person&& p)
-                                {
-                                    p.age++;
-                                    return p;
-                                };
+    auto post_deserialize_handler_1 = [] (const deserialization_context&, person&& p)
+                                    {
+                                        p.age++;
+                                        return p;
+                                    };
 
-    auto post_extract_handler_2 = [] (const deserialization_context&, person&& p)
-                                {
-                                    p.lastname = "Mc" + p.lastname;
-                                    return p;
-                                };
+    auto post_deserialize_handler_2 = [] (const deserialization_context&, person&& p)
+                                    {
+                                        p.lastname = "Mc" + p.lastname;
+                                        return p;
+                                    };
 
     formats fmt = formats_builder()
                     .type<person>()
-                        .post_extract(post_extract_handler_1)
-                        .post_extract(post_extract_handler_2)
+                        .post_deserialize(post_deserialize_handler_1)
+                        .post_deserialize(post_deserialize_handler_2)
                         .member("firstname", &person::firstname)
                         .member("lastname",  &person::lastname)
                         .member("age",       &person::age)
@@ -293,7 +293,7 @@ TEST(serialization_builder_defaults_are_taken_from_a_document_missing_them)
 {
     // The test above round-trips an object which has every key, so it never reaches a default at all. This one reads
     // the document that one builds and discards: `age` is absent and `winning_numbers` is null, which is the pair of
-    // paths `default_value` and `default_on_null` exist for. The sibling-derived half of it is a `post_extract`,
+    // paths `default_value` and `default_on_null` exist for. The sibling-derived half of it is a `post_deserialize`,
     // which is where such a default has to live now that the walk is a forward one.
     formats fmt = formats_builder()
                     .type<person>()
@@ -305,15 +305,15 @@ TEST(serialization_builder_defaults_are_taken_from_a_document_missing_them)
                         .member("winning_numbers",  &person::winning_numbers)
                             .default_value(std::vector<long>())
                             .default_on_null()
-                        .post_extract([] (deserialization_context&, person&& out) -> person
-                                      {
-                                          if (out.winning_numbers.empty())
-                                              out.winning_numbers.assign(begin(out.favorite_numbers),
-                                                                         end(out.favorite_numbers)
-                                                                        );
-                                          return std::move(out);
-                                      }
-                                     )
+                        .post_deserialize([] (deserialization_context&, person&& out) -> person
+                                          {
+                                              if (out.winning_numbers.empty())
+                                                  out.winning_numbers.assign(begin(out.favorite_numbers),
+                                                                             end(out.favorite_numbers)
+                                                                            );
+                                              return std::move(out);
+                                          }
+                                         )
                     .register_containers<long, std::set, std::vector>()
                     .compose_checked(formats::defaults())
                 ;
@@ -329,18 +329,26 @@ TEST(serialization_builder_defaults_are_taken_from_a_document_missing_them)
     ensure_eq(person("Bob", "Builder", 20, { 1, 2, 3, 4 }, { 1, 2, 3, 4 }), q);
 }
 
-TEST(serialization_builder_encode_checks)
+TEST(serialization_builder_serialize_checks)
 {
     formats fmt = formats_builder()
                     .type<person>()
                         .member("firstname",        &person::firstname)
                         .member("lastname",         &person::lastname)
                         .member("age",              &person::age)
-                            .encode_if([] (const serialization_context&, int age) { return age > 20; })
+                            .serialize_if([] (const serialization_context&, int age) { return age > 20; })
                         .member("favorite_numbers", &person::favorite_numbers)
-                            .encode_if([] (const serialization_context&, const std::set<long>& nums) { return nums.size(); })
+                            .serialize_if([] (const serialization_context&, const std::set<long>& nums)
+                                          {
+                                              return nums.size();
+                                          }
+                                         )
                         .member("winning_numbers",  &person::winning_numbers)
-                            .encode_if([] (const serialization_context&, const std::vector<long>& nums) { return nums.size(); })
+                            .serialize_if([] (const serialization_context&, const std::vector<long>& nums)
+                                          {
+                                              return nums.size();
+                                          }
+                                         )
                     .register_containers<long, std::set, std::vector>()
                     .compose_checked(formats::list { formats::defaults() })
                 ;
@@ -424,7 +432,7 @@ TEST(serialization_builder_extra_unchecked_key_throws)
     jsonv::formats local_formats =
         jsonv::formats_builder()
             .type<foo>()
-               .on_extract_extra_keys(jsonv::throw_extra_keys_deserialization_error)
+               .on_unknown_members(jsonv::deny_unknown_members)
                .member("a", &foo::a)
                .member("b", &foo::b)
                    .default_value(10)
@@ -1049,29 +1057,29 @@ TEST(serialization_builder_null_takes_the_default_only_when_asked)
     ensure_eq(path::create(".b"), cxt.problems().at(0).path());
 }
 
-TEST(serialization_builder_alternate_name_prefers_the_declared_one)
+TEST(serialization_builder_alias_prefers_the_declared_one)
 {
     // Both spellings are in the document. The declared name is preferred whichever order they arrive in, which the
     // walk has to decide for itself: it meets the names in the order the document put them, and that says nothing
-    // about which one the type prefers. A key which loses that race is not an extra key either -- a member answers
+    // about which one the type prefers. A key which loses that race is not an unknown member either -- a member answers
     // for every name it has.
     //
     // Read as text on purpose. A `jsonv::value` is a sorted map, so deserializing one only ever presents the two
     // spellings in collating order and an implementation which took the last of them would pass half the time by
     // accident.
-    std::set<std::string> extra_keys;
+    std::set<std::string> unknown_members;
 
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .alternate_name("A")
+                            .alias("A")
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .on_extract_extra_keys([&extra_keys] (deserialization_context&, std::set<std::string> found)
-                                               {
-                                                   extra_keys = std::move(found);
-                                               }
-                                              )
+                        .on_unknown_members([&unknown_members] (deserialization_context&, std::set<std::string> found)
+                                            {
+                                                unknown_members = std::move(found);
+                                            }
+                                           )
                   .compose_checked(formats::defaults());
 
     for (std::string_view source : { R"({ "A": 50, "a": 1, "b": 2, "c": 3 })",
@@ -1088,24 +1096,24 @@ TEST(serialization_builder_alternate_name_prefers_the_declared_one)
     }
 
     ensure_eq(triple({ 1, 2, 3 }), deserialize<triple>(parse(R"({ "A": 50, "a": 1, "b": 2, "c": 3 })"), fmt));
-    ensure(extra_keys.empty());
+    ensure(unknown_members.empty());
 }
 
-TEST(serialization_builder_alternate_names_rank_against_each_other)
+TEST(serialization_builder_aliases_rank_against_each_other)
 {
-    // Two alternates, so the choice is not simply "the declared one or not". They are preferred in the order they
+    // Two aliases, so the choice is not simply "the declared one or not". They are preferred in the order they
     // were added, again whichever order the document uses.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .alternate_name("first_alternate")
-                            .alternate_name("second_alternate")
+                            .alias("first_alias")
+                            .alias("second_alias")
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
 
-    for (std::string_view source : { R"({ "first_alternate": 1, "second_alternate": 50, "b": 2, "c": 3 })",
-                                     R"({ "second_alternate": 50, "first_alternate": 1, "b": 2, "c": 3 })"
+    for (std::string_view source : { R"({ "first_alias": 1, "second_alias": 50, "b": 2, "c": 3 })",
+                                     R"({ "second_alias": 50, "first_alias": 1, "b": 2, "c": 3 })"
                                    })
     {
         deserialization_context cxt(fmt);
@@ -1118,14 +1126,14 @@ TEST(serialization_builder_alternate_names_rank_against_each_other)
     }
 }
 
-TEST(serialization_builder_an_alternate_name_is_not_a_duplicate_key)
+TEST(serialization_builder_an_alias_is_not_a_duplicate_key)
 {
     // Naming one member two ways and repeating one key are different things, and only the second is
     // `duplicate_key_action`'s to refuse. Strict handling used to reject this document, which is valid.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .alternate_name("A")
+                            .alias("A")
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
@@ -1149,20 +1157,20 @@ TEST(serialization_builder_an_alternate_name_is_not_a_duplicate_key)
     ensure_eq(std::string("Duplicate key in object: \"a\""), repeated.problems().at(0).message());
 }
 
-TEST(serialization_builder_a_superseded_alternate_is_not_validated)
+TEST(serialization_builder_a_superseded_alias_is_not_checked)
 {
-    // The spelling which loses is stepped over unread, so a `check_input` on the member never sees it. Reading it
+    // The spelling which loses is stepped over unread, so a `check` on the member never sees it. Reading it
     // only to throw the result away would report failures against a value the type did not take.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .alternate_name("A")
-                            .check_input([] (const std::int64_t& value)
-                                         {
-                                             if (value > 10)
-                                                 throw std::logic_error("a must be small");
-                                         }
-                                        )
+                            .alias("A")
+                            .check([] (const std::int64_t& value)
+                                   {
+                                       if (value > 10)
+                                           throw std::logic_error("a must be small");
+                                   }
+                                  )
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
@@ -1179,11 +1187,11 @@ TEST(serialization_builder_a_superseded_alternate_is_not_validated)
 TEST(serialization_builder_names_the_key_the_document_used)
 {
     // A failure inside a member is reported at the key the *document* spelled, not at the name the member was
-    // declared with -- which is what makes `alternate_name` a matching rule rather than a rename.
+    // declared with -- which is what makes `alias` a matching rule rather than a rename.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .alternate_name("A")
+                            .alias("A")
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
@@ -1297,19 +1305,19 @@ TEST(serialization_builder_refuses_a_non_object)
     ensure(cxt.problems().at(0).message().find("object") != std::string::npos);
 }
 
-TEST(serialization_builder_check_input_rejects_a_member)
+TEST(serialization_builder_check_rejects_a_member)
 {
-    // `check_input` runs on the value which was read, before it reaches the member. It had never run at all: the
+    // `check` runs on the value which was read, before it reaches the member. It had never run at all: the
     // mutator it composes into was stored and never called.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .check_input([] (const std::int64_t& value)
-                                         {
-                                             if (value < 0)
-                                                 throw std::logic_error("a must not be negative");
-                                         }
-                                        )
+                            .check([] (const std::int64_t& value)
+                                   {
+                                       if (value < 0)
+                                           throw std::logic_error("a must not be negative");
+                                   }
+                                  )
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
@@ -1448,12 +1456,12 @@ TEST(serialization_builder_strict_duplicates_do_not_depend_on_key_order)
 {
     // A second helping of a name the member has already passed over for a better one is still a repeat, but the
     // winning name cannot see that: a lower-ranked key looks the same whether it is a first sighting of one
-    // alternate or a second of another. Strict handling therefore asks of the keys themselves, so the same object is
+    // alias or a second of another. Strict handling therefore asks of the keys themselves, so the same object is
     // refused whichever order it listed them in.
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .alternate_name("A")
+                            .alias("A")
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                   .compose_checked(formats::defaults());
@@ -1508,16 +1516,16 @@ formats refusing_triple_formats()
                 .member("a", &triple::a)
                 .member("b", &triple::b)
                 .member("c", &triple::c)
-                .post_extract([] (const deserialization_context& context, triple&& out)
-                              {
-                                  if (out.a < 0)
-                                      throw std::invalid_argument("Negative a in "
-                                                                  + std::string(context.encoded_source())
-                                                                 );
+                .post_deserialize([] (const deserialization_context& context, triple&& out)
+                                  {
+                                      if (out.a < 0)
+                                          throw std::invalid_argument("Negative a in "
+                                                                      + std::string(context.encoded_source())
+                                                                     );
 
-                                  return out;
-                              }
-                             )
+                                      return out;
+                                  }
+                                 )
         .compose_checked(formats::defaults());
 
     return instance;
@@ -1542,7 +1550,7 @@ std::string refusal_message(const TSource& source)
 
 }
 
-TEST(serialization_builder_post_extract_quotes_the_text_it_read)
+TEST(serialization_builder_post_deserialize_quotes_the_text_it_read)
 {
     // Read from text, the object is quoted as it was written: the spacing it had, and the key no member claimed still
     // in it, since what is quoted is the object's extent rather than what the walk kept of it. The whitespace around
@@ -1553,7 +1561,7 @@ TEST(serialization_builder_post_extract_quotes_the_text_it_read)
     ensure_eq("Negative a in " + std::string(object), refusal_message(std::string_view(text)));
 }
 
-TEST(serialization_builder_post_extract_quotes_a_value_as_its_encoding)
+TEST(serialization_builder_post_deserialize_quotes_a_value_as_its_encoding)
 {
     // A value has no text to view, so what is quoted is its encoding. That a reader over a value makes its `{` and `}`
     // out of one static `{}` is why the extent of the object cannot simply be read off the two of them, as it is from
@@ -1575,21 +1583,21 @@ TEST(serialization_builder_encoded_source_is_the_object_not_the_document)
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .post_extract([record] (const deserialization_context& context, triple&& out)
-                                      {
-                                          record(context);
-                                          return out;
-                                      }
-                                     )
+                        .post_deserialize([record] (const deserialization_context& context, triple&& out)
+                                          {
+                                              record(context);
+                                              return out;
+                                          }
+                                         )
                     .type<wrapper>()
                         .member("inner", &wrapper::inner)
                         .member("d",     &wrapper::d)
-                        .post_extract([record] (const deserialization_context& context, wrapper&& out)
-                                      {
-                                          record(context);
-                                          return out;
-                                      }
-                                     )
+                        .post_deserialize([record] (const deserialization_context& context, wrapper&& out)
+                                          {
+                                              record(context);
+                                              return out;
+                                          }
+                                         )
                   .compose_checked(formats::defaults());
 
     const std::string_view inner = R"({ "c": 3, "a": 1,   "b": 2 })";
@@ -1610,8 +1618,8 @@ TEST(serialization_builder_encoded_source_is_the_object_not_the_document)
 
 TEST(serialization_builder_encoded_source_reaches_every_hook_after_the_walk)
 {
-    // The extra-keys handler and the default for a key which never arrived both run once the walk has reached the
-    // `}`, as `post_extract` does, so they are shown the object as well.
+    // The unknown-members handler and the default for a key which never arrived both run once the walk has reached the
+    // `}`, as `post_deserialize` does, so they are shown the object as well.
     std::vector<std::string> seen;
 
     formats fmt = formats_builder()
@@ -1625,12 +1633,12 @@ TEST(serialization_builder_encoded_source_reaches_every_hook_after_the_walk)
                                                return std::int64_t(3);
                                            }
                                           )
-                        .on_extract_extra_keys([&seen]
-                                               (const deserialization_context& context, const std::set<std::string>&)
-                                               {
-                                                   seen.emplace_back(context.encoded_source());
-                                               }
-                                              )
+                        .on_unknown_members([&seen]
+                                            (const deserialization_context& context, const std::set<std::string>&)
+                                            {
+                                                seen.emplace_back(context.encoded_source());
+                                            }
+                                           )
                   .compose_checked(formats::defaults());
 
     const std::string_view text = R"({ "a": 1, "b": 2, "extra": true })";
@@ -1644,7 +1652,7 @@ TEST(serialization_builder_encoded_source_reaches_every_hook_after_the_walk)
 TEST(serialization_builder_encoded_source_is_empty_until_the_object_closes)
 {
     // Until the walk reaches the `}` there is no whole object to quote, whichever source it is read from: not in
-    // `pre_extract`, and not in a member's `check_input` -- including one inside a nested object, whose enclosing
+    // `pre_deserialize`, and not in a member's `check` -- including one inside a nested object, whose enclosing
     // object is no more finished than it is.
     const deserialization_context* current = nullptr;
     std::vector<std::string>  seen;
@@ -1652,16 +1660,16 @@ TEST(serialization_builder_encoded_source_is_empty_until_the_object_closes)
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([record] (const deserialization_context&) { record(); })
+                        .pre_deserialize([record] (const deserialization_context&) { record(); })
                         .member("a", &triple::a)
-                            .check_input([record] (const std::int64_t&) { record(); })
+                            .check([record] (const std::int64_t&) { record(); })
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                     .type<wrapper>()
-                        .pre_extract([record] (const deserialization_context&) { record(); })
+                        .pre_deserialize([record] (const deserialization_context&) { record(); })
                         .member("inner", &wrapper::inner)
                         .member("d",     &wrapper::d)
-                            .check_input([record] (const std::int64_t&) { record(); })
+                            .check([record] (const std::int64_t&) { record(); })
                   .compose_checked(formats::defaults());
 
     const std::string_view text = R"({ "inner": { "a": 1, "b": 2, "c": 3 }, "d": 4 })";
@@ -1682,7 +1690,7 @@ TEST(serialization_builder_encoded_source_is_empty_until_the_object_closes)
             (void) cxt.deserialize<wrapper>(parse(text));
         }
 
-        // Both `pre_extract`s, then the inner `check_input` and then the outer one.
+        // Both `pre_deserialize`s, then the inner `check` and then the outer one.
         ensure_eq(4U, seen.size());
         for (const auto& source : seen)
             ensure_eq(std::string(), source);
@@ -1701,27 +1709,27 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object)
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([&seen] (const deserialization_context& context)
-                                     {
-                                         seen.emplace_back(context.encoded_source());
-                                     }
-                                    )
+                        .pre_deserialize([&seen] (const deserialization_context& context)
+                                         {
+                                             seen.emplace_back(context.encoded_source());
+                                         }
+                                        )
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                     .type<wrapper>()
                         .member("d", &wrapper::d)
-                        .post_extract([&seen] (deserialization_context& context, wrapper&& out)
-                                      {
-                                          seen.emplace_back(context.encoded_source());
+                        .post_deserialize([&seen] (deserialization_context& context, wrapper&& out)
+                                          {
+                                              seen.emplace_back(context.encoded_source());
 
-                                          auto rdr = open(R"({ "a": 1, "b": 2, "c": 3 })");
-                                          out.inner = context.deserialize<triple>(rdr).value();
+                                              auto rdr = open(R"({ "a": 1, "b": 2, "c": 3 })");
+                                              out.inner = context.deserialize<triple>(rdr).value();
 
-                                          seen.emplace_back(context.encoded_source());
-                                          return out;
-                                      }
-                                     )
+                                              seen.emplace_back(context.encoded_source());
+                                              return out;
+                                          }
+                                         )
                   .compose_checked(formats::defaults());
 
     const std::string_view text = R"({ "d": 4 })";
@@ -1760,18 +1768,18 @@ TEST(serialization_builder_encoded_source_hides_an_enclosing_object_from_any_des
     formats dsl = formats_builder()
                     .type<wrapper>()
                         .member("d", &wrapper::d)
-                        .post_extract([&seen] (deserialization_context& context, wrapper&& out)
-                                      {
-                                          seen.emplace_back(context.encoded_source());
+                        .post_deserialize([&seen] (deserialization_context& context, wrapper&& out)
+                                          {
+                                              seen.emplace_back(context.encoded_source());
 
-                                          auto rdr = open("42");
-                                          seen.push_back(context.deserialize<source_probe>(rdr)->seen);
-                                          seen.push_back(context.deserialize<source_probe>(value(42)).seen);
+                                              auto rdr = open("42");
+                                              seen.push_back(context.deserialize<source_probe>(rdr)->seen);
+                                              seen.push_back(context.deserialize<source_probe>(value(42)).seen);
 
-                                          seen.emplace_back(context.encoded_source());
-                                          return out;
-                                      }
-                                     )
+                                              seen.emplace_back(context.encoded_source());
+                                              return out;
+                                          }
+                                         )
                   .compose_checked(formats::defaults());
 
     formats fmt = formats::compose({ dsl });
@@ -1875,18 +1883,18 @@ TEST(serialization_builder_encoded_source_encodes_a_value_once)
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .post_extract([&first] (const deserialization_context& context, triple&& out)
-                                      {
-                                          first = context.encoded_source().data();
-                                          return out;
-                                      }
-                                     )
-                        .post_extract([&first, &same] (const deserialization_context& context, triple&& out)
-                                      {
-                                          same = context.encoded_source().data() == first;
-                                          return out;
-                                      }
-                                     )
+                        .post_deserialize([&first] (const deserialization_context& context, triple&& out)
+                                          {
+                                              first = context.encoded_source().data();
+                                              return out;
+                                          }
+                                         )
+                        .post_deserialize([&first, &same] (const deserialization_context& context, triple&& out)
+                                          {
+                                              same = context.encoded_source().data() == first;
+                                              return out;
+                                          }
+                                         )
                   .compose_checked(formats::defaults());
 
     (void) deserialize<triple>(object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }), fmt);
@@ -2008,7 +2016,7 @@ TEST(serialization_builder_null_default_keeps_its_claim_with_many_names)
         auto builder = formats_builder();
         auto member  = builder.type<many_named>().member("a0", &many_named::a);
         for (int idx = 1; idx < 32768; ++idx)
-            member.alternate_name("a" + std::to_string(idx));
+            member.alias("a" + std::to_string(idx));
         member.default_value(std::int64_t(7)).default_on_null();
 
         formats fmt = builder.compose_checked(formats::defaults());
@@ -2049,7 +2057,7 @@ TEST(serialization_builder_null_default_on_a_type_too_wide_to_track_inline)
     }
 }
 
-TEST(serialization_builder_extra_keys_handler_reads_their_values)
+TEST(serialization_builder_unknown_members_handler_reads_their_values)
 {
     // The handler is handed the names of the keys no member claimed, and can read their values out of the object.
     value seen;
@@ -2059,14 +2067,14 @@ TEST(serialization_builder_extra_keys_handler_reads_their_values)
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
-                        .on_extract_extra_keys([&seen]
-                                               (deserialization_context& context, const std::set<std::string>& keys)
-                                               {
-                                                   const value& source = context.source_value().value();
-                                                   for (const auto& key : keys)
-                                                       seen[key] = source.at(key);
-                                               }
-                                              )
+                        .on_unknown_members([&seen]
+                                            (deserialization_context& context, const std::set<std::string>& keys)
+                                            {
+                                                const value& source = context.source_value().value();
+                                                for (const auto& key : keys)
+                                                    seen[key] = source.at(key);
+                                            }
+                                           )
                   .compose_checked(formats::defaults());
 
     const std::string_view text = R"({ "a": 1, "x": [ 1, { "y": true } ], "b": 2, "c": 3, "z": "zed" })";
@@ -2081,18 +2089,18 @@ TEST(serialization_builder_extra_keys_handler_reads_their_values)
     }
 }
 
-TEST(serialization_builder_pre_extract_reads_the_document)
+TEST(serialization_builder_pre_deserialize_reads_the_document)
 {
-    // Run before the walk, `pre_extract` can refuse a document by what it says before any member has been read.
+    // Run before the walk, `pre_deserialize` can refuse a document by what it says before any member has been read.
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([] (deserialization_context& context)
-                                     {
-                                         const value& source = context.source_value().value();
-                                         if (source.count("schema") == 0U || source.at("schema") != value(2))
-                                             throw std::invalid_argument("Unsupported schema");
-                                     }
-                                    )
+                        .pre_deserialize([] (deserialization_context& context)
+                                         {
+                                             const value& source = context.source_value().value();
+                                             if (source.count("schema") == 0U || source.at("schema") != value(2))
+                                                 throw std::invalid_argument("Unsupported schema");
+                                         }
+                                        )
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
@@ -2119,15 +2127,16 @@ std::string shown(const deserialization_context& context)
 
 }
 
-TEST(serialization_builder_pre_extract_is_shown_what_the_reader_is_on)
+TEST(serialization_builder_pre_deserialize_is_shown_what_the_reader_is_on)
 {
-    // Before the walk there is no knowing that the value is an object, and `pre_extract` is shown it whatever it is. A
-    // `type_default_value` standing in for a `null` is shown nothing, as the cursor has stepped past what it replaces.
+    // Before the walk there is no knowing that the value is an object, and `pre_deserialize` is shown it whatever it
+    // is. A `type_default_value` standing in for a `null` is shown nothing, as the cursor has stepped past what it
+    // replaces.
     std::vector<std::string> seen;
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([&seen] (deserialization_context& context) { seen.push_back(shown(context)); })
+                        .pre_deserialize([&seen] (deserialization_context& context) { seen.push_back(shown(context)); })
                         .type_default_on_null()
                         .type_default_value([&seen] (deserialization_context& context)
                                             {
@@ -2158,7 +2167,7 @@ TEST(serialization_builder_pre_extract_is_shown_what_the_reader_is_on)
 
 TEST(serialization_builder_source_value_is_empty_during_the_walk)
 {
-    // A member's `check_input` and setter run as the walk meets their key, and are shown nothing -- including in a
+    // A member's `check` and setter run as the walk meets their key, and are shown nothing -- including in a
     // nested object, whose enclosing object is part-way through its own walk.
     const deserialization_context* current = nullptr;
     std::vector<std::string>  seen;
@@ -2167,13 +2176,13 @@ TEST(serialization_builder_source_value_is_empty_during_the_walk)
     formats fmt = formats_builder()
                     .type<triple>()
                         .member("a", &triple::a)
-                            .check_input([record] (const std::int64_t&) { record(); })
+                            .check([record] (const std::int64_t&) { record(); })
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                     .type<wrapper>()
                         .member("inner", &wrapper::inner)
                         .member("d",     &wrapper::d)
-                            .check_input([record] (const std::int64_t&) { record(); })
+                            .check([record] (const std::int64_t&) { record(); })
                   .compose_checked(formats::defaults());
 
     const std::string_view text = R"({ "inner": { "a": 1, "b": 2, "c": 3 }, "d": 4 })";
@@ -2227,32 +2236,32 @@ TEST(serialization_builder_source_value_hides_an_enclosing_object)
 
     formats dsl = formats_builder()
                     .type<triple>()
-                        .pre_extract([&seen] (deserialization_context& context) { seen.push_back(shown(context)); })
+                        .pre_deserialize([&seen] (deserialization_context& context) { seen.push_back(shown(context)); })
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
                     .type<wrapper>()
-                        .pre_extract([&seen] (deserialization_context& context)
-                                     {
-                                         seen.push_back(shown(context));
+                        .pre_deserialize([&seen] (deserialization_context& context)
+                                         {
+                                             seen.push_back(shown(context));
 
-                                         auto rdr = open("42");
-                                         seen.push_back(context.deserialize<source_value_probe>(rdr)->seen);
-                                     }
-                                    )
+                                             auto rdr = open("42");
+                                             seen.push_back(context.deserialize<source_value_probe>(rdr)->seen);
+                                         }
+                                        )
                         .member("d", &wrapper::d)
-                        .post_extract([&seen] (deserialization_context& context, wrapper&& out)
-                                      {
-                                          seen.push_back(shown(context));
+                        .post_deserialize([&seen] (deserialization_context& context, wrapper&& out)
+                                          {
+                                              seen.push_back(shown(context));
 
-                                          auto rdr = open(R"({ "c": 3, "b": 2, "a": 1 })");
-                                          out.inner = context.deserialize<triple>(rdr).value();
-                                          seen.push_back(context.deserialize<source_value_probe>(value(42)).seen);
+                                              auto rdr = open(R"({ "c": 3, "b": 2, "a": 1 })");
+                                              out.inner = context.deserialize<triple>(rdr).value();
+                                              seen.push_back(context.deserialize<source_value_probe>(value(42)).seen);
 
-                                          seen.push_back(shown(context));
-                                          return out;
-                                      }
-                                     )
+                                              seen.push_back(shown(context));
+                                              return out;
+                                          }
+                                         )
                   .compose_checked(formats::defaults());
 
     formats fmt = formats::compose({ dsl });
@@ -2281,7 +2290,7 @@ TEST(serialization_builder_source_value_is_read_from_text_once)
 
     formats fmt = formats_builder()
                     .type<triple>()
-                        .pre_extract([record] (deserialization_context& context) { record(context); })
+                        .pre_deserialize([record] (deserialization_context& context) { record(context); })
                         .member("a", &triple::a)
                         .member("b", &triple::b)
                         .member("c", &triple::c)
@@ -2291,12 +2300,12 @@ TEST(serialization_builder_source_value_is_read_from_text_once)
                                                return std::int64_t(3);
                                            }
                                           )
-                        .post_extract([record] (deserialization_context& context, triple&& out)
-                                      {
-                                          record(context);
-                                          return out;
-                                      }
-                                     )
+                        .post_deserialize([record] (deserialization_context& context, triple&& out)
+                                          {
+                                              record(context);
+                                              return out;
+                                          }
+                                         )
                   .compose_checked(formats::defaults());
 
     const std::string_view text = R"({ "a": 1, "b": 2 })";
@@ -2327,7 +2336,7 @@ formats nicknamed_formats()
     static const formats instance =
         formats_builder()
             .type<nicknamed>()
-                .pre_extract([] (deserialization_context& context) { (void) context.source_value(); })
+                .pre_deserialize([] (deserialization_context& context) { (void) context.source_value(); })
                 .member("name", &nicknamed::name)
                 .member("nick", &nicknamed::nick)
                     .default_value([] (deserialization_context& context)
@@ -2346,7 +2355,7 @@ formats nicknamed_formats()
 TEST(serialization_builder_source_value_read_from_text_is_temporary)
 {
     // What is read out of text for a hook dies with the deserialization, so a view of it would dangle: deserializing
-    // one is refused. A member read during the walk still views the text, even though `pre_extract` had the object
+    // one is refused. A member read during the walk still views the text, even though `pre_deserialize` had the object
     // read.
     const std::string text = R"({ "name": "Robert", "nick": "Bob" })";
 

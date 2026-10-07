@@ -191,15 +191,15 @@ formats_builder& formats_builder_dsl::on_duplicate_type(duplicate_type_action ac
 
 }
 
-void throw_extra_keys_deserialization_error(deserialization_context&          context,
-                                            const std::set<std::string>& extra_keys
-                                           )
+void deny_unknown_members(deserialization_context&     context,
+                          const std::set<std::string>& unknown_members
+                         )
 {
     std::ostringstream os;
-    bool plural = extra_keys.size() != 1;
-    os << "Found extra key" << (plural ? "s" : "") << " in value: ";
+    bool plural = unknown_members.size() != 1;
+    os << "Unknown member" << (plural ? "s" : "") << " in object: ";
     bool first = true;
-    for (const std::string& key : extra_keys)
+    for (const std::string& key : unknown_members)
     {
         if (first)
             first = false;

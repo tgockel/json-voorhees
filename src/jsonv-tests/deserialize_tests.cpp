@@ -354,7 +354,7 @@ struct named_triple
     std::int64_t c;
 };
 
-/// \c named_triple with a \c post_extract which validates the object without quoting it, as every one does on the
+/// \c named_triple with a \c post_deserialize which validates the object without quoting it, as every one does on the
 /// success path.
 struct quiet_triple
 {
@@ -363,7 +363,7 @@ struct quiet_triple
     std::int64_t c;
 };
 
-/// \c named_triple with a \c post_extract which quotes the object, which read from a \c value means encoding it.
+/// \c named_triple with a \c post_deserialize which quotes the object, which read from a \c value means encoding it.
 struct quoting_triple
 {
     std::int64_t a;
@@ -371,8 +371,8 @@ struct quoting_triple
     std::int64_t c;
 };
 
-/// \c named_triple with a \c post_extract which asks for the object as a \c value, which read from text means reading
-/// it again.
+/// \c named_triple with a \c post_deserialize which asks for the object as a \c value, which read from text means
+/// reading it again.
 struct asking_triple
 {
     std::int64_t a;
@@ -515,34 +515,34 @@ const formats& path_cost_formats()
                                     .member(long_a, &quiet_triple::a)
                                     .member(long_b, &quiet_triple::b)
                                     .member(long_c, &quiet_triple::c)
-                                    .post_extract([] (const deserialization_context&, quiet_triple&& out)
-                                                  {
-                                                      if (out.a < 0)
-                                                          throw std::invalid_argument("a must not be negative");
+                                    .post_deserialize([] (const deserialization_context&, quiet_triple&& out)
+                                                      {
+                                                          if (out.a < 0)
+                                                              throw std::invalid_argument("a must not be negative");
 
-                                                      return out;
-                                                  }
-                                                 )
+                                                          return out;
+                                                      }
+                                                     )
                                 .type<quoting_triple>()
                                     .member(long_a, &quoting_triple::a)
                                     .member(long_b, &quoting_triple::b)
                                     .member(long_c, &quoting_triple::c)
-                                    .post_extract([] (const deserialization_context& context, quoting_triple&& out)
-                                                  {
-                                                      (void) context.encoded_source();
-                                                      return out;
-                                                  }
-                                                 )
+                                    .post_deserialize([] (const deserialization_context& context, quoting_triple&& out)
+                                                      {
+                                                          (void) context.encoded_source();
+                                                          return out;
+                                                      }
+                                                     )
                                 .type<asking_triple>()
                                     .member(long_a, &asking_triple::a)
                                     .member(long_b, &asking_triple::b)
                                     .member(long_c, &asking_triple::c)
-                                    .post_extract([] (const deserialization_context& context, asking_triple&& out)
-                                                  {
-                                                      (void) context.source_value();
-                                                      return out;
-                                                  }
-                                                 )
+                                    .post_deserialize([] (const deserialization_context& context, asking_triple&& out)
+                                                      {
+                                                          (void) context.source_value();
+                                                          return out;
+                                                      }
+                                                     )
                                 .register_container<std::vector<named_triple>>()
                                 .register_container<std::vector<quiet_triple>>()
                                 .register_container<std::vector<quoting_triple>>()
@@ -868,7 +868,7 @@ TEST(deserialize_member_scope_ends_before_the_setter)
     // The member's scope names where the *deserialization* is, not where the assignment is. A setter supplied through
     // the `member(name, access, mutate)` overload is arbitrary user code, and once the member's value exists the
     // deserializer is no longer at that key -- anything the setter goes on to deserialize sits where the document puts
-    // it rather than underneath the member whose setter happens to be running. `pre_extract` is handed the
+    // it rather than underneath the member whose setter happens to be running. `pre_deserialize` is handed the
     // context precisely so user code can reach it, which is what lets this observe the boundary at all.
     struct probe
     {
@@ -881,7 +881,7 @@ TEST(deserialize_member_scope_ends_before_the_setter)
     const formats fmts =
         formats_builder()
             .type<probe>()
-                .pre_extract([&captured] (deserialization_context& cxt) { captured = &cxt; })
+                .pre_deserialize([&captured] (deserialization_context& cxt) { captured = &cxt; })
                 .member<std::int64_t>("a",
                                       [] (const probe& x) -> const std::int64_t& { return x.a; },
                                       [&] (probe& x, std::int64_t&& value)
