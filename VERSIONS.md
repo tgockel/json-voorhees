@@ -690,6 +690,13 @@
        hooks, as both always have, and the rvalue hook's default now goes through it. `value_encoder` overrides it to
        copy the tree in whole rather than rebuild it one token at a time, so writing an existing `value` into one --
        `to_json` of a `value`, or of anything holding one -- costs what copying it does (#341).
+     - The built-in serializers in `formats::defaults` write their token straight into the `writer` instead of
+       returning a `value` for the bridge to write. These are the leaves of every serialization, so this is where the
+       write side stops building a `value` per scalar: a `std::string`, `std::string_view`, `const char*` or `char*`
+       is no longer copied into one on its way to text, and a `value` is walked where it is rather than copied whole.
+       Serializing any of the built-ins into a `writer` over a stream allocates nothing. What is written is unchanged,
+       as is what `to_json` builds: every integer still goes through `std::int64_t`, so a `std::uint64_t` above
+       `INT64_MAX` is still written as the negative number it wraps to (#322).
      - Declaring a second `member` with a name already declared for the type is refused at build time with
        `std::invalid_argument`. The members used to be inserted into a `std::map`-backed object, which kept the first
        and silently dropped the second (#324).

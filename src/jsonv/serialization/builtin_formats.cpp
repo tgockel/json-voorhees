@@ -3,7 +3,8 @@
 ///
 /// Every deserializer here reads the AST node the \c reader is sitting on. These are the leaves of every
 /// deserialization, so this is where the \c value middleman stops being allocated: pulling an \c int out of JSON text
-/// now parses the token and nothing else.
+/// now parses the token and nothing else. Every serializer writes its token straight into the \c writer, so writing an
+/// \c int to text formats the number and nothing else.
 ///
 /// Copyright (c) 2015-2026 by Travis Gockel. All rights reserved.
 ///
@@ -22,6 +23,7 @@
 #include <jsonv/serialization/function_deserializer.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/value.hpp>
+#include <jsonv/writer.hpp>
 
 #include <charconv>
 #include <cstddef>
@@ -357,7 +359,7 @@ void register_integer_adapter(formats& fmt, duplicate_type_action on_duplicate =
                      {
                          return deserialize_integer<T>(context, from);
                      },
-                     [] (const T& from) { return value(static_cast<std::int64_t>(from)); }
+                     [] (const T& from, writer& to) { to.integer(static_cast<std::int64_t>(from)); }
                     );
     fmt.register_adapter(&instance, on_duplicate);
 }
@@ -366,25 +368,32 @@ formats create_default_formats()
 {
     formats fmt;
 
-    static auto json_adapter = make_adapter(deserialize_value, [] (const value& from) { return from; });
+    // Written where it is: a tree on its way to text is walked rather than copied first.
+    static auto json_adapter = make_adapter(deserialize_value, [] (const value& from, writer& to) { to.write(from); });
     fmt.register_adapter(&json_adapter);
 
-    static auto string_adapter = make_adapter(deserialize_string, [] (const std::string& from) { return value(from); });
+    static auto string_adapter = make_adapter(deserialize_string,
+                                              [] (const std::string& from, writer& to) { to.string(from); }
+                                             );
     fmt.register_adapter(&string_adapter);
 
     // The only built-in which hands back a view of what it was given, and so the only one which has to care where that
     // storage came from.
     static auto string_view_adapter = make_adapter(deserialize_string_view,
-                                                   [] (const std::string_view& from) { return value(from); }
+                                                   [] (const std::string_view& from, writer& to) { to.string(from); }
                                                   );
     fmt.register_adapter(&string_view_adapter);
 
-    static auto cchar_ptr_serializer = make_serializer<const char*>([] (const char* from) { return value(from); });
+    // As with `value(const char*)`, the pointer has to be to a null-terminated string, which a null pointer is not.
+    static auto cchar_ptr_serializer =
+        make_serializer<const char*>([] (const char* from, writer& to) { to.string(from); });
     fmt.register_serializer(&cchar_ptr_serializer);
-    static auto char_ptr_serializer = make_serializer<char*>([] (char* from) { return value(from); });
+    static auto char_ptr_serializer = make_serializer<char*>([] (char* from, writer& to) { to.string(from); });
     fmt.register_serializer(&char_ptr_serializer);
 
-    static auto bool_adapter = make_adapter(deserialize_boolean, [] (const bool& from) { return value(from); });
+    static auto bool_adapter = make_adapter(deserialize_boolean,
+                                            [] (const bool& from, writer& to) { to.boolean(from); }
+                                           );
     fmt.register_adapter(&bool_adapter);
 
     register_integer_adapter<std::int8_t>(fmt);
@@ -403,9 +412,13 @@ formats create_default_formats()
     register_integer_adapter<long>(fmt, duplicate_type_action::ignore);
     register_integer_adapter<unsigned long>(fmt, duplicate_type_action::ignore);
 
-    static auto double_adapter = make_adapter(deserialize_decimal, [] (const double& from) { return value(from); });
+    static auto double_adapter = make_adapter(deserialize_decimal,
+                                              [] (const double& from, writer& to) { to.decimal(from); }
+                                             );
     fmt.register_adapter(&double_adapter);
-    static auto float_adapter = make_adapter(deserialize_float, [] (const float& from) { return value(from); });
+    static auto float_adapter = make_adapter(deserialize_float,
+                                             [] (const float& from, writer& to) { to.decimal(from); }
+                                            );
     fmt.register_adapter(&float_adapter);
 
     return fmt;

@@ -27,15 +27,18 @@
 #include <jsonv/version.hpp>
 #include <jsonv/writer.hpp>
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
 #include <initializer_list>
+#include <limits>
 #include <optional>
 #include <streambuf>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <typeindex>
 #include <typeinfo>
 #include <utility>
@@ -226,7 +229,8 @@ formats formats_with(std::initializer_list<const serializer*> serializers)
     return fmts;
 }
 
-std::string serialize_to_text(const serialization_context& context, const point& from)
+template <typename T>
+std::string serialize_to_text(const serialization_context& context, const T& from)
 {
     std::ostringstream os;
     writer             to(os);
@@ -316,6 +320,83 @@ TEST(serialize_by_value_builtins)
     char  buffer[]     = "y";
     char* mutable_cstr = buffer;
     ensure_eq(value("y"), to_json(mutable_cstr));
+}
+
+namespace
+{
+
+/// Check that \a from is written as the same text through a \c writer as \c to_json builds for it, under
+/// \c formats::defaults.
+template <typename T>
+void ensure_text_matches_tree(const T& from)
+{
+    const formats         fmts = formats::defaults();
+    serialization_context context(fmts);
+    ensure_eq(to_string(to_json(from, fmts)), serialize_to_text(context, from));
+}
+
+/// The same, for the smallest and the largest \c T.
+template <typename T>
+void ensure_integer_text_matches_tree()
+{
+    ensure_text_matches_tree(std::numeric_limits<T>::min());
+    ensure_text_matches_tree(std::numeric_limits<T>::max());
+}
+
+}
+
+TEST(serialize_builtins_write_what_to_json_builds)
+{
+    // A built-in writes its token into the writer it is handed, and `to_json` builds its tree from that same token
+    // through a `value_encoder`, so the two have to agree for every type `formats::defaults` registers.
+    ensure_integer_text_matches_tree<std::int8_t>();
+    ensure_integer_text_matches_tree<std::uint8_t>();
+    ensure_integer_text_matches_tree<std::int16_t>();
+    ensure_integer_text_matches_tree<std::uint16_t>();
+    ensure_integer_text_matches_tree<std::int32_t>();
+    ensure_integer_text_matches_tree<std::uint32_t>();
+    ensure_integer_text_matches_tree<std::int64_t>();
+    ensure_integer_text_matches_tree<std::uint64_t>();
+    ensure_integer_text_matches_tree<std::size_t>();
+    ensure_integer_text_matches_tree<std::ptrdiff_t>();
+    ensure_integer_text_matches_tree<long>();
+    ensure_integer_text_matches_tree<unsigned long>();
+
+    ensure_text_matches_tree(true);
+    ensure_text_matches_tree(false);
+
+    ensure_text_matches_tree(4.5);
+    ensure_text_matches_tree(-0.0);
+    ensure_text_matches_tree(0.10000000000000001);
+    ensure_text_matches_tree(std::numeric_limits<double>::infinity());
+    ensure_text_matches_tree(std::numeric_limits<double>::quiet_NaN());
+    ensure_text_matches_tree(0.1f);
+
+    // A quote, a backslash, a control character and a two-byte UTF-8 sequence, which `ensure_ascii` escapes.
+    const std::string text         = "say \"caf\xc3\xa9\"\\\t";
+    std::string       mutable_text = text;
+    ensure_text_matches_tree(text);
+    ensure_text_matches_tree(std::string_view(text));
+    ensure_text_matches_tree(text.c_str());
+    ensure_text_matches_tree(mutable_text.data());
+
+    const value tree = object({ { "a key longer than the small-string buffer", array({ text, 1, 4.5, true, null }) },
+                                { "nan", std::numeric_limits<double>::quiet_NaN() },
+                              });
+    ensure_text_matches_tree(tree);
+
+    // The two answers which surprise, pinned outright so that the two routes cannot drift together. Every integer is
+    // written as a `std::int64_t`, which is what a `value` holds, so a `std::uint64_t` above `INT64_MAX` comes out as
+    // the negative number it wraps to; and JSON has no spelling for a NaN.
+    serialization_context context(formats::defaults());
+    ensure_eq(std::string("-1"), serialize_to_text(context, std::numeric_limits<std::uint64_t>::max()));
+    ensure_eq(std::string("null"), serialize_to_text(context, std::numeric_limits<double>::quiet_NaN()));
+
+    // A `value` is written where it is, and what `to_json` hands back is the copy `value_encoder` makes of the tree it
+    // is given, which keeps what a `value` can hold and JSON cannot.
+    const value rebuilt = to_json(value(std::numeric_limits<double>::quiet_NaN()), formats::defaults());
+    ensure(rebuilt.kind() == jsonv::kind::decimal);
+    ensure(std::isnan(rebuilt.as_decimal()));
 }
 
 TEST(serialize_writes_one_value_where_the_writer_is)
@@ -684,6 +765,42 @@ TEST(serialize_simple_composites_to_text_allocate_only_for_frames)
     write_document();
     const std::size_t cost = allocations.count();
     ensure_eq(std::size_t(0), cost);
+}
+
+TEST(serialize_builtins_to_text_allocate_nothing)
+{
+    // A built-in writes its token where the writer is, so nothing is built to hold the value on its way to the sink.
+    // On the `value` bridge, a string was copied into a `value` first and a `value` was copied whole.
+    serialization_context context(formats::defaults());
+    const std::string     text         = "a string which is far too long for any small-string buffer";
+    std::string           mutable_text = text;
+    const value           tree         = object({ { "a key which is far too long for any small-string buffer",
+                                                    array({ text, 1, 4.5, true, null }) } });
+    discard_streambuf buffer;
+    std::ostream os(&buffer);
+    writer to(os);
+    auto cost = [&] (const auto& from)
+                {
+                    // Write it once beforehand, so nothing the stream sets up on first use is counted.
+                    context.serialize(from, to);
+                    allocation_counter allocations;
+                    context.serialize(from, to);
+                    return allocations.count();
+                };
+
+    // Open the array they are written into first, so that the writer's frame stack has already grown.
+    to.array_begin();
+    ensure_eq(std::size_t(0), cost(std::int64_t(1234)));
+    ensure_eq(std::size_t(0), cost(std::uint8_t(7)));
+    ensure_eq(std::size_t(0), cost(4.5));
+    ensure_eq(std::size_t(0), cost(4.5f));
+    ensure_eq(std::size_t(0), cost(true));
+    ensure_eq(std::size_t(0), cost(text));
+    ensure_eq(std::size_t(0), cost(std::string_view(text)));
+    ensure_eq(std::size_t(0), cost(text.c_str()));
+    ensure_eq(std::size_t(0), cost(mutable_text.data()));
+    ensure_eq(std::size_t(0), cost(tree));
+    to.array_end();
 }
 
 TEST(serialize_bridge_moves_each_subtree_up)
