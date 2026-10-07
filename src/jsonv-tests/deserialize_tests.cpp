@@ -166,9 +166,9 @@ protected:
         return context.problem(context.path(), "third");
     }
 
-    value to_json(const serialization_context&, const batched&) const override
+    void serialize(const serialization_context&, const batched&, writer& to) const override
     {
-        return value();
+        to.null();
     }
 };
 
@@ -432,10 +432,9 @@ protected:
         return out;
     }
 
-    JSONV_NODISCARD
-    virtual value to_json(const serialization_context&, const unnamed_triple&) const override
+    virtual void serialize(const serialization_context&, const unnamed_triple&, writer& to) const override
     {
-        return value();
+        to.null();
     }
 };
 
@@ -489,10 +488,9 @@ protected:
         return context.problem(context.problem_path(from), "Unterminated array");
     }
 
-    JSONV_NODISCARD
-    virtual value to_json(const serialization_context&, const unnamed_vector&) const override
+    virtual void serialize(const serialization_context&, const unnamed_vector&, writer& to) const override
     {
-        return array();
+        to.array_begin().array_end();
     }
 };
 
@@ -1706,9 +1704,9 @@ protected:
         return context.problem(context.path(), "Second element is unacceptable");
     }
 
-    value to_json(const serialization_context&, const nested_failure&) const override
+    void serialize(const serialization_context&, const nested_failure&, writer& to) const override
     {
-        return array();
+        to.array_begin().array_end();
     }
 };
 

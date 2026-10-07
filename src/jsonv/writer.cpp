@@ -179,6 +179,13 @@ public:
         after_value();
     }
 
+    void write(value&& source)
+    {
+        before_value();
+        _to->write_tree(std::move(source));
+        after_value();
+    }
+
 private:
     /// One open structure.
     struct frame
@@ -393,6 +400,12 @@ writer& writer::string(std::string_view value)
 writer& writer::write(const value& source)
 {
     state_of(_impl).write(source);
+    return *this;
+}
+
+writer& writer::write(value&& source)
+{
+    state_of(_impl).write(std::move(source));
     return *this;
 }
 

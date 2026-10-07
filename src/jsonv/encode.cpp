@@ -92,6 +92,11 @@ void encoder::write_tree(const value& source)
     }
 }
 
+void encoder::write_tree(value&& source)
+{
+    write_tree(source);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // ostream_encoder                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -344,7 +349,7 @@ public:
         _open.back().key.assign(key);
     }
 
-    /// Place the scalar \a val where the next value goes.
+    /// Place \a val -- a scalar, or a whole tree handed over -- where the next value goes.
     void put(value&& val)
     {
         if (_open.empty())
@@ -468,6 +473,11 @@ void value_encoder::write_decimal(double value)
 void value_encoder::write_boolean(bool value)
 {
     _impl->put(jsonv::value(value));
+}
+
+void value_encoder::write_tree(value&& source)
+{
+    _impl->put(std::move(source));
 }
 
 }

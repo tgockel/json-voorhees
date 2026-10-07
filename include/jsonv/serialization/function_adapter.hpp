@@ -11,6 +11,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/serialization/deserialize.hpp>
+#include <jsonv/serialization/serialize.hpp>
 
 #include "adapter_for.hpp"
 
@@ -23,15 +24,19 @@ namespace jsonv
 /// \addtogroup Serialization
 /// \{
 
-template <typename T, typename FDeserialize, typename FToJson>
+/// An \c adapter which calls one function to deserialize and another to serialize.
+///
+/// The functions may take any of the shapes \c detail::invoke_deserialize and \c detail::invoke_serialize accept.
+template <typename T, typename FDeserialize, typename FSerialize>
 class function_adapter :
         public adapter_for<T>
 {
 public:
-    template <typename FUDeserialize, typename FUToJson>
-    explicit function_adapter(FUDeserialize&& deserialize_, FUToJson&& to_json_) :
+    /// Create an adapter which deserializes by calling \a deserialize_ and serializes by calling \a serialize_.
+    template <typename FUDeserialize, typename FUSerialize>
+    explicit function_adapter(FUDeserialize&& deserialize_, FUSerialize&& serialize_) :
             _deserialize(std::forward<FUDeserialize>(deserialize_)),
-            _to_json(std::forward<FUToJson>(to_json_))
+            _serialize(std::forward<FUSerialize>(serialize_))
     { }
 
 protected:
@@ -41,41 +46,25 @@ protected:
         return detail::invoke_deserialize<T>(_deserialize, context, from);
     }
 
-    JSONV_NODISCARD
-    virtual value to_json(const serialization_context& context, const T& from) const override
+    virtual void serialize(const serialization_context& context, const T& from, writer& to) const override
     {
-        return to_json_impl(_to_json, context, from);
-    }
-
-private:
-    template <typename FUToJson>
-    static auto to_json_impl(const FUToJson& func, const serialization_context& context, const T& from)
-            -> decltype(func(context, from))
-    {
-        return func(context, from);
-    }
-
-    template <typename FUToJson, typename = void>
-    static auto to_json_impl(const FUToJson& func, const serialization_context&, const T& from)
-            -> decltype(func(from))
-    {
-        return func(from);
+        detail::invoke_serialize<T>(_serialize, context, from, to);
     }
 
 private:
     FDeserialize _deserialize;
-    FToJson  _to_json;
+    FSerialize   _serialize;
 };
 
-/// Create an \c adapter from \a deserialize and \a to_json_, deducing the adapted type from what \a deserialize
+/// Create an \c adapter from \a deserialize_ and \a serialize_, deducing the adapted type from what \a deserialize_
 /// returns.
-template <typename FDeserialize, typename FToJson>
+template <typename FDeserialize, typename FSerialize>
 JSONV_NODISCARD
-auto make_adapter(FDeserialize deserialize, FToJson to_json_)
-    -> function_adapter<detail::deserialize_function_result_t<FDeserialize>, FDeserialize, FToJson>
+auto make_adapter(FDeserialize deserialize_, FSerialize serialize_)
+    -> function_adapter<detail::deserialize_function_result_t<FDeserialize>, FDeserialize, FSerialize>
 {
-    return function_adapter<detail::deserialize_function_result_t<FDeserialize>, FDeserialize, FToJson>
-            (std::move(deserialize), std::move(to_json_));
+    return function_adapter<detail::deserialize_function_result_t<FDeserialize>, FDeserialize, FSerialize>
+            (std::move(deserialize_), std::move(serialize_));
 }
 
 /// \}

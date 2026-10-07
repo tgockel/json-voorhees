@@ -639,6 +639,37 @@
        refuses them, `throw_extra_keys_deserialization_error`, is `deny_unknown_members`, and its message begins
        `Unknown member`. `default_value`, `default_on_null`, `type_default_value`, `type_default_on_null`, `since`,
        `until`, `after` and `before` keep their names (#328).
+     - Source break: `serializer::serialize` writes into a `writer` instead of returning a `value`. It is now
+       `serialize(const serialization_context&, const void* from, writer& to) const`: the writer is positioned where
+       the value goes, and the serializer writes exactly one value there, token by token. This is the interface the
+       rest of the write side is built on, and a source break for anything implementing `serializer` directly --
+       `get_type` is also `noexcept` now, so an override has to be too. `serializer_for<T>` and `adapter_for<T>`
+       change the same way, with a protected `serialize(const serialization_context&, const T&, writer&)` in place of
+       `to_json`. A serializer written against the old `to_json(const serialization_context&, const T&)` keeps its
+       body by deriving from the new `value_serializer_for<T>`, or from `value_adapter_for<T>`, which now bridges
+       both directions: the `value` it builds is written whole with `writer::write`, and so keeps paying for the tree
+       the writer exists to avoid. `writer::write` gains an rvalue overload for that, backed by a new protected
+       `encoder::write_tree(value&&)` hook whose default walks the tree as an lvalue is walked; `value_encoder`
+       overrides it to take the tree as it is, so a bridged container nested in a bridged container is moved up a
+       level at a time rather than rebuilt at each. `serialization_context` and the free `to_json` overloads move to
+       `serialization/serialize.hpp`, the mirror of `serialization/deserialize.hpp`; `serialization.hpp` still
+       includes it. Nothing is faster yet: the built-in and composite serializers stay on the bridge until #322
+       through #325 write directly (#321).
+     - `make_serializer` and `make_adapter` take the writer forms alongside the old ones. A serialization function
+       may be called as `(const serialization_context&, const T&, writer&)` or `(const T&, writer&)` and write for
+       itself, as well as `(const serialization_context&, const T&)` or `(const T&)` returning a `value` -- or
+       anything a `value` is built from -- which is written whole. The shapes are tried in that order, so a callable
+       offering both a writer form and a value form writes through the writer (#321).
+     - `serialization_context::serialize(from, to)` writes one value where a `writer` is, whatever surrounds it:
+       open an array once and serialize a million items into it. `formats::serialize` is the lookup underneath it.
+       Anything a serializer throws comes out of `serialization_context::serialize` -- and so out of `to_json` -- as
+       a `serialization_error`, which carries the `path` of the slot being written, as `writer::current_path`
+       reports it, the demangled `type_name` of the type being serialized, and the original exception as
+       `nested_ptr`; a `serialization_error` thrown further down passes through as it is. `no_serializer` is now a
+       `serialization_error`, so a missing serializer for a nested member says where the member is, and its message
+       reads `Serialization error at .a.b serializing T: No serializer is registered`. A serializer on the `value`
+       bridge serializes its parts through a writer of its own, so a failure inside one reports a path from that
+       tree's root rather than the document's, until #322 through #325 take the built-ins off the bridge (#321).
      - Fixed `demangle` reading past the end of its `std::string_view`. The default demangler handed the view's
        `data()` to `__cxa_demangle`, which reads to a terminator, so a view of part of a longer string was demangled
        along with whatever followed it -- a name it understood came back undemangled, and a view at the end of a

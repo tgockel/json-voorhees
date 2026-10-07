@@ -11,13 +11,16 @@
 #include <jsonv/serialization/formats.hpp>
 #include <jsonv/demangle.hpp>
 #include <jsonv/detail/scope_exit.hpp>
+#include <jsonv/encode.hpp>
 #include <jsonv/serialization.hpp>
 #include <jsonv/value.hpp>
+#include <jsonv/writer.hpp>
 
 #include <expected>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 
 namespace jsonv
 {
@@ -44,15 +47,15 @@ duplicate_type_error::~duplicate_type_error() noexcept = default;
 // no_deserializer                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static std::string make_no_serializer_deserializer_errmsg(const char* kind, const std::type_index& type)
+static std::string make_no_deserializer_errmsg(const std::type_index& type)
 {
     std::ostringstream ss;
-    ss << "Could not find " << kind << " for type: " << demangle(type.name());
+    ss << "Could not find deserializer for type: " << demangle(type.name());
     return ss.str();
 }
 
 no_deserializer::no_deserializer(const std::type_index& type) :
-        runtime_error(make_no_serializer_deserializer_errmsg("deserializer", type)),
+        runtime_error(make_no_deserializer_errmsg(type)),
         _type_index(type),
         _type_name(demangle(type.name()))
 { }
@@ -78,28 +81,15 @@ std::string_view no_deserializer::type_name() const
 // no_serializer                                                                                                      //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-no_serializer::no_serializer(const std::type_index& type) :
-        runtime_error(make_no_serializer_deserializer_errmsg("serializer", type)),
-        _type_index(type),
-        _type_name(demangle(type.name()))
+no_serializer::no_serializer(const std::type_index& type, jsonv::path path) :
+        serialization_error(std::move(path), type, "No serializer is registered")
 { }
 
-no_serializer::no_serializer(const std::type_info& type) :
-        no_serializer(std::type_index(type))
+no_serializer::no_serializer(const std::type_info& type, jsonv::path path) :
+        no_serializer(std::type_index(type), std::move(path))
 { }
 
-no_serializer::~no_serializer() noexcept
-{ }
-
-std::type_index no_serializer::type_index() const
-{
-    return _type_index;
-}
-
-std::string_view no_serializer::type_name() const
-{
-    return _type_name;
-}
+no_serializer::~no_serializer() noexcept = default;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // formats::data                                                                                                      //
@@ -339,12 +329,30 @@ const serializer& formats::get_serializer(const std::type_info& type) const
     return get_serializer(std::type_index(type));
 }
 
-value formats::to_json(const std::type_info& type,
-                       const void* from,
+void formats::serialize(const std::type_info&        type,
+                        const void*                  from,
+                        writer&                      to,
+                        const serialization_context& context
+                       ) const
+{
+    // Looked up here rather than through get_serializer so the exception can say where the value was wanted.
+    const serializer* ser = _data->find_serializer(std::type_index(type));
+    if (!ser)
+        throw no_serializer(type, to.current_path());
+
+    ser->serialize(context, from, to);
+}
+
+value formats::to_json(const std::type_info&        type,
+                       const void*                  from,
                        const serialization_context& context
                       ) const
 {
-    return get_serializer(type).to_json(context, from);
+    // The sink before the writer, which keeps a pointer to it, so that the writer is destroyed first.
+    value_encoder sink;
+    writer        to(sink);
+    serialize(type, from, to, context);
+    return std::move(sink).take();
 }
 
 void formats::register_deserializer(const deserializer* ex, duplicate_type_action action)

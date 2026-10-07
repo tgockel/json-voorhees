@@ -243,8 +243,15 @@ protected:
         return context.problem(context.problem_path(from), std::move(message));
     }
 
+    /// Still built as a tree and written whole; case 08 of #317 writes it directly.
+    virtual void serialize(const serialization_context& context, const TPointer& from, writer& to) const override
+    {
+        to.write(to_json(context, from));
+    }
+
+private:
     JSONV_NODISCARD
-    virtual value to_json(const serialization_context& context, const TPointer& from) const override
+    value to_json(const serialization_context& context, const TPointer& from) const
     {
         if (_check_null_output && !from)
             return null;
@@ -291,7 +298,6 @@ protected:
         return serialized;
     }
 
-private:
     using create_function = std::function<std::expected<TPointer, ast_node_type> (deserialization_context&, reader&)>;
 
     struct subtype

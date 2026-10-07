@@ -11,6 +11,8 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/forward.hpp>
+#include <jsonv/path.hpp>
+#include <jsonv/serialization/serialization_error.hpp>
 
 #include <expected>
 #include <memory>
@@ -83,31 +85,22 @@ private:
     std::string     _type_name;
 };
 
-/// Thrown when \c formats::to_json does not have a \c serializer for the provided type.
+/// Thrown when \c formats::serialize does not have a \c serializer for the type it was asked to serialize.
+///
+/// Its \c serialization_error::path is where in the document the value was wanted. It is empty when the exception came
+/// from a lookup which was not writing anything, such as \c formats::get_serializer.
 class JSONV_PUBLIC no_serializer :
-        public std::runtime_error
+        public serialization_error
 {
 public:
     /// \{
 
-    /// Create a new exception.
-    explicit no_serializer(const std::type_info& type);
-    explicit no_serializer(const std::type_index& type);
+    /// Create a new exception for the missing \a type, wanted at \a path.
+    explicit no_serializer(const std::type_info& type, jsonv::path path = jsonv::path());
+    explicit no_serializer(const std::type_index& type, jsonv::path path = jsonv::path());
     /// \}
 
     virtual ~no_serializer() noexcept;
-
-    /// The name of the type.
-    JSONV_NODISCARD
-    std::string_view type_name() const;
-
-    /// Get an ID for the type of \c serializer that \c formats::to_json could not locate.
-    JSONV_NODISCARD
-    std::type_index type_index() const;
-
-private:
-    std::type_index _type_index;
-    std::string     _type_name;
 };
 
 /// Simply put, this class is a collection of \c deserializer and \c serializer instances.
@@ -271,11 +264,28 @@ public:
     JSONV_NODISCARD
     const deserializer& get_deserializer(const std::type_info& type) const;
 
-    /// Encode the provided value \a from into a JSON \c value. The \a context is passed to the \c serializer which
-    /// performs the conversion. In general, this should not be used directly as it is painful to do so -- prefer
-    /// \c serialization_context::to_json or the free function \c jsonv::to_json.
+    /// Write the object of \a type at \a from into \a to. The \a context is passed to the \c serializer which performs
+    /// the conversion. In general, this should not be used directly as it is painful to do so -- prefer
+    /// \c serialization_context::serialize or the free function \c jsonv::to_json.
+    ///
+    /// This only finds the \c serializer and calls it. What \c serialization_context::serialize does around that call
+    /// is skipped: an exception which is not a \c serialization_error propagates as it was thrown rather than being
+    /// wrapped in one.
+    ///
+    /// \throws no_serializer if a \c serializer for \a type could not be found. Its \c serialization_error::path is
+    ///                       \c to.current_path(), where the value was wanted.
+    void serialize(const std::type_info&        type,
+                   const void*                  from,
+                   writer&                      to,
+                   const serialization_context& context
+                  ) const;
+
+    /// Encode the provided value \a from into a JSON \c value: \ref serialize into a \c value_encoder. In general, this
+    /// should not be used directly -- prefer \c serialization_context::to_json or the free function \c jsonv::to_json.
     ///
     /// \throws no_serializer if a \c serializer for \a type could not be found.
+    /// \throws std::logic_error if the \c serializer wrote nothing or left a structure open, as \c value_encoder::take
+    ///                          does.
     JSONV_NODISCARD
     value to_json(const std::type_info&        type,
                   const void*                  from,

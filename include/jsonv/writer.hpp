@@ -196,6 +196,15 @@ public:
     /// \throws std::invalid_argument if this instance has been moved-from.
     writer& write(const value& source);
 
+    /// Write the whole of \a source as one value, handing it over to the sink. An \c encoder which builds a tree takes
+    /// it as it is rather than rebuilding it node by node, and one producing text walks it exactly as the overload
+    /// above does. \a source is left moved-from.
+    ///
+    /// \throws std::logic_error if a value is not allowed here, as for the scalar functions. Nothing has reached the
+    ///                          sink and \a source is untouched.
+    /// \throws std::invalid_argument if this instance has been moved-from.
+    writer& write(value&& source);
+
 private:
     class impl;
 

@@ -212,6 +212,19 @@ TEST(writer_tokens_chain_into_compact_text)
     ensure(to.good());
 }
 
+TEST(writer_write_rvalue_matches_lvalue)
+{
+    // A text sink has nothing to take over, so a value handed over as an rvalue is walked exactly as an lvalue is.
+    const auto val = jsonv::parse(k_sample_json);
+
+    std::ostringstream by_lvalue;
+    jsonv::writer(by_lvalue).write(val);
+
+    std::ostringstream by_rvalue;
+    jsonv::writer(by_rvalue).write(jsonv::value(val));
+    ensure_eq(by_lvalue.str(), by_rvalue.str());
+}
+
 TEST(writer_write_value_matches_to_string)
 {
     auto val = jsonv::parse(k_sample_json);

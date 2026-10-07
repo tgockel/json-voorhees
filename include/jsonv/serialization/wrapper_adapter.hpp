@@ -60,8 +60,15 @@ protected:
         }
     }
 
+    /// Still built as a tree and written whole; case 06 of #317 writes it directly.
+    virtual void serialize(const serialization_context& context, const TWrapper& from, writer& to) const override
+    {
+        to.write(to_json(context, from));
+    }
+
+private:
     JSONV_NODISCARD
-    virtual value to_json(const serialization_context& context, const TWrapper& from) const override
+    value to_json(const serialization_context& context, const TWrapper& from) const
     {
         return context.to_json(element_type(from));
     }

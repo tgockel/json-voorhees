@@ -157,9 +157,9 @@ protected:
         return tagged{ _tag };
     }
 
-    value to_json(const serialization_context&, const tagged&) const override
+    void serialize(const serialization_context&, const tagged&, writer& to) const override
     {
-        return value(_tag);
+        to.integer(_tag);
     }
 
 private:

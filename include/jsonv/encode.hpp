@@ -146,6 +146,13 @@ protected:
     **/
     virtual void write_boolean(bool value) = 0;
 
+    /** Write \a source and everything under it as one value, taking it over. A \c writer calls this for a \c value it
+     *  is handed as an rvalue. The default walks it through the hooks above, exactly as an lvalue is walked, which is
+     *  what a sink producing text wants; a sink which builds a tree, as \c value_encoder does, overrides it to take
+     *  the value as it is rather than rebuilding it node by node.
+    **/
+    virtual void write_tree(jsonv::value&& source);
+
 private:
     /** Write \a source and everything under it. This is the walk behind \c encode and behind
      *  <tt>writer::write(const value&)</tt>: a \c value is well-formed by construction, so nothing checks the grammar
@@ -346,6 +353,11 @@ protected:
     virtual void write_decimal(double value) override;
 
     virtual void write_boolean(bool value) override;
+
+    /** Takes \a source as it is. A tree handed over whole is placed where the next value goes without being rebuilt,
+     *  which is what keeps a serializer on the \c value bridge linear in the depth of what it serializes.
+    **/
+    virtual void write_tree(jsonv::value&& source) override;
 
 private:
     class impl;

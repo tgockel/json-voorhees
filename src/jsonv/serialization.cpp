@@ -44,26 +44,4 @@ context::context() :
 
 context::~context() noexcept = default;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// serialization_context                                                                                              //
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-serialization_context::serialization_context(jsonv::formats                fmt,
-                                             std::optional<jsonv::version> ver,
-                                             const void*                   userdata
-                                            ) :
-        context(std::move(fmt), ver, userdata) // NOLINT(performance-move-const-arg): as above (#286)
-{ }
-
-serialization_context::serialization_context() :
-        context()
-{ }
-
-serialization_context::~serialization_context() noexcept = default;
-
-value serialization_context::to_json(const std::type_info& type, const void* from) const
-{
-    return formats().to_json(type, from, *this);
-}
-
 }

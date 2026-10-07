@@ -305,6 +305,38 @@ TEST(value_encoder_deep_nesting_write_tree)
 /// copying text inside it is not, while whatever else is allocated along the way -- the node, the map node, and under
 /// MSVC's debug iterator checks a proxy per `std::string` constructed or moved -- is allocated whatever the length. So
 /// the copies are the difference between writing long text and short text, and an extra copy would show as one more.
+TEST(value_encoder_write_rvalue_takes_the_value)
+{
+    // A tree handed to the writer as an rvalue is placed as it is rather than rebuilt node by node, which is what keeps
+    // the bridge from a value-returning serializer linear in what it serializes. The storage behind a long string
+    // surviving the trip is the proof: a rebuilt tree would hold a copy.
+    const std::string long_text(64, 'x');
+    auto              make_source = [&] { return jsonv::object({ { "a", jsonv::array({ long_text }) } }); };
+
+    jsonv::value_encoder sink;
+
+    // At the root.
+    jsonv::value root    = make_source();
+    const char*  storage = root.at("a").at(0).as_string().data();
+    jsonv::writer(sink).write(std::move(root));
+    jsonv::value built = std::move(sink).take();
+    ensure_eq(make_source(), built);
+    ensure(built.at("a").at(0).as_string().data() == storage);
+
+    // As a member and as an element.
+    jsonv::value member  = make_source();
+    jsonv::value element = make_source();
+    const char*  member_storage  = member.at("a").at(0).as_string().data();
+    const char*  element_storage = element.at("a").at(0).as_string().data();
+    jsonv::writer to(sink);
+    to.object_begin().key("k").write(std::move(member)).key("l").array_begin().write(std::move(element)).array_end()
+      .object_end();
+    built = std::move(sink).take();
+    ensure_eq(jsonv::object({ { "k", make_source() }, { "l", jsonv::array({ make_source() }) } }), built);
+    ensure(built.at("k").at("a").at(0).as_string().data() == member_storage);
+    ensure(built.at("l").at(0).at("a").at(0).as_string().data() == element_storage);
+}
+
 TEST(value_encoder_string_costs_one_copy)
 {
     const std::string long_text(64, 'x');

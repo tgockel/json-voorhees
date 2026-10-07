@@ -24,6 +24,8 @@
 #include "function_serializer.hpp"
 #include "optional_adapter.hpp"
 #include "polymorphic_adapter.hpp"
+#include "serialization_error.hpp"
+#include "serialize.hpp"
 #include "serializer.hpp"
 #include "serializer_for.hpp"
 #include "wrapper_adapter.hpp"

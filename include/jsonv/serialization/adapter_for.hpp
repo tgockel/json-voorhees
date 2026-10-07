@@ -11,6 +11,7 @@
 
 #include <jsonv/config.hpp>
 #include <jsonv/serialization/adapter.hpp>
+#include <jsonv/serialization/serialize.hpp>
 #include <jsonv/value.hpp>
 
 #include <expected>
@@ -69,13 +70,10 @@ public:
         }
     }
 
-    /// \see serializer::to_json
-    JSONV_NODISCARD
-    virtual value to_json(const serialization_context& context,
-                          const void*                  from
-                         ) const override
+    /// \see serializer::serialize
+    virtual void serialize(const serialization_context& context, const void* from, writer& to) const override
     {
-        return to_json(context, *static_cast<const T*>(from));
+        serialize(context, *static_cast<const T*>(from), to);
     }
 
 protected:
@@ -92,16 +90,19 @@ protected:
     JSONV_NODISCARD
     virtual std::expected<T, ast_node_type> create(deserialization_context& context, reader& from) const = 0;
 
-    JSONV_NODISCARD
-    virtual value to_json(const serialization_context& context, const T& from) const = 0;
+    /// Write \a from into \a to.
+    ///
+    /// \see serializer::serialize
+    virtual void serialize(const serialization_context& context, const T& from, writer& to) const = 0;
 };
 
-/// A base for adapters written against the older \c value -based deserialization interface.
+/// A base for adapters written against the older \c value -based interface, in both directions.
 ///
-/// The subtree under the reader is materialised with \c read_value and handed to the subclass, whose \c create runs
-/// unchanged. This costs the whole subtree in memory, which is exactly what deserializing off a \c reader is meant to
-/// avoid -- so it is a stepping stone for ports, not a destination. New adapters should derive from \c adapter_for and
-/// walk the \c reader.
+/// Reading, the subtree under the reader is materialised with \c read_value and handed to the subclass, whose
+/// \c create runs unchanged. Writing, the \c value the subclass's \c to_json builds is written whole into the writer
+/// with \c writer::write. Both cost the tree the \c reader and the \c writer exist to avoid -- so it is a stepping
+/// stone for ports, not a destination. New adapters should derive from \c adapter_for, walk the \c reader and write
+/// into the \c writer.
 template <typename T>
 class value_adapter_for :
         public adapter_for<T>
@@ -135,11 +136,20 @@ protected:
         }
     }
 
+    virtual void serialize(const serialization_context& context, const T& from, writer& to) const final override
+    {
+        to.write(to_json(context, from));
+    }
+
     /// Create an instance of \c T from the materialised \a from.
     ///
     /// \throws deserialization_error if \a from cannot be converted to a \c T.
     JSONV_NODISCARD
     virtual T create(deserialization_context& context, const value& from) const = 0;
+
+    /// Convert \a from into a \c value.
+    JSONV_NODISCARD
+    virtual value to_json(const serialization_context& context, const T& from) const = 0;
 };
 
 /// \}

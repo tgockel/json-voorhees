@@ -1690,7 +1690,13 @@ private:
             }
         }
 
-        virtual value to_json(const serialization_context& context, const T& from) const override
+        virtual void serialize(const serialization_context& context, const T& from, writer& to) const override
+        {
+            // Still built as a tree and written whole; case 07 of #317 writes the members directly.
+            to.write(to_json(context, from));
+        }
+
+        value to_json(const serialization_context& context, const T& from) const
         {
             value out = object();
             for (const auto& member : _members)
