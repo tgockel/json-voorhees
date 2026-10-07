@@ -43,29 +43,37 @@ kind_error::~kind_error() noexcept
 // value                                                                                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-value::value(const std::string& val) :
-        _kind(jsonv::kind::null)
-{
-    _data.string = new detail::string_impl;
-    _kind = jsonv::kind::string;
-    _data.string->_string = val;
-}
+// A string is copied once on its way into a `value`: the narrow constructors build the node's `std::string` straight
+// from the view, and the wide ones move the converted string in.
 
-value::value(const std::string_view& val) :
-        value(std::string(val))
+value::value(const std::string& val) :
+        value(std::string_view(val))
 { }
 
+value::value(const std::string_view& val) :
+        _kind(jsonv::kind::null)
+{
+    _data.string = new detail::string_impl(std::string(val));
+    _kind = jsonv::kind::string;
+}
+
 value::value(const char* val) :
-        value(std::string(val))
+        value(std::string_view(val))
 { }
 
 value::value(const std::wstring& val) :
-        value(detail::convert_to_narrow(val))
-{ }
+        _kind(jsonv::kind::null)
+{
+    _data.string = new detail::string_impl(detail::convert_to_narrow(val));
+    _kind = jsonv::kind::string;
+}
 
 value::value(const wchar_t* val) :
-        value(detail::convert_to_narrow(val))
-{ }
+        _kind(jsonv::kind::null)
+{
+    _data.string = new detail::string_impl(detail::convert_to_narrow(val));
+    _kind = jsonv::kind::string;
+}
 
 value::value(int64_t val) :
         _kind(jsonv::kind::integer)

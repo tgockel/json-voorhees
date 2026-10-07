@@ -9,12 +9,16 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include "test.hpp"
+#include "allocation_counter.hpp"
 
 #include <jsonv/all.hpp>
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <string>
+#include <string_view>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
@@ -299,3 +303,37 @@ TEST(value_integer_decimal_unordered_map)
         ensure_eq(2, map.at(a));
     }
 }
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+namespace
+{
+
+/// The allocations building a `value` from \a text costs, in whichever form the constructor takes it.
+template <typename TText>
+std::size_t string_construction_cost(const TText& text)
+{
+    jsonv_test::allocation_counter allocations;
+    jsonv::value                   built(text);
+    return allocations.count();
+}
+
+}
+
+/// Building a `value` from a string copies the text once, whichever form it arrives in. Copying text past the
+/// small-string buffer is an allocation and copying text inside it is not, while whatever else a `std::string` costs
+/// -- under MSVC's debug iterator checks, constructing or moving one allocates an iterator proxy -- it costs whatever
+/// the length. So the number of copies is the difference between building from a long string and from a short one,
+/// and a second copy would show as a difference of two.
+TEST(value_string_constructors_copy_once)
+{
+    const std::string long_text(64, 'x');
+    const std::string short_text(1, 'x');
+
+    ensure_eq(string_construction_cost(short_text) + 1U, string_construction_cost(long_text));
+    ensure_eq(string_construction_cost(std::string_view(short_text)) + 1U,
+              string_construction_cost(std::string_view(long_text)));
+    ensure_eq(string_construction_cost(short_text.c_str()) + 1U, string_construction_cost(long_text.c_str()));
+}
+
+#endif

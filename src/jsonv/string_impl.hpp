@@ -12,6 +12,7 @@
 #include <jsonv/config.hpp>
 
 #include <string>
+#include <utility>
 
 #include "detail/cloneable.hpp"
 
@@ -21,6 +22,14 @@ namespace jsonv::detail
 class JSONV_LOCAL string_impl final :
         public cloneable<string_impl>
 {
+public:
+    /// Take \a text as the string. Taking it by value means a caller with a string to give away hands it over, and
+    /// one building it from a view or a conversion builds it straight into the node, so the text is copied at most
+    /// once on the way in.
+    explicit string_impl(std::string text) noexcept :
+            _string(std::move(text))
+    { }
+
 public:
     std::string _string;
 };

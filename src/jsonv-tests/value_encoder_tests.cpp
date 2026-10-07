@@ -9,6 +9,7 @@
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
+#include "allocation_counter.hpp"
 #include "filesystem_util.hpp"
 
 #include <jsonv/encode.hpp>
@@ -295,5 +296,56 @@ TEST(value_encoder_deep_nesting_write_tree)
     jsonv::writer(sink).write(source);
     ensure(std::move(sink).take() == source);
 }
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+/// Writing a string copies its text once, which is what `value(std::string_view)` costs, and the encoder adds nothing
+/// of its own; a member copies its key once as well, into the buffer the encoder keeps it in, from which it is moved
+/// into the map node rather than copied again. Copying text past the small-string buffer is an allocation and
+/// copying text inside it is not, while whatever else is allocated along the way -- the node, the map node, and under
+/// MSVC's debug iterator checks a proxy per `std::string` constructed or moved -- is allocated whatever the length. So
+/// the copies are the difference between writing long text and short text, and an extra copy would show as one more.
+TEST(value_encoder_string_costs_one_copy)
+{
+    const std::string long_text(64, 'x');
+    const std::string short_text(1, 'x');
+
+    jsonv::value_encoder sink;
+    jsonv::writer        to(sink);
+
+    // A root string: one copy, the text itself.
+    auto root_cost = [&](const std::string& text)
+        {
+            allocation_counter allocations;
+            to.string(text);
+            const std::size_t cost = allocations.count();
+            ensure_eq(jsonv::value(text), std::move(sink).take());
+            return cost;
+        };
+    ensure_eq(root_cost(short_text) + 1U, root_cost(long_text));
+
+    // A member: two copies, the key into the encoder's buffer and the text. The keys differ so that each member is a
+    // new node, and the first member grows the writer's own key buffer, which the writer keeps, so the two measured
+    // are the steady state.
+    const std::string first_key = long_text + "kk";
+    const std::string short_key = "k";
+    const std::string long_key  = long_text + "k";
+    auto member_cost = [&](const std::string& key, const std::string& text)
+        {
+            allocation_counter allocations;
+            to.key(key).string(text);
+            return allocations.count();
+        };
+    to.object_begin();
+    to.key(first_key).string(long_text);
+    const std::size_t short_member = member_cost(short_key, short_text);
+    const std::size_t long_member  = member_cost(long_key, long_text);
+    to.object_end();
+    ensure_eq(short_member + 2U, long_member);
+    ensure_eq(jsonv::object({ { first_key, long_text }, { short_key, short_text }, { long_key, long_text } }),
+              std::move(sink).take());
+}
+
+#endif
 
 }

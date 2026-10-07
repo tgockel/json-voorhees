@@ -240,6 +240,9 @@
        `std::logic_error` while a structure is still open or when nothing has been written, since a JSON document is
        never empty. A key which repeats within an object keeps the value written last, as `parse` does by default, and
        a second root written before `take` replaces the first (#320).
+     - A `value` built from a `std::string_view`, a `const char*` or a wide string now copies the text once rather
+       than twice. Those constructors built a temporary `std::string` and then copied it again into the node, which
+       is the path every string `parse` produces takes (#336).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on
