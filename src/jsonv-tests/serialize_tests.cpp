@@ -328,13 +328,19 @@ namespace
 {
 
 /// Check that \a from is written as the same text through a \c writer as \c to_json builds for it, under
-/// \c formats::defaults.
+/// \c formats::defaults -- through a writer of the caller's, and through both forms of \c serialize which own theirs.
 template <typename T>
 void ensure_text_matches_tree(const T& from)
 {
     const formats         fmts = formats::defaults();
     serialization_context context(fmts);
-    ensure_eq(to_string(to_json(from, fmts)), serialize_to_text(context, from));
+    const std::string     expected = to_string(to_json(from, fmts));
+    ensure_eq(expected, serialize_to_text(context, from));
+    ensure_eq(expected, serialize(from, fmts));
+
+    std::ostringstream os;
+    serialize(from, os, fmts);
+    ensure_eq(expected, os.str());
 }
 
 /// The same, for the smallest and the largest \c T.
@@ -700,6 +706,233 @@ TEST(serialize_to_json_refuses_a_serializer_which_writes_nothing)
             ensure_throws(std::logic_error, (std::rethrow_exception(ex.nested_ptr()), 0));
         }
     }
+}
+
+TEST(serialize_text_refuses_what_is_not_one_document)
+{
+    // The forms of `serialize` which own their writer write a whole document, so they refuse what `to_json` refuses,
+    // and in the same shape: a `serialization_error` naming the type, with a `std::logic_error` as its cause. They also
+    // refuse a second value after the first, which `to_json` keeps in place of the first and text cannot: the two
+    // would run together.
+    const value tree = object({ { "a", 2 } });
+    auto silent      = make_serializer<point>([] (const point&, writer&) { });
+    auto open        = make_serializer<point>([] (const point&, writer& to) { to.array_begin().integer(1); });
+    auto scalars     = make_serializer<point>([] (const point&, writer& to) { to.integer(1).integer(2); });
+    auto objects     = make_serializer<point>([] (const point&, writer& to)
+                                              {
+                                                  to.object_begin().object_end().object_begin().object_end();
+                                              });
+    auto trees       = make_serializer<point>([&] (const point&, writer& to) { to.write(value(1)).write(tree); });
+
+    auto ensure_refused = [] (const serialization_error& ex, const std::string& message, const path& where)
+                          {
+                              ensure(ex.type_index() == std::type_index(typeid(point)));
+                              ensure_eq(message, ex.message());
+                              ensure_eq(where, ex.path());
+                              ensure_throws(std::logic_error, (std::rethrow_exception(ex.nested_ptr()), 0));
+                          };
+
+    struct refusal
+    {
+        const serializer* ser;
+        std::string       message;
+        path              where;
+        std::string       written;
+    };
+    const refusal refusals[] = {
+        { &silent,  "The document is empty: nothing has been written",         path(),             ""         },
+        { &open,    "The document is incomplete: 1 structure(s) still open", path::create("[1]"), "[1"       },
+        { &scalars, "The document is more than one value: 2 were written",   path(),             "12"       },
+        { &objects, "The document is more than one value: 2 were written",   path(),             "{}{}"     },
+        { &trees,   "The document is more than one value: 2 were written",   path(),             R"(1{"a":2})" },
+    };
+
+    for (const refusal& expected : refusals)
+    {
+        formats fmts = formats_with({ expected.ser });
+        try
+        {
+            (void) serialize(point{}, fmts);
+            ensure(!"serialization_error was not thrown");
+        }
+        catch (const serialization_error& ex)
+        {
+            ensure_refused(ex, expected.message, expected.where);
+        }
+
+        // What reached the stream before the refusal stays there, as it would for a serializer which threw.
+        std::ostringstream os;
+        try
+        {
+            serialize(point{}, os, serialization_context(fmts));
+            ensure(!"serialization_error was not thrown");
+        }
+        catch (const serialization_error& ex)
+        {
+            ensure_refused(ex, expected.message, expected.where);
+        }
+        ensure_eq(expected.written, os.str());
+
+        // A caller's writer is the caller's to finish, so nothing is refused there.
+        std::ostringstream positioned;
+        writer             to(positioned);
+        serialize(point{}, to, fmts);
+        ensure_eq(expected.written, positioned.str());
+    }
+}
+
+TEST(serialize_text_no_serializer_at_the_root)
+{
+    const std::string type_name = demangle(typeid(unassociated).name());
+    try
+    {
+        (void) serialize(unassociated{}, formats());
+        ensure(!"no_serializer was not thrown");
+    }
+    catch (const no_serializer& ex)
+    {
+        ensure(ex.path().empty());
+        ensure_eq("Serialization error serializing " + type_name + ": No serializer is registered",
+                  std::string(ex.what())
+                 );
+    }
+
+    std::ostringstream os;
+    ensure_throws(no_serializer, serialize(unassociated{}, os, formats()));
+    ensure_eq(std::string(), os.str());
+}
+
+namespace
+{
+
+/// The base of a hierarchy written through \c polymorphic_adapter.
+struct mark
+{
+    virtual ~mark() noexcept = default;
+};
+
+/// The subtype, which writes a \c point.
+struct pin final :
+        mark
+{
+    point at{ 5, 6 };
+};
+
+}
+
+TEST(serialize_text_is_the_text_of_to_json)
+{
+    // Wherever the objects a serializer writes are already in key order, which is how a `value` keeps them, the text
+    // `serialize` writes and the text of the tree `to_json` builds are the same, by every form which owns its writer.
+    point_writer_serializer point_ser;
+    container_adapter<std::vector<std::optional<point_wrapper>>> container;
+    optional_adapter<std::optional<point_wrapper>> optional;
+    wrapper_adapter<point_wrapper> wrapper;
+    const value mapped = object({ { "points", array({ point_value(point{ 1, 2 }) }) } });
+    enum_adapter<mapped_kind> enumeration("mapped_kind", { { mapped_kind::structured, mapped } });
+    auto pin_ser = make_serializer<pin>([] (const pin& from, writer& to) { write_point(from.at, to); });
+    polymorphic_adapter<std::unique_ptr<mark>> polymorphic;
+    polymorphic.add_subtype_keyed<pin>("x", 5);
+    container_adapter<std::vector<std::unique_ptr<mark>>> marks;
+    formats fmts = formats_with({ &point_ser, &container, &optional, &wrapper, &enumeration, &pin_ser, &polymorphic,
+                                  &marks });
+
+    auto ensure_same = [&] (const auto& from)
+                       {
+                           const std::string expected = to_string(to_json(from, fmts));
+                           ensure_eq(expected, serialize(from, fmts));
+                           ensure_eq(expected, serialize(from, serialization_context(fmts)));
+
+                           std::ostringstream os;
+                           serialize(from, os, fmts);
+                           ensure_eq(expected, os.str());
+                       };
+
+    ensure_same(point{ 1, 2 });
+    ensure_same(std::vector<std::optional<point_wrapper>>{ point_wrapper(point{ 1, 2 }), std::nullopt });
+    ensure_same(std::vector<std::optional<point_wrapper>>{});
+    ensure_same(std::optional<point_wrapper>());
+    ensure_same(point_wrapper(point{ 3, 4 }));
+    ensure_same(mapped_kind::structured);
+    ensure_same(mapped_kind::unmapped);
+
+    std::vector<std::unique_ptr<mark>> pins;
+    pins.push_back(std::make_unique<pin>());
+    pins.push_back(std::make_unique<pin>());
+    ensure_same(pins);
+    ensure_eq(std::string(R"([{"x":5,"y":6},{"x":5,"y":6}])"), serialize(pins, fmts));
+}
+
+TEST(serialize_into_an_array_the_caller_opened)
+{
+    // `serialize` into a writer puts one value where the writer is, so the elements of an array the caller opened come
+    // out as the elements of the container would.
+    point_writer_serializer               point_ser;
+    container_adapter<std::vector<point>> container;
+    formats                               fmts = formats_with({ &point_ser, &container });
+    const serialization_context           context(fmts);
+    const std::vector<point>              items{ point{ 1, 2 }, point{ 3, 4 }, point{ 5, 6 } };
+
+    std::ostringstream by_formats;
+    writer             to(by_formats);
+    to.array_begin();
+    for (const point& item : items)
+        serialize(item, to, fmts);
+    to.array_end();
+
+    std::ostringstream by_context;
+    writer             to_context(by_context);
+    to_context.array_begin();
+    for (const point& item : items)
+        serialize(item, to_context, context);
+    to_context.array_end();
+
+    const std::string whole = serialize(items, fmts);
+    ensure_eq(std::string(R"([{"x":1,"y":2},{"x":3,"y":4},{"x":5,"y":6}])"), whole);
+    ensure_eq(whole, by_formats.str());
+    ensure_eq(whole, by_context.str());
+}
+
+TEST(serialize_entry_points_see_the_context)
+{
+    auto    ser  = make_serializer<point>([] (const serialization_context& context, const point&, writer& to)
+                                          {
+                                              to.integer(context.version() ? std::int64_t(context.version()->major)
+                                                                           : std::int64_t(-1));
+                                          }
+                                         );
+    formats fmts = formats_with({ &ser });
+    const serialization_context context(fmts, version(3, 1));
+
+    ensure_eq(std::string("3"), serialize(point{}, context));
+    ensure_eq(std::string("-1"), serialize(point{}, fmts));
+
+    std::ostringstream os;
+    serialize(point{}, os, context);
+    ensure_eq(std::string("3"), os.str());
+
+    std::ostringstream positioned;
+    writer             to(positioned);
+    to.array_begin();
+    serialize(point{}, to, context);
+    serialize(point{}, to, fmts);
+    to.array_end();
+    ensure_eq(std::string("[3,-1]"), positioned.str());
+}
+
+TEST(serialize_types_a_value_converts_from)
+{
+    // Nothing keeps a type `value` converts from away from `serialize`: it is serialized as the type it is, with or
+    // without formats, and comes out as the text of the `value` it would convert to.
+    ensure_eq(std::string("5"), serialize(5));
+    ensure_eq(std::string("5"), serialize(5, formats::defaults()));
+    ensure_eq(std::string("true"), serialize(true, serialization_context(formats::defaults())));
+    ensure_eq(std::string(R"("x")"), serialize(std::string("x")));
+    ensure_eq(std::string(R"("x")"), serialize(std::string_view("x"), formats::defaults()));
+
+    const value tree = object({ { "b", array({ 1, "two", null }) }, { "a", 4.5 } });
+    ensure_eq(to_string(tree), serialize(tree));
+    ensure_eq(std::string(R"({"a":4.5,"b":[1,"two",null]})"), serialize(tree, formats::defaults()));
 }
 
 #if JSONV_TEST_COUNTS_ALLOCATIONS

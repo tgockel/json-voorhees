@@ -20,7 +20,9 @@
 #include <jsonv/writer.hpp>
 
 #include <concepts>
+#include <iosfwd>
 #include <optional>
+#include <string>
 #include <typeinfo>
 
 namespace jsonv
@@ -138,6 +140,31 @@ void invoke_serialize(const FSerialize& func, const serialization_context& conte
     }
 }
 
+/// The one place a public entry point serializes a whole document as text: every \c jsonv::serialize overload which
+/// writes into a \c std::ostream or returns a \c std::string comes through here.
+///
+/// The object of the given \a type at \a from is written into \a to through a \c writer of its own, over a compact
+/// \c ostream_encoder with \c ostream_encoder::ensure_ascii on, as <tt>writer(std::ostream&)</tt> makes. Once the
+/// serializer returns, the writer must hold exactly what a document is: one value, with every structure in it closed.
+///
+/// \throws serialization_error as \c serialization_context::serialize does; and also when the serializer wrote nothing,
+///                             left a structure open or wrote a second value after the first, at
+///                             \c writer::current_path naming \a type, with a \c std::logic_error as its
+///                             \c serialization_error::nested_ptr. \c serialization_context::to_json throws the same for
+///                             the first two; it keeps the second of two values, where text would run them together.
+///                             Whatever was written before the failure stays in \a to.
+JSONV_PUBLIC void serialize_document(const serialization_context& context,
+                                     const std::type_info&        type,
+                                     const void*                  from,
+                                     std::ostream&                to
+                                    );
+
+/// \ref serialize_document into a string of its own, which is handed out. A failure discards what was written.
+JSONV_NODISCARD JSONV_PUBLIC std::string serialize_to_string(const serialization_context& context,
+                                                             const std::type_info&        type,
+                                                             const void*                  from
+                                                            );
+
 }
 
 /// Encode a JSON \c value from \a from using the provided \a fmts.
@@ -156,6 +183,99 @@ value to_json(const T& from)
 {
     serialization_context context;
     return context.to_json(from);
+}
+
+/// Serialize \a from into JSON text using \a fmts (by default \c jsonv::formats::global()).
+///
+/// The text is one whole document, written compactly with \c ostream_encoder::ensure_ascii on, as \c to_string writes
+/// a \c value. It is the text of <tt>to_string(to_json(from, fmts))</tt> with one difference: an object's members are
+/// in the order its serializer wrote them -- declaration order, for a type described with the serialization builder
+/// DSL -- where a \c value keeps them sorted by key. Nothing is built in between, so a container of a million elements
+/// is written without a million-node tree. To pretty-print, or to write well-formed UTF-8 as it is, construct the
+/// \c encoder yourself and serialize into a \c writer over it.
+///
+/// \a from is serialized as the type it is, as for \c to_json: a string literal is an array of \c char, which has no
+/// serializer, so pass a \c std::string_view.
+///
+/// \throws serialization_error if a serializer could not be found or failed, as \c serialization_context::serialize
+///                             throws it; or if the serializer for \c T wrote anything but one whole value -- nothing,
+///                             a structure left open, or a second value after the first -- since a JSON document is
+///                             exactly one value.
+template <typename T>
+JSONV_NODISCARD
+std::string serialize(const T& from, const formats& fmts = formats::global())
+{
+    return detail::serialize_to_string(serialization_context(fmts), typeid(T), static_cast<const void*>(&from));
+}
+
+/// Serialize \a from into JSON text through a \a context the caller built, exactly as the overload above does with one
+/// built from \c formats.
+///
+/// Everything \a context was created with applies: its \c formats, and also what the overload above has no way to be
+/// given -- the version and user data its serializers see. The serialization builder DSL's \c since and \c until ask
+/// for that version. A \c serialization_context holds nothing about any one serialization, so one may serve any
+/// number of them.
+///
+/// \throws serialization_error for the same reasons as the overload above.
+template <typename T>
+JSONV_NODISCARD
+std::string serialize(const T& from, const serialization_context& context)
+{
+    return detail::serialize_to_string(context, typeid(T), static_cast<const void*>(&from));
+}
+
+/// Serialize \a from into \a to as JSON text using \a fmts (by default \c jsonv::formats::global()).
+///
+/// What is written is exactly the text the overload returning a \c std::string returns: one whole document, with
+/// nothing before or after it. Nothing separates it from a document written into the same stream next, so write a
+/// separator yourself if the stream is to be read back.
+///
+/// \throws serialization_error for the same reasons as the overload returning a \c std::string. What was written
+///                             before the failure stays in \a to.
+template <typename T>
+void serialize(const T& from, std::ostream& to, const formats& fmts = formats::global())
+{
+    detail::serialize_document(serialization_context(fmts), typeid(T), static_cast<const void*>(&from), to);
+}
+
+/// Serialize \a from into \a to as JSON text through a \a context the caller built, exactly as the overload above does
+/// with one built from \c formats. Everything \a context was created with applies, as for the overload returning a
+/// \c std::string which takes one.
+///
+/// \throws serialization_error for the same reasons as the overload above. What was written before the failure stays
+///                             in \a to.
+template <typename T>
+void serialize(const T& from, std::ostream& to, const serialization_context& context)
+{
+    detail::serialize_document(context, typeid(T), static_cast<const void*>(&from), to);
+}
+
+/// Serialize \a from into \a to using \a fmts (by default \c jsonv::formats::global()), as one value where the writer
+/// is: at the root, as the next element of an open array, or as the value of the key just written.
+///
+/// This is the mirror of deserializing from a \c reader the caller has positioned. What surrounds the value is the
+/// caller's, so open an array once and serialize a million items into it. Unlike the overloads which own their writer,
+/// this does not check that \a to ends up holding a whole document.
+///
+/// \throws serialization_error as \c serialization_context::serialize throws it. What was written before the failure
+///                             stays in \a to.
+template <typename T>
+void serialize(const T& from, writer& to, const formats& fmts = formats::global())
+{
+    serialization_context context(fmts);
+    context.serialize(from, to);
+}
+
+/// Serialize \a from into \a to through a \a context the caller built, as one value where the writer is, exactly as the
+/// overload above does with one built from \c formats. This is <tt>context.serialize(from, to)</tt>, which is the
+/// spelling a \c serializer uses for its parts.
+///
+/// \throws serialization_error as \c serialization_context::serialize throws it. What was written before the failure
+///                             stays in \a to.
+template <typename T>
+void serialize(const T& from, writer& to, const serialization_context& context)
+{
+    context.serialize(from, to);
 }
 
 /// \}

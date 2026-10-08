@@ -2542,6 +2542,7 @@ TEST(serialization_builder_writes_members_in_declaration_order)
 
     const triple x{ 1, 2, 3 };
     ensure_eq(std::string(R"({"c":3,"a":1,"b":2})"), serialize_to_text(fmt, x));
+    ensure_eq(std::string(R"({"c":3,"a":1,"b":2})"), serialize(x, fmt));
     ensure_eq(std::string(R"({"a":1,"b":2,"c":3})"), to_string(to_json(x, fmt)));
 }
 
@@ -2567,6 +2568,7 @@ TEST(serialization_builder_version_checks_skip_the_key_on_the_text_path)
 
     ensure_eq(std::string(R"({"c":3,"a":1,"b":2})"), text_ver(std::nullopt));
     ensure_eq(std::string(R"({"c":3,"b":2})"),       text_ver(version(1, 0)));
+    ensure_eq(std::string(R"({"c":3,"b":2})"),       serialize(x, serialization_context(fmt, version(1, 0))));
     ensure_eq(std::string(R"({"c":3,"a":1,"b":2})"), text_ver(version(3, 0)));
     ensure_eq(std::string(R"({"a":1,"b":2})"),       text_ver(version(3, 5)));
     ensure_eq(std::string(R"({"a":1})"),             text_ver(version(4, 0)));

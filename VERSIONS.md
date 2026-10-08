@@ -704,6 +704,19 @@
        exception: the action inspects or extends the finished object, so that subtype is still built through `to_json`
        and written whole, with its members sorted and a failure inside it reported from its own root. One the action
        refuses writes nothing (#325).
+     - Added `serialize`, the entry points into the `writer` and the mirror of `deserialize<T>`. `serialize(obj)`
+       returns the JSON text of `obj`, `serialize(obj, stream)` writes it to a `std::ostream`, and `serialize(obj, to)`
+       writes it into a `writer` as one value where the writer is, whatever surrounds it: open an array once and
+       serialize a million items into it. Each takes the `formats` to find serializers in, `formats::global()` by
+       default, or a `serialization_context`, which is how a version reaches the serialization builder's `since` and
+       `until`. The text is compact, with `ostream_encoder::ensure_ascii` on, and no `value` is built on the way to it.
+       It is the text of `to_string(to_json(obj))` except that an object's members are in the order its serializer wrote
+       them, which for a DSL-described type is declaration order. The text and stream forms write a whole document, so a
+       serializer which writes nothing or leaves a structure open is refused with the `serialization_error` `to_json`
+       throws for it, and so is one which writes a second value after the first, which `to_json` keeps in place of the
+       first. The text form is not serde's `to_string`: a `jsonv::to_string` template would be found by
+       argument-dependent lookup wherever `using std::to_string; to_string(x)` meets an argument from `jsonv`, so a
+       `version`, or an enumeration with no `to_string` of its own, would compile and then fail at run time (#327).
      - Declaring a second `member` with a name already declared for the type is refused at build time with
        `std::invalid_argument`. The members used to be inserted into a `std::map`-backed object, which kept the first
        and silently dropped the second (#324).

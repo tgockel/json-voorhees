@@ -1,10 +1,10 @@
 /// \file
-/// The examples the documentation teaches from, compiled and run: the serialization tutorial in \c jsonv/all.hpp, the
-/// opening example of the serialization builder DSL page and the three forms of \c check from its reference, and the
-/// worked examples on \c jsonv::reader, \c jsonv::writer and \c jsonv::value_encoder. Nothing else checks code written
-/// in a Doxygen comment, and these examples have drifted from the API before (#233). Each example below is the
-/// documentation's code, verbatim, except that a test asserts what an example prints; a change which breaks one here
-/// has broken it there as well, so change both.
+/// The examples the documentation teaches from, compiled and run: the \c writer example and the serialization tutorial
+/// in \c jsonv/all.hpp, the opening example of the serialization builder DSL page, its serialization examples and the
+/// three forms of \c check from its reference, and the worked examples on \c jsonv::reader, \c jsonv::writer and
+/// \c jsonv::value_encoder. Nothing else checks code written in a Doxygen comment, and these examples have drifted from
+/// the API before (#233). Each example below is the documentation's code, verbatim, except that a test asserts what an
+/// example prints; a change which breaks one here has broken it there as well, so change both.
 ///
 /// Copyright (c) 2026 by Travis Gockel. All rights reserved.
 ///
@@ -41,6 +41,26 @@ namespace jsonv_test
 
 namespace
 {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// jsonv/all.hpp: Encoding and decoding                                                                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// The \c writer example's \c main, writing to \a os where the example writes to \c std::cout.
+void write_villains(std::ostream& os)
+{
+    std::vector<std::string> villains = { "Jason", "Freddy", "Michael" };
+
+    jsonv::ostream_pretty_encoder prettifier(os);
+    jsonv::writer                 to(prettifier);
+    to.object_begin();
+    to.key("genre").string("slasher");
+    to.key("villains").array_begin();
+    for (const std::string& name : villains)
+        jsonv::serialize(name, to);
+    to.array_end();
+    to.object_end();
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // jsonv/all.hpp: Serialization                                                                                       //
@@ -161,7 +181,7 @@ private:
 
 }
 
-/// The serializer from "Serialization with to_json".
+/// The serializer from "Serializing with serialize and to_json".
 namespace serializing
 {
 
@@ -178,13 +198,19 @@ public:
     {
         static auto instance = jsonv::make_serializer<my_type>
                                (
-                                [] (const jsonv::serialization_context& context, const my_type& self)
+                                [] (const jsonv::serialization_context& context,
+                                    const my_type&                      self,
+                                    jsonv::writer&                      to
+                                   )
                                 {
-                                    return jsonv::object({ { "a", context.to_json(self.a) },
-                                                           { "b", context.to_json(self.b) },
-                                                           { "c", context.to_json(self.c) }
-                                                         }
-                                                        );
+                                    to.object_begin();
+                                    to.key("a");
+                                    context.serialize(self.a, to);
+                                    to.key("b");
+                                    context.serialize(self.b, to);
+                                    to.key("c");
+                                    context.serialize(self.c, to);
+                                    to.object_end();
                                 }
                                );
         return &instance;
@@ -285,6 +311,35 @@ struct my_type
 {
     int x;
 };
+
+/// The \c formats the page's opening example builds.
+jsonv::formats page_formats()
+{
+    jsonv::formats fmts =
+        jsonv::formats_builder()
+            .type<person>()
+                .member("first_name", &person::first_name)
+                    .alias("firstname")
+                .member("last_name",  &person::last_name)
+                    .alias("lastname")
+                .member("age",        &person::age)
+                    .until({ 6,1 })
+                    .default_value(21)
+                    .default_on_null()
+                    .check([] (int value) { if (value < 0) throw std::logic_error("Age must be positive."); })
+                .member("role",       &person::role)
+                    .since({ 2,0 })
+                    .default_value("Builder")
+            .type<company>()
+                .member("name",       &company::name)
+                .member("certified",  &company::certified)
+                .member("employees",  &company::employees)
+                .member("candidates", &company::candidates)
+            .register_containers<person, std::vector, std::list>()
+            .check_references(jsonv::formats::defaults())
+        ;
+    return fmts;
+}
 
 }
 
@@ -562,7 +617,24 @@ TEST(documentation_tutorial_ported_constructor)
     ensure_eq(jsonv::path::create("[3].b"), fourth_missing.path());
 }
 
-TEST(documentation_tutorial_to_json)
+TEST(documentation_writer_villains)
+{
+    std::ostringstream os;
+    write_villains(os);
+    ensure_eq(std::string("{\n"
+                          "  \"genre\": \"slasher\",\n"
+                          "  \"villains\": [\n"
+                          "    \"Jason\",\n"
+                          "    \"Freddy\",\n"
+                          "    \"Michael\"\n"
+                          "  ]\n"
+                          "}"
+                         ),
+              os.str()
+             );
+}
+
+TEST(documentation_tutorial_serialize)
 {
     using serializing::my_type;
 
@@ -570,8 +642,27 @@ TEST(documentation_tutorial_to_json)
     local_formats.register_serializer(my_type::get_serializer());
     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
 
+    // `main`, and the output shown under it.
     my_type x(5, 6, "Hello");
-    ensure_eq(std::string(R"({"a":5,"b":6,"c":"Hello"})"), jsonv::to_string(jsonv::to_json(x, format)));
+    ensure_eq(std::string(R"({"a":5,"b":6,"c":"Hello"})"), jsonv::serialize(x, format));
+
+    jsonv::value tree = jsonv::to_json(x, format);
+    ensure_eq(std::string(R"("Hello")"), print(tree.at("c")));
+
+    // "for `my_type`, they happen to agree"
+    ensure_eq(jsonv::to_string(tree), jsonv::serialize(x, format));
+
+    // The other two spellings the prose names.
+    std::ostringstream os;
+    jsonv::serialize(x, os, format);
+    ensure_eq(jsonv::serialize(x, format), os.str());
+
+    std::ostringstream positioned;
+    jsonv::writer      to(positioned);
+    to.array_begin();
+    jsonv::serialize(x, to, format);
+    to.array_end();
+    ensure_eq("[" + jsonv::serialize(x, format) + "]", positioned.str());
 }
 
 TEST(documentation_tutorial_composing_type_adapters)
@@ -621,32 +712,9 @@ TEST(documentation_tutorial_composing_type_adapters)
 
 TEST(documentation_dsl_page_example)
 {
-    using dsl_page::person;
     using dsl_page::company;
 
-    jsonv::formats fmts =
-        jsonv::formats_builder()
-            .type<person>()
-                .member("first_name", &person::first_name)
-                    .alias("firstname")
-                .member("last_name",  &person::last_name)
-                    .alias("lastname")
-                .member("age",        &person::age)
-                    .until({ 6,1 })
-                    .default_value(21)
-                    .default_on_null()
-                    .check([] (int value) { if (value < 0) throw std::logic_error("Age must be positive."); })
-                .member("role",       &person::role)
-                    .since({ 2,0 })
-                    .default_value("Builder")
-            .type<company>()
-                .member("name",       &company::name)
-                .member("certified",  &company::certified)
-                .member("employees",  &company::employees)
-                .member("candidates", &company::candidates)
-            .register_containers<person, std::vector, std::list>()
-            .check_references(jsonv::formats::defaults())
-        ;
+    jsonv::formats fmts = dsl_page::page_formats();
 
     // The JSON the page says this describes, deserialized once the DSL's adapters are combined with the defaults that
     // `check_references` checked them against.
@@ -687,6 +755,25 @@ TEST(documentation_dsl_page_example)
     ensure_eq(std::string("Adam"), out.candidates.front().first_name);
     ensure_eq(std::string("Ant"), out.candidates.front().last_name);
     ensure_eq(21, out.candidates.front().age);
+}
+
+TEST(documentation_dsl_page_serialization)
+{
+    using dsl_page::person;
+
+    jsonv::formats fmts = dsl_page::page_formats();
+
+    person         bob{ "Bob", "Builder", 29, "Foreman" };
+    jsonv::formats with_defaults = jsonv::formats::compose({ fmts, jsonv::formats::defaults() });
+
+    std::string text   = jsonv::serialize(bob, with_defaults);
+    ensure_eq(std::string(R"({"first_name":"Bob","last_name":"Builder","age":29,"role":"Foreman"})"), text);
+    std::string sorted = jsonv::to_string(jsonv::to_json(bob, with_defaults));
+    ensure_eq(std::string(R"({"age":29,"first_name":"Bob","last_name":"Builder","role":"Foreman"})"), sorted);
+
+    jsonv::serialization_context version_1(with_defaults, jsonv::version(1, 0));
+    std::string before_role = jsonv::serialize(bob, version_1);
+    ensure_eq(std::string(R"({"first_name":"Bob","last_name":"Builder","age":29})"), before_role);
 }
 
 TEST(documentation_dsl_page_check_forms)

@@ -156,7 +156,27 @@ namespace jsonv
 /// the \c since, \c until, \c after and \c before built on it -- says to leave it out is skipped, key and all. The DSL
 /// builds nothing in between, so what a member's serializer writes reaches the sink as it is written. A \c value made
 /// with \c to_json holds the same members sorted by key, as every \c value does, so the text written directly and the
-/// text of that \c value differ in the order of their members and in nothing else.
+/// text of that \c value differ in the order of their members and in nothing else. For the \c person above, once the
+/// adapters are combined with the defaults that \c check_references checked them against:
+///
+/// \code
+/// person         bob{ "Bob", "Builder", 29, "Foreman" };
+/// jsonv::formats with_defaults = jsonv::formats::compose({ fmts, jsonv::formats::defaults() });
+///
+/// std::string text   = jsonv::serialize(bob, with_defaults);
+/// // {"first_name":"Bob","last_name":"Builder","age":29,"role":"Foreman"}
+/// std::string sorted = jsonv::to_string(jsonv::to_json(bob, with_defaults));
+/// // {"age":29,"first_name":"Bob","last_name":"Builder","role":"Foreman"}
+/// \endcode
+///
+/// A member's \c since and \c until ask the \c serialization_context which version is being written, and with no
+/// version every member is written. Serialize through a context made with one to leave out the members it rules out:
+///
+/// \code
+/// jsonv::serialization_context version_1(with_defaults, jsonv::version(1, 0));
+/// std::string before_role = jsonv::serialize(bob, version_1);
+/// // {"first_name":"Bob","last_name":"Builder","age":29}
+/// \endcode
 ///
 /// A failure inside a member is reported where it happened: the \c serialization_error carries the member's path, and
 /// a member of a member described with the DSL extends it -- <tt>.address.city</tt> for the \c city of an \c address.

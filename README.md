@@ -19,7 +19,7 @@ Features include (but are not necessarily limited to):
   - No-throw move semantics wherever possible
 - Serialization/Deserialization
   - Deserialize a C++ type straight from JSON text, or from a `value`, using `deserialize<T>`
-  - Encode a C++ type into a value using `to_json`
+  - Serialize a C++ type straight to JSON text using `serialize`, or into a `value` using `to_json`
 - Safe
   - In the best case, illegal code should fail to compile
   - An illegal action should throw an exception
@@ -165,6 +165,9 @@ can gracefully transmit ASCII character sequences without molestation.
 The drawback to this route is a needlessly lengthened resultant encoding if all components of the
 pipeline gracefully deal with UTF-8.
 If they do, `jsonv::ostream_encoder::ensure_ascii(false)` writes well-formed UTF-8 out as it is.
+`jsonv::serialize(obj)` and `jsonv::serialize(obj, stream)` take the safe route too.
+To serialize a C++ object as UTF-8, make the `jsonv::ostream_encoder` yourself, turn `ensure_ascii`
+off, and `jsonv::serialize(obj, writer)` into a `jsonv::writer` over it.
 
 F.A.Q.
 ------

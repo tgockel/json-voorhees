@@ -17,5 +17,7 @@ digraph jsonv {
   str     -> class   [label="deserialize", URL="\ref jsonv::deserialize"]
   value   -> class   [label="deserialize", URL="\ref jsonv::deserialize"]
   class   -> value   [label="to_json", URL="\ref jsonv::to_json"]
+  class   -> str     [label="serialize", URL="\ref jsonv::serialize"]
+  class   -> ostream [label="serialize", URL="\ref jsonv::serialize"]
   dsl     -> value   [label="value, object, array"]
 }

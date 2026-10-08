@@ -34,7 +34,7 @@ namespace jsonv
 ///   - No-throw move semantics wherever possible
 /// - Serialization/Deserialization
 ///   - Deserialize a C++ type straight from JSON text, or from a `value`, using `deserialize<T>`
-///   - Encode a C++ type into a value using `to_json`
+///   - Serialize a C++ type straight to JSON text using `serialize`, or into a `value` using `to_json`
 /// - Safe
 ///   - In the best case, illegal code should fail to compile
 ///   - An illegal action should throw an exception
@@ -323,13 +323,63 @@ namespace jsonv
 ///
 /// Compile that code and you now have your own little JSON prettification program!
 ///
+/// Not everything you want to write starts out as a \c jsonv::value. A \c jsonv::writer writes a
+/// document one token at a time into any encoder, the pretty one included, and \c jsonv::serialize
+/// writes a C++ object as one value wherever the writer is:
+///
+/// \code
+/// #include <jsonv/encode.hpp>
+/// #include <jsonv/serialization.hpp>
+/// #include <jsonv/writer.hpp>
+///
+/// #include <iostream>
+/// #include <string>
+/// #include <vector>
+///
+/// int main()
+/// {
+///     std::vector<std::string> villains = { "Jason", "Freddy", "Michael" };
+///
+///     jsonv::ostream_pretty_encoder prettifier(std::cout);
+///     jsonv::writer                 to(prettifier);
+///     to.object_begin();
+///     to.key("genre").string("slasher");
+///     to.key("villains").array_begin();
+///     for (const std::string& name : villains)
+///         jsonv::serialize(name, to);
+///     to.array_end();
+///     to.object_end();
+/// }
+/// \endcode
+///
+/// Output:
+///
+/// \code
+/// {
+///   "genre": "slasher",
+///   "villains": [
+///     "Jason",
+///     "Freddy",
+///     "Michael"
+///   ]
+/// }
+/// \endcode
+///
+/// The writer writes the commas and the colons, and refuses a token which does not belong where it
+/// is -- a key outside an object, say -- before the encoder ever sees it. Each call to \c serialize
+/// writes one more element into the array the writer has open, so the same loop could write a
+/// million names without ever holding them all in a \c jsonv::value. \c serialize works for any type
+/// a \c jsonv::formats knows -- here, \c jsonv::formats::global() -- and teaching one about your own
+/// types is what the \ref serialization "next section" is about.
+///
 /// \section serialization Serialization
 ///
 /// Most of the time, you do not want to deal with \c jsonv::value instances directly. Instead, most
 /// people prefer to convert JSON into their own strong C++ \c class or \c struct. JSON Voorhees
 /// provides utilities to make this easy for you to use. At the end of the day, you should be able
-/// to create an arbitrary C++ type with <tt>jsonv::deserialize&lt;my_type&gt;(text)</tt> and create a
-/// \c jsonv::value from your arbitrary C++ type with <tt>jsonv::to_json(my_instance)</tt>.
+/// to create an arbitrary C++ type with <tt>jsonv::deserialize&lt;my_type&gt;(text)</tt> and turn
+/// one back into JSON text with <tt>jsonv::serialize(my_instance)</tt> -- or into a \c jsonv::value
+/// with <tt>jsonv::to_json(my_instance)</tt>.
 ///
 /// \subsection serialization_encoding Deserializing with deserialize
 ///
@@ -637,17 +687,20 @@ namespace jsonv
 /// is handed a \c value, so nothing needs handing over. Building that \c value for every object
 /// deserialized is the cost the reader-based constructor avoids.
 ///
-/// \subsection serialization_to_json Serialization with to_json
+/// \subsection serialization_to_json Serializing with serialize and to_json
 ///
-/// JSON Voorhees also allows you to convert from your C++ structures into JSON values, using
-/// \c jsonv::to_json. It should feel like a mirror of \c jsonv::deserialize, with similar argument
-/// types and many shared concepts. Just like deserialization, \c jsonv::to_json uses the
-/// \c jsonv::formats class, but it uses a \c jsonv::serializer to convert from C++ into JSON.
+/// JSON Voorhees also converts from your C++ structures into JSON, using \c jsonv::serialize for
+/// JSON text and \c jsonv::to_json for a \c jsonv::value. It should feel like a mirror of
+/// \c jsonv::deserialize, with similar argument types and many shared concepts. Just like
+/// deserialization, both use the \c jsonv::formats class, but they look up a \c jsonv::serializer
+/// in it to convert from C++ into JSON. Where a deserializer reads from a \c jsonv::reader, a
+/// serializer writes into a \c jsonv::writer.
 ///
 /// \code
 /// #include <jsonv/serialization.hpp>
 /// #include <jsonv/serialization/function_serializer.hpp>
 /// #include <jsonv/value.hpp>
+/// #include <jsonv/writer.hpp>
 ///
 /// #include <iostream>
 /// #include <string>
@@ -666,13 +719,19 @@ namespace jsonv
 ///     {
 ///         static auto instance = jsonv::make_serializer<my_type>
 ///                                (
-///                                 [] (const jsonv::serialization_context& context, const my_type& self)
+///                                 [] (const jsonv::serialization_context& context,
+///                                     const my_type&                      self,
+///                                     jsonv::writer&                      to
+///                                    )
 ///                                 {
-///                                     return jsonv::object({ { "a", context.to_json(self.a) },
-///                                                            { "b", context.to_json(self.b) },
-///                                                            { "c", context.to_json(self.c) }
-///                                                          }
-///                                                         );
+///                                     to.object_begin();
+///                                     to.key("a");
+///                                     context.serialize(self.a, to);
+///                                     to.key("b");
+///                                     context.serialize(self.b, to);
+///                                     to.key("c");
+///                                     context.serialize(self.c, to);
+///                                     to.object_end();
 ///                                 }
 ///                                );
 ///         return &instance;
@@ -691,7 +750,10 @@ namespace jsonv
 ///     jsonv::formats format = jsonv::formats::compose({ jsonv::formats::defaults(), local_formats });
 ///
 ///     my_type x(5, 6, "Hello");
-///     std::cout << jsonv::to_json(x, format) << std::endl;
+///     std::cout << jsonv::serialize(x, format) << std::endl;
+///
+///     jsonv::value tree = jsonv::to_json(x, format);
+///     std::cout << tree.at("c") << std::endl;
 /// }
 /// \endcode
 ///
@@ -699,7 +761,32 @@ namespace jsonv
 ///
 /// \code
 /// {"a":5,"b":6,"c":"Hello"}
+/// "Hello"
 /// \endcode
+///
+/// The serializer is handed a \c jsonv::writer positioned where the \c my_type goes -- at the root
+/// here, but just as well as the element of an array or the value of another object's member -- and
+/// writes exactly one value there. It opens an object, and for each member writes the key and then
+/// hands the member to <tt>context.serialize</tt>, which looks up the serializer for the member's
+/// type in the same \c jsonv::formats and has it write the member where the writer now is. The
+/// writer writes the punctuation, and refuses a token which does not belong where it is: a key
+/// outside an object, say, or a value inside one with no key before it.
+///
+/// \c jsonv::serialize writes \c x as compact JSON text with nothing built in between: no
+/// \c jsonv::value is made along the way, and the members come out in the order the serializer
+/// wrote them. \c jsonv::to_json runs the same serializer into a \c jsonv::value_encoder and hands
+/// back the tree it built, for when a \c jsonv::value is what you want -- to look things up in, as
+/// here, or to change before writing it out. A \c jsonv::value keeps an object's members sorted by
+/// key, so the text of one can list them in a different order from \c serialize; for \c my_type,
+/// they happen to agree. To write the text to a stream rather than into a \c std::string, there is
+/// <tt>jsonv::serialize(x, std::cout, format)</tt>; and <tt>jsonv::serialize(x, to, format)</tt>
+/// writes \c x into a \c jsonv::writer of your own, as in \ref demo_parsing "Encoding and decoding".
+///
+/// A serializer written for JSON Voorhees 1.x returned a \c jsonv::value rather than writing one.
+/// That still works: \c jsonv::make_serializer also takes a function of
+/// <tt>(const jsonv::serialization_context&, const T&)</tt>, or of just the <tt>const T&</tt>,
+/// which returns a \c jsonv::value to be written whole. Building that \c value for every object
+/// serialized is the cost the writer avoids.
 ///
 /// \subsection serialization_composition Composing Type Adapters
 ///
