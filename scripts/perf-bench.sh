@@ -38,7 +38,11 @@
 #
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+# Resolve this script's path before the cd below, which would leave a relative $0 naming
+# nothing: -h reads its usage from this file. The inner cd clears CDPATH, which would
+# otherwise send it to a match elsewhere and print that directory into the path.
+script="$(CDPATH= cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+cd "$(dirname "$script")/.."
 
 trials=1
 filter=""
@@ -47,7 +51,7 @@ while getopts "n:f:h" opt; do
         n) trials="$OPTARG" ;;
         f) filter="$OPTARG" ;;
         h)
-            sed -n '2,/^set -euo/p' "$0" | sed -n '/^#/p'
+            sed -n '2,/^set -euo/p' "$script" | sed -n '/^#/p'
             exit 0
             ;;
         *) exit 2 ;;
