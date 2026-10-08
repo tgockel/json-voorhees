@@ -17,9 +17,12 @@
 #include <jsonv/path.hpp>
 #include <jsonv/value.hpp>
 
+#include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <limits>
 #include <string>
+#include <string_view>
 
 namespace jsonv_test
 {
@@ -296,6 +299,45 @@ TEST(path_to_string_ignores_locale)
     const path p({ "a", 1000, 1234567 });
     ensure_eq(".a[1000][1234567]", to_string(p));
     ensure_eq(p, path::create(to_string(p)));
+}
+
+TEST(path_element_to_string)
+{
+    const path_element index(std::size_t(3));
+    const path_element identifier("abc");
+    path_element       bracketed("a b");
+    const path         p({ "abc", 3 });
+
+    ensure_eq("[3]",        jsonv::to_string(index));
+    ensure_eq(".abc",       jsonv::to_string(identifier));
+    ensure_eq(R"(["a b"])", jsonv::to_string(bracketed));
+    ensure_eq(".abc",       jsonv::to_string(p[0]));
+    ensure_eq("[3]",        jsonv::to_string(p.at(1)));
+    ensure_eq(".abc[3]",    jsonv::to_string(p));
+
+    {
+        using jsonv::to_string;
+        ensure_eq("[3]",        to_string(index));
+        ensure_eq(R"(["a b"])", to_string(bracketed));
+        ensure_eq(".abc[3]",    to_string(p));
+    }
+}
+
+TEST(path_element_to_string_leaves_conversions_to_value)
+{
+    // `path_element` converts from numbers and strings as `value` does. While `to_string` of a `path_element` was a
+    // plain function, each of these was ambiguous wherever `path.hpp` was included. They mean the `value`, whose text
+    // is not the element's: `5` rather than `[5]`, `"x"` rather than `.x`.
+    ensure_eq(jsonv::to_string(value(5)),                     jsonv::to_string(5));
+    ensure_eq(jsonv::to_string(value(std::int64_t(5))),       jsonv::to_string(std::int64_t(5)));
+    ensure_eq(jsonv::to_string(value(std::size_t(5))),        jsonv::to_string(std::size_t(5)));
+    ensure_eq(jsonv::to_string(value(1.5)),                   jsonv::to_string(1.5));
+    ensure_eq(jsonv::to_string(value(true)),                  jsonv::to_string(true));
+    ensure_eq(jsonv::to_string(value(std::string("x"))),      jsonv::to_string(std::string("x")));
+    ensure_eq(jsonv::to_string(value(std::string_view("x"))), jsonv::to_string(std::string_view("x")));
+    ensure_eq(jsonv::to_string(value("x")),                   jsonv::to_string("x"));
+    ensure_eq("5",                                            jsonv::to_string(5));
+    ensure_eq(R"("x")",                                       jsonv::to_string("x"));
 }
 
 TEST(path_parse_index_overflow)

@@ -14,6 +14,7 @@
 #include <jsonv/detail/generic_container.hpp>
 #include <string_view>
 
+#include <concepts>
 #include <iosfwd>
 #include <memory>
 #include <string>
@@ -79,7 +80,26 @@ private:
 
 JSONV_PUBLIC std::ostream& operator<<(std::ostream&, const path_element&);
 
-JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const path_element&);
+namespace detail
+{
+
+/// What \c to_string of a \c path_element returns, out of line.
+JSONV_NODISCARD JSONV_PUBLIC std::string path_element_to_string(const path_element& elem);
+
+}
+
+/// The text \c operator<< writes for \a elem, which is how it appears in \c to_string of a \c path: <tt>[N]</tt> for an
+/// array index, and <tt>.key</tt> or a JSON string in brackets for an object key.
+///
+/// This is a template only so that a \c path_element is the one thing it takes. A \c path_element converts from numbers
+/// and strings, as a \c value does, so a plain function taking one made <tt>to_string(5)</tt> and
+/// <tt>to_string("x")</tt> ambiguous with <tt>to_string(const value&)</tt> wherever this header was included. They mean
+/// the \c value.
+template <std::same_as<path_element> T>
+JSONV_NODISCARD std::string to_string(const T& elem)
+{
+    return detail::path_element_to_string(elem);
+}
 
 /// Represents an exact path in some JSON structure.
 class JSONV_PUBLIC path :

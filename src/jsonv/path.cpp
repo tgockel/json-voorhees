@@ -358,7 +358,7 @@ std::ostream& operator<<(std::ostream& os, const path_element& elem)
     return stream_path_element(os, elem);
 }
 
-std::string to_string(const path_element& val)
+std::string detail::path_element_to_string(const path_element& val)
 {
     std::ostringstream os;
     os << val;

@@ -243,6 +243,13 @@
      - A `value` built from a `std::string_view`, a `const char*` or a wide string now copies the text once rather
        than twice. Those constructors built a temporary `std::string` and then copied it again into the node, which
        is the path every string `parse` produces takes (#336).
+     - Fixed `jsonv::to_string` of a number or a string failing to compile as ambiguous wherever `path.hpp` was
+       included, directly or through `algorithm.hpp`, `serialization.hpp` or `all.hpp`. `path_element` converts from
+       integers and strings as `value` does, so `to_string(const path_element&)` competed with `to_string(const value&)`
+       for `to_string(5)`, `to_string(1.5)`, `to_string(true)` and `to_string("x")`. It is now a template which takes a
+       `path_element` and nothing that converts to one, so those calls mean the `value`. Calls passing a `path_element`
+       compile unchanged, qualified or not; the exported function behind it is now `detail::path_element_to_string`
+       (#343).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on
