@@ -32,7 +32,8 @@ namespace jsonv
 /// \{
 
 /// What to do when serializing a keyed subtype of a \c polymorphic_adapter. See
-/// \c polymorphic_adapter::add_subtype_keyed.
+/// \c polymorphic_adapter::add_subtype_keyed. Both \c check and \c insert build the subtype as a \c value before
+/// writing it, which \c polymorphic_adapter describes.
 enum class keyed_subtype_action : unsigned char
 {
     /// Don't do any checking or insertion of the expected key/value pair.
@@ -70,6 +71,13 @@ enum class keyed_subtype_action : unsigned char
 ///    members, found by stepping over every other member whole. One registered with \c add_subtype can ask anything
 ///    of the value, so the first time one of those has to be asked the subtree is materialised for it. Registering
 ///    the keyed subtypes first keeps a matching document from ever being materialised.
+///
+/// Serializing writes the pointed-to object where the \c writer is, through the serializer registered for its dynamic
+/// type. A subtype registered with \c keyed_subtype_action::check or \c keyed_subtype_action::insert is the exception,
+/// since the action works on the finished object: it is built as a \c value through \c serialization_context::to_json,
+/// checked or completed, and only then written whole. Its members therefore come out sorted by key, as they do from
+/// \c to_json, and a \c serialization_error raised inside it reports a path from its own root rather than the
+/// document's. One the action refuses has written nothing.
 ///
 /// \tparam TPointer Some pointer-like type (likely \c unique_ptr or \c shared_ptr) you wish to deserialize values into.
 ///                  It must support \c operator*, an explicit conversion to \c bool, construction with a pointer to a
@@ -141,7 +149,7 @@ public:
 
     /// \{
 
-    /// When converting with \c to_json, should a \c null input translate into a \c kind::null?
+    /// When serializing, should an empty \c TPointer be written as \c null?
     void check_null_output(bool on)
     {
         _check_null_output = on;
@@ -243,56 +251,73 @@ protected:
         return context.problem(context.problem_path(from), std::move(message));
     }
 
-    /// Still built as a tree and written whole; case 08 of #317 writes it directly.
+    /// Write the object \a from points to where \a to is, or \c null for an empty pointer under \c check_null_output. A
+    /// subtype registered with \c keyed_subtype_action::check or \c keyed_subtype_action::insert is built as a \c value
+    /// and written whole, as the class description says.
     virtual void serialize(const serialization_context& context, const TPointer& from, writer& to) const override
     {
-        to.write(to_json(context, from));
+        if (_check_null_output && !from)
+        {
+            to.null();
+            return;
+        }
+
+        auto action_iter = _serialization_actions.find(std::type_index(typeid(*from)));
+        if (action_iter == _serialization_actions.end()
+            || std::get<2>(action_iter->second) == keyed_subtype_action::none
+           )
+        {
+            context.serialize(typeid(*from), static_cast<const void*>(&*from), to);
+        }
+        else
+        {
+            // Built before anything is written, so a subtype the action refuses leaves nothing of itself in the writer.
+            to.write(keyed_to_json(context, from, action_iter->second));
+        }
     }
 
 private:
-    JSONV_NODISCARD
-    value to_json(const serialization_context& context, const TPointer& from) const
-    {
-        if (_check_null_output && !from)
-            return null;
+    using serialization_action = std::tuple<std::string, value, keyed_subtype_action>;
 
+    /// Serialize \a from, a subtype registered with \c keyed_subtype_action::check or \c keyed_subtype_action::insert,
+    /// as a \c value and carry out its \a action on the finished object.
+    JSONV_NODISCARD
+    value keyed_to_json(const serialization_context& context,
+                        const TPointer&              from,
+                        const serialization_action&  action_entry
+                       ) const
+    {
         value serialized = context.to_json(typeid(*from), static_cast<const void*>(&*from));
 
-        auto action_iter = _serialization_actions.find(std::type_index(typeid(*from)));
-        if (action_iter != _serialization_actions.end())
+        auto errmsg = [&]()
+                      {
+                          return " polymorphic_adapter<" + demangle(typeid(TPointer).name()) + ">"
+                                 "subtype(" + demangle(typeid(*from).name()) + ")";
+                      };
+
+        const std::string&          key    = std::get<0>(action_entry);
+        const value&                val    = std::get<1>(action_entry);
+        const keyed_subtype_action& action = std::get<2>(action_entry);
+
+        switch (action)
         {
-            auto errmsg = [&]()
-                          {
-                              return " polymorphic_adapter<" + demangle(typeid(TPointer).name()) + ">"
-                                     "subtype(" + demangle(typeid(*from).name()) + ")";
-                          };
-
-            const std::string&          key    = std::get<0>(action_iter->second);
-            const value&                val    = std::get<1>(action_iter->second);
-            const keyed_subtype_action& action = std::get<2>(action_iter->second);
-
-            switch (action)
-            {
-            case keyed_subtype_action::none:
-                break;
-            case keyed_subtype_action::check:
-                if (!serialized.is_object())
-                    throw std::runtime_error("Expected keyed subtype to serialize as an object." + errmsg());
-                if (!serialized.count(key))
-                    throw std::runtime_error("Expected subtype key not found." + errmsg());
-                if (serialized.at(key) != val)
-                    throw std::runtime_error("Expected subtype key is not the expected value." + errmsg());
-                break;
-            case keyed_subtype_action::insert:
-                if (!serialized.is_object())
-                    throw std::runtime_error("Expected keyed subtype to serialize as an object." + errmsg());
-                if (serialized.count(key))
-                    throw std::runtime_error("Subtype key already present when trying to insert." + errmsg());
-                serialized[key] = val;
-                break;
-            default:
-                throw std::runtime_error("Unknown keyed_subtype_action.");
-            }
+        case keyed_subtype_action::check:
+            if (!serialized.is_object())
+                throw std::runtime_error("Expected keyed subtype to serialize as an object." + errmsg());
+            if (!serialized.count(key))
+                throw std::runtime_error("Expected subtype key not found." + errmsg());
+            if (serialized.at(key) != val)
+                throw std::runtime_error("Expected subtype key is not the expected value." + errmsg());
+            break;
+        case keyed_subtype_action::insert:
+            if (!serialized.is_object())
+                throw std::runtime_error("Expected keyed subtype to serialize as an object." + errmsg());
+            if (serialized.count(key))
+                throw std::runtime_error("Subtype key already present when trying to insert." + errmsg());
+            serialized[key] = val;
+            break;
+        default:
+            throw std::runtime_error("Unknown keyed_subtype_action.");
         }
 
         return serialized;
@@ -340,8 +365,6 @@ private:
     }
 
 private:
-    using serialization_action = std::tuple<std::string, value, keyed_subtype_action>;
-
     std::vector<subtype>                            _subtypes;
     std::set<std::string, std::less<>>              _discriminator_keys;
     std::map<std::type_index, serialization_action> _serialization_actions;

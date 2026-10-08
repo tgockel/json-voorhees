@@ -19,6 +19,7 @@
 #include <jsonv/serialization/container_adapter.hpp>
 #include <jsonv/serialization/enum_adapter.hpp>
 #include <jsonv/serialization/optional_adapter.hpp>
+#include <jsonv/serialization/polymorphic_adapter.hpp>
 #include <jsonv/serialization/wrapper_adapter.hpp>
 #include <jsonv/serialization/function_adapter.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
@@ -33,6 +34,7 @@
 #include <exception>
 #include <initializer_list>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <streambuf>
 #include <sstream>
@@ -718,6 +720,18 @@ tree chain(std::size_t depth)
     return out;
 }
 
+/// The base of a hierarchy written through \c polymorphic_adapter.
+struct figure
+{
+    virtual ~figure() noexcept = default;
+};
+
+struct dot final :
+        figure
+{
+    point at{ 1, 2 };
+};
+
 }
 
 /// Discard text without allocating for an output buffer.
@@ -763,6 +777,34 @@ TEST(serialize_simple_composites_to_text_allocate_only_for_frames)
     write_document();
     allocation_counter allocations;
     write_document();
+    const std::size_t cost = allocations.count();
+    ensure_eq(std::size_t(0), cost);
+}
+
+TEST(serialize_polymorphic_subtype_to_text_allocates_nothing)
+{
+    // A subtype with no keyed action is written where the writer is, through the serializer for its dynamic type. On
+    // the `value` bridge, every element built a tree first.
+    auto dot_ser = make_serializer<dot>([] (const dot& from, writer& to) { write_point(from.at, to); });
+    polymorphic_adapter<std::unique_ptr<figure>> polymorphic;
+    polymorphic.add_subtype_keyed<dot>("kind", "dot");
+    container_adapter<std::vector<std::unique_ptr<figure>>> container;
+    formats fmts = formats_with({ &dot_ser, &polymorphic, &container });
+    serialization_context context(fmts);
+
+    std::vector<std::unique_ptr<figure>> from;
+    from.reserve(32U);
+    for (std::size_t idx = 0U; idx < 32U; ++idx)
+        from.push_back(std::make_unique<dot>());
+
+    discard_streambuf buffer;
+    std::ostream os(&buffer);
+    writer to(os);
+
+    // Grow the writer's frame stack once, so that the same document costs nothing on the second pass.
+    context.serialize(from, to);
+    allocation_counter allocations;
+    context.serialize(from, to);
     const std::size_t cost = allocations.count();
     ensure_eq(std::size_t(0), cost);
 }

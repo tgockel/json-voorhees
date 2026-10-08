@@ -17,6 +17,8 @@
 #include <jsonv/writer.hpp>
 
 #include <array>
+#include <cstdint>
+#include <memory>
 #include <optional>
 #include <set>
 #include <sstream>
@@ -2653,6 +2655,195 @@ TEST(serialization_builder_names_the_member_a_serialization_error_is_at)
 
     // What was written before the failure is left in the caller's writer, as `serialize` says it is.
     ensure_eq(std::string(R"({"i":{"x":)"), std::move(os).str());
+}
+
+namespace
+{
+
+/// A subtype of \c base which declares its members out of sorted order, so that text written straight into a writer
+/// can be told from text written from a \c value, which sorts them.
+struct d_derived :
+        base
+{
+    virtual std::string get() const override { return "d"; }
+
+    static void json_adapt(adapter_builder<d_derived>& builder)
+    {
+        builder.member("type", &d_derived::type);
+        builder.member("z", &d_derived::z);
+        builder.member("a", &d_derived::a);
+    }
+
+    std::string  type = "d";
+    std::int64_t z    = 26;
+    std::int64_t a    = 1;
+};
+
+/// \c d_derived without the discriminator, for \c keyed_subtype_action::insert to add.
+struct e_derived :
+        base
+{
+    virtual std::string get() const override { return "e"; }
+
+    static void json_adapt(adapter_builder<e_derived>& builder)
+    {
+        builder.member("z", &e_derived::z);
+        builder.member("a", &e_derived::a);
+    }
+
+    std::int64_t z = 26;
+    std::int64_t a = 1;
+};
+
+/// A subtype with a member nothing can serialize.
+struct f_derived :
+        base
+{
+    virtual std::string get() const override { return "f"; }
+
+    std::string    type = "f";
+    unserializable u;
+};
+
+using base_list = std::vector<std::unique_ptr<base>>;
+
+/// Formats for a \c base_list keyed by `"type"`, with \c d_derived registered under \a d_action and \c e_derived under
+/// \c keyed_subtype_action::insert.
+formats keyed_bases(keyed_subtype_action d_action)
+{
+    return formats_builder()
+               .polymorphic_type<std::unique_ptr<base>>("type")
+                   .check_null_output()
+                   .subtype<a_derived>("a")
+                   .subtype<d_derived>("d", d_action)
+                   .subtype<e_derived>("e", keyed_subtype_action::insert)
+               .type<a_derived>(a_derived::json_adapt)
+               .type<d_derived>(d_derived::json_adapt)
+               .type<e_derived>(e_derived::json_adapt)
+               .register_container<base_list>()
+           .compose_checked(formats::defaults());
+}
+
+}
+
+TEST(serialization_builder_polymorphic_writes_a_subtype_where_the_writer_is)
+{
+    // A subtype used to be built as a `value` through `to_json` and written whole, which sorted its members. With no
+    // action to run on the finished object, it is written straight into the writer, in the order it declares them.
+    base_list from;
+    from.push_back(std::make_unique<a_derived>());
+    from.push_back(std::make_unique<d_derived>());
+    from.push_back(nullptr);
+
+    const formats keyed = keyed_bases(keyed_subtype_action::none);
+    ensure_eq(std::string(R"([{"type":"a"},{"type":"d","z":26,"a":1},null])"), serialize_to_text(keyed, from));
+    ensure_eq(std::string(R"([{"type":"a"},{"a":1,"type":"d","z":26},null])"), to_string(to_json(from, keyed)));
+
+    // A subtype a general discriminator picks has no action either.
+    const formats by_predicate = formats_builder()
+                                     .polymorphic_type<std::unique_ptr<base>>()
+                                         .subtype<d_derived>([] (const value& v)
+                                                             {
+                                                                 return v.is_object() && v.count("z") != 0U;
+                                                             }
+                                                            )
+                                     .type<d_derived>(d_derived::json_adapt)
+                                 .compose_checked(formats::defaults());
+    ensure_eq(std::string(R"({"type":"d","z":26,"a":1})"),
+              serialize_to_text(by_predicate, std::unique_ptr<base>(std::make_unique<d_derived>()))
+             );
+}
+
+TEST(serialization_builder_polymorphic_keyed_actions_write_what_to_json_builds)
+{
+    // `check` and `insert` work on the finished object, so a subtype under either is still built as a `value` and
+    // written whole: its text is what `to_json` builds, with the members sorted.
+    base_list from;
+    from.push_back(std::make_unique<d_derived>());
+    from.push_back(std::make_unique<e_derived>());
+
+    const formats     fmt  = keyed_bases(keyed_subtype_action::check);
+    const std::string text = serialize_to_text(fmt, from);
+    ensure_eq(to_string(to_json(from, fmt)), text);
+    ensure_eq(std::string(R"([{"a":1,"type":"d","z":26},{"a":1,"type":"e","z":26}])"), text);
+}
+
+TEST(serialization_builder_polymorphic_refused_keyed_subtype_writes_nothing)
+{
+    // The action runs on the subtype's `value` before any of it is written, so a subtype it refuses leaves the writer
+    // just past the element before it, and the refusal is placed at the slot the subtype was going into.
+    auto refusal = [] (const formats& fmt, const base_list& from) -> std::string
+                   {
+                       std::ostringstream os;
+                       writer             to(os);
+                       try
+                       {
+                           serialization_context(fmt).serialize(from, to);
+                           ensure(!"serialization_error was not thrown");
+                       }
+                       catch (const serialization_error& ex)
+                       {
+                           ensure_eq(path::create("[1]"), ex.path());
+                           ensure(ex.type_index() == std::type_index(typeid(std::unique_ptr<base>)));
+                           ensure(ex.nested_ptr() != nullptr);
+                           ensure_eq(std::string(R"([{"type":"a"})"), os.str());
+                           return ex.message();
+                       }
+                       return std::string();
+                   };
+
+    // `d_derived` writes its own `"type"`, which `insert` refuses...
+    base_list writes_its_own;
+    writes_its_own.push_back(std::make_unique<a_derived>());
+    writes_its_own.push_back(std::make_unique<d_derived>());
+    ensure(refusal(keyed_bases(keyed_subtype_action::insert), writes_its_own)
+               .starts_with("Subtype key already present when trying to insert.")
+          );
+
+    // ...and `check` refuses one which says it is something else.
+    base_list mislabelled;
+    mislabelled.push_back(std::make_unique<a_derived>());
+    mislabelled.push_back(std::make_unique<d_derived>());
+    static_cast<d_derived&>(*mislabelled.back()).type = "e";
+    ensure(refusal(keyed_bases(keyed_subtype_action::check), mislabelled)
+               .starts_with("Expected subtype key is not the expected value.")
+          );
+}
+
+TEST(serialization_builder_polymorphic_subtype_failure_is_placed_in_the_document)
+{
+    // A subtype used to be serialized through `to_json`, in a writer of its own, so a failure inside it reported a path
+    // from the subtype's root. Written into the caller's writer, the path is the member's place in the document.
+    // `compose_checked` would refuse this `formats` for the missing serializer, which is the point.
+    formats fmt = formats::compose({ formats_builder()
+                                         .polymorphic_type<std::unique_ptr<base>>("type")
+                                             .subtype<a_derived>("a")
+                                             .subtype<f_derived>("f")
+                                         .type<a_derived>(a_derived::json_adapt)
+                                         .type<f_derived>()
+                                             .member("type", &f_derived::type)
+                                             .member("u", &f_derived::u)
+                                         .register_container<base_list>(),
+                                     formats::defaults()
+                                   });
+
+    base_list from;
+    from.push_back(std::make_unique<a_derived>());
+    from.push_back(std::make_unique<f_derived>());
+
+    std::ostringstream os;
+    writer             to(os);
+    try
+    {
+        serialization_context(fmt).serialize(from, to);
+        ensure(!"no_serializer was not thrown");
+    }
+    catch (const no_serializer& ex)
+    {
+        ensure_eq(path::create("[1].u"), ex.path());
+        ensure(ex.type_index() == std::type_index(typeid(unserializable)));
+    }
+    ensure_eq(std::string(R"([{"type":"a"},{"type":"f","u":)"), os.str());
 }
 
 }

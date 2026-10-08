@@ -366,7 +366,9 @@ namespace jsonv
 /// The \ref keyed_subtype_action can be used to configure the adapter to make sure that the discrimination key was
 /// correctly serialized (\ref keyed_subtype_action::check) or to insert the discrimination key for the underlying type
 /// so that the underlying type doesn't need to do that itself (\ref keyed_subtype_action::insert). The default is to do
-/// nothing (\ref keyed_subtype_action::none).
+/// nothing (\ref keyed_subtype_action::none). Either action needs the finished object, so it builds the subtype as a
+/// \c value before writing it, and that subtype's members are written sorted by key rather than in the order they were
+/// declared.
 ///
 /// \paragraph serialization_builder_dsl_ref_formats_level_extend extend
 ///

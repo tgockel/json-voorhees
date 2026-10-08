@@ -36,8 +36,9 @@ namespace jsonv
 ///
 /// The path is the \c writer::current_path of the writer the failing serializer was handed, so it names a position in
 /// the document being written. A serializer on the \c value bridge -- a \c value_serializer_for, a
-/// \c value_adapter_for or a function returning a \c value -- serializes its parts through a writer of its own, so a
-/// failure inside one of those reports a path from that tree's root rather than from the document's.
+/// \c value_adapter_for, a function returning a \c value, or a \c polymorphic_adapter subtype registered with
+/// \c keyed_subtype_action::check or \c keyed_subtype_action::insert -- serializes its parts through a writer of its
+/// own, so a failure inside one of those reports a path from that tree's root rather than from the document's.
 class JSONV_PUBLIC serialization_error :
         public std::runtime_error
 {

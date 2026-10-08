@@ -697,6 +697,13 @@
        Serializing any of the built-ins into a `writer` over a stream allocates nothing. What is written is unchanged,
        as is what `to_json` builds: every integer still goes through `std::int64_t`, so a `std::uint64_t` above
        `INT64_MAX` is still written as the negative number it wraps to (#322).
+     - `polymorphic_adapter` writes a subtype directly into the `writer`, through the serializer registered for its
+       dynamic type, rather than building it as a `value` first. The text of a DSL-described subtype lists its members
+       in declaration order, and a `serialization_error` raised inside one carries its place in the document --
+       `[1].name` rather than `.name`. A subtype registered with `keyed_subtype_action::check` or `insert` is the
+       exception: the action inspects or extends the finished object, so that subtype is still built through `to_json`
+       and written whole, with its members sorted and a failure inside it reported from its own root. One the action
+       refuses writes nothing (#325).
      - Declaring a second `member` with a name already declared for the type is refused at build time with
        `std::invalid_argument`. The members used to be inserted into a `std::map`-backed object, which kept the first
        and silently dropped the second (#324).
