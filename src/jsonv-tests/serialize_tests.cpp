@@ -24,6 +24,7 @@
 #include <jsonv/serialization/function_adapter.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
 #include <jsonv/serialization/serializer_for.hpp>
+#include <jsonv/serialization_builder.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/version.hpp>
 #include <jsonv/writer.hpp>
@@ -965,6 +966,15 @@ struct dot final :
     point at{ 1, 2 };
 };
 
+/// A type described with the serialization builder, every member of it a scalar.
+struct reading
+{
+    std::int64_t sequence_number;
+    double       measured_value;
+    bool         calibrated;
+    std::string  instrument_name;
+};
+
 }
 
 /// Discard text without allocating for an output buffer.
@@ -1039,6 +1049,35 @@ TEST(serialize_polymorphic_subtype_to_text_allocates_nothing)
     allocation_counter allocations;
     context.serialize(from, to);
     const std::size_t cost = allocations.count();
+    ensure_eq(std::size_t(0), cost);
+}
+
+TEST(serialize_described_scalars_to_text_allocates_nothing)
+{
+    // A type described with the serialization builder writes each member's key and value where the writer is. On the
+    // `value` bridge, it built an object of its members first, and each member was a `value` of its own. The names and
+    // the string are too long for any small-string buffer, so a copy of any of them would be counted.
+    const formats fmts = formats_builder()
+                             .type<reading>()
+                                 .member("sequenceNumberOfTheReading",   &reading::sequence_number)
+                                 .member("valueMeasuredByTheInstrument", &reading::measured_value)
+                                 .member("calibratedBeforeMeasuring",    &reading::calibrated)
+                                 .member("nameOfTheInstrumentUsed",      &reading::instrument_name)
+                         .compose_checked(formats::defaults());
+    serialization_context context(fmts);
+    const reading from{ 1234, 4.5, true, "an instrument whose name is too long for any small-string buffer" };
+    discard_streambuf buffer;
+    std::ostream os(&buffer);
+    writer to(os);
+
+    // Open the array it is written into and write one beforehand, so that the writer's frame stack and key buffers
+    // have grown and nothing the stream sets up on first use is counted.
+    to.array_begin();
+    context.serialize(from, to);
+    allocation_counter allocations;
+    context.serialize(from, to);
+    const std::size_t cost = allocations.count();
+    to.array_end();
     ensure_eq(std::size_t(0), cost);
 }
 

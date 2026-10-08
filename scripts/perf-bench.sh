@@ -8,6 +8,7 @@
 #   scripts/perf-bench.sh -f parse_index/canada    # rows under benchmark/parse_index/canada
 #   scripts/perf-bench.sh -f deserialize           # every deserialization row
 #   scripts/perf-bench.sh -f deserialize/citm      # deserialization rows over citm_catalog.json
+#   scripts/perf-bench.sh -f serialize             # every serialization row
 #
 # -f is read from just after "benchmark/", so it names the group of rows before the
 # input: "-f canada" matches nothing, and a filter which matches nothing is an error.
@@ -26,6 +27,11 @@
 #     then deserialize from that, "from_text" deserializes off the parse index without a
 #     value, and "from_value" deserializes from a value parsed before the clock starts.
 #     They run 10 iterations rather than 100, to keep the check target quick.
+#   - The "serialize/<case>/<pipeline>" rows time serialization from a C++ type three ways
+#     from the same object: "to_json_then_encode" is to_json() to a jsonv::value and then
+#     to_string() of that, "to_text" is serialize() to text through a writer without a
+#     value, and "to_value" is to_json() alone, which writes through a writer into a
+#     value_encoder. They run 10 iterations too.
 #   - An existing build/ must be configured Release (or with no build type, which
 #     CMakeLists.txt turns into Release) and without JSONV_SANITIZE. Anything else is
 #     refused rather than reconfigured. With no build/, the script configures one.

@@ -304,7 +304,7 @@ enum class ticket_state
 
 /// Built on first use from a `run_impl` rather than during static initialization, so a mistake in it fails the row
 /// which asked instead of the whole binary.
-const formats& deserialize_benchmark_formats()
+const formats& benchmark_formats()
 {
     static const formats instance =
         formats_builder()
@@ -444,7 +444,7 @@ const std::vector<ticket_state>& benchmark_ticket_states()
 /// `benchmark_ticket_states` as a JSON array of their spellings, 1.95 MB of `string_canonical` nodes.
 std::string synthesize_ticket_states()
 {
-    // In the order of the enumerators, and the same spellings `deserialize_benchmark_formats` maps them from.
+    // In the order of the enumerators, and the same spellings `benchmark_formats` maps them from.
     static const char* const spellings[] = { "open",
                                              "closed",
                                              "pending",
@@ -578,7 +578,7 @@ public:
 
     virtual void run_impl() override
     {
-        const formats&    fmts   = deserialize_benchmark_formats();
+        const formats&    fmts   = benchmark_formats();
         const std::string src    = load();
         const value       parsed = pipeline == deserialize_pipeline::from_value ? parse(src) : value();
 
@@ -650,6 +650,119 @@ private:
 private:
     std::deque<std::unique_ptr<unit_test>> _tests;
 } deserialize_benchmark_initializer_instance;
+
+// The `serialize/` rows time serialization from a C++ type, and each case runs three ways over the same object:
+// `to_json_then_encode` builds a `value` and encodes that, which is what writing text cost before #317; `to_text`
+// writes the text through a `writer` without building anything in between; and `to_value` is `to_json` alone, which
+// now builds its `value` through a `writer` over a `value_encoder` and is the case that must not get any slower.
+//
+// They run as many iterations as the `deserialize/` rows, for the same reason.
+
+enum class serialize_pipeline
+{
+    to_json_then_encode,
+    to_text,
+    to_value,
+};
+
+citm_catalog load_citm_records(const formats& fmts)
+{
+    return deserialize<citm_catalog>(load_citm_catalog(), fmts);
+}
+
+/// The document itself, which the built-in serializer for `value` writes where the writer is.
+value load_canada_value(const formats&)
+{
+    return parse(load_canada());
+}
+
+template <typename T>
+class serialize_benchmark_test :
+        public unit_test
+{
+public:
+    using loader = T (*)(const formats&);
+
+public:
+    serialize_benchmark_test(const std::string& name, serialize_pipeline pipeline, loader load) :
+            unit_test("benchmark/serialize/" + name),
+            pipeline(pipeline),
+            load(load)
+    { }
+
+    virtual void run_impl() override
+    {
+        const formats&    fmts          = benchmark_formats();
+        const T           from          = load(fmts);
+        const value       expected_tree = to_json(from, fmts);
+        const std::string expected_text = to_string(expected_tree);
+
+        stopwatch timer;
+        for (unsigned cnt = 0; cnt < deserialize_iterations; ++cnt)
+        {
+            // Outside the timed scope, so that the result is destroyed outside it too. The old pipeline's `value` is a
+            // temporary and is torn down inside it, which is part of what that pipeline costs.
+            std::string text;
+            value       tree;
+            {
+                JSONV_TEST_TIME(timer);
+                switch (pipeline)
+                {
+                case serialize_pipeline::to_json_then_encode:
+                    text = to_string(to_json(from, fmts));
+                    break;
+                case serialize_pipeline::to_text:
+                    text = serialize(from, fmts);
+                    break;
+                case serialize_pipeline::to_value:
+                    tree = to_json(from, fmts);
+                    break;
+                }
+            }
+
+            // `to_text` lists an object's members in the order they were written, where a `value` sorts them. The two
+            // texts are still the same here, because every type in `citm_records` declares its members in sorted order
+            // and the document in `canada_value` is a `value` already.
+            if (pipeline == serialize_pipeline::to_value)
+                ensure(tree == expected_tree);
+            else
+                ensure(text == expected_text);
+        }
+        std::cout << timer.get();
+    }
+
+private:
+    serialize_pipeline pipeline;
+    loader             load;
+};
+
+class serialize_benchmark_initializer
+{
+public:
+    serialize_benchmark_initializer()
+    {
+        add<citm_catalog>("citm_records", load_citm_records);
+        add<value>("canada_value", load_canada_value);
+    }
+
+private:
+    template <typename T>
+    void add(const std::string& name, typename serialize_benchmark_test<T>::loader load)
+    {
+        static const std::pair<serialize_pipeline, const char*> pipelines[] =
+            {
+                { serialize_pipeline::to_json_then_encode, "to_json_then_encode" },
+                { serialize_pipeline::to_text,             "to_text"             },
+                { serialize_pipeline::to_value,            "to_value"            },
+            };
+
+        for (const auto& [pipeline, suffix] : pipelines)
+            _tests.emplace_back(new serialize_benchmark_test<T>(name + "/" + suffix, pipeline, load));
+    }
+
+private:
+    std::deque<std::unique_ptr<unit_test>> _tests;
+} serialize_benchmark_initializer_instance;
 
 }
 
