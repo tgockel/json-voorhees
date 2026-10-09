@@ -357,6 +357,8 @@ std::string string_decode(std::string_view source)
         {
             output.append(last_pushed_src, source.data()+idx);
 
+            if (idx + 2 > source.size())
+                throw decode_error(idx, "unterminated escape sequence (backslash at end of string)");
             const char& next = source[idx + 1];
             if (const char* replacement = find_decoding(next))
             {

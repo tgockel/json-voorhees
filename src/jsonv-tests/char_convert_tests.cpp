@@ -11,9 +11,11 @@
 
 #include <jsonv/char_convert.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <cwchar>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 
@@ -29,9 +31,42 @@ static std::string string_decode_static(const char (& data)[N],
     return decoder(std::string_view(data, N-1));
 }
 
+/// Decodes \a source from a copy in a heap block of exactly its size, so that AddressSanitizer reports a read past its
+/// end. \c string_decode_static cannot catch one, since the '\0' of the literal sits right after its view.
+static std::string string_decode_exact(std::string_view source,
+                                       jsonv::parse_options::encoding encoding = jsonv::parse_options::encoding::utf8
+                                      )
+{
+    std::unique_ptr<char[]> buffer(new char[source.size()]);
+    std::copy(source.begin(), source.end(), buffer.get());
+    auto decoder = jsonv::detail::get_string_decoder(encoding);
+    return decoder(std::string_view(buffer.get(), source.size()));
+}
+
 TEST(string_decode_invalid_escape_sequence)
 {
     ensure_throws(jsonv::detail::decode_error, string_decode_static("\\y"));
+}
+
+TEST(string_decode_trailing_backslash)
+{
+    // The character after a backslash used to be read before anything checked that there was one (#274).
+    for (auto encoding : { jsonv::parse_options::encoding::utf8, jsonv::parse_options::encoding::utf8_strict })
+    {
+        ensure_throws(decode_error, string_decode_exact("\\",     encoding));
+        ensure_throws(decode_error, string_decode_exact("ab\\",   encoding));
+        ensure_throws(decode_error, string_decode_exact("\\\\\\", encoding)); // an escaped backslash, then a lone one
+    }
+
+    try
+    {
+        string_decode_exact("ab\\");
+        ensure(!"decode_error was not thrown");
+    }
+    catch (const decode_error& ex)
+    {
+        ensure_eq(2U, ex.offset());
+    }
 }
 
 TEST(string_decode_unchanged)
