@@ -242,7 +242,8 @@
        a second root written before `take` replaces the first (#320).
      - A `value` built from a `std::string_view`, a `const char*` or a wide string now copies the text once rather
        than twice. Those constructors built a temporary `std::string` and then copied it again into the node, which
-       is the path every string `parse` produces takes (#336).
+       is the path every string `parse` produces takes (#336). Building the node and its text in one step also fixed
+       every string constructor, `const std::string&` included, leaking the node when copying the text threw (#272).
      - Fixed `jsonv::to_string` of a number or a string failing to compile as ambiguous wherever `path.hpp` was
        included, directly or through `algorithm.hpp`, `serialization.hpp` or `all.hpp`. `path_element` converts from
        integers and strings as `value` does, so `to_string(const path_element&)` competed with `to_string(const value&)`

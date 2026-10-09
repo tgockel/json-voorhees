@@ -44,7 +44,9 @@ kind_error::~kind_error() noexcept
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // A string is copied once on its way into a `value`: the narrow constructors build the node's `std::string` straight
-// from the view, and the wide ones move the converted string in.
+// from the view, and the wide ones move the converted string in. Building it inside the `new` expression also means a
+// copy or conversion which throws frees the node with it, which assigning the text into a node already allocated did
+// not (#272).
 
 value::value(const std::string& val) :
         value(std::string_view(val))

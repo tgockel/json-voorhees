@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <new>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -318,6 +319,37 @@ std::size_t string_construction_cost(const TText& text)
     return allocations.count();
 }
 
+/// Builds a `value` from \a text, failing each allocation of at least \a min_size bytes that takes in turn until an
+/// attempt goes through, and returns how many attempts failed. Every attempt, failed or not, has to give back
+/// everything it allocated.
+template <typename TText>
+std::size_t string_construction_failures(const TText& text, std::size_t min_size)
+{
+    for (std::size_t nth = 1U; ; ++nth)
+    {
+        const std::size_t before = jsonv_test::live_allocations();
+        bool              failed = false;
+        {
+            // Nothing but the constructor may allocate in here. That rules out `ensure_throws`, whose failure path
+            // allocates and so can catch the `std::bad_alloc` it caused itself and pass.
+            jsonv_test::failing_allocation fail(nth, min_size);
+            try
+            {
+                jsonv::value built(text);
+            }
+            catch (const std::bad_alloc&)
+            {
+                failed = true;
+            }
+        }
+        const std::size_t after = jsonv_test::live_allocations();
+        ensure_eq(before, after);
+
+        if (!failed)
+            return nth - 1U;
+    }
+}
+
 }
 
 /// Building a `value` from a string copies the text once, whichever form it arrives in. Copying text past the
@@ -334,6 +366,31 @@ TEST(value_string_constructors_copy_once)
     ensure_eq(string_construction_cost(std::string_view(short_text)) + 1U,
               string_construction_cost(std::string_view(long_text)));
     ensure_eq(string_construction_cost(short_text.c_str()) + 1U, string_construction_cost(long_text.c_str()));
+}
+
+/// Building a `value` from a string allocates the node before the text is copied or converted into it, so a copy or a
+/// conversion which throws has to give the node back -- the constructor never finishes, so `~value` never runs to do
+/// it. The node used to be allocated and the text assigned into it afterwards, which leaked the node when the copy
+/// threw (#272).
+///
+/// Only allocations at least as long as the text fail, which are the buffers it is copied or converted into. Anything
+/// smaller may be bookkeeping a failure cannot propagate from: MSVC's debug containers allocate an iterator proxy inside
+/// `noexcept` constructors and moves. The `std::range_error` a refused wide string throws from the same place is left
+/// to `wide_strings_wider_than_utf16` and the sanitizer build's leak check, since `live_allocations` cannot see that
+/// exception's message freed under libc++abi 18.
+TEST(value_string_constructors_leak_nothing_when_the_copy_fails)
+{
+    const std::size_t  length = 256U;
+    const std::string  text(length, 'x');
+    const std::wstring wide(length, L'x');
+
+    // The text is copied or converted into a buffer of at least its length, so a constructor which went through first
+    // time never had the copy fail.
+    ensure_le(1U, string_construction_failures(text, length));
+    ensure_le(1U, string_construction_failures(std::string_view(text), length));
+    ensure_le(1U, string_construction_failures(text.c_str(), length));
+    ensure_le(1U, string_construction_failures(wide, length));
+    ensure_le(1U, string_construction_failures(wide.c_str(), length));
 }
 
 #endif

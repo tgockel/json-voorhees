@@ -1,5 +1,6 @@
 /** \file
- *  Counting the heap allocations a region of code performs, and failing one of them on purpose.
+ *  Counting the heap allocations a region of code performs, failing one of them on purpose, and checking that what
+ *  it allocated was all given back.
  *
  *  Copyright (c) 2026 by Travis Gockel. All rights reserved.
  *
@@ -47,6 +48,22 @@ namespace jsonv_test
 **/
 std::size_t total_allocations() noexcept;
 
+/** The number of blocks the counted forms of \c operator \c new have handed out and \c operator \c delete has not yet
+ *  taken back. A region of code which leaves it higher than it found it leaked.
+ *
+ *  Only a region which throws nothing but \c std::bad_alloc can be measured this way. An exception carrying a message
+ *  keeps it in storage the standard library allocates, and libc++abi 18, for one, frees that storage without going
+ *  through the replacement \c operator \c delete, so the count stays one higher for each such exception thrown.
+ *
+ *  \code
+ *  const std::size_t before = live_allocations();
+ *  do_the_thing();
+ *  const std::size_t after = live_allocations();   // read it out *before* asserting: `ensure_eq` allocates
+ *  ensure_eq(before, after);
+ *  \endcode
+**/
+std::size_t live_allocations() noexcept;
+
 /** Counts the allocations performed while it is alive.
  *
  *  \code
@@ -79,17 +96,21 @@ private:
     std::size_t _mark;
 };
 
-/** Makes one allocation fail while it is alive: the \a nth from its creation, counting from 1, throws
- *  \c std::bad_alloc -- or returns null, for the \c std::nothrow forms. It disarms once it fires or when this goes
- *  away, whichever comes first, so an allocation it never reached cannot fail somewhere unrelated later. Only one can
- *  be armed at a time.
+/** Makes one allocation fail while it is alive: the \a nth from its creation of at least \a min_size bytes, counting
+ *  from 1, throws \c std::bad_alloc -- or returns null, for the \c std::nothrow forms. It disarms once it fires or when
+ *  this goes away, whichever comes first, so an allocation it never reached cannot fail somewhere unrelated later.
+ *  Only one can be armed at a time.
+ *
+ *  \a min_size keeps the failure to allocations it can propagate from. MSVC's debug containers allocate an iterator
+ *  proxy inside \c noexcept constructors and moves, so failing one of those terminates the process; a size past any
+ *  such bookkeeping fails only the buffers the code under test asks for.
  *
  *  This is for reaching a failure which no input can produce, to check what is left behind when it happens.
 **/
 class failing_allocation
 {
 public:
-    explicit failing_allocation(std::size_t nth = 1U) noexcept;
+    explicit failing_allocation(std::size_t nth = 1U, std::size_t min_size = 0U) noexcept;
     ~failing_allocation() noexcept;
 
     failing_allocation(const failing_allocation&)            = delete;
