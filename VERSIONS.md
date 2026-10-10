@@ -259,6 +259,11 @@
        `path_element` and nothing that converts to one, so those calls mean the `value`. Calls passing a `path_element`
        compile unchanged, qualified or not; the exported function behind it is now `detail::path_element_to_string`
        (#343).
+     - Fixed `ostream_encoder` writing integers with the stream's digit grouping. It inserted an integer with
+       `operator<<`, so under a locale which groups digits, global or imbued on the stream handed to it, `1234567` came
+       out as `1,234,567`, which is not JSON, and `[1234567,-89012345]` read back as six elements. Integers now get
+       their digits from `std::to_chars`, as decimals already did, which also keeps the stream's base, `std::showbase`
+       and `std::showpos` out of them (#330).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on

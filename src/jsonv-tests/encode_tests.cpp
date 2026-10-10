@@ -9,12 +9,16 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include "test.hpp"
+#include "locale_util.hpp"
 
 #include <jsonv/encode.hpp>
 #include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
+#include <jsonv/writer.hpp>
 
 #include <cmath>
+#include <cstdint>
+#include <iomanip>
 #include <iostream>
 #include <locale>
 #include <sstream>
@@ -162,6 +166,51 @@ TEST(encode_decimal_integral_round_trip)
     ensure_decimal_round_trips("[2.0]", false);
     ensure_decimal_round_trips("[-2.0]", false);
     ensure_decimal_round_trips("[1.5]", false);
+}
+
+// A number inserted into a stream picks up its locale's digit grouping. `1,234,567` is not JSON, and inside an array
+// the separators read back as extra elements. See issue #330.
+TEST(encode_integer_ignores_global_locale)
+{
+    global_grouping_locale grouping;
+
+    // The facet really is in effect, or nothing below proves anything.
+    std::ostringstream probe;
+    probe << 1000;
+    ensure_eq(std::string("1,000"), probe.str());
+
+    ensure_eq(std::string("1234567"), jsonv::to_string(jsonv::value(std::int64_t(1234567))));
+    ensure_encodes_as("[1234567,-89012345]", "[1234567,-89012345]");
+    ensure_encodes_as("[-9223372036854775808,9223372036854775807]", "[-9223372036854775808,9223372036854775807]");
+
+    // The pretty encoder delegates integer formatting to `ostream_encoder`, so it has to agree.
+    const jsonv::value original = jsonv::parse("[1234567,-89012345]");
+    std::ostringstream pretty;
+    jsonv::ostream_pretty_encoder(pretty).encode(original);
+    ensure_eq(original, jsonv::parse(pretty.str()));
+
+    // Decimals already went through `format_decimal`; pin them beside integers.
+    ensure_encodes_as("[1234.5,-5678.25]", "[1234.5,-5678.25]");
+}
+
+TEST(encode_integer_ignores_stream_locale)
+{
+    std::ostringstream os;
+    os.imbue(std::locale(std::locale::classic(), new grouping_numpunct));
+    os << jsonv::value(std::int64_t(1234567));
+    ensure_eq(std::string("1234567"), os.str());
+}
+
+// Written unformatted, an integer would leave a pending width for the `,` after it, which pads to `0,` and reads back as
+// `[120,34]`.
+TEST(encode_integer_value_survives_pending_width)
+{
+    std::ostringstream os;
+    jsonv::writer w(os);
+    w.array_begin();
+    os << std::setfill('0') << std::setw(2);
+    w.integer(12).integer(34).array_end();
+    ensure_eq(std::string("[12,34]"), os.str());
 }
 
 TEST(encode_invalid_utf8_uses_replacement_for_bogus_2_byte)

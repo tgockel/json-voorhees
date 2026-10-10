@@ -155,7 +155,14 @@ void ostream_encoder::write_decimal(double value)
 
 void ostream_encoder::write_integer(std::int64_t value)
 {
-    _output << value;
+    // The digits come from `format_integer`, so the stream's locale and base cannot reach them, but they are inserted
+    // rather than written. A width the caller left pending is then used up here, as every other token would use it,
+    // instead of padding the `,` after the number and turning `12` into `120`.
+    std::array<char, number_token_max> buffer;
+    if (auto text = format_integer(value, buffer.data()))
+        _output << *text;
+    else
+        _output << value;
 }
 
 void ostream_encoder::write_null()
