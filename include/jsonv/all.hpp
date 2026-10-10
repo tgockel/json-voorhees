@@ -125,7 +125,7 @@ namespace jsonv
 ///     jsonv::value x = jsonv::null;
 ///     try
 ///     {
-///         x.as_string();
+///         (void) x.as_string();
 ///     }
 ///     catch (const jsonv::kind_error& err)
 ///     {
