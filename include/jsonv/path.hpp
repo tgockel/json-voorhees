@@ -116,7 +116,7 @@ public:
     /// <tt>path::create(".foo.bar[1]")</tt> is equivalent to <tt>path({ "foo", "bar", 1 })</tt>.
     ///
     /// \throws std::invalid_argument if the \a specification is not valid, including an array index too large for a
-    ///                               \c std::size_t.
+    ///                               \c std::size_t or a key with an unpaired UTF-16 surrogate escape.
     JSONV_NODISCARD
     static path create(std::string_view specification);
 

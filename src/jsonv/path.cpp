@@ -423,9 +423,24 @@ path path::create(std::string_view specification)
             break;
         case detail::path_match_result::brace:
             if (match.at(1) == '\"')
-                out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
+            {
+                // `path_match` only checks that a `\u` escape has four hex digits, so an unpaired surrogate gets as
+                // far as the decoder
+                try
+                {
+                    out += detail::get_string_decoder(parse_options::encoding::utf8)(match.substr(2, match.size() - 4));
+                }
+                catch (const detail::decode_error& ex)
+                {
+                    throw std::invalid_argument(std::string("Invalid specification \"") + std::string(specification)
+                                                + "\". Syntax error at \"" + std::string(remaining) + "\": " + ex.what()
+                                               );
+                }
+            }
             else
+            {
                 out += extract_size_t(std::string_view(match.data() + 1, match.size() - 2));
+            }
             break;
         default:
             throw std::invalid_argument(std::string("Invalid specification \"") + std::string(specification) + "\". "

@@ -239,6 +239,28 @@ TEST(path_parse_invalid)
     ensure_throws(std::invalid_argument, path::create("2"));
 }
 
+TEST(path_parse_unpaired_surrogate)
+{
+    // Matching a key only checks that each `\u` has four hex digits, so these get as far as the decoder (#285)
+    ensure_throws(std::invalid_argument, path::create(R"(["\ud800"])"));       // a lone high surrogate
+    ensure_throws(std::invalid_argument, path::create(R"(["\udc00"])"));       // a lone low surrogate
+    ensure_throws(std::invalid_argument, path::create(R"(["\ud800\u0041"])")); // a high surrogate, then an `A`
+
+    try
+    {
+        (void) path::create(R"(.a["\udc00"])");
+        ensure(!"std::invalid_argument was not thrown");
+    }
+    catch (const std::invalid_argument& ex)
+    {
+        ensure_eq(std::string(R"(Invalid specification ".a["\udc00"]". Syntax error at "["\udc00"]": )"
+                              R"(unpaired low surrogate (\udc00))"
+                             ),
+                  std::string(ex.what())
+                 );
+    }
+}
+
 TEST(path_combines)
 {
     path goal = path::create(".a.b.c[3][4][5]");

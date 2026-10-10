@@ -381,6 +381,8 @@ std::string string_decode(std::string_view source)
                 else
                 {
                     auto surrogateString = [&] () { return std::string(source.data()+idx, 6); };
+                    if (hexval >= 0xdc00U)
+                        throw decode_error(idx, std::string("unpaired low surrogate (") + surrogateString() + ")");
                     if (  idx + 12 > source.size()
                        || idx +  8 > source.size()
                        || source[idx + 6] != '\\'

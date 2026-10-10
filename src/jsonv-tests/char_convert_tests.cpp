@@ -219,6 +219,24 @@ TEST(string_decode_unicode_surrogates_invalid_not_low_follower)
     ensure_throws(decode_error, string_decode_static(R"(\ud92b\udbff\udc00)"));
 }
 
+TEST(string_decode_unicode_surrogates_invalid_lone_low)
+{
+    // A low surrogate cannot start a pair, whatever follows it. These used to be reported as unpaired high surrogates.
+    for (std::string_view source : { R"(\udc00)", R"(\udfff\udc00)", R"(\udc00\ud800)" })
+    {
+        try
+        {
+            string_decode_exact(source);
+            ensure(!"decode_error was not thrown");
+        }
+        catch (const decode_error& ex)
+        {
+            ensure_eq(0U, ex.offset());
+            ensure_eq("unpaired low surrogate (" + std::string(source.substr(0, 6)) + ")", std::string(ex.what()));
+        }
+    }
+}
+
 TEST(string_decode_blns_94)
 {
     string_decode_static(R"("\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\u000e\u000f\u0010\u0011\u0012)"
