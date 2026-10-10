@@ -125,7 +125,7 @@ namespace jsonv
 ///     jsonv::value x = jsonv::null;
 ///     try
 ///     {
-///         x.as_string();
+///         (void) x.as_string();
 ///     }
 ///     catch (const jsonv::kind_error& err)
 ///     {
@@ -165,34 +165,34 @@ namespace jsonv
 ///     if (iter != x.end_object())
 ///         std::cout << iter->first << ": " << iter->second << std::endl;
 ///     else
-///         std::cout << "Nothing..." << std::end;
+///         std::cout << "Nothing..." << std::endl;
 ///
 ///     iter = x.find("two");
 ///     if (iter != x.end_object())
 ///         std::cout << iter->first << ": " << iter->second << std::endl;
 ///     else
-///         std::cout << "Nothing..." << std::end;
+///         std::cout << "Nothing..." << std::endl;
 ///
 ///     x["two"] = 2;
 ///     iter = x.find("two");
 ///     if (iter != x.end_object())
 ///         std::cout << iter->first << ": " << iter->second << std::endl;
 ///     else
-///         std::cout << "Nothing..." << std::end;
+///         std::cout << "Nothing..." << std::endl;
 ///
 ///     x["two"] = jsonv::array({ "one", "+", x.at("one") });
 ///     iter = x.find("two");
 ///     if (iter != x.end_object())
 ///         std::cout << iter->first << ": " << iter->second << std::endl;
 ///     else
-///         std::cout << "Nothing..." << std::end;
+///         std::cout << "Nothing..." << std::endl;
 ///
 ///     x.erase("one");
 ///     iter = x.find("one");
 ///     if (iter != x.end_object())
 ///         std::cout << iter->first << ": " << iter->second << std::endl;
 ///     else
-///         std::cout << "Nothing..." << std::end;
+///         std::cout << "Nothing..." << std::endl;
 /// }
 /// \endcode
 ///

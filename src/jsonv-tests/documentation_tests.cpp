@@ -1,10 +1,11 @@
 /// \file
-/// The examples the documentation teaches from, compiled and run: the \c writer example and the serialization tutorial
-/// in \c jsonv/all.hpp, the opening example of the serialization builder DSL page, its serialization examples and the
-/// three forms of \c check from its reference, and the worked examples on \c jsonv::reader, \c jsonv::writer and
-/// \c jsonv::value_encoder. Nothing else checks code written in a Doxygen comment, and these examples have drifted from
-/// the API before (#233). Each example below is the documentation's code, verbatim, except that a test asserts what an
-/// example prints; a change which breaks one here has broken it there as well, so change both.
+/// The examples the documentation teaches from, compiled and run: the \c jsonv::value examples, the \c writer example
+/// and the serialization tutorial in \c jsonv/all.hpp, the opening example of the serialization builder DSL page, its
+/// serialization examples and the three forms of \c check from its reference, and the worked examples on
+/// \c jsonv::reader, \c jsonv::writer and \c jsonv::value_encoder. Nothing else checks code written in a Doxygen
+/// comment, and these examples have drifted from the API before (#233, #333, #356). Each example below is the
+/// documentation's code, verbatim, except that a test asserts what an example prints; a change which breaks one here
+/// has broken it there as well, so change both.
 ///
 /// Copyright (c) 2026 by Travis Gockel. All rights reserved.
 ///
@@ -26,6 +27,7 @@
 #include <jsonv/value.hpp>
 #include <jsonv/writer.hpp>
 
+#include <algorithm>
 #include <cstdint>
 #include <list>
 #include <optional>
@@ -41,6 +43,106 @@ namespace jsonv_test
 
 namespace
 {
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// jsonv/all.hpp: The jsonv::value                                                                                    //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/// The first example's \c main, writing to \a os where the example writes to \c std::cout.
+void print_values(std::ostream& os)
+{
+    jsonv::value x = jsonv::null;
+    os << x << std::endl;
+    x = 5.9;
+    os << x << std::endl;
+    x = -100;
+    os << x << std::endl;
+    x = "something else";
+    os << x << std::endl;
+    x = jsonv::array({ "arrays", "of", "the", 7, "different", "types?", true });
+    os << x << std::endl;
+    x = jsonv::object({
+                        { "objects", jsonv::array({
+                                                   "Are fun, too.",
+                                                   "Do what you want."
+                                                 })
+                        },
+                        { "compose like", "standard library maps" },
+                     });
+    os << x << std::endl;
+}
+
+/// The \c kind_error example's \c main, writing to \a os where the example writes to \c std::cout.
+void access_as_string(std::ostream& os)
+{
+    jsonv::value x = jsonv::null;
+    try
+    {
+        (void) x.as_string();
+    }
+    catch (const jsonv::kind_error& err)
+    {
+        os << err.what() << std::endl;
+    }
+
+    x = "now make it a string";
+    os << x.as_string().size() << std::endl;
+    os << x.as_string() << "\tis not the same as\t" << x << std::endl;
+}
+
+/// The object-iterator example's \c main, writing to \a os where the example writes to \c std::cout.
+void find_in_object(std::ostream& os)
+{
+    jsonv::value x = jsonv::object({ { "one", 1 }});
+    auto iter = x.find("one");
+    if (iter != x.end_object())
+        os << iter->first << ": " << iter->second << std::endl;
+    else
+        os << "Nothing..." << std::endl;
+
+    iter = x.find("two");
+    if (iter != x.end_object())
+        os << iter->first << ": " << iter->second << std::endl;
+    else
+        os << "Nothing..." << std::endl;
+
+    x["two"] = 2;
+    iter = x.find("two");
+    if (iter != x.end_object())
+        os << iter->first << ": " << iter->second << std::endl;
+    else
+        os << "Nothing..." << std::endl;
+
+    x["two"] = jsonv::array({ "one", "+", x.at("one") });
+    iter = x.find("two");
+    if (iter != x.end_object())
+        os << iter->first << ": " << iter->second << std::endl;
+    else
+        os << "Nothing..." << std::endl;
+
+    x.erase("one");
+    iter = x.find("one");
+    if (iter != x.end_object())
+        os << iter->first << ": " << iter->second << std::endl;
+    else
+        os << "Nothing..." << std::endl;
+}
+
+/// The \c std::sort example's \c main, writing to \a os where the example writes to \c std::cout.
+void sort_array(std::ostream& os)
+{
+    jsonv::value arr = jsonv::array({ "taco", "cat", 3, -2, jsonv::null, "beef", 4.8, 5 });
+    os << "Initial: ";
+    for (const auto& val : arr.as_array())
+        os << val << '\t';
+    os << std::endl;
+
+    std::sort(arr.begin_array(), arr.end_array());
+    os << "Sorted: ";
+    for (const auto& val : arr.as_array())
+        os << val << '\t';
+    os << std::endl;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // jsonv/all.hpp: Encoding and decoding                                                                               //
@@ -476,6 +578,83 @@ void write_my_object(jsonv::writer& to, const my_object& from)
 
 }
 
+}
+
+TEST(documentation_value_printing)
+{
+    std::ostringstream os;
+    print_values(os);
+    ensure_eq(std::string("null\n"
+                          "5.9\n"
+                          "-100\n"
+                          "\"something else\"\n"
+                          "[\"arrays\",\"of\",\"the\",7,\"different\",\"types?\",true]\n"
+                          "{\"compose like\":\"standard library maps\","
+                          "\"objects\":[\"Are fun, too.\",\"Do what you want.\"]}\n"
+                         ),
+              os.str()
+             );
+}
+
+TEST(documentation_value_json_literal)
+{
+    // You can use this hideous syntax if you do not want to bring in the whole jsonv namespace:
+    using jsonv::operator""_json;
+
+    jsonv::value x = R"({
+                          "objects": [ "Are fun, too.",
+                                       "Do what you want."
+                                     ],
+                          "compose like": "You are just writing JSON",
+                          "which I guess": ["is", "also", "neat"]
+                       })"_json;
+
+    ensure_eq(jsonv::object({ { "objects",       jsonv::array({ "Are fun, too.", "Do what you want." }) },
+                              { "compose like",  "You are just writing JSON" },
+                              { "which I guess", jsonv::array({ "is", "also", "neat" }) },
+                            }
+                           ),
+              x
+             );
+}
+
+TEST(documentation_value_kind_error)
+{
+    // The page shows the tabs the example writes as spaces.
+    std::ostringstream os;
+    access_as_string(os);
+    ensure_eq(std::string("Unexpected type: expected string but found null.\n"
+                          "20\n"
+                          "now make it a string\tis not the same as\t\"now make it a string\"\n"
+                         ),
+              os.str()
+             );
+}
+
+TEST(documentation_value_object_iterators)
+{
+    std::ostringstream os;
+    find_in_object(os);
+    ensure_eq(std::string("one: 1\n"
+                          "Nothing...\n"
+                          "two: 2\n"
+                          "two: [\"one\",\"+\",1]\n"
+                          "Nothing...\n"
+                         ),
+              os.str()
+             );
+}
+
+TEST(documentation_value_sort)
+{
+    // The page shows the tabs the example writes as spaces, and leaves off the one after each line's last value.
+    std::ostringstream os;
+    sort_array(os);
+    ensure_eq(std::string("Initial: \"taco\"\t\"cat\"\t3\t-2\tnull\t\"beef\"\t4.8\t5\t\n"
+                          "Sorted: null\t-2\t3\t4.8\t5\t\"beef\"\t\"cat\"\t\"taco\"\t\n"
+                         ),
+              os.str()
+             );
 }
 
 TEST(documentation_tutorial_deserialize)
