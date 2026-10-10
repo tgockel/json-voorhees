@@ -268,8 +268,9 @@ TEST_PARSE(object_empties_in_array)
 
 TEST_PARSE(empty_object_char_ptr_range)
 {
+    // The range stops before the terminator, which is not part of the document.
     const char buff[] = "{}";
-    value result = parse(buff + 0, buff + sizeof buff);
+    value result = parse(buff + 0, buff + sizeof buff - 1);
     value expected = object();
     ensure_eq(expected, result);
 }

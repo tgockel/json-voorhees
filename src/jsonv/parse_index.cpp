@@ -505,7 +505,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
                 {
                     ++src_location;
                     fastforward_space(src_location);
-                    if (src_location != end && *src_location)
+                    if (src_location != end)
                         throw push_error(self, ast_error::expected_eof, begin, src_location);
                 }
             }
@@ -571,7 +571,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
 
     push_back_deeper(ast_node_type::document_start, iter);
 
-    while (iter < end && *iter)
+    while (iter < end)
     {
         switch (*iter)
         {

@@ -3191,7 +3191,18 @@ TEST(deserialize_from_a_positioned_reader_reads_one_value)
 
 TEST(deserialize_malformed_text_reports_the_parse_failure)
 {
-    for (std::string_view text : { "[ 1, 2", "5 x", "5 6", R"({ "a": })" })
+    // Input after a NUL was never read, so these deserialized as `5` and `[1]` (#279).
+    const std::string_view texts[] =
+        {
+            "[ 1, 2",
+            "5 x",
+            "5 6",
+            R"({ "a": })",
+            std::string_view("5\0garbage", 9U),
+            std::string_view("[1]\0garbage", 11U),
+        };
+
+    for (std::string_view text : texts)
     {
         const std::string expected = parse_error_of(text);
 

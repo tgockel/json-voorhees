@@ -85,6 +85,10 @@ def main():
     write("top_level_string.json", b'"a bare string is a document when require_document is off"')
     write("top_level_number.json", b"-12.5e3")
 
+    # A NUL after a whole document. The parser used to stop at a NUL as though the input ended there, so this parsed
+    # as `{"a":1}` and the second document was never read (issue #279).
+    write("nul_after_document.json", b'{"a":1}\x00{"b":2}')
+
     # Comments are off by default, so this only parses where a target turns on parse_options::comments. It puts one
     # wherever whitespace may go: the parser reads a key, its `:` and whatever follows the top-level structure ahead of
     # its main loop, so those positions take a different path from a comment beside a value (issue #280).

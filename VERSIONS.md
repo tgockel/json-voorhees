@@ -129,6 +129,14 @@
        `ast_error::expected_comma`, and at the top level with `ast_error::expected_eof`, as `[1] 2` already did.
        `{"a": 1 "b": 2}`, which failed with "unexpected token" at the `:` after `"b"`, now reports the missing `,` at
        the `"b"` itself (#261).
+     - Fixed a NUL byte outside a string ending the parse as though the input ended there. Everything after it was
+       dropped unread, so `{"a":1}\0{"b":2}` parsed as `{"a":1}` and `5\0garbage` as `5`, under
+       `parse_options::create_strict()` as well, and the same held for `parse_index`, a `reader` and `deserialize<T>`.
+       Only the size of the input marks its end now. A NUL fails with `ast_error::unexpected_token`, like any other
+       byte which cannot begin a value, or with `ast_error::expected_eof` after a top-level structure, as `[1] 2` does.
+       Input which takes in a C string's terminator, as `parse(std::string_view(buf, sizeof buf))` and
+       `parse(buf, buf + sizeof buf)` do, now fails the same way. `operator""_json` and a `std::string_view` made from
+       a `const char*` stop before it (#279).
      - Fixed `parse_index::parse` under-allocating its buffer for an `initial_buffer_capacity` near `SIZE_MAX`. The
        size in bytes wrapped, so a small allocation claimed the whole requested capacity and the first write ran off
        its end; for some values the allocation was smaller than the buffer's own header, and writing that corrupted

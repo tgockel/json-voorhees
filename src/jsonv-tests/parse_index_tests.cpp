@@ -353,6 +353,60 @@ TEST(ast_parse_values_with_a_comma_between_them_still_parse)
     ensure_eq(array({ 1, 2 }),             jsonv::parse("[1 /* c */, 2]", with_comments));
 }
 
+/// The main loop and the check for trailing input after a top-level structure both stopped at a NUL as though the input
+/// ended there, so everything after one was dropped unread: `{"a":1}\0{"b":2}` parsed as `{"a":1}` and `0\0garbage` as
+/// `0`, under `create_strict()` as well. Only `end` says where the input stops, and a NUL is a byte like any other
+/// which cannot begin a value.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/279
+TEST(ast_parse_nul_outside_a_string_is_refused)
+{
+    struct
+    {
+        std::string_view src;
+        std::string_view tape;
+        jsonv::ast_error code;
+        std::size_t      at;
+    }
+    const cases[] =
+    {
+        { std::string_view("0\0garbage", 9U),            "^i!",    jsonv::ast_error::unexpected_token, 1U },
+        // After a top-level structure, the NUL is trailing input, as the `2` of `[1] 2` is.
+        { std::string_view("[1]\0garbage", 11U),         "^[i]!",  jsonv::ast_error::expected_eof,     3U },
+        { std::string_view("{\"a\":1}\0{\"b\":2}", 15U), "^{ki}!", jsonv::ast_error::expected_eof,     7U },
+        // A view which takes in the terminator of the C string it was made from.
+        { std::string_view("[1]", 4U),                   "^[i]!",  jsonv::ast_error::expected_eof,     3U },
+        // Inside a structure, the loop used to end with it still open, which was reported as a truncated document.
+        { std::string_view("[1\0]", 4U),                 "^[i!",   jsonv::ast_error::unexpected_token, 2U },
+        { std::string_view("\0", 1U),                    "^!",     jsonv::ast_error::unexpected_token, 0U },
+    };
+
+    for (const auto& options : { jsonv::parse_options(), jsonv::parse_options::create_strict() })
+    {
+        for (const auto& c : cases)
+        {
+            auto ast = jsonv::parse_index::parse(c.src, options);
+            ensure_eq(c.tape, to_string(ast));
+
+            try
+            {
+                ast.validate();
+                ensure(!"parse_error was not thrown");
+            }
+            catch (const jsonv::parse_error& ex)
+            {
+                ensure_eq(c.at, ex.character().value());
+                ensure(std::string_view(ex.what()).ends_with(to_string(c.code)));
+            }
+
+            ensure_throws(jsonv::parse_error, jsonv::parse(c.src, options));
+        }
+
+        // An escaped NUL is part of a string, and still parses.
+        ensure_eq(jsonv::array({ std::string(1, '\0') }), jsonv::parse(R"(["\u0000"])", options));
+    }
+}
+
 /// An opener reserves slots for its matching close token and its element count, but neither is known until that close
 /// token arrives. A failed parse must still leave them determinate, because `iterator::operator*` reads the element
 /// count unconditionally when it builds an `object_begin` or `array_begin`.
