@@ -760,6 +760,10 @@
        is now only considered when there is a default to take -- the test a missing key was already put to, and what the
        DSL reference has always said for a member. A `null` with nothing to fall back on is deserialized like any other
        value: for an integer member, or for the type itself, a node type mismatch naming `null` (#258).
+     - Fixed `register_wrapper` registering a `container_adapter` when chained from inside a `type` block of the
+       serialization builder DSL. A wrapper with nothing a container adapter could use failed to compile, and one which
+       happened to look like a container would have been read and written as an array. It now registers a
+       `wrapper_adapter`, as `formats_builder::register_wrapper` always did (#329).
    - Platform
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC

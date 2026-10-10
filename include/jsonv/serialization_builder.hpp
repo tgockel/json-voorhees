@@ -321,11 +321,12 @@ namespace jsonv
 ///
 ///  - <tt>register_wrapper&lt;TWrapper&gt;()</tt>
 ///
-/// Similar to \c register_adapter, but automatically create an <tt>wrapper_adapter&lt;TWrapper&gt;</tt> to store.
+/// Similar to \c register_adapter, but automatically create a <tt>wrapper_adapter&lt;TWrapper&gt;</tt> to store.
+/// \c TWrapper names the type it wraps as its member \c value_type, and must be explicitly convertible to and from it.
 ///
 /// \code
-///   .register_optional<std::optional<int>>()
-///   .register_optional<boost::optional<double>>()
+///   .register_wrapper<user_id>()
+///   .register_wrapper<temperature>()
 /// \endcode
 ///
 /// \paragraph serialization_builder_dsl_ref_formats_level_enum_type enum_type
@@ -2220,7 +2221,7 @@ formats_builder& formats_builder_dsl::register_containers()
 template <typename TWrapper>
 formats_builder& formats_builder_dsl::register_wrapper()
 {
-    return owner->register_container<TWrapper>();
+    return owner->register_wrapper<TWrapper>();
 }
 
 template <typename T>

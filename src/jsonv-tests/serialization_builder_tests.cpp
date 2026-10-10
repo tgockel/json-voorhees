@@ -87,6 +87,26 @@ struct sometype
     int64_t v;
 };
 
+/// A wrapper over a scalar -- explicitly convertible both ways, which is all \c wrapper_adapter asks for, and nothing a
+/// \c container_adapter could use.
+struct account_id
+{
+    using value_type = std::int64_t;
+
+    std::int64_t raw = 0;
+
+    account_id() = default;
+
+    explicit account_id(std::int64_t raw) : raw(raw) { }
+
+    explicit operator std::int64_t() const { return raw; }
+};
+
+struct account
+{
+    account_id id;
+};
+
 /// The text \a from serializes to through \a context: written into a \c writer over a stream, which is where the
 /// order the DSL writes members in can be seen. A \c value built by \c to_json sorts them.
 template <typename T>
@@ -192,6 +212,24 @@ TEST(serialization_builder_container_members)
     ensure_eq(expected, encoded);
     person q = deserialize<person>(encoded, fmt);
     ensure_eq(p, q);
+}
+
+TEST(serialization_builder_wrapper_members)
+{
+    // Chained from inside a `type`, this is `formats_builder_dsl::register_wrapper` rather than `formats_builder`'s.
+    formats fmt = formats_builder()
+                    .type<account>()
+                        .member("id", &account::id)
+                    .register_wrapper<account_id>()
+                    .compose_checked(formats::defaults())
+                ;
+
+    account a{ account_id(7) };
+    value expected = object({ { "id", 7 } });
+    auto encoded = to_json(a, fmt);
+    ensure_eq(expected, encoded);
+    account b = deserialize<account>(encoded, fmt);
+    ensure_eq(a.id.raw, b.id.raw);
 }
 
 TEST(serialization_builder_unknown_members)
