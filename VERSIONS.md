@@ -264,6 +264,15 @@
        out as `1,234,567`, which is not JSON, and `[1234567,-89012345]` read back as six elements. Integers now get
        their digits from `std::to_chars`, as decimals already did, which also keeps the stream's base, `std::showbase`
        and `std::showpos` out of them (#330).
+     - Fixed the state a caller left on a stream changing the JSON written into it. `ostream_encoder` inserted every
+       token, so a width was used up by the first one and padded with the fill: `std::setfill('0') << std::setw(4)` put
+       `000` in front of a document. A width set part-way through a document, through a `writer` over the stream,
+       padded whichever token came next, so the `,` after `1e+20` became `0,` and the number read back as `1e+200`.
+       Every token is now written unformatted, which ignores the stream's flags, width, fill and locale and leaves them
+       as they were, so a width set before `os << some_value` applies to whatever is inserted after the document. This
+       covers `operator<<` on a `value`, `ostream_pretty_encoder`, `writer(std::ostream&)` and
+       `serialize(obj, stream)`. A subclass writing through `ostream_encoder::output()` should write unformatted too
+       (#345).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on

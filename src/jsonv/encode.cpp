@@ -17,6 +17,7 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -106,6 +107,29 @@ void encoder::walk_tree(const value& source)
 // ostream_encoder                                                                                                    //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+namespace
+{
+
+// Every token goes into the stream unformatted. Inserted, it would let the caller's flags, width, fill and locale
+// decide what the JSON says. With some tokens inserted and others not, a width meant for one pads whichever is inserted
+// next, such as the `,` after `12`, which then reads back as `120`. See issues #330 and #345.
+void write_text(std::ostream& out, std::string_view text)
+{
+    out.write(text.data(), static_cast<std::streamsize>(text.size()));
+}
+
+void write_number(std::ostream& out, std::optional<std::string_view> text)
+{
+    // A `to_chars` failure, which `number_token_max` makes impossible. Inserting the number instead would hand it back
+    // to the stream's flags.
+    if (!text)
+        throw std::logic_error("Could not format a number as a JSON token");
+
+    write_text(out, *text);
+}
+
+}
+
 ostream_encoder::ostream_encoder(std::ostream& output) :
         _output(output),
         _ensure_ascii(true)
@@ -120,22 +144,22 @@ void ostream_encoder::ensure_ascii(bool value)
 
 void ostream_encoder::write_array_begin()
 {
-    _output << '[';
+    _output.put('[');
 }
 
 void ostream_encoder::write_array_end()
 {
-    _output << ']';
+    _output.put(']');
 }
 
 void ostream_encoder::write_array_delimiter()
 {
-    _output << ',';
+    _output.put(',');
 }
 
 void ostream_encoder::write_boolean(bool value)
 {
-    _output << (value ? "true" : "false");
+    write_text(_output, value ? "true" : "false");
 }
 
 void ostream_encoder::write_decimal(double value)
@@ -143,10 +167,7 @@ void ostream_encoder::write_decimal(double value)
     if (std::isfinite(value))
     {
         std::array<char, number_token_max> buffer;
-        if (auto text = format_decimal(value, buffer.data()))
-            _output.write(text->data(), static_cast<std::streamsize>(text->size()));
-        else
-            _output << value;
+        write_number(_output, format_decimal(value, buffer.data()));
     }
     else
         // non-finite values do not have valid JSON representations, so put it as null
@@ -155,40 +176,34 @@ void ostream_encoder::write_decimal(double value)
 
 void ostream_encoder::write_integer(std::int64_t value)
 {
-    // The digits come from `format_integer`, so the stream's locale and base cannot reach them, but they are inserted
-    // rather than written. A width the caller left pending is then used up here, as every other token would use it,
-    // instead of padding the `,` after the number and turning `12` into `120`.
     std::array<char, number_token_max> buffer;
-    if (auto text = format_integer(value, buffer.data()))
-        _output << *text;
-    else
-        _output << value;
+    write_number(_output, format_integer(value, buffer.data()));
 }
 
 void ostream_encoder::write_null()
 {
-    _output << "null";
+    write_text(_output, "null");
 }
 
 void ostream_encoder::write_object_begin()
 {
-    _output << '{';
+    _output.put('{');
 }
 
 void ostream_encoder::write_object_end()
 {
-    _output << '}';
+    _output.put('}');
 }
 
 void ostream_encoder::write_object_delimiter()
 {
-    _output << ',';
+    _output.put(',');
 }
 
 void ostream_encoder::write_object_key(std::string_view key)
 {
     write_string(key);
-    _output << ':';
+    _output.put(':');
 }
 
 void ostream_encoder::write_string(std::string_view value)
@@ -225,9 +240,9 @@ void ostream_pretty_encoder::write_prefix()
 
 void ostream_pretty_encoder::write_eol()
 {
-    output() << '\n';
+    output().put('\n');
     for (std::size_t x = 0; x < _indent; ++x)
-        output() << ' ';
+        output().put(' ');
 }
 
 void ostream_pretty_encoder::write_array_begin()
@@ -309,7 +324,7 @@ void ostream_pretty_encoder::write_object_key(std::string_view key)
 {
     write_prefix();
     ostream_encoder::write_object_key(key);
-    output() << ' ';
+    output().put(' ');
 }
 
 void ostream_pretty_encoder::write_string(std::string_view value)

@@ -38,7 +38,8 @@ private:
     size_type _offset;
 };
 
-/// Encodes C++ string \a source into a fully-escaped JSON string into \a stream ready for sending over the wire.
+/// Encodes C++ string \a source into a fully-escaped JSON string into \a stream ready for sending over the wire. The
+/// text is written unformatted, so \a stream's flags, width, fill and locale do not reach it.
 std::ostream& string_encode(std::ostream& stream, std::string_view source, bool ensure_ascii = true);
 
 /// A function that decodes an over the wire character sequence \c source into a C++ string.

@@ -172,6 +172,10 @@ private:
 };
 
 /** An encoder that outputs to an \c std::ostream. This implementation is used for \c operator<< on a \c value.
+ *
+ *  Text goes into the stream unformatted, so the stream's format flags, width, fill and locale have no say in the JSON
+ *  written, and are left as the caller set them. A width set before <tt>os << some_value</tt> applies to whatever is
+ *  inserted after it, not to the document.
 **/
 class JSONV_PUBLIC ostream_encoder :
         public encoder
@@ -222,6 +226,9 @@ protected:
     virtual void write_boolean(bool value) override;
     
 protected:
+    /** The stream text goes into. Write to it unformatted, with \c put and \c write, as this class does. A formatted
+     *  insertion would let the stream's state into the JSON, and would use up a width the caller left pending.
+    **/
     std::ostream& output();
     
 private:

@@ -122,7 +122,7 @@ static void to_hex(std::ostream& stream, uint16_t code)
     for (int pos = 3; pos >= 0; --pos)
     {
         uint16_t local_code = (code >> (4 * pos)) & uint16_t(0x000f);
-        stream << hex_codes[local_code];
+        stream.put(hex_codes[local_code]);
     }
 }
 
@@ -148,7 +148,7 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
         const char& current = source[idx];
         if (const char* replacement = find_encoding(current))
         {
-            stream << "\\" << *replacement;
+            stream.put('\\').put(*replacement);
             ++idx;
         }
         else
@@ -158,7 +158,7 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
 
             if (!needs_unicode_escaping(current))
             {
-                stream << current;
+                stream.put(current);
             }
             else
             {
@@ -186,7 +186,7 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
                 // basic multilingual plane points are encoded in hex
                 else if (code < 0x10000)
                 {
-                    stream << "\\u";
+                    stream.write("\\u", 2);
                     to_hex(stream, uint16_t(code));
                 }
                 // Codepoints not in the basic multilingual plane must be encoded as surrogate pairs
@@ -194,9 +194,9 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
                 {
                     uint16_t high, low;
                     utf16_create_surrogates(code, &high, &low);
-                    stream << "\\u";
+                    stream.write("\\u", 2);
                     to_hex(stream, high);
-                    stream << "\\u";
+                    stream.write("\\u", 2);
                     to_hex(stream, low);
                 }
             }

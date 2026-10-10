@@ -708,7 +708,8 @@ public:
     JSONV_NODISCARD
     bool operator>=(const value& other) const;
 
-    /// Output this value to a stream.
+    /// Output this value to a stream, through an \c ostream_encoder. The stream's format flags, width, fill and locale
+    /// do not change the text written.
     friend std::ostream& operator<<(std::ostream& stream, const value& val);
 
     /// Get a string representation of the given \c value.

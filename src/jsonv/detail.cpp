@@ -101,9 +101,9 @@ void check_type(std::initializer_list<kind> expected, kind actual)
 
 std::ostream& stream_escaped_string(std::ostream& stream, std::string_view str, bool ensure_ascii)
 {
-    stream << "\"";
+    stream.put('"');
     detail::string_encode(stream, str, ensure_ascii);
-    stream << "\"";
+    stream.put('"');
     return stream;
 }
 

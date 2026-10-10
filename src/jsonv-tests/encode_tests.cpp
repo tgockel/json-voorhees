@@ -13,6 +13,7 @@
 
 #include <jsonv/encode.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/serialization.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/writer.hpp>
 
@@ -201,16 +202,93 @@ TEST(encode_integer_ignores_stream_locale)
     ensure_eq(std::string("1234567"), os.str());
 }
 
-// Written unformatted, an integer would leave a pending width for the `,` after it, which pads to `0,` and reads back as
-// `[120,34]`.
-TEST(encode_integer_value_survives_pending_width)
+namespace
+{
+
+/// A document with every kind of token, an integer and a decimal of each sign, the extremes of \c std::int64_t, and a
+/// string with each kind of escape: a quote, a control, a code point in the basic multilingual plane and one beyond it.
+/// The last two are only escaped with \c ostream_encoder::ensure_ascii on.
+jsonv::value every_token()
+{
+    jsonv::value doc = jsonv::parse(R"({"n":[42,-7,1.5,-0.25,-9223372036854775808,9223372036854775807],)"
+                                    R"("x":null,"t":true,"f":false,"o":{}})"
+                                   );
+    doc["s"] = "caf\xc3\xa9 \"q\"\n\xf0\x9f\x98\x80";
+    return doc;
+}
+
+using stream_writer = void (*)(std::ostream&, const jsonv::value&);
+
+/// Each way of writing a document into a stream the caller owns.
+const stream_writer k_stream_writers[] =
+{
+    [] (std::ostream& os, const jsonv::value& doc) { os << doc; },
+    [] (std::ostream& os, const jsonv::value& doc) { jsonv::serialize(doc, os); },
+    [] (std::ostream& os, const jsonv::value& doc) { jsonv::ostream_pretty_encoder(os).encode(doc); },
+    [] (std::ostream& os, const jsonv::value& doc)
+    {
+        jsonv::ostream_encoder encoder(os);
+        encoder.ensure_ascii(false);
+        encoder.encode(doc);
+    },
+};
+
+/// Check that leaving \a set_state on a stream changes nothing any of \c k_stream_writers writes into it, and that each
+/// leaves the stream's flags, fill and width as it found them.
+void ensure_stream_state_ignored(void (*set_state)(std::ostream&))
+{
+    const jsonv::value doc = every_token();
+    for (stream_writer write : k_stream_writers)
+    {
+        std::ostringstream fresh;
+        write(fresh, doc);
+
+        std::ostringstream os;
+        set_state(os);
+        const std::ios_base::fmtflags flags = os.flags();
+        const char                    fill  = os.fill();
+        const std::streamsize         width = os.width();
+
+        write(os, doc);
+        ensure_eq(fresh.str(), os.str());
+        ensure(flags == os.flags());
+        ensure_eq(fill, os.fill());
+        ensure_eq(width, os.width());
+    }
+}
+
+}
+
+// The state on a stream is the caller's. Text goes into it unformatted, so none of it changes what the JSON says, and
+// it is all left as it was. Inserted, `std::oct` turned `42` into `52`, and `std::setfill('0') << std::setw(4)` put
+// `000` in front of the document. See issue #345.
+TEST(encode_ignores_stream_state)
+{
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::oct; });
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::hex; });
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::hex << std::showbase << std::uppercase; });
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::showpos; });
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::fixed << std::setprecision(1); });
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::setw(4); });
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::setfill('0') << std::setw(4); });
+    ensure_stream_state_ignored([] (std::ostream& os) { os << std::left << std::setfill('*') << std::setw(4); });
+    ensure_stream_state_ignored([] (std::ostream& os)
+                                {
+                                    os.imbue(std::locale(std::locale::classic(), new grouping_numpunct));
+                                });
+}
+
+// A width set part-way through a document is left for the caller too, rather than used up by whichever token comes
+// next. That could be the `,` after a number, which padded to `0,` turns `12` into `120` and `1e+20` into `1e+200`.
+TEST(encode_pending_width_left_to_caller)
 {
     std::ostringstream os;
-    jsonv::writer w(os);
+    jsonv::writer      w(os);
     w.array_begin();
-    os << std::setfill('0') << std::setw(2);
-    w.integer(12).integer(34).array_end();
-    ensure_eq(std::string("[12,34]"), os.str());
+    os << std::setfill('0') << std::setw(8);
+    w.integer(12).decimal(1e20).string("ab").null().boolean(true).array_end();
+    ensure_eq(std::string(R"([12,1e+20,"ab",null,true])"), os.str());
+    ensure_eq(std::streamsize(8), os.width());
 }
 
 TEST(encode_invalid_utf8_uses_replacement_for_bogus_2_byte)
