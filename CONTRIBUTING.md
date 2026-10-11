@@ -6,7 +6,8 @@ Please help me.
 
 ## Building
 
-Building the system only requires [CMake](https://cmake.org/) and the standard-issue C++ compilation tools.
+Building the system only requires [CMake](https://cmake.org/) 3.23 or newer and the standard-issue C++
+compilation tools.
 
 ### Local Builds
 
@@ -15,28 +16,66 @@ To run the same core build locally:
 
 ```bash
 $> cd /path/to/json-voorhees
-$> cmake -S . -B build -G Ninja -DJSONV_BUILD_TESTS=ON
-$> cmake --build build --target check --parallel
+$> cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+$> cmake --build build --parallel
+$> ctest --test-dir build --output-on-failure
 ```
+
+The tests are on by default for a stand-alone build and registered with CTest as a single test.
+`cmake --build build --target check` runs the binary directly, and `jsonv-tests` takes a substring
+filter as its only argument, so narrow a failure down with `./build/jsonv-tests parse_index` rather
+than re-running everything.
+
+`CMakePresets.json` holds the configurations below, each in its own `build-<preset>` directory, so
+the whole thing is also:
+
+```bash
+$> cmake --workflow --preset dev
+```
+
+### Build Options
+
+Every option is prefixed `JSONV_`, apart from CMake's own `BUILD_SHARED_LIBS`, which chooses the
+library type; the README lists them. The build is laid out as a short top-level `CMakeLists.txt`,
+one per component under `src/`, and the version, install and packaging logic in `cmake/`. Sources
+and public headers are listed explicitly, so a new file has to be added to the list in its
+directory's `CMakeLists.txt`.
+
+Names which existed before the prefix still appear in older `CMakeCache.txt` files. A configure
+warns about each and removes it; reconfigure with the replacement:
+
+| Old                              | Replacement                                                      |
+|----------------------------------|------------------------------------------------------------------|
+| `LIBRARY_TYPE=SHARED`/`STATIC`   | `BUILD_SHARED_LIBS=ON`/`OFF`                                     |
+| `BENCHMARK`                      | `JSONV_BUILD_BENCHMARK`                                          |
+| `BENCHMARK_JSONV` and friends    | `JSONV_BENCHMARK_JSONV`, `_JSONCPP`, `_JQ`, `_JANSSON`           |
+| `COVERAGE`                       | `JSONV_COVERAGE`                                                 |
+| `PACKAGE_NAME`                   | Gone; the package is `jsonv`                                     |
 
 ### Sanitizers
 
-`JSONV_SANITIZE` builds everything with AddressSanitizer and UndefinedBehaviorSanitizer. CI runs the
-unit test suite this way on every push and pull request:
+`JSONV_SANITIZE` builds the library and tests with AddressSanitizer and UndefinedBehaviorSanitizer.
+CI runs the unit test suite this way on every push and pull request:
+
+```bash
+$> cmake --workflow --preset asan
+```
+
+or, spelled out:
 
 ```bash
 $> cmake -S . -B build-asan -G Ninja \
-       -DJSONV_BUILD_TESTS=ON \
        -DJSONV_SANITIZE=ON \
        -DCMAKE_BUILD_TYPE=Debug \
-       -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+       -DCMAKE_CXX_COMPILER=clang++
+$> cmake --build build-asan --parallel
 $> ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=print_stacktrace=1 \
-       cmake --build build-asan --target check --parallel
+       ctest --test-dir build-asan --output-on-failure
 ```
 
 The build uses `-fno-sanitize-recover=all`, so the first finding aborts instead of printing and
-carrying on. `jsonv-tests` takes a substring filter as its only argument, so narrow a failure down
-with `./build-asan/jsonv-tests parse_index` rather than re-running everything.
+carrying on. Narrow a failure down with `./build-asan/jsonv-tests parse_index` rather than re-running
+everything.
 
 Debug is deliberate: `JSONV_DEBUG=1` drops the benchmark tests to one iteration, so the run is
 assertions rather than timing loops over the multi-megabyte data files.
@@ -59,11 +98,12 @@ push and pull request, and any finding fails the job. It reads compiler flags fr
 also the oldest release that works. A newer one will run, but may report checks 19 doesn't have.
 
 ```bash
-$> cmake -S . -B build-tidy -G Ninja \
-       -DCMAKE_BUILD_TYPE=Debug \
-       -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+$> cmake --preset tidy
 $> run-clang-tidy -p build-tidy -quiet '/src/jsonv/'
 ```
+
+The preset is a Debug configure with Clang and the tests off; configuring is enough, since nothing
+is generated at build time.
 
 The checks are in `.clang-tidy`. They are the bug-finding families (`bugprone-*`, `clang-analyzer-*`
 and `performance-*`), minus a few whose findings here were all deliberate, with a comment for each.
@@ -80,10 +120,16 @@ The parser is fuzzed with [libFuzzer](https://llvm.org/docs/LibFuzzer.html), whi
 `JSONV_BUILD_FUZZERS` is off by default and requires a Clang toolchain:
 
 ```bash
+$> cmake --workflow --preset fuzz
+```
+
+or, spelled out:
+
+```bash
 $> cmake -S . -B build-fuzz -G Ninja \
        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
        -DJSONV_BUILD_FUZZERS=ON \
-       -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+       -DCMAKE_CXX_COMPILER=clang++
 $> cmake --build build-fuzz --target jsonv-fuzz-parse jsonv-fuzz-roundtrip --parallel
 ```
 
@@ -120,29 +166,44 @@ CI runs both targets for 60 seconds per push and ten minutes nightly, keeping th
 discovers between scheduled runs. A crash, leak, timeout, or sanitizer report fails the job and the
 reproducer is uploaded as an artifact.
 
-Linux packages are built from the CMake install rules with CPack:
+### Packaging
+
+Linux packages are built from the CMake install rules with CPack. The `package` target builds
+everything, so the tests are switched off:
 
 ```bash
-$> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+$> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DJSONV_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr
 $> cmake --build build-package --target package --parallel
 ```
 
 Windows NuGet packages use the Visual Studio generator:
 
 ```bash
-$> cmake -S . -B build-package -G "Visual Studio 18 2026" -A x64 -DCPACK_GENERATOR=NuGet
+$> cmake -S . -B build-package -G "Visual Studio 18 2026" -A x64 -DJSONV_BUILD_TESTS=OFF -DCPACK_GENERATOR=NuGet
 $> cmake --build build-package --config Release --target package --parallel
 ```
 
 macOS installer packages use CPack's ProductBuild generator:
 
 ```bash
-$> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
+$> cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DJSONV_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
 $> cmake --build build-package --target package --parallel
 ```
 
-The CI package jobs install the generated packages and compile a small downstream program against the installed headers,
-package metadata, and library.
+The CI package jobs install the generated packages and build `examples/fetchcontent` against them through
+`find_package`, as well as compiling a small program through pkg-config or the raw compiler flags. A separate
+`consumer` job builds the same example with the library as a FetchContent subproject, static and shared, and
+against a prefix produced by `cmake --install`.
+
+### Consuming the Library
+
+`examples/fetchcontent` is the project from the README. The library is a CMake package: the in-tree
+`jsonv::jsonv` alias and the installed `jsonv::jsonv` imported target carry the same usage requirements, and
+nothing a top-level build does -- install rules, CPack, the build-type default, `compile_commands.json`, the
+output directories -- happens when the project is pulled in with `add_subdirectory` or FetchContent. Keep it that
+way: anything added to the build which only makes sense for a stand-alone build goes behind `PROJECT_IS_TOP_LEVEL`
+or `JSONV_INSTALL`, and flags for this project's own targets go through `jsonv_apply_dev_flags` in
+`cmake/JsonvDevFlags.cmake` rather than onto the directory.
 
 ## Process
 

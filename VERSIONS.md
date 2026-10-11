@@ -779,6 +779,24 @@
        happened to look like a container would have been read and written as an array. It now registers a
        `wrapper_adapter`, as `formats_builder::register_wrapper` always did (#329).
    - Platform
+     - JSON Voorhees is now a CMake package. `find_package(jsonv CONFIG)` finds an installed copy through the new
+       `jsonv-config.cmake` and `jsonv-config-version.cmake` (`SameMajorVersion`), the exported target is
+       `jsonv::jsonv`, and the same name is what a project which pulls the library in with `add_subdirectory` or
+       FetchContent links -- which no longer drags CPack, a `package` target, install rules or a build-type default
+       into that project. `jsonv-targets.cmake` replaces the unnamespaced `jsonv-export.cmake`. The public headers
+       are a `FILE_SET`, so they appear with the target in IDEs and are installed from it rather than by copying the
+       directory. CMake 3.23 is the minimum, and `examples/fetchcontent` is a consumer CI builds every way the
+       library can arrive (#360).
+     - The library type follows `BUILD_SHARED_LIBS` instead of a `LIBRARY_TYPE` string. A stand-alone build keeps
+       its defaults, shared except on Windows; a subproject follows the including project. Every option is
+       `JSONV_`-prefixed: `JSONV_BUILD_BENCHMARK` and `JSONV_BENCHMARK_*` replace `BENCHMARK` and `BENCHMARK_*`,
+       `JSONV_COVERAGE` replaces `COVERAGE`, `PACKAGE_NAME` is gone, and `JSONV_INSTALL` is new. The tests build by
+       default for a stand-alone build and are registered with CTest, so `ctest --test-dir build` runs them on every
+       platform. Warning, sanitizer, coverage and LTO flags apply to this project's own targets rather than to the
+       directory -- a static library keeps its sanitizer and coverage link flags in its link interface, for whoever
+       links the archive -- and `JSONV_DEBUG` and the test data path are defined on the tests alone.
+       `CMakePresets.json` holds the developer configurations. The shared library file is `libjsonv.so.2.0.0`, with
+       the SONAME `libjsonv.so.2.0` it always had (#360).
      - `JSONV_DEBUG` is now defined for any Debug configuration rather than only on non-Windows targets. It was
        appended to `CMAKE_CXX_FLAGS_DEBUG` inside an `if(WIN32)/else()` whose Windows half was empty, so an MSVC
        Debug build compiled with `JSONV_DEBUG=0` and ran the test suite's timing loops -- a hundred parses of every

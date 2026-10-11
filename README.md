@@ -34,34 +34,97 @@ Features include (but are not necessarily limited to):
 
 ![JSON Conversions](https://raw.githubusercontent.com/tgockel/json-voorhees/trunk/doc/conversions.png)
 
+Using JSON Voorhees in Your Project
+-----------------------------------
+
+The library is a CMake package. The quickest way in is [FetchContent][FetchContent], which builds it as part of
+your own project:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(jsonv
+                     GIT_REPOSITORY https://github.com/tgockel/json-voorhees.git
+                     GIT_TAG        v2.0.0
+                     FIND_PACKAGE_ARGS
+                    )
+FetchContent_MakeAvailable(jsonv)
+
+target_link_libraries(your-target PRIVATE jsonv::jsonv)
+```
+
+`FIND_PACKAGE_ARGS` (CMake 3.24) uses a copy already installed on the system when there is one and clones the tag
+otherwise; leave it out to always build from source. To link only against an installed copy, from a package or
+`cmake --install`:
+
+```cmake
+find_package(jsonv CONFIG REQUIRED)
+target_link_libraries(your-target PRIVATE jsonv::jsonv)
+```
+
+Either way, `jsonv::jsonv` carries everything a consumer needs: the include directory, the C++23 requirement (a
+target linking it is compiled as C++23 if it was not already), and `JSONV_SO=0` when the library is static. The
+library has no dependencies of its own. `examples/fetchcontent` is a complete project built from the snippet above.
+
+Outside CMake, the install provides a pkg-config file: `pkg-config --cflags --libs libjsonv`. The NuGet package
+is a Release build of the static library; link it from a Release or RelWithDebInfo configuration, since MSVC will
+not link Debug objects against a library built with the release runtime.
+
+[FetchContent]: https://cmake.org/cmake/help/latest/module/FetchContent.html
+
 Compile and Install
 -------------------
 
-JSON Voorhees uses [CMake](http://www.cmake.org/) as the automatic configuration software.
-On Linux or macOS, if you have `cmake`, a C++ compiler, and a build tool installed:
+JSON Voorhees uses [CMake](http://www.cmake.org/) 3.23 or newer. On Linux or macOS, with `cmake`, a C++23 compiler
+and a build tool installed:
 
 ```sh
-cmake -S . -B build -DJSONV_BUILD_TESTS=ON
-cmake --build build --target check --parallel
+cmake -S . -B build
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
 sudo cmake --install build
 ```
 
-If you want to customize your compilation or installation, see the options in `CMakeLists.txt`.
+The tests are built by default for a stand-alone build, and `cmake --build build --target check` runs them without
+going through CTest. `CMakePresets.json` holds the usual developer configurations, each in its own `build-<preset>`
+directory:
+
+```sh
+cmake --workflow --preset dev        # Debug with tests
+cmake --workflow --preset release    # Release with tests and link-time optimization
+```
 
 On Windows, use CMake with Visual Studio:
 
 ```sh
-cmake -S . -B build -G "Visual Studio 18 2026" -A x64 -DJSONV_BUILD_TESTS=ON
-cmake --build build --config Release --target check --parallel
+cmake -S . -B build -G "Visual Studio 18 2026" -A x64
+cmake --build build --config Release --parallel
+ctest --test-dir build -C Release --output-on-failure
 ```
+
+The build options, each settable with `-D`:
+
+| Option                             | Default                                | Meaning                                                         |
+|------------------------------------|----------------------------------------|-----------------------------------------------------------------|
+| `BUILD_SHARED_LIBS`                | `ON` except on Windows                 | Build `jsonv` as a shared rather than a static library          |
+| `JSONV_BUILD_TESTS`                | `ON` when top-level                    | Build `jsonv-tests` and register it with CTest                  |
+| `JSONV_BUILD_BENCHMARK`            | `OFF`                                  | Build `json-benchmark` (suites: `JSONV_BENCHMARK_*`)            |
+| `JSONV_BUILD_FUZZERS`              | `OFF`                                  | Build the libFuzzer targets (Clang only)                        |
+| `JSONV_INSTALL`                    | `ON` when top-level                    | Generate install rules, and CPack configuration when top-level  |
+| `JSONV_LTO`                        | `ON` when top-level and not sanitizing | Link-time optimization in Release and RelWithDebInfo            |
+| `JSONV_SANITIZE`                   | `OFF`                                  | AddressSanitizer and UndefinedBehaviorSanitizer                 |
+| `JSONV_COVERAGE`                   | `OFF`                                  | gcov instrumentation                                            |
+| `JSONV_RELEASE_WITH_DEBUG_SYMBOLS` | `OFF`                                  | `-ggdb` in Release builds                                       |
+
+When another project pulls the library in with `add_subdirectory` or FetchContent, the "when top-level" defaults
+are off and the library type follows that project's `BUILD_SHARED_LIBS`.
 
 ### Packages
 
-CPack can create native binary packages from the CMake install rules.
-On Linux:
+CPack can create native binary packages from the CMake install rules. The `package` target builds everything, so
+the tests are switched off. On Linux:
 
 ```sh
-cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DJSONV_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr
 cmake --build build-package --target package --parallel
 ```
 
@@ -71,14 +134,14 @@ To build only one format, configure with `-DCPACK_GENERATOR=DEB` or `-DCPACK_GEN
 On Windows, CPack builds a native NuGet package:
 
 ```sh
-cmake -S . -B build-package -G "Visual Studio 18 2026" -A x64 -DCPACK_GENERATOR=NuGet
+cmake -S . -B build-package -G "Visual Studio 18 2026" -A x64 -DJSONV_BUILD_TESTS=OFF -DCPACK_GENERATOR=NuGet
 cmake --build build-package --config Release --target package --parallel
 ```
 
 On macOS, CPack builds a native installer package:
 
 ```sh
-cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
+cmake -S . -B build-package -G Ninja -DCMAKE_BUILD_TYPE=Release -DJSONV_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local -DCPACK_GENERATOR=productbuild
 cmake --build build-package --target package --parallel
 ```
 

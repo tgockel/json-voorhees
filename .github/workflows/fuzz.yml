@@ -58,8 +58,8 @@ jobs:
         run: >
           cmake -S . -B build
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DJSONV_BUILD_TESTS=OFF
           -DJSONV_BUILD_FUZZERS=ON
-          -DCMAKE_C_COMPILER=clang-19
           -DCMAKE_CXX_COMPILER=clang++-19
 
       - name: Build

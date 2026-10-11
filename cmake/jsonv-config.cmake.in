@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+# JSON Voorhees has no dependencies, so there is nothing to find_dependency(). The targets file carries the whole
+# usage requirement: the include directory, cxx_std_23, and JSONV_SO=0 when the installed library is static.
+include("${CMAKE_CURRENT_LIST_DIR}/jsonv-targets.cmake")
+
+# There are no components. This makes `find_package(jsonv COMPONENTS whatever)` a failure instead of a silently
+# honoured typo.
+check_required_components(jsonv)
