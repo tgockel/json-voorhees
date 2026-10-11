@@ -252,18 +252,15 @@ static uint16_t from_hex_digit(char c, std::size_t idx)
     case 'F':
         return 0xf;
     default:
-        throw decode_error(idx, std::string("The character '") + c + "' is not a valid hexidecimal digit.");
+        throw decode_error(idx, std::string("The character '") + c + "' is not a valid hexadecimal digit.");
     }
 }
 
 static uint16_t from_hex(const char* s, std::size_t idx_base)
 {
     uint16_t x = 0U;
-    for (int idx = 3; idx >= 0; --idx)
-    {
-        x = uint16_t(x + (from_hex_digit(*s, idx_base + idx) << (idx * 4)));
-        ++s;
-    }
+    for (std::size_t idx = 0; idx < 4; ++idx)
+        x = uint16_t((x << 4) | from_hex_digit(s[idx], idx_base + idx));
 
     return x;
 }

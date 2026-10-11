@@ -18,6 +18,7 @@
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 
 using jsonv::detail::decode_error;
 
@@ -233,6 +234,32 @@ TEST(string_decode_unicode_surrogates_invalid_lone_low)
         {
             ensure_eq(0U, ex.offset());
             ensure_eq("unpaired low surrogate (" + std::string(source.substr(0, 6)) + ")", std::string(ex.what()));
+        }
+    }
+}
+
+TEST(string_decode_invalid_hex_digit_offset)
+{
+    // A bad digit in a \u escape used to be reported at its mirror within the escape, the first at the last's (#350).
+    const std::pair<std::string_view, std::size_t> cases[] =
+        {
+            { R"(\uZ000)",       2U  },
+            { R"(\u000Z)",       5U  },
+            { R"(ab\u0Z00)",     5U  },
+            { R"(\ud800\uZ000)", 8U  },
+            { R"(\ud800\udc0Z)", 11U },
+        };
+    for (const auto& [source, offset] : cases)
+    {
+        try
+        {
+            string_decode_exact(source);
+            ensure(!"decode_error was not thrown");
+        }
+        catch (const decode_error& ex)
+        {
+            ensure_eq(offset, ex.offset());
+            ensure_eq("The character 'Z' is not a valid hexadecimal digit.", std::string(ex.what()));
         }
     }
 }
