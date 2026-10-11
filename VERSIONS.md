@@ -788,6 +788,11 @@
      - Link-time optimization is now enabled per configuration rather than globally. `CMAKE_BUILD_TYPE` was defaulted
        to `Release` whenever it was empty, which is always under a multi-config generator, so a Visual Studio build
        chose LTO from a configuration it was not building and compiled the Debug one `/GL` and `/LTCG`.
+     - Fixed a static build keeping `JSONV_SO=0` to itself. The definition was directory scoped, so the exported
+       CMake target, `libjsonv.pc` and the NuGet `jsonv.targets` all left consumers on `config.hpp`'s default of
+       `JSONV_SO=1`, compiling the headers as if the library were shared -- on MSVC, `__declspec(dllimport)` against
+       a static `jsonv.lib`. The definition is now a usage requirement of the target, `Cflags` in the pkg-config file
+       and a `PreprocessorDefinitions` entry in the MSBuild targets (#359).
      - The reference documentation gives each overload the comment it shares with the rest of its set. Doxygen attached
        that comment to the set's first declaration only, so `reader::from_value(value&&)`, the `std::wstring` and
        `const` forms of `value`'s accessors and about ninety others had no entry; `DISTRIBUTE_GROUP_DOC` is now on, and

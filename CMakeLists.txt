@@ -111,8 +111,16 @@ endif()
 set(LIBRARY_TYPE ${DEFAULT_LIBRARY_TYPE}
     CACHE STRING "The type of library to build (SHARED or STATIC)"
    )
+# `config.hpp` defaults `JSONV_SO` to 1, so a consumer of a static build has to be told otherwise or it compiles the
+# headers as if the library were shared -- on MSVC, `__declspec(dllimport)` against a static `jsonv.lib`. The
+# definition goes on the target below, where it is exported; pkg-config and MSBuild consumers never see an exported
+# interface, so the same definition is written into `libjsonv.pc` and `jsonv.targets` by hand.
 if (LIBRARY_TYPE STREQUAL "STATIC")
-    add_definitions("-DJSONV_SO=0")
+    set(JSONV_PC_CFLAGS       " -DJSONV_SO=0")
+    set(JSONV_MSBUILD_DEFINES "JSONV_SO=0;")
+else()
+    set(JSONV_PC_CFLAGS       "")
+    set(JSONV_MSBUILD_DEFINES "")
 endif()
 
 option(BENCHMARK
@@ -206,6 +214,10 @@ target_include_directories(jsonv
                            PRIVATE
                              "${PROJECT_SOURCE_DIR}/src"
                           )
+if (LIBRARY_TYPE STREQUAL "STATIC")
+    # PUBLIC: this is a usage requirement of the static library, not a detail of compiling it.
+    target_compile_definitions(jsonv PUBLIC JSONV_SO=0)
+endif()
 set_target_properties(jsonv
                       PROPERTIES
                         SOVERSION ${JSONV_SO_VERSION}
