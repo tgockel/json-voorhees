@@ -22,8 +22,10 @@
 #include <cmath>
 #include <cstring>
 #include <iterator>
+#include <limits>
 #include <ostream>
 #include <sstream>
+#include <stdexcept>
 
 namespace jsonv
 {
@@ -283,6 +285,14 @@ const value& value::at_path(size_type path_idx) const
 
 value& value::path(const jsonv::path& p)
 {
+    // No array can hold `max + 1` elements, so an index of `max` never exists. Refuse it before anything is created on
+    // the way to it, rather than letting `index() + 1` below wrap to 0 and empty the array.
+    for (const path_element& elem : p)
+    {
+        if (elem.kind() == path_element_kind::array_index && elem.index() == std::numeric_limits<std::size_t>::max())
+            throw std::length_error("no array can hold " + to_string(elem) + " (full path: " + to_string(p) + ")");
+    }
+
     return walk_path(*this,
                      p.begin(),
                      p.end(),

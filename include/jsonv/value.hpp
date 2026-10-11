@@ -640,6 +640,8 @@ public:
      *                     index when the value is a string).
      *  \throws std::invalid_argument if a \c std::string_view was specified that did not have a valid specification
      *                                (see \c path::create).
+     *  \throws std::length_error if the path has an array index of the largest \c std::size_t, which no array can hold.
+     *                            This is checked before anything is created, so \c *this is left as it was.
      *
      *  \see at_path
     **/

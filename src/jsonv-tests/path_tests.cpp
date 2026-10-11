@@ -216,6 +216,29 @@ TEST(value_path_array_construct)
     ensure_eq(0UL, arr.count_path(".a"));
 }
 
+TEST(value_path_max_index)
+{
+    // No array can hold `max + 1` elements, so an index of `max` never exists. `path` used to size the array to
+    // `index + 1`, which wraps to 0 here: the array was emptied and only then did the lookup throw.
+    constexpr auto max = std::numeric_limits<std::size_t>::max();
+    const std::string max_text = std::to_string(max);
+
+    value arr = array({ 1, 2, 3 });
+    ensure_throws(std::length_error, arr.path(max));
+    ensure_eq(array({ 1, 2, 3 }), arr);
+    ensure_throws(std::length_error, arr.path("[" + max_text + "]"));
+    ensure_eq(array({ 1, 2, 3 }), arr);
+
+    // Nothing is created on the way to the index, either
+    value nothing;
+    ensure_throws(std::length_error, nothing.path("[" + max_text + "]"));
+    ensure_eq(value(), nothing);
+
+    value obj = object();
+    ensure_throws(std::length_error, obj.path(".a[" + max_text + "]"));
+    ensure_eq(object(), obj);
+}
+
 TEST(path_element_access)
 {
     path p = path::create(".a.b[5]");

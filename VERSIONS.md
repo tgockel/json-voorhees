@@ -223,6 +223,12 @@
        Also fixed the escape lookup behind the encoder and decoder reading one entry past the end of its table for a
        character which sorts after every escape, such as any lowercase letter being encoded or the `u` of a `\u`
        escape being decoded. What it read was never used, so no output changes (#194).
+     - Fixed `value::path` emptying the array it was called on when given an index of `SIZE_MAX`, through either the
+       `size_type` overload or `path::create("[18446744073709551615]")`. It sized the array to `index + 1`, which
+       wraps to `0`, and only then did the lookup throw `std::out_of_range`. No array can hold that index, so the
+       call now throws `std::length_error` -- what `SIZE_MAX - 1` already did -- before creating anything, which
+       leaves a `null` as `null` and a key on the way there uncreated. Other indices too large to allocate still
+       create the containers leading up to them before the resize fails (#284).
      - `ostream_pretty_encoder` no longer flushes its stream at the end of every line. It wrote line breaks with
        `std::endl`, so pretty output to a file or a socket paid for a write per line. The output itself is unchanged;
        flush the stream yourself if you need it to have arrived (#188).
