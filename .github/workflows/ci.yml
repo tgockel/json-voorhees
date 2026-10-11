@@ -285,6 +285,25 @@ jobs:
             -Wl,-rpath,"${GITHUB_WORKSPACE}/prefix/lib" -o jsonv-pc-example
           ./jsonv-pc-example
 
+      # Nothing in the installed tree may depend on where it was configured to go: the CMake package files locate
+      # themselves through CMAKE_CURRENT_LIST_DIR and libjsonv.pc through ${pcfiledir}. Moving the prefix is the
+      # test, and both consumers are built against the moved copy.
+      - name: Relocate the prefix and consume it again
+        run: |
+          mv prefix relocated
+          export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/relocated/lib/pkgconfig"
+          pkg-config --cflags --libs libjsonv
+          c++ -std=c++23 examples/fetchcontent/main.cpp $(pkg-config --cflags --libs libjsonv) \
+            -Wl,-rpath,"${GITHUB_WORKSPACE}/relocated/lib" -o jsonv-pc-relocated
+          ./jsonv-pc-relocated
+          cmake -S examples/fetchcontent -B build-consumer-relocated -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_PREFIX_PATH="${GITHUB_WORKSPACE}/relocated" \
+            -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+          grep -E '^jsonv_DIR:PATH=.*/relocated/lib/cmake/jsonv$' build-consumer-relocated/CMakeCache.txt
+          cmake --build build-consumer-relocated --parallel
+          ./build-consumer-relocated/jsonv-example
+
   packages:
     name: Packages (${{ matrix.format }})
     runs-on: ubuntu-24.04

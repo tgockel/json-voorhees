@@ -1,7 +1,7 @@
-prefix=@CMAKE_INSTALL_PREFIX@
+prefix=@JSONV_PC_PREFIX@
 exec_prefix=${prefix}
-libdir=@CMAKE_INSTALL_FULL_LIBDIR@
-includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+libdir=@JSONV_PC_LIBDIR@
+includedir=@JSONV_PC_INCLUDEDIR@
 
 Name: libjsonv
 Description: JSON Voorhees

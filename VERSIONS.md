@@ -811,6 +811,10 @@
        `JSONV_SO=1`, compiling the headers as if the library were shared -- on MSVC, `__declspec(dllimport)` against
        a static `jsonv.lib`. The definition is now a usage requirement of the target, `Cflags` in the pkg-config file
        and a `PreprocessorDefinitions` entry in the MSBuild targets (#359).
+     - `libjsonv.pc` locates the installation from its own path through `${pcfiledir}` rather than from the prefix
+       CMake was configured with, so `cmake --install --prefix` into another directory, or moving an installed tree,
+       no longer leaves pkg-config pointing at the old location. A `CMAKE_INSTALL_LIBDIR` or
+       `CMAKE_INSTALL_INCLUDEDIR` given as an absolute path is written as it is (#362).
      - The reference documentation gives each overload the comment it shares with the rest of its set. Doxygen attached
        that comment to the set's first declaration only, so `reader::from_value(value&&)`, the `std::wstring` and
        `const` forms of `value`'s accessors and about ninety others had no entry; `DISTRIBUTE_GROUP_DOC` is now on, and

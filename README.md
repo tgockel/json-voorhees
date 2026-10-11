@@ -65,7 +65,8 @@ Either way, `jsonv::jsonv` carries everything a consumer needs: the include dire
 target linking it is compiled as C++23 if it was not already), and `JSONV_SO=0` when the library is static. The
 library has no dependencies of its own. `examples/fetchcontent` is a complete project built from the snippet above.
 
-Outside CMake, the install provides a pkg-config file: `pkg-config --cflags --libs libjsonv`. The NuGet package
+Outside CMake, the install provides a pkg-config file: `pkg-config --cflags --libs libjsonv`. Both it and the
+CMake package files find the installation relative to themselves, so an installed tree can be moved. The NuGet package
 is a Release build of the static library; link it from a Release or RelWithDebInfo configuration, since MSVC will
 not link Debug objects against a library built with the release runtime.
 

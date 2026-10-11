@@ -55,9 +55,29 @@ else()
     set(JSONV_MSBUILD_DEFINES "")
 endif()
 
+# The .pc file locates the prefix from its own position -- `${pcfiledir}` is the directory pkg-config read it from
+# -- so the install stays usable when `cmake --install --prefix` puts it somewhere other than CMAKE_INSTALL_PREFIX,
+# or the whole tree is moved. The CMake package files already work this way. A destination given as an absolute
+# path cannot move with the prefix, so one of those is written as it is.
+set(JSONV_PC_PKGCONFIGDIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+    set(JSONV_PC_PREFIX "${CMAKE_INSTALL_PREFIX}")
+    set(JSONV_PC_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+else()
+    file(RELATIVE_PATH jsonv_pc_to_prefix "${CMAKE_INSTALL_PREFIX}/${JSONV_PC_PKGCONFIGDIR}" "${CMAKE_INSTALL_PREFIX}")
+    string(REGEX REPLACE "/+$" "" jsonv_pc_to_prefix "${jsonv_pc_to_prefix}")
+    set(JSONV_PC_PREFIX "\${pcfiledir}/${jsonv_pc_to_prefix}")
+    set(JSONV_PC_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(JSONV_PC_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+    set(JSONV_PC_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+
 configure_file("${PROJECT_SOURCE_DIR}/libjsonv.pc.in" "${PROJECT_BINARY_DIR}/libjsonv.pc" @ONLY)
 install(FILES "${PROJECT_BINARY_DIR}/libjsonv.pc"
-        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        DESTINATION "${JSONV_PC_PKGCONFIGDIR}"
         COMPONENT   development
        )
 
