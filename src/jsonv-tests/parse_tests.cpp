@@ -123,6 +123,26 @@ TEST_PARSE(number_integer_at_end_of_input)
     ensure_eq(std::int64_t(-1234567890123456789),                 parse("-1234567890123456789").as_integer());
 }
 
+// The SWAR parser reads digits eight at a time, and its multiplies assume the first digit is the lowest byte of the
+// loaded word. On a big-endian target that is only true after a byte swap, so a missing one reverses each group of
+// eight digits without any error. These values are not palindromes, so a reversed group cannot equal the expected one.
+TEST_PARSE(number_integer_eight_digit_groups)
+{
+    // One full group.
+    ensure_eq(std::int64_t(12345678), parse("12345678").as_integer());
+    ensure_eq(std::int64_t(12345678), parse("[12345678]").at(0).as_integer());
+    ensure_eq(std::int64_t(10000000), parse("10000000").as_integer());
+
+    // Two full groups, and two groups with a scalar tail of three digits (the 19-digit positive limit).
+    ensure_eq(std::int64_t(1234567890123456),           parse("1234567890123456").as_integer());
+    ensure_eq(std::numeric_limits<std::int64_t>::max(), parse("9223372036854775807").as_integer());
+
+    // The negative SWAR limit is 18 magnitude digits: two full groups and a two-digit tail.
+    ensure_eq(std::int64_t(-123456789012345678), parse("-123456789012345678").as_integer());
+    ensure_eq(std::int64_t(-999999999999999999), parse("-999999999999999999").as_integer());
+    ensure_eq(std::int64_t(-100000000000000000), parse("-100000000000000000").as_integer());
+}
+
 TEST_PARSE(number_integer_boundaries)
 {
     ensure_eq(std::numeric_limits<std::int64_t>::max(), parse("9223372036854775807").as_integer());

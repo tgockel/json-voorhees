@@ -13,6 +13,7 @@
 #include <jsonv/value.hpp>
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <charconv>
 #include <cstdlib>
@@ -118,10 +119,16 @@ jsonv::value ast_node::literal_null::value() const
 // byte is in '0'..'9'. Classic SWAR trick (Wojciech Mula, popularized by simdjson): mask off the
 // high nibble to get the digit value of each byte in place, then pairwise-combine digits with
 // multiplies whose constants encode (10*256+1), (100*65536+1), (10000*2^32+1).
+//
+// The multiplies pair each digit with the one after it only when `chars[0]` is the lowest byte of the
+// word, so a big-endian load is byte-swapped first. Without that, every group of eight digits comes
+// out reversed.
 static inline std::uint32_t parse_eight_digits_swar(const char* chars) noexcept
 {
     std::uint64_t val;
     std::memcpy(&val, chars, sizeof val);
+    if constexpr (std::endian::native == std::endian::big)
+        val = std::byteswap(val);
     val = (val & 0x0F0F0F0F0F0F0F0FULL) * 2561ULL >> 8;
     val = (val & 0x00FF00FF00FF00FFULL) * 6553601ULL >> 16;
     return static_cast<std::uint32_t>((val & 0x0000FFFF0000FFFFULL) * 42949672960001ULL >> 32);

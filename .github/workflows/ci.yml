@@ -92,6 +92,54 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+  # Every other job runs on a little-endian host, so code that assumes byte order passes them all. The
+  # SWAR integer parser did exactly that and read each group of eight digits backwards on a big-endian
+  # target (#277). s390x is the usual big-endian target to emulate -- ppc64le, despite the name, is
+  # little-endian.
+  #
+  # This cross-compiles with the distro's s390x GCC and runs the tests under qemu-user, which needs no
+  # third-party action and no container. GCC 14 is the version because `std::expected` needs 13 or
+  # newer. CMake runs each test through `CMAKE_CROSSCOMPILING_EMULATOR`, with `-L` pointing QEMU at
+  # the s390x sysroot the cross packages install. The library is static so that no shared-library
+  # search path has to resolve inside the emulator, and LTO is off because this job is about byte order,
+  # not link-time optimization.
+  #
+  # Debug rather than an optimized build: `JSONV_DEBUG=1` drops the benchmark tests to a single
+  # iteration, which matters when every instruction is emulated.
+  build-s390x:
+    name: Build (s390x, big-endian, qemu)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install s390x cross compiler and QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes g++-14-s390x-linux-gnu qemu-user
+
+      - name: Report compiler version
+        run: s390x-linux-gnu-g++-14 --version
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_SYSTEM_NAME=Linux
+          -DCMAKE_SYSTEM_PROCESSOR=s390x
+          -DCMAKE_CXX_COMPILER=s390x-linux-gnu-g++-14
+          "-DCMAKE_CROSSCOMPILING_EMULATOR=qemu-s390x;-L;/usr/s390x-linux-gnu"
+          -DJSONV_LTO=OFF
+          -DBUILD_SHARED_LIBS=OFF
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
   sanitizers:
     name: Sanitizers (ubuntu-24.04, clang, ASan+UBSan)
     runs-on: ubuntu-24.04
