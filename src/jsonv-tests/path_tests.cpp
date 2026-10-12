@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include "test.hpp"
+#include "allocation_counter.hpp"
 #include "filesystem_util.hpp"
 #include "locale_util.hpp"
 
@@ -21,8 +22,12 @@
 #include <cstdint>
 #include <fstream>
 #include <limits>
+#include <new>
+#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 namespace jsonv_test
 {
@@ -238,6 +243,194 @@ TEST(value_path_max_index)
     ensure_throws(std::length_error, obj.path(".a[" + max_text + "]"));
     ensure_eq(object(), obj);
 }
+
+TEST(value_path_too_large_index_changes_nothing)
+{
+    // `path` used to create the containers on the way to an index and only then find the array could not hold it, so
+    // a failure left them behind: a null turned into `[]`, a missing key into `{"a":[]}` (#363).
+    struct shape
+    {
+        value       start;
+        std::string where; // `N` stands for the index
+    };
+    const std::vector<shape> shapes =
+    {
+        { value(),                              "[N]"       },
+        { object(),                             ".a[N]"     },
+        { object({ { "a", array({ 1 }) } }),    ".a[N]"     },
+        { object({ { "a", object() } }),        ".a.b.c[N]" },
+        { array({ object() }),                  "[0].x[N]"  },
+    };
+
+    constexpr auto max = std::numeric_limits<std::size_t>::max();
+    for (const std::size_t index : { max - 1, max })
+    {
+        for (const shape& s : shapes)
+        {
+            std::string where = s.where;
+            where.replace(where.find('N'), 1, std::to_string(index));
+
+            value v = s.start;
+            ensure_throws(std::length_error, v.path(where));
+            ensure_eq(s.start, v);
+        }
+    }
+
+    // The kind of what exists is checked first, so a path which cannot apply to it says that rather than blaming its
+    // index
+    value arr = array({ 1 });
+    ensure_throws(kind_error, arr.path(".a[" + std::to_string(max) + "]"));
+    ensure_eq(array({ 1 }), arr);
+}
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+namespace
+{
+
+/// Allocations smaller than this are left alone. MSVC's debug containers allocate a 16-byte iterator proxy inside
+/// `noexcept` constructors and moves, and failing one of those terminates the process (see `allocation_counter.hpp`).
+/// Everything `path` asks for on purpose is bigger: the array and object nodes, a buffer of two elements, a map node.
+constexpr std::size_t above_iterator_proxies = 17U;
+
+/// Calls `path` with \a where on a copy of \a start_text, failing each allocation that takes in turn until an attempt
+/// goes through. An attempt which fails has to leave the value as it was and give back whatever it allocated; the one
+/// which goes through has to produce \a expected_text and return the value at \a where.
+void check_path_survives_allocation_failure(std::string_view start_text,
+                                            std::string_view where,
+                                            std::string_view expected_text
+                                           )
+{
+    const value start    = parse(start_text);
+    const value expected = parse(expected_text);
+    const path  p        = path::create(where);
+
+    std::size_t failures = 0U;
+    for (std::size_t nth = 1U; ; ++nth)
+    {
+        value             v      = start;
+        value*            result = nullptr;
+        bool              failed = false;
+        const std::size_t before = jsonv_test::live_allocations();
+        {
+            // Nothing but `path` may allocate in here. That rules out `ensure_throws`, whose failure path allocates
+            // and so can catch the `std::bad_alloc` it caused itself and pass.
+            jsonv_test::failing_allocation fail(nth, above_iterator_proxies);
+            try
+            {
+                result = &v.path(p);
+            }
+            catch (const std::bad_alloc&)
+            {
+                failed = true;
+            }
+        }
+        const std::size_t after = jsonv_test::live_allocations();
+
+        if (failed)
+        {
+            ensure_eq(before, after);
+            ensure_eq(start, v);
+            ++failures;
+            continue;
+        }
+
+        ensure_eq(expected, v);
+        ensure(result == &v.at_path(p));
+        // Every shape here has to allocate to get where it is going, so one which went through on the first attempt
+        // never had a failure to survive.
+        ensure_gt(failures, 0U);
+        return;
+    }
+}
+
+}
+
+TEST(value_path_allocation_failure_changes_nothing)
+{
+    // Creating `.a`, `.b` and the array under it
+    check_path_survives_allocation_failure("null", ".a.b[3]", R"({"a":{"b":[null,null,null,null]}})");
+    // A key added to an object
+    check_path_survives_allocation_failure("{}", ".k", R"({"k":null})");
+    // An array grown by one, and by several
+    check_path_survives_allocation_failure("[1,2]", "[2]", "[1,2,null]");
+    check_path_survives_allocation_failure(R"({"a":[1]})", ".a[5]", R"({"a":[1,null,null,null,null,null]})");
+    // The first thing missing is below something which exists
+    check_path_survives_allocation_failure(R"({"a":{"x":1}})",
+                                           ".a.y.z[2]",
+                                           R"({"a":{"x":1,"y":{"z":[null,null,null]}}})"
+                                          );
+    check_path_survives_allocation_failure(R"({"a":[1,2]})", ".a[2].k", R"({"a":[1,2,{"k":null}]})");
+}
+
+TEST(value_path_existing_costs_nothing)
+{
+    value      v = parse(R"({"a":[1,{"b":2}]})");
+    const path p = path::create(".a[1].b");
+
+    jsonv_test::allocation_counter allocations;
+    value&                         found = v.path(p);
+    const std::size_t              cost  = allocations.count(); // read it out *before* asserting: `ensure_eq` allocates
+
+    ensure_eq(0U, cost);
+    ensure_eq(value(2), found);
+}
+
+/// An array index of the largest `std::size_t` is refused before any of what is missing from the path is built.
+/// `path` builds the missing part before it attaches any of it, so a check made only when the index is reached lets a
+/// valid but large index ahead of it allocate its whole array first, only to throw it away.
+///
+/// Every allocation of a megabyte or more fails, so one the refusal should have come before shows up as a
+/// `std::bad_alloc` in place of the `std::length_error`, without the memory ever being asked for.
+TEST(value_path_max_index_is_refused_before_building_anything)
+{
+    constexpr std::size_t large_index = 1000000U; // 16 MB of `value`s
+    constexpr std::size_t megabyte    = 1U << 20;
+
+    const std::string max_text   = std::to_string(std::numeric_limits<std::size_t>::max());
+    const std::string large_text = std::to_string(large_index);
+
+    const std::vector<std::pair<std::string, std::string>> cases =
+    {
+        { "null",        "[" + max_text + "][" + large_text + "]"            },
+        { "null",        ".a[" + large_text + "][" + max_text + "]"          },
+        { "{}",          ".a[" + large_text + "][" + max_text + "]"          },
+        { R"({"a":{}})", ".a.b[" + large_text + "][" + max_text + "]"        },
+    };
+
+    for (const auto& [start_text, where] : cases)
+    {
+        const value start = parse(start_text);
+        const path  p     = path::create(where);
+        value       v     = start;
+
+        bool refused   = false;
+        bool allocated = false;
+        {
+            // Nothing but `path` may allocate in here: `ensure_throws` would allocate on failure, and so could catch
+            // the `std::bad_alloc` it caused itself.
+            jsonv_test::failing_allocation fail(1U, megabyte);
+            try
+            {
+                (void) v.path(p);
+            }
+            catch (const std::length_error&)
+            {
+                refused = true;
+            }
+            catch (const std::bad_alloc&)
+            {
+                allocated = true;
+            }
+        }
+
+        ensure(!allocated);
+        ensure(refused);
+        ensure_eq(start, v);
+    }
+}
+
+#endif
 
 TEST(path_element_access)
 {

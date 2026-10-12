@@ -283,36 +283,113 @@ const value& value::at_path(size_type path_idx) const
     return at_path(jsonv::path({ path_element(path_idx) }));
 }
 
-value& value::path(const jsonv::path& p)
+namespace
 {
-    // No array can hold `max + 1` elements, so an index of `max` never exists. Refuse it before anything is created on
-    // the way to it, rather than letting `index() + 1` below wrap to 0 and empty the array.
-    for (const path_element& elem : p)
+
+/// The child of \a current which \a elem names, or null if there is none. This is the question \c walk_path asks before
+/// it calls its \c on_nonexistant_path, with the answer handed back instead of acted on.
+///
+/// \throws kind_error if \a elem cannot name a child of \a current at all.
+value* existing_child(value& current, const path_element& elem)
+{
+    switch (elem.kind())
     {
-        if (elem.kind() == path_element_kind::array_index && elem.index() == std::numeric_limits<std::size_t>::max())
-            throw std::length_error("no array can hold " + to_string(elem) + " (full path: " + to_string(p) + ")");
+    case path_element_kind::array_index:
+        check_type({ jsonv::kind::array, jsonv::kind::null }, current.kind());
+        if (current.kind() != jsonv::kind::array || elem.index() >= current.size())
+            return nullptr;
+        return &current.at(elem.index());
+    case path_element_kind::object_key:
+        check_type({ jsonv::kind::object, jsonv::kind::null }, current.kind());
+        if (current.kind() != jsonv::kind::object || !current.count(elem.key()))
+            return nullptr;
+        return &current.at(elem.key());
+    default:
+        throw std::runtime_error(to_string(elem));
+    }
+}
+
+/// Gives \a node the element \a elem names, as a \c null, and returns it. A \c null \a node becomes the container
+/// \a elem indexes. \a elem must not name an element \a node already has, and an array index must be one an array can
+/// hold: for the largest \c std::size_t, `index + 1` wraps to 0 and the \c resize would empty the array.
+///
+/// If this throws, \a node is as it was. A \c null \a node only becomes a container after the container has its
+/// element, and the element is added by one \c resize or \c operator[], which have no effect when they throw.
+value& open_slot(value& node, const path_element& elem)
+{
+    value  staged;
+    value* container = &node;
+    value* slot      = nullptr;
+    switch (elem.kind())
+    {
+    case path_element_kind::array_index:
+        if (node.kind() == jsonv::kind::null)
+        {
+            staged    = array();
+            container = &staged;
+        }
+        container->resize(elem.index() + 1);
+        slot = &container->at(elem.index());
+        break;
+    case path_element_kind::object_key:
+        if (node.kind() == jsonv::kind::null)
+        {
+            staged    = object();
+            container = &staged;
+        }
+        slot = &(*container)[elem.key()];
+        break;
+    default:
+        throw std::runtime_error(to_string(elem));
     }
 
-    return walk_path(*this,
-                     p.begin(),
-                     p.end(),
-                     [] (const path_element& elem, value& current)
-                     {
-                         switch (elem.kind())
-                         {
-                         case path_element_kind::array_index:
-                             if (current.kind() == jsonv::kind::null)
-                                 current = array();
-                             current.resize(elem.index() + 1);
-                             break;
-                         case path_element_kind::object_key:
-                             if (current.kind() == jsonv::kind::null)
-                                 current = object();
-                             current.insert({ elem.key(), null });
-                             break;
-                         }
-                     }
-                    );
+    // Moving hands over the array or object without relocating what is in it, so `slot` is still where it was.
+    if (container == &staged)
+        node = std::move(staged);
+    return *slot;
+}
+
+}
+
+value& value::path(const jsonv::path& p)
+{
+    // Follow what already exists. Nothing is changed here, and a kind_error can only come from here: below the first
+    // missing element everything is created as a null, which any element can be taken from.
+    value* current = this;
+    auto   it      = p.begin();
+    for (; it != p.end(); ++it)
+    {
+        value* child = existing_child(*current, *it);
+        if (!child)
+            break;
+        current = child;
+    }
+    if (it == p.end())
+        return *current;
+
+    // No array can hold `max + 1` elements, so an index of `max` never exists, and `index + 1` would wrap to 0. Refuse
+    // it before anything is built. The missing part is built before any of it is attached, so refusing at the index
+    // itself would let a large but valid index ahead of it allocate its whole array first, to throw it away. An index
+    // of `max` cannot be in what exists, so the part which is missing is all there is to look at.
+    for (auto missing = it; missing != p.end(); ++missing)
+    {
+        if (missing->kind() == path_element_kind::array_index
+            && missing->index() == std::numeric_limits<std::size_t>::max())
+            throw std::length_error("no array can hold " + to_string(*missing) + " (full path: " + to_string(p) + ")");
+    }
+
+    // Build the rest of the path apart from the tree, so a failure part of the way through has nothing to undo...
+    value  tail;
+    value* leaf = &tail;
+    for (auto rest = std::next(it); rest != p.end(); ++rest)
+        leaf = &open_slot(*leaf, *rest);
+
+    // ...then hang it where the first missing element goes. That is the only change to the tree: `open_slot` either
+    // throws and leaves `*current` as it was or returns, and moving a `value` cannot throw.
+    const bool leaf_is_slot = leaf == &tail;
+    value&     slot         = open_slot(*current, *it);
+    slot = std::move(tail);
+    return leaf_is_slot ? slot : *leaf;
 }
 
 value& value::path(std::string_view path_description)

@@ -227,8 +227,14 @@
        `size_type` overload or `path::create("[18446744073709551615]")`. It sized the array to `index + 1`, which
        wraps to `0`, and only then did the lookup throw `std::out_of_range`. No array can hold that index, so the
        call now throws `std::length_error` -- what `SIZE_MAX - 1` already did -- before creating anything, which
-       leaves a `null` as `null` and a key on the way there uncreated. Other indices too large to allocate still
-       create the containers leading up to them before the resize fails (#284).
+       leaves a `null` as `null` and a key on the way there uncreated (#284).
+     - Fixed `value::path` leaving what it had created behind when it threw. It created containers as it walked the
+       path, so an index too large to allocate -- `SIZE_MAX - 1`, say -- turned a `null` into `[]` and `object()` into
+       `{"a":[]}` before `std::length_error` came out, and an allocation failing partway left the same. It now builds
+       what the path needs apart from the tree and adds it in one step at the end, so a throw of any kind, including
+       `std::bad_alloc`, leaves the value as it was. A path which already exists is followed as before, with nothing
+       allocated. A path which both names the wrong kind of container and has an index no array can hold now throws
+       `kind_error` rather than `std::length_error` (#363).
      - `ostream_pretty_encoder` no longer flushes its stream at the end of every line. It wrote line breaks with
        `std::endl`, so pretty output to a file or a socket paid for a write per line. The output itself is unchanged;
        flush the stream yourself if you need it to have arrived (#188).

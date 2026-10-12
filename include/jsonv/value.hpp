@@ -640,8 +640,14 @@ public:
      *                     index when the value is a string).
      *  \throws std::invalid_argument if a \c std::string_view was specified that did not have a valid specification
      *                                (see \c path::create).
-     *  \throws std::length_error if the path has an array index of the largest \c std::size_t, which no array can hold.
-     *                            This is checked before anything is created, so \c *this is left as it was.
+     *  \throws std::length_error if the path has an array index which no array can hold, such as the largest
+     *                            \c std::size_t.
+     *  \throws std::bad_alloc if there is not enough memory to create what the path needs.
+     *
+     *  If this throws, for any reason, \c *this is left as it was. What the path needs is built apart from the tree and
+     *  added to it in a single step at the end, so there is no partial result: a \c null does not become \c [] and a
+     *  key on the way to the failing index is not created. A path which already exists is only followed, with nothing
+     *  allocated.
      *
      *  \see at_path
     **/
