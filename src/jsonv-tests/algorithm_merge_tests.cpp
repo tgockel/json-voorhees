@@ -17,6 +17,7 @@
 #include <jsonv/value.hpp>
 
 #include <fstream>
+#include <stdexcept>
 
 namespace jsonv_test
 {
@@ -25,6 +26,109 @@ TEST(merge_single)
 {
     jsonv::value x = jsonv::merge(jsonv::null);
     ensure_eq(jsonv::null, x);
+}
+
+namespace
+{
+
+/// What a \c jsonv::dynamic_merge_rules built by \c counting_rules was called with: how often each function ran, and
+/// the arguments of the latest call to either.
+struct merge_calls
+{
+    int          same_key      = 0;
+    int          type_conflict = 0;
+    jsonv::path  path;
+    jsonv::value a;
+    jsonv::value b;
+};
+
+jsonv::dynamic_merge_rules counting_rules(merge_calls& calls)
+{
+    return jsonv::dynamic_merge_rules(
+        [&calls] (jsonv::path&& p, jsonv::value&& a, jsonv::value&& b)
+        {
+            ++calls.same_key;
+            calls.path = std::move(p);
+            calls.a    = std::move(a);
+            calls.b    = std::move(b);
+            return jsonv::value("same-key");
+        },
+        [&calls] (jsonv::path&& p, jsonv::value&& a, jsonv::value&& b)
+        {
+            ++calls.type_conflict;
+            calls.path = std::move(p);
+            calls.a    = std::move(a);
+            calls.b    = std::move(b);
+            return jsonv::value("type-conflict");
+        }
+    );
+}
+
+}
+
+TEST(merge_dynamic_type_conflict)
+{
+    // dynamic_merge_rules used to call its same_key function here and never touch type_conflict
+    merge_calls calls;
+    jsonv::dynamic_merge_rules rules = counting_rules(calls);
+
+    jsonv::value result = jsonv::merge_explicit(rules, jsonv::path::create(".x"), jsonv::value(1), jsonv::value("x"));
+    ensure_eq(jsonv::value("type-conflict"), result);
+    ensure_eq(0, calls.same_key);
+    ensure_eq(1, calls.type_conflict);
+    ensure_eq(jsonv::path::create(".x"), calls.path);
+    ensure_eq(jsonv::value(1), calls.a);
+    ensure_eq(jsonv::value("x"), calls.b);
+}
+
+TEST(merge_dynamic_same_key)
+{
+    merge_calls calls;
+    jsonv::dynamic_merge_rules rules = counting_rules(calls);
+
+    jsonv::value result = jsonv::merge_explicit(rules,
+                                                jsonv::path(),
+                                                jsonv::object({ { "a", 1 } }),
+                                                jsonv::object({ { "a", 2 } })
+                                               );
+    ensure_eq(jsonv::object({ { "a", "same-key" } }), result);
+    ensure_eq(1, calls.same_key);
+    ensure_eq(0, calls.type_conflict);
+    ensure_eq(jsonv::path::create(".a"), calls.path);
+    ensure_eq(jsonv::value(1), calls.a);
+    ensure_eq(jsonv::value(2), calls.b);
+}
+
+TEST(merge_dynamic_integer_decimal)
+{
+    // An integer and a decimal are compatible, so neither function has anything to resolve
+    merge_calls calls;
+    jsonv::dynamic_merge_rules rules = counting_rules(calls);
+
+    ensure_eq(jsonv::value(3.5), jsonv::merge_explicit(rules, jsonv::path(), jsonv::value(1), jsonv::value(2.5)));
+    ensure_eq(jsonv::value(3.5), jsonv::merge_explicit(rules, jsonv::path(), jsonv::value(2.5), jsonv::value(1)));
+    ensure_eq(0, calls.same_key);
+    ensure_eq(0, calls.type_conflict);
+}
+
+TEST(merge_dynamic_type_conflict_throws)
+{
+    // The point of a type_conflict function which throws is that nothing else gets to produce a result
+    int same_key_calls = 0;
+    jsonv::dynamic_merge_rules rules(
+        [&same_key_calls] (jsonv::path&&, jsonv::value&&, jsonv::value&&) -> jsonv::value
+        {
+            ++same_key_calls;
+            return jsonv::value("same-key");
+        },
+        [] (jsonv::path&&, jsonv::value&&, jsonv::value&&) -> jsonv::value
+        {
+            throw std::runtime_error("type conflict");
+        }
+    );
+
+    ensure_throws(std::runtime_error, jsonv::merge_explicit(rules, jsonv::path(), jsonv::value(1), jsonv::value("x")));
+    ensure_eq(0, same_key_calls);
 }
 
 template <typename TMergeRules>

@@ -34,7 +34,7 @@ value dynamic_merge_rules::resolve_same_key(path&& current_path, value&& a, valu
 
 value dynamic_merge_rules::resolve_type_conflict(path&& current_path, value&& a, value&& b) const
 {
-    return same_key(std::move(current_path), std::move(a), std::move(b));
+    return type_conflict(std::move(current_path), std::move(a), std::move(b));
 }
 
 value throwing_merge_rules::resolve_type_conflict(path&& current_path, value&& a, value&& b) const

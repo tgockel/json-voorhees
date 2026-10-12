@@ -285,6 +285,11 @@
        covers `operator<<` on a `value`, `ostream_pretty_encoder`, `writer(std::ostream&)` and
        `serialize(obj, stream)`. A subclass writing through `ostream_encoder::output()` should write unformatted too
        (#345).
+     - Fixed `dynamic_merge_rules` resolving a type conflict with its `same_key` function. The `type_conflict`
+       function given to the constructor was stored and never called, so merging two incompatible kinds went to the
+       same-key policy, and a type-conflict policy meant to throw was skipped without a word. `merge_explicit` now
+       calls `type_conflict` for them, and only for them: a shared object key still calls `same_key`, and an integer
+       with a decimal calls neither. `merge` and `merge_recursive` use their own rules and were not affected (#368).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on
