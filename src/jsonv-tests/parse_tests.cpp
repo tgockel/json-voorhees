@@ -20,8 +20,13 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
 using namespace jsonv;
+
+// Plain settings with nothing to own, so there is no reason for a destructor to keep them from being trivial.
+static_assert(std::is_trivially_copyable_v<parse_options>);
+static_assert(std::is_trivially_destructible_v<parse_options>);
 
 #define TEST_PARSE(name) TEST(parse_ ## name)
 

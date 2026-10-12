@@ -211,8 +211,6 @@ const std::exception_ptr& deserialization_error::nested_ptr() const noexcept
 
 deserialize_options::deserialize_options() noexcept = default;
 
-deserialize_options::~deserialize_options() noexcept = default;
-
 deserialize_options deserialize_options::create_default()
 {
     return deserialize_options();
@@ -296,9 +294,8 @@ deserialization_context::deserialization_context(jsonv::formats                f
                                                  deserialize_options           options,
                                                  std::string                   source_name
                                                 ) :
-        // Neither `formats` nor `deserialize_options` can be moved yet (#286).
-        context(std::move(fmt), ver, userdata), // NOLINT(performance-move-const-arg)
-        _options(std::move(options)),           // NOLINT(performance-move-const-arg)
+        context(std::move(fmt), ver, userdata),
+        _options(options),
         _base_path(std::move(p)),
         _source_name(std::move(source_name))
 { }

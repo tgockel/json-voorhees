@@ -106,7 +106,12 @@ formats_builder& formats_builder::check_references(const std::string& name)
 
 formats formats_builder::compose_checked(formats other, const std::string& name)
 {
-    formats searching = formats::compose({ *this, other });
+    formats::list all;
+    all.reserve(2);
+    all.emplace_back(*this);
+    all.push_back(std::move(other));
+
+    formats searching = formats::compose(all);
     check_references_impl(searching, name);
     return searching;
 }
@@ -174,7 +179,7 @@ formats_builder& formats_builder_dsl::check_references(const std::string& name)
 
 formats formats_builder_dsl::compose_checked(formats other, const std::string& name)
 {
-    return owner->compose_checked(std::move(other), name); // NOLINT(performance-move-const-arg): see #286
+    return owner->compose_checked(std::move(other), name);
 }
 
 // The builder's overload takes the list by `const&`, so it is copied again (#287).

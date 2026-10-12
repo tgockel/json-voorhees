@@ -66,8 +66,6 @@ std::string to_string(const parse_error& p)
 
 parse_options::parse_options() = default;
 
-parse_options::~parse_options() noexcept = default;
-
 parse_options parse_options::create_default()
 {
     return parse_options();

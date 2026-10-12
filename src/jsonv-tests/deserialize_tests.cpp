@@ -35,6 +35,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <typeinfo>
 #include <utility>
 
@@ -42,6 +43,10 @@ namespace jsonv_test
 {
 
 using namespace jsonv;
+
+// Plain settings with nothing to own, so there is no reason for a destructor to keep them from being trivial.
+static_assert(std::is_trivially_copyable_v<deserialize_options>);
+static_assert(std::is_trivially_destructible_v<deserialize_options>);
 
 namespace
 {

@@ -215,6 +215,20 @@ public:
     /// the basic types like \c int64_t or \c std::string.
     formats();
 
+    /// \{
+
+    /// Copying a \c formats shares the node in the graph rather than duplicating it, so \c register_ calls through
+    /// either one are seen by both.
+    ///
+    /// Moving transfers the node and leaves the source empty: it finds no \c deserializer or \c serializer, a
+    /// \c register_ call starts a new node, and \c compose adds nothing for it. A moved-from \c formats is equal only
+    /// to another one in that state, since it is no node in the graph.
+    formats(const formats&)                = default;
+    formats(formats&&) noexcept            = default;
+    formats& operator=(const formats&)     = default;
+    formats& operator=(formats&&) noexcept = default;
+    /// \}
+
     ~formats() noexcept;
 
     /// Create a new (empty) \c formats using the \a bases as backing \c formats. This forms a directed graph of
@@ -346,7 +360,8 @@ public:
                           duplicate_type_action action = duplicate_type_action::exception);
 
     /// Test for equality between this instance and \a other. If two \c formats are equal, they are the \e exact same
-    /// node in the graph. Even if one \c formats has the exact same types for the exact same <tt>deserializer</tt>s.
+    /// node in the graph. Even if one \c formats has the exact same types for the exact same <tt>deserializer</tt>s. A
+    /// moved-from \c formats is in no node, so it is equal only to another moved-from one.
     JSONV_NODISCARD
     bool operator==(const formats& other) const;
 
@@ -359,6 +374,9 @@ private:
 
 private:
     explicit formats(std::vector<std::shared_ptr<const data>> bases);
+
+    /// The node to register into, which a moved-from instance makes anew.
+    data& writable_data();
 
 private:
     std::shared_ptr<data> _data;

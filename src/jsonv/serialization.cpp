@@ -33,7 +33,7 @@ context::context(jsonv::formats                fmt,
                  std::optional<jsonv::version> ver,
                  const void*                   userdata
                 ) :
-        _formats(std::move(fmt)), // NOLINT(performance-move-const-arg): `formats` cannot be moved yet (#286)
+        _formats(std::move(fmt)),
         _version(ver),
         _user_data(userdata)
 { }

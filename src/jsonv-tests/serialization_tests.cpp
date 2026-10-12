@@ -19,6 +19,7 @@
 #include <jsonv/serialization/deserializer_construction.hpp>
 #include <jsonv/serialization/function_deserializer.hpp>
 #include <jsonv/serialization/function_serializer.hpp>
+#include <jsonv/serialization_builder.hpp>
 #include <jsonv/value.hpp>
 #include <jsonv/detail/scope_exit.hpp>
 
@@ -31,8 +32,10 @@
 #include <string>
 #include <tuple>
 #include <typeinfo>
+#include <type_traits>
 #include <typeindex>
 #include <utility>
+#include <vector>
 
 namespace jsonv_test
 {
@@ -370,6 +373,157 @@ TEST(formats_failed_registration_takes_back_what_it_added)
 }
 
 #endif
+
+static_assert(std::is_copy_constructible_v<formats>);
+static_assert(std::is_copy_assignable_v<formats>);
+static_assert(std::is_nothrow_move_constructible_v<formats>);
+static_assert(std::is_nothrow_move_assignable_v<formats>);
+
+namespace
+{
+
+/// A \c formats which has been moved from, so it holds no node.
+formats make_moved_from()
+{
+    formats gone;
+    formats kept = std::move(gone);
+    (void) kept;
+    return gone;
+}
+
+}
+
+TEST(formats_move_transfers_the_node)
+{
+    formats source;
+    source.register_adapter(std::make_shared<tagged_adapter>(1));
+    const formats alias = source;
+    const tagged_lookup before(source);
+
+    formats moved = std::move(source);
+    ensure(moved == alias);
+    ensure_eq(before, tagged_lookup(moved));
+
+    formats assigned;
+    assigned = std::move(moved);
+    ensure(assigned == alias);
+    ensure_eq(before, tagged_lookup(assigned));
+}
+
+TEST(formats_survives_vector_growth)
+{
+    formats original;
+    original.register_adapter(std::make_shared<tagged_adapter>(1));
+
+    std::vector<formats> all;
+    for (int i = 0; i < 64; ++i)
+        all.push_back(original);
+
+    for (const formats& fmts : all)
+        ensure(fmts == original);
+}
+
+TEST(formats_moved_from_is_empty)
+{
+    const formats gone = make_moved_from();
+
+    ensure_throws(no_deserializer, gone.get_deserializer(typeid(tagged)));
+    ensure_throws(no_serializer, gone.get_serializer(typeid(tagged)));
+    ensure_eq(tagged_lookup(formats()), tagged_lookup(gone));
+}
+
+TEST(formats_moved_from_equality)
+{
+    const formats gone  = make_moved_from();
+    const formats other = make_moved_from();
+
+    // Neither is a node in the graph, so there is no node for them to be the same one of.
+    ensure(gone == other);
+    ensure(gone == gone);
+    ensure(gone != formats());
+    ensure(gone != formats::defaults());
+}
+
+TEST(formats_register_on_moved_from_starts_a_new_node)
+{
+    formats source;
+    source.register_adapter(std::make_shared<tagged_adapter>(1));
+    formats kept = std::move(source);
+
+    source.register_adapter(std::make_shared<tagged_adapter>(2));
+    ensure_eq(2, tagged_lookup(source).deserialized);
+    ensure_eq(1, tagged_lookup(kept).deserialized);
+    ensure(source != kept);
+}
+
+TEST(formats_every_registration_works_on_moved_from)
+{
+    const auto adapter = std::make_shared<tagged_adapter>(4);
+    const std::shared_ptr<const deserializer> ex  = adapter;
+    const std::shared_ptr<const serializer>   ser = adapter;
+
+    {
+        formats fmts = make_moved_from();
+        fmts.register_deserializer(ex.get());
+        ensure_eq(ex.get(), &fmts.get_deserializer(typeid(tagged)));
+    }
+    {
+        formats fmts = make_moved_from();
+        fmts.register_deserializer(ex);
+        ensure_eq(ex.get(), &fmts.get_deserializer(typeid(tagged)));
+    }
+    {
+        formats fmts = make_moved_from();
+        fmts.register_serializer(ser.get());
+        ensure_eq(ser.get(), &fmts.get_serializer(typeid(tagged)));
+    }
+    {
+        formats fmts = make_moved_from();
+        fmts.register_serializer(ser);
+        ensure_eq(ser.get(), &fmts.get_serializer(typeid(tagged)));
+    }
+    {
+        formats fmts = make_moved_from();
+        fmts.register_adapter(adapter.get());
+        ensure_eq(4, tagged_lookup(fmts).deserialized);
+        ensure_eq(4, tagged_lookup(fmts).serialized);
+    }
+    {
+        formats fmts = make_moved_from();
+        fmts.register_adapter(adapter);
+        ensure_eq(4, tagged_lookup(fmts).deserialized);
+        ensure_eq(4, tagged_lookup(fmts).serialized);
+    }
+}
+
+TEST(formats_compose_ignores_a_moved_from_base)
+{
+    formats base;
+    base.register_adapter(std::make_shared<tagged_adapter>(1));
+    const formats gone = make_moved_from();
+
+    // A moved-from base has to leave nothing behind for a lookup to trip over, wherever it sits in the list.
+    const formats composed = formats::compose({ gone, base, gone });
+    ensure_eq(tagged_lookup(base), tagged_lookup(composed));
+    ensure(composed != base);
+
+    ensure_eq(tagged_lookup(formats()), tagged_lookup(formats::compose({ gone })));
+}
+
+TEST(formats_builder_move_transfers_the_node)
+{
+    formats_builder builder;
+    builder.register_adapter(std::make_shared<tagged_adapter>(1));
+    formats_builder kept = std::move(builder);
+
+    ensure_eq(1, tagged_lookup(kept).deserialized);
+    ensure_eq(tagged_lookup(formats()), tagged_lookup(builder));
+
+    // The moved-from builder is an empty one, rather than sharing a node with the one that kept it.
+    builder.register_adapter(std::make_shared<tagged_adapter>(2));
+    ensure_eq(2, tagged_lookup(builder).deserialized);
+    ensure_eq(1, tagged_lookup(kept).deserialized);
+}
 
 TEST(deserialize_basics)
 {

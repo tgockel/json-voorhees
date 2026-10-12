@@ -784,6 +784,15 @@
        serialization builder DSL. A wrapper with nothing a container adapter could use failed to compile, and one which
        happened to look like a container would have been read and written as an array. It now registers a
        `wrapper_adapter`, as `formats_builder::register_wrapper` always did (#329).
+     - `formats` is movable. It declared a destructor, which suppressed its move operations, so every `std::move` of one
+       was a copy costing an atomic increment and decrement on the node it shares -- on the by-value parameters of the
+       `context` constructors and of `formats_builder::compose_checked`, among others. A moved-from `formats` is an
+       empty one rather than something which may only be assigned to or destroyed: it finds no `deserializer` or
+       `serializer`, a `register_` call starts a new node, `compose` adds nothing for it, and it is equal only to
+       another moved-from `formats`. A moved-from `formats_builder` is empty in the same way, where it used to share a
+       node with the builder it was moved to. `parse_options` and `deserialize_options` lose their out-of-line
+       destructors, so they are trivially copyable and trivially destructible. Those two destructors were exported
+       symbols, which are gone (#286).
    - Platform
      - JSON Voorhees is now a CMake package. `find_package(jsonv CONFIG)` finds an installed copy through the new
        `jsonv-config.cmake` and `jsonv-config-version.cmake` (`SameMajorVersion`), the exported target is

@@ -282,11 +282,21 @@ formats formats::compose(const list& bases)
 {
     data::roots_list roots;
     roots.reserve(bases.size());
-    std::transform(begin(bases), end(bases),
-                   std::back_inserter(roots),
-                   [] (const formats& fmt) { return fmt._data; }
-                  );
+    for (const formats& fmt : bases)
+    {
+        // A moved-from base holds nothing to search, and every root has to be a node for `find_impl` to descend into.
+        if (fmt._data)
+            roots.push_back(fmt._data);
+    }
     return formats(std::move(roots));
+}
+
+formats::data& formats::writable_data()
+{
+    if (!_data)
+        _data = std::make_shared<data>(data::roots_list());
+
+    return *_data;
 }
 
 formats::~formats() noexcept
@@ -294,7 +304,7 @@ formats::~formats() noexcept
 
 const deserializer& formats::get_deserializer(std::type_index type) const
 {
-    const deserializer* ex = _data->find_deserializer(type);
+    const deserializer* ex = _data ? _data->find_deserializer(type) : nullptr;
     if (ex)
         return *ex;
     else
@@ -317,7 +327,7 @@ std::expected<void, ast_node_type> formats::deserialize(const std::type_info& ty
 
 const serializer& formats::get_serializer(std::type_index type) const
 {
-    const serializer* ser = _data->find_serializer(type);
+    const serializer* ser = _data ? _data->find_serializer(type) : nullptr;
     if (ser)
         return *ser;
     else
@@ -336,7 +346,7 @@ void formats::serialize(const std::type_info&        type,
                        ) const
 {
     // Looked up here rather than through get_serializer so the exception can say where the value was wanted.
-    const serializer* ser = _data->find_serializer(std::type_index(type));
+    const serializer* ser = _data ? _data->find_serializer(std::type_index(type)) : nullptr;
     if (!ser)
         throw no_serializer(type, to.current_path());
 
@@ -357,32 +367,32 @@ value formats::to_json(const std::type_info&        type,
 
 void formats::register_deserializer(const deserializer* ex, duplicate_type_action action)
 {
-    _data->insert_deserializer(ex, action);
+    writable_data().insert_deserializer(ex, action);
 }
 
 void formats::register_deserializer(std::shared_ptr<const deserializer> ex, duplicate_type_action action)
 {
-    _data->insert_deserializer(std::move(ex), action);
+    writable_data().insert_deserializer(std::move(ex), action);
 }
 
 void formats::register_serializer(const serializer* ser, duplicate_type_action action)
 {
-    _data->insert_serializer(ser, action);
+    writable_data().insert_serializer(ser, action);
 }
 
 void formats::register_serializer(std::shared_ptr<const serializer> ser, duplicate_type_action action)
 {
-    _data->insert_serializer(std::move(ser), action);
+    writable_data().insert_serializer(std::move(ser), action);
 }
 
 void formats::register_adapter(const adapter* adp, duplicate_type_action action)
 {
-    _data->insert_adapter(adp, action);
+    writable_data().insert_adapter(adp, action);
 }
 
 void formats::register_adapter(std::shared_ptr<const adapter> adp, duplicate_type_action action)
 {
-    _data->insert_adapter(std::move(adp), action);
+    writable_data().insert_adapter(std::move(adp), action);
 }
 
 bool formats::operator==(const formats& other) const

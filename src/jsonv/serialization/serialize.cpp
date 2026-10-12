@@ -35,7 +35,7 @@ serialization_context::serialization_context(jsonv::formats                fmt,
                                              std::optional<jsonv::version> ver,
                                              const void*                   userdata
                                             ) :
-        context(std::move(fmt), ver, userdata) // NOLINT(performance-move-const-arg): formats is not movable yet (#286)
+        context(std::move(fmt), ver, userdata)
 { }
 
 serialization_context::serialization_context() :

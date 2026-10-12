@@ -291,8 +291,6 @@ public:
     /// Create an instance with the default options.
     deserialize_options() noexcept;
 
-    ~deserialize_options() noexcept; // NOLINT(performance-trivially-destructible): see #286
-
     /// Create a default set of options.
     JSONV_NODISCARD
     static deserialize_options create_default();
