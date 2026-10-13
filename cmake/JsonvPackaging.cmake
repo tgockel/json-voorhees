@@ -13,7 +13,9 @@ set(CPACK_COMPONENTS_GROUPING IGNORE)
 set(CPACK_PACKAGE_NAME "jsonv")
 set(CPACK_PACKAGE_VENDOR "Travis Gockel")
 set(CPACK_PACKAGE_CONTACT "Travis Gockel <travis@gockelhut.com>")
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+# The SemVer spelling names the macOS installer and anything else which takes CPack's default file name. The three
+# parts stay numeric, since CPack writes them into plists as integers.
+set(CPACK_PACKAGE_VERSION "${JSONV_VERSION_SEMVER}")
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
 set(CPACK_PACKAGE_VERSION_MINOR "${PROJECT_VERSION_MINOR}")
 set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
@@ -40,6 +42,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # libjsonv.pc bakes CMAKE_INSTALL_PREFIX in, so the two must agree.
     set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
+    # dpkg and rpm sort 2.0.0~rc.1 before 2.0.0, so the release upgrades over its candidates. Left to
+    # CPACK_PACKAGE_VERSION, the deb would be 2.0.0-rc.1-1 and the rpm 2.0.0_rc.1 (CPackRPM replaces the '-'), and both
+    # sort after 2.0.0.
+    set(CPACK_DEBIAN_PACKAGE_VERSION "${JSONV_VERSION_TILDE}")
+    set(CPACK_RPM_PACKAGE_VERSION "${JSONV_VERSION_TILDE}")
+
     set(CPACK_DEB_COMPONENT_INSTALL ON)
     set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
     set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
@@ -54,7 +62,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_NAME "libjsonv-dev")
     set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_SECTION libdevel)
     set(CPACK_DEBIAN_DEVELOPMENT_PACKAGE_DEPENDS
-        "libjsonv${JSONV_SO_VERSION} (= ${PROJECT_VERSION}-${CPACK_DEBIAN_PACKAGE_RELEASE})"
+        "libjsonv${JSONV_SO_VERSION} (= ${CPACK_DEBIAN_PACKAGE_VERSION}-${CPACK_DEBIAN_PACKAGE_RELEASE})"
        )
     set(CPACK_DEBIAN_DEVELOPMENT_DESCRIPTION "Development files for JSON Voorhees.")
 
@@ -71,7 +79,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(CPACK_RPM_DEVELOPMENT_PACKAGE_NAME "jsonv-devel")
     set(CPACK_RPM_DEVELOPMENT_PACKAGE_SUMMARY "Development files for JSON Voorhees")
     set(CPACK_RPM_DEVELOPMENT_PACKAGE_DESCRIPTION "Headers and build metadata for compiling against JSON Voorhees.")
-    set(CPACK_RPM_DEVELOPMENT_PACKAGE_REQUIRES "jsonv = ${PROJECT_VERSION}-${CPACK_RPM_PACKAGE_RELEASE}")
+    set(CPACK_RPM_DEVELOPMENT_PACKAGE_REQUIRES "jsonv = ${CPACK_RPM_PACKAGE_VERSION}-${CPACK_RPM_PACKAGE_RELEASE}")
 elseif(WIN32)
     set(CPACK_GENERATOR "NuGet"
         CACHE STRING "CPack generators to use for binary packages."
@@ -80,7 +88,7 @@ elseif(WIN32)
     # _IMPORT_PREFIX resolve to wherever NuGet unpacked the package.
     set(CPACK_PACKAGING_INSTALL_PREFIX "")
     set(CPACK_NUGET_PACKAGE_NAME "jsonv")
-    set(CPACK_NUGET_PACKAGE_VERSION "${PROJECT_VERSION}")
+    set(CPACK_NUGET_PACKAGE_VERSION "${JSONV_VERSION_SEMVER}")
     set(CPACK_NUGET_PACKAGE_TITLE "JSON Voorhees")
     set(CPACK_NUGET_PACKAGE_AUTHORS "Travis Gockel")
     set(CPACK_NUGET_PACKAGE_DESCRIPTION "${CPACK_PACKAGE_DESCRIPTION}")

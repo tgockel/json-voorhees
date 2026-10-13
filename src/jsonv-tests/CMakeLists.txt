@@ -15,6 +15,7 @@ set(jsonv_tests_sources
     chrono_io.hpp
     coerce_tests.cpp
     composite_adapter_tests.cpp
+    config_tests.cpp
     demangle_tests.cpp
     deserialize_tests.cpp
     documentation_tests.cpp
@@ -59,6 +60,9 @@ target_include_directories(jsonv-tests PRIVATE "${PROJECT_SOURCE_DIR}/src")
 target_compile_definitions(jsonv-tests
                            PRIVATE
                              "JSONV_TEST_DATA_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/data\""
+                             # The version `cmake/JsonvVersion.cmake` read, for `config_tests.cpp` to hold against what
+                             # the compiler reads from the same header.
+                             "JSONV_TEST_VERSION=\"${JSONV_VERSION_SEMVER}\""
                              # `JSONV_DEBUG` throttles the timing loops: without it `benchmark_tests.cpp` runs 100
                              # iterations over the multi-megabyte corpus and `deserialize_tests.cpp` sizes its
                              # linearity guard at 20000 elements. Only the tests read it -- not the library, not the

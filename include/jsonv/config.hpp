@@ -30,10 +30,21 @@
 /// The patch version of JSON Voorhees these headers belong to.
 #define JSONV_VERSION_PATCH 0
 
+/// \def JSONV_VERSION_PRERELEASE
+/// The pre-release of JSON Voorhees these headers belong to, as a string literal: `"rc.1"` for 2.0.0-rc.1 and `""`
+/// for a release. It is a SemVer pre-release written without the `-` which joins it to the version, and the build
+/// accepts only dot-separated letters and digits.
+///
+/// A pre-release has the same three numbers, and so the same \c JSONV_VERSION, as the release it leads up to: a check
+/// such as `#if JSONV_VERSION >= 2000000` holds for the release candidates of 2.0.0 as well as for 2.0.0 itself. The
+/// preprocessor cannot look inside a string, but `std::string_view(JSONV_VERSION_PRERELEASE).empty()` is a constant
+/// expression which is \c true for a release.
+#define JSONV_VERSION_PRERELEASE ""
+
 /// \def JSONV_VERSION
 /// The version of JSON Voorhees these headers belong to as a single number,
 /// `JSONV_VERSION_MAJOR * 1000000 + JSONV_VERSION_MINOR * 1000 + JSONV_VERSION_PATCH`, so a version check can be
-/// written as `#if JSONV_VERSION >= 2000000`.
+/// written as `#if JSONV_VERSION >= 2000000`. It does not carry \c JSONV_VERSION_PRERELEASE.
 #define JSONV_VERSION (JSONV_VERSION_MAJOR * 1000000 + JSONV_VERSION_MINOR * 1000 + JSONV_VERSION_PATCH)
 
 /// \def JSONV_DEBUG

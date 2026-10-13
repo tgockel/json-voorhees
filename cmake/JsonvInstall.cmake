@@ -34,6 +34,8 @@ configure_package_config_file("${PROJECT_SOURCE_DIR}/cmake/jsonv-config.cmake.in
                               INSTALL_DESTINATION "${JSONV_INSTALL_CMAKEDIR}"
                               NO_SET_AND_CHECK_MACRO
                              )
+# PROJECT_VERSION has no pre-release, so find_package(jsonv 2.0) accepts the release candidates of 2.0.0, just as
+# `#if JSONV_VERSION >= 2000000` does.
 write_basic_package_version_file("${PROJECT_BINARY_DIR}/cmake/jsonv-config-version.cmake"
                                  VERSION       "${PROJECT_VERSION}"
                                  COMPATIBILITY SameMajorVersion
@@ -75,6 +77,8 @@ else()
     set(JSONV_PC_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
 endif()
 
+# The version is written as JSONV_VERSION_TILDE, so that pkgconf sorts a pre-release before its release as dpkg and
+# rpm do with the packages: `libjsonv >= 2.0.0` is not met by 2.0.0~rc.1, and `libjsonv >= 2.0.0~rc.1` is met by 2.0.0.
 configure_file("${PROJECT_SOURCE_DIR}/libjsonv.pc.in" "${PROJECT_BINARY_DIR}/libjsonv.pc" @ONLY)
 install(FILES "${PROJECT_BINARY_DIR}/libjsonv.pc"
         DESTINATION "${JSONV_PC_PKGCONFIGDIR}"

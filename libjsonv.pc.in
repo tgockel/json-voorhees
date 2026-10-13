@@ -5,6 +5,6 @@ includedir=@JSONV_PC_INCLUDEDIR@
 
 Name: libjsonv
 Description: JSON Voorhees
-Version: @JSONV_VERSION@
+Version: @JSONV_VERSION_TILDE@
 Libs: -L${libdir} -ljsonv
 Cflags: -I${includedir}@JSONV_PC_CFLAGS@

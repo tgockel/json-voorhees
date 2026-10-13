@@ -153,7 +153,8 @@ endif()
 set_target_properties(jsonv
                       PROPERTIES
                         # libjsonv.so.2.0.0 with SONAME libjsonv.so.2.0. ABI compatibility is promised across patch
-                        # versions only (see README.md), so the SONAME carries the minor version.
+                        # versions only (see README.md), so the SONAME carries the minor version. A pre-release ships
+                        # the same names; only the packages carry the pre-release.
                         VERSION     "${PROJECT_VERSION}"
                         SOVERSION   "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}"
                         EXPORT_NAME jsonv

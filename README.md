@@ -195,8 +195,12 @@ The version components changing have very specific meanings:
             Any change to publicly-visible data structures or calling conventions will correspond to
             a bump in the minor version.
 
-The preceding statements are not true if the version is suffixed with `-preN`.
-These values are "pre-release" and are allowed to do whatever they feel like before a release.
+The preceding statements are not true of a pre-release, whose version carries a suffix such as `-rc.1`
+(`JSONV_VERSION_PRERELEASE` in `jsonv/config.hpp`).
+These are allowed to do whatever they feel like before a release.
+A pre-release has the numbers of the release it leads up to: `find_package(jsonv 2.0)` and `JSONV_VERSION` treat
+2.0.0-rc.1 as 2.0.0, and its shared library has the same name and SONAME.
+The deb and rpm packages and `libjsonv.pc` spell it `2.0.0~rc.1`, which those tools sort before 2.0.0.
 
 When developing code, follow this simple workflow to determine which version components need to change:
 

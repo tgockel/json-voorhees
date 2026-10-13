@@ -221,6 +221,87 @@ jobs:
       - name: Run clang-tidy
         run: run-clang-tidy-19 -p build -quiet '/src/jsonv/'
 
+  # config.hpp's JSONV_VERSION_PRERELEASE is "" for a release and something like "rc.1" for a pre-release, and the
+  # build spells the version three ways from it (see cmake/JsonvVersion.cmake). Any one commit builds only one of the
+  # two shapes, so this configures both -- and the shapes configure must refuse -- without building anything. On a
+  # tag it also holds the tag's name against config.hpp.
+  version-scheme:
+    name: Version scheme
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check the tag against config.hpp
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          header=include/jsonv/config.hpp
+          numeric=$(sed -nE 's/^#define JSONV_VERSION_(MAJOR|MINOR|PATCH) ([0-9]+)$/\2/p' "${header}" | paste -sd.)
+          pre=$(sed -nE 's/^#define JSONV_VERSION_PRERELEASE "(.*)"$/\1/p' "${header}")
+          test -n "${numeric}"
+          test "${GITHUB_REF_NAME}" = "v${numeric}${pre:+-${pre}}"
+
+      - name: Configure each shape of version
+        shell: bash
+        run: |
+          header=include/jsonv/config.hpp
+          original="${RUNNER_TEMP}/config.hpp"
+          cp "${header}" "${original}"
+          numeric=$(sed -nE 's/^#define JSONV_VERSION_(MAJOR|MINOR|PATCH) ([0-9]+)$/\2/p' "${header}" | paste -sd.)
+          test -n "${numeric}"
+
+          # Writes $1 as the pre-release and configures from scratch; the status is configure's.
+          configure() {
+            cp "${original}" "${header}"
+            sed -i -E "s/^(#define JSONV_VERSION_PRERELEASE ).*/\1\"$1\"/" "${header}"
+            rm -rf build-version
+            cmake -S . -B build-version -DJSONV_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/usr >configure.log 2>&1
+          }
+
+          for pre in "" rc.1; do
+            semver=${numeric}${pre:+-${pre}}
+            tilde=$(echo "${semver}" | tr - '~')
+            echo "== \"${pre}\": ${semver} and ${tilde}"
+            configure "${pre}" || { cat configure.log; exit 1; }
+            grep -Fx "Version: ${tilde}" build-version/libjsonv.pc
+            grep -F "set(PACKAGE_VERSION \"${numeric}\")" build-version/cmake/jsonv-config-version.cmake
+            grep -F "set(CPACK_PACKAGE_VERSION \"${semver}\")" build-version/CPackConfig.cmake
+            grep -F "set(CPACK_DEBIAN_PACKAGE_VERSION \"${tilde}\")" build-version/CPackConfig.cmake
+            grep -F "set(CPACK_RPM_PACKAGE_VERSION \"${tilde}\")" build-version/CPackConfig.cmake
+            grep -F "(= ${tilde}-1)" build-version/CPackConfig.cmake
+            grep -F "jsonv = ${tilde}-1" build-version/CPackConfig.cmake
+          done
+
+          # The loop left the rc.1 configuration behind. It must sort before the release it leads up to.
+          dpkg --compare-versions "${tilde}-1" lt "${numeric}-1"
+          PKG_CONFIG_PATH=build-version pkg-config --exists "libjsonv >= ${tilde}"
+          if PKG_CONFIG_PATH=build-version pkg-config --exists "libjsonv >= ${numeric}"; then
+            echo "pkg-config sorts ${tilde} at or after ${numeric}" >&2
+            exit 1
+          fi
+
+          for pre in -rc.1 rc-1 rc.01 rc..1; do
+            echo "== \"${pre}\" is refused"
+            if configure "${pre}"; then
+              echo "configure accepted JSONV_VERSION_PRERELEASE \"${pre}\"" >&2
+              exit 1
+            fi
+            grep -F "JSONV_VERSION_PRERELEASE in" configure.log
+          done
+
+          echo "== a missing JSONV_VERSION_PRERELEASE is refused"
+          cp "${original}" "${header}"
+          sed -i '/^#define JSONV_VERSION_PRERELEASE /d' "${header}"
+          rm -rf build-version
+          if cmake -S . -B build-version -DJSONV_BUILD_TESTS=OFF >configure.log 2>&1; then
+            echo "configure accepted a config.hpp without JSONV_VERSION_PRERELEASE" >&2
+            exit 1
+          fi
+          grep -F "JSONV_VERSION_PRERELEASE not found" configure.log
+
   # The three ways a CMake project takes the library as a dependency, against this checkout: FetchContent with the
   # library built as a subproject, find_package against an installed prefix, and pkg-config. The package jobs cover
   # find_package against a real package on each platform; this covers the subproject path, which they cannot.
@@ -325,13 +406,22 @@ jobs:
           cmake --build build-consumer-installed --parallel
           ./build-consumer-installed/jsonv-example
 
+      # The example prints the version the installed headers declare. libjsonv.pc says the same with the '~' which
+      # pkgconf sorts before the release, and the CMake package version file holds the three numbers alone.
       - name: Consume via pkg-config
         run: |
           export PKG_CONFIG_PATH="${GITHUB_WORKSPACE}/prefix/lib/pkgconfig"
           pkg-config --cflags --libs libjsonv
           c++ -std=c++23 examples/fetchcontent/main.cpp $(pkg-config --cflags --libs libjsonv) \
             -Wl,-rpath,"${GITHUB_WORKSPACE}/prefix/lib" -o jsonv-pc-example
-          ./jsonv-pc-example
+          ./jsonv-pc-example > jsonv-pc-example.out
+          cat jsonv-pc-example.out
+
+          semver=$(sed -n 's/.*(jsonv \([^,]*\), JSONV_SO=.*/\1/p' jsonv-pc-example.out)
+          numeric=${semver%%-*}
+          test -n "${numeric}"
+          test "$(pkg-config --modversion libjsonv)" = "$(echo "${semver}" | tr - '~')"
+          grep -F "set(PACKAGE_VERSION \"${numeric}\")" prefix/lib/cmake/jsonv/jsonv-config-version.cmake
 
       # Nothing in the installed tree may depend on where it was configured to go: the CMake package files locate
       # themselves through CMAKE_CURRENT_LIST_DIR and libjsonv.pc through ${pcfiledir}. Moving the prefix is the
@@ -505,6 +595,21 @@ jobs:
           cmake --build smoke-cmake --parallel
           ./smoke-cmake/jsonv-example
 
+      # The example prints the version the installed headers declare. The packages and libjsonv.pc carry it spelled
+      # with the '~' which dpkg, rpm and pkgconf sort before the release it leads up to.
+      - name: Check installed package versions
+        shell: bash
+        run: |
+          semver=$(./smoke-cmake/jsonv-example | sed -n 's/.*(jsonv \([^,]*\), JSONV_SO=.*/\1/p')
+          test -n "${semver}"
+          tilde=$(echo "${semver}" | tr - '~')
+          test "$(pkg-config --modversion libjsonv)" = "${tilde}"
+          if [ "${{ matrix.format }}" = deb ]; then
+            test "$(dpkg-query --show --showformat='${Version}\n' 'libjsonv*' | sort -u)" = "${tilde}-1"
+          else
+            test "$(rpm --query --queryformat '%{VERSION}-%{RELEASE}\n' jsonv jsonv-devel | sort -u)" = "${tilde}-1"
+          fi
+
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -547,8 +652,12 @@ jobs:
             throw 'Expected a NuGet package in build/'
           }
 
+          # nuget install passes over a pre-release unless asked for one, so it is asked for this package's version.
+          $version = $package.Name -replace '^jsonv\.(.+)\.nupkg$', '$1'
           $source = (Resolve-Path build).Path
           nuget install jsonv `
+            -Version $version `
+            -Prerelease `
             -Source $source `
             -OutputDirectory nuget-install `
             -NonInteractive `
@@ -586,13 +695,16 @@ jobs:
 
       # The package root is the install prefix (CPACK_PACKAGING_INSTALL_PREFIX is empty for NuGet), so pointing
       # CMAKE_PREFIX_PATH at it is all find_package needs. The example's FetchContent declaration tries find_package
-      # first, and FULLY_DISCONNECTED makes falling back to a download an error.
+      # first, and FULLY_DISCONNECTED makes falling back to a download an error. The example prints the version the
+      # installed headers declare, which the package's SemVer version has to match.
       - name: Compile and run installed-package smoke test
         shell: pwsh
         run: |
           $packageRoot = Get-ChildItem nuget-install -Directory |
             Where-Object { $_.Name -like 'jsonv.*' } |
             Select-Object -First 1
+          $version = (Get-ChildItem build -Filter '*.nupkg' | Select-Object -First 1).Name `
+            -replace '^jsonv\.(.+)\.nupkg$', '$1'
 
           cmake -S examples/fetchcontent -B smoke-build `
             -G "Visual Studio 18 2026" `
@@ -603,7 +715,14 @@ jobs:
             throw 'find_package(jsonv) did not resolve to the NuGet package'
           }
           cmake --build smoke-build --config Release --parallel
-          .\smoke-build\Release\jsonv-example.exe
+          $output = .\smoke-build\Release\jsonv-example.exe
+          if ($LASTEXITCODE -ne 0) {
+            throw "jsonv-example exited with $LASTEXITCODE"
+          }
+          $output
+          if ("$output" -notlike "*(jsonv $version, *") {
+            throw "Expected the installed headers to say jsonv $version"
+          }
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4
@@ -698,6 +817,16 @@ jobs:
           grep -E '^jsonv_DIR:PATH=/usr/local/' smoke-cmake/CMakeCache.txt
           cmake --build smoke-cmake --parallel
           ./smoke-cmake/jsonv-example
+
+      # The example prints the version the installed headers declare. The installer is named with it as SemVer
+      # spells it, and libjsonv.pc carries it with the '~' which pkgconf sorts before the release.
+      - name: Check installed package version
+        shell: bash
+        run: |
+          semver=$(./smoke-cmake/jsonv-example | sed -n 's/.*(jsonv \([^,]*\), JSONV_SO=.*/\1/p')
+          test -n "${semver}"
+          test -e "build/jsonv-${semver}-Darwin.pkg"
+          grep -Fx "Version: $(echo "${semver}" | tr - '~')" /usr/local/lib/pkgconfig/libjsonv.pc
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@v4

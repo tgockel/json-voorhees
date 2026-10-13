@@ -13,8 +13,9 @@
 # specific language governing permissions and limitations under the License.
 cmake_minimum_required(VERSION 3.23...4.2)
 
-# include/jsonv/config.hpp is the one place the version is written down. It is read before project() so that the
-# VERSION argument -- and with it PROJECT_VERSION, the package version file and CPack -- comes from there.
+# include/jsonv/config.hpp is the one place the version is written down, pre-release included. It is read before
+# project() so that the VERSION argument -- and with it PROJECT_VERSION, the package version file and CPack -- comes
+# from there. project() takes only the numbers; JSONV_VERSION_SEMVER and JSONV_VERSION_TILDE carry the pre-release.
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/JsonvVersion.cmake")
 jsonv_read_version("${CMAKE_CURRENT_SOURCE_DIR}/include/jsonv/config.hpp" JSONV_VERSION)
 
@@ -24,7 +25,7 @@ project(json-voorhees
         HOMEPAGE_URL "https://tgockel.github.io/json-voorhees/"
         LANGUAGES    CXX
        )
-message(STATUS "JSONV version: ${PROJECT_VERSION}")
+message(STATUS "JSONV version: ${JSONV_VERSION_SEMVER}")
 
 ################################################################################
 # Options                                                                      #

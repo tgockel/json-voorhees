@@ -893,6 +893,13 @@
        overloads of `parse`, `ostream_pretty_encoder` and one `enum_adapter` constructor are documented where they are
        declared rather than on a stray "Examples" page, and a new Configuration module lists the macros in `config.hpp`
        (#300).
+     - `config.hpp` says which version the headers belong to beyond the three numbers. `JSONV_VERSION` is the version
+       as one number for `#if` (`2000000` for 2.0.0), and `JSONV_VERSION_PRERELEASE` is a string literal: `"rc.1"` for
+       2.0.0-rc.1 and `""` for a release. A pre-release has the numbers of the release it leads up to, so
+       `JSONV_VERSION`, the shared library's file name and SONAME, and the CMake package version are the same for
+       both. The packages carry the difference: `2.0.0~rc.1` in the deb and rpm versions and in `libjsonv.pc`, which is
+       the spelling dpkg, rpm and pkgconf sort before 2.0.0, and `2.0.0-rc.1` for NuGet and the macOS installer.
+       Configure refuses a pre-release which is not dot-separated letters and digits (#383).
 
 1._ Series
 ==========
