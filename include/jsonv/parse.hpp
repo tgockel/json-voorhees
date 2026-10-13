@@ -17,12 +17,6 @@
 #include <cstddef>
 #include <stdexcept>
 
-/// \def JSONV_PARSE_MAX_STRUCTURE_DEPTH
-/// See \c jsonv::parse_options::k::max_structure_depth.
-#ifndef JSONV_PARSE_MAX_STRUCTURE_DEPTH
-#   define JSONV_PARSE_MAX_STRUCTURE_DEPTH 128
-#endif
-
 namespace jsonv
 {
 
@@ -84,8 +78,12 @@ public:
 
     struct k final
     {
-        /// The absolute maximum structure depth to parse. This sets the upper allowable limit
-        static constexpr size_type max_structure_depth = size_type(JSONV_PARSE_MAX_STRUCTURE_DEPTH);
+        /// The absolute maximum structure depth to parse, which is the upper allowable limit for
+        /// \c parse_options::max_structure_depth(). This is a fixed limit of the library: the parser keeps its stack
+        /// of open structures at this size, so it is written into the header rather than left for a consumer to
+        /// define differently from the library it links. Use \c parse_options::max_structure_depth() to lower the
+        /// limit for a single parse.
+        static constexpr size_type max_structure_depth = 128;
     };
 
 public:

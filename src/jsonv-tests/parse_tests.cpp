@@ -395,6 +395,36 @@ TEST_PARSE(depth)
     ensure_throws(parse_error, parse(src, parse_options::create_strict()));
 }
 
+/// `parse_options::k::max_structure_depth` is what a consumer sees of the limit the library was built with, so these
+/// hold only while the two agree. It used to come from a macro a consumer could define differently, which made the
+/// constant promise a depth the library refused (or, lowered, a depth it would have allowed).
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/384
+static std::string nested_arrays(std::size_t levels)
+{
+    return std::string(levels, '[') + std::string(levels, ']');
+}
+
+TEST_PARSE(depth_limit_is_the_librarys)
+{
+    constexpr std::size_t limit = parse_options::k::max_structure_depth;
+
+    // Whether the document counts as a level of its own is the parser's business, so stay clear of the boundary.
+    (void) parse(nested_arrays(limit - 1));
+    ensure_throws(parse_error, parse(nested_arrays(limit + 1)));
+
+    // Asking for the limit itself is a request the library can meet, and a lower one is honored for that parse.
+    (void) parse("[[[]]]", parse_options().max_structure_depth(limit));
+    ensure_throws(parse_error, parse("[[[[[]]]]]", parse_options().max_structure_depth(3)));
+}
+
+TEST_PARSE(depth_above_limit_is_invalid_argument)
+{
+    constexpr std::size_t limit = parse_options::k::max_structure_depth;
+
+    ensure_throws(std::invalid_argument, parse("[]", parse_options().max_structure_depth(limit + 1)));
+}
+
 TEST_PARSE(literal)
 {
     value v = "[1, 2, 3, 4]"_json;
