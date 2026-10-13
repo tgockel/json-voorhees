@@ -4,7 +4,8 @@
 2.0
 ---
 
- - [2.0.0](https://github.com/tgockel/json-voorhees/milestone/12): 2020 March 13
+ - [2.0.0](https://github.com/tgockel/json-voorhees/milestone/12): unreleased
+   ([2.0.0-rc.1](https://github.com/tgockel/json-voorhees/releases/tag/v2.0.0-rc.1): 2026 October 13)
    - Core
      - The side-effect-free public API is now `[[nodiscard]]` (spelled `JSONV_NODISCARD`, which you can define away).
        This covers the predicates and accessors, the constant lookups, `parse`, the `coerce_*` functions and the

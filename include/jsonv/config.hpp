@@ -39,7 +39,7 @@
 /// such as `#if JSONV_VERSION >= 2000000` holds for the release candidates of 2.0.0 as well as for 2.0.0 itself. The
 /// preprocessor cannot look inside a string, but `std::string_view(JSONV_VERSION_PRERELEASE).empty()` is a constant
 /// expression which is \c true for a release.
-#define JSONV_VERSION_PRERELEASE ""
+#define JSONV_VERSION_PRERELEASE "rc.1"
 
 /// \def JSONV_VERSION
 /// The version of JSON Voorhees these headers belong to as a single number,
