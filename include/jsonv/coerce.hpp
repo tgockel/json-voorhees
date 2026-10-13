@@ -29,6 +29,11 @@ namespace jsonv
 
 /** Can the given \c kind be converted \a from a kind \a to another?
  *  
+ *  Any \c kind can be coerced to a \c string or a \c boolean. A \c boolean, \c integer or \c decimal can be coerced to
+ *  an \c integer or a \c decimal. Coercing to a \c null, \c object or \c array requires the source to have that same
+ *  \c kind. A \c string going to an \c integer or a \c decimal is the one conversion this overload answers \c false for
+ *  which can still succeed: it depends on what the string says, and the \c value overload is the one which looks.
+ *
  *  \returns \c true if the corresponding \c coerce_X function for the specified \a to will successfully return if given
  *           a \c value of the kind \a from; false if there is no such conversion (the \c coerce_X function might
  *           throw).

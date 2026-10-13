@@ -15,6 +15,7 @@
 #include <cmath>
 #include <limits>
 #include <string>
+#include <vector>
 
 namespace jsonv_test
 {
@@ -24,6 +25,19 @@ using namespace jsonv;
 TEST(cant_coerce_corrupt)
 {
     ensure(!can_coerce(static_cast<kind>(~0), kind::null));
+}
+
+// `coerce_integer` and `coerce_decimal` take a boolean, so `can_coerce` has to say so (#377).
+TEST(can_coerce_boolean_to_number)
+{
+    ensure(can_coerce(kind::boolean, kind::integer));
+    ensure(can_coerce(kind::boolean, kind::decimal));
+
+    for (const value& flag : { value(true), value(false) })
+    {
+        ensure(can_coerce(flag, kind::integer));
+        ensure(can_coerce(flag, kind::decimal));
+    }
 }
 
 TEST(coerce_object_valid)
@@ -380,6 +394,101 @@ TEST(coerce_nulls)
     ensure_throws(kind_error, coerce_null(false));
 }
 
+namespace
+{
+
+// Does the `coerce_X` function for `to` take `from` without throwing?
+bool coerce_succeeds(const value& from, kind to)
+{
+    try
+    {
+        switch (to)
+        {
+        case kind::null:
+            (void) coerce_null(from);
+            break;
+        case kind::object:
+            (void) coerce_object(from);
+            break;
+        case kind::array:
+            (void) coerce_array(from);
+            break;
+        case kind::string:
+            (void) coerce_string(from);
+            break;
+        case kind::boolean:
+            (void) coerce_boolean(from);
+            break;
+        case kind::integer:
+            (void) coerce_integer(from);
+            break;
+        case kind::decimal:
+            (void) coerce_decimal(from);
+            break;
+        }
+        return true;
+    }
+    catch (const kind_error&)
+    {
+        return false;
+    }
+}
+
+}
+
+// `can_coerce` on a `value` is documented to be `true` exactly when the `coerce_X` function does not throw, and on a
+// `kind` to be `true` only if it does not throw for any value of that kind. The `kind` overload said `false` for a
+// boolean going to a number, and the `value` overload took that answer without looking (#377).
+TEST(can_coerce_agrees_with_coerce)
+{
+    const std::vector<value> samples = { value(null),
+                                         value(true),
+                                         value(false),
+                                         value(0),
+                                         value(-7),
+                                         value(1.5),
+                                         value(std::numeric_limits<double>::quiet_NaN()),
+                                         value(std::numeric_limits<double>::infinity()),
+                                         value(-std::numeric_limits<double>::infinity()),
+                                         value(""),
+                                         value("foo"),
+                                         value("12"),
+                                         value("1.5"),
+                                         value("1e400"),
+                                         object(),
+                                         array()
+                                       };
+    const std::vector<kind> targets = { kind::null,
+                                        kind::object,
+                                        kind::array,
+                                        kind::string,
+                                        kind::boolean,
+                                        kind::integer,
+                                        kind::decimal
+                                      };
+
+    // `ensure` only reports its condition, which would not say which of the samples disagreed
+    std::string disagreements;
+    for (const value& sample : samples)
+    {
+        for (kind to : targets)
+        {
+            const bool succeeds = coerce_succeeds(sample, to);
+
+            if (can_coerce(sample, to) != succeeds)
+                disagreements += "can_coerce(" + to_string(sample) + ", " + to_string(to) + ") is "
+                               + (succeeds ? "false" : "true") + " but the coerce function "
+                               + (succeeds ? "succeeds" : "throws") + "; ";
+
+            if (can_coerce(sample.kind(), to) && !succeeds)
+                disagreements += "can_coerce(kind::" + to_string(sample.kind()) + ", kind::" + to_string(to)
+                               + ") is true but the coerce function throws for " + to_string(sample) + "; ";
+        }
+    }
+
+    ensure_eq(std::string(), disagreements);
+}
+
 // An integer and a decimal which hold the same number compare equal, so the tests below check the kind to tell a sum
 // which wrapped from one which was promoted.
 TEST(coerce_merge_integer_overflow_to_decimal)
@@ -448,6 +557,40 @@ TEST(coerce_merge_integer_sum_at_limits)
     value extremes = coerce_merge(value(max), value(std::to_string(min)));
     ensure_eq(kind::integer, extremes.kind());
     ensure_eq(std::int64_t(-1), extremes.as_integer());
+}
+
+// A number and a boolean merge to the boolean "or" of the two, whichever side the number is on. It is not a sum, though
+// `can_coerce` says a boolean can become a number, so `coerce_merge(1, true)` is `true` and not `2` (#377). The merge
+// fixture `boolean_integer.json` has the boolean on the left, which never asks `can_coerce`.
+TEST(coerce_merge_number_with_boolean_is_boolean)
+{
+    struct merge_case
+    {
+        value number;
+        value flag;
+        bool  expected;
+    };
+
+    const merge_case cases[] = { { value(1),   value(true),  true  },
+                                 { value(1),   value(false), true  },
+                                 { value(0),   value(true),  true  },
+                                 { value(0),   value(false), false },
+                                 { value(1.5), value(true),  true  },
+                                 { value(1.5), value(false), true  },
+                                 { value(0.0), value(true),  true  },
+                                 { value(0.0), value(false), false }
+                               };
+
+    for (const merge_case& c : cases)
+    {
+        value number_first = coerce_merge(c.number, c.flag);
+        ensure_eq(kind::boolean, number_first.kind());
+        ensure_eq(c.expected, number_first.as_boolean());
+
+        value flag_first = coerce_merge(c.flag, c.number);
+        ensure_eq(kind::boolean, flag_first.kind());
+        ensure_eq(c.expected, flag_first.as_boolean());
+    }
 }
 
 }

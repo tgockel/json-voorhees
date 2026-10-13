@@ -141,7 +141,9 @@ bool can_coerce(const kind& from, const kind& to)
         return true;
     case kind::decimal:
     case kind::integer:
-        return from == kind::decimal || from == kind::integer;
+        // A boolean is 1 or 0. Whether a string is a number depends on what it says, which only the `value` overload
+        // sees.
+        return from == kind::decimal || from == kind::integer || from == kind::boolean;
     default:
         // can't coerce to a corrupt kind
         return false;
@@ -283,6 +285,10 @@ value coerce_merge(value a, value b)
         return merge_recursive(std::move(a), std::move(b));
     else if (b.kind() == kind::null)
         return a;
+    else if (b.kind() == kind::boolean && (a.kind() == kind::integer || a.kind() == kind::decimal))
+        // A number merged with a boolean is the boolean "or" of the two, as it is the other way around, and not a
+        // sum -- though `can_coerce` says a boolean can become a number
+        return coerce_merge(std::move(b), std::move(a));
     else switch (a.kind())
     {
     case kind::array:

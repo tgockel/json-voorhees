@@ -321,6 +321,12 @@
        `const_array_view` and `const_object_view` have one iterator type for both and were unaffected. Both functions
        now return a `const_reverse_iterator`, so `rbegin() const`, `rend() const`, `crbegin()` and `crend()` walk a
        view in reverse (#374).
+     - Fixed `can_coerce` answering `false` for a `boolean` going to an `integer` or a `decimal`, though
+       `coerce_integer` and `coerce_decimal` take one and return `1` or `0` (`1.0` or `0.0`). The `value` overload is
+       documented to say `false` only where the `coerce_X` function throws, so a caller who used it as a gate turned
+       away a conversion the library makes. Both overloads now say `true`. `coerce_merge` leaned on the old answer to
+       send a boolean on the right of an integer or a decimal to its boolean branch, and still does:
+       `coerce_merge(1, true)` is `true`, as it was, and not `2` (#377).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on
