@@ -12,7 +12,10 @@
 #include <jsonv/parse.hpp>
 
 #include <algorithm>
+#include <memory>
 #include <sstream>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 TEST(array)
@@ -259,6 +262,134 @@ TEST(array_iterate_over_temp)
     std::ostringstream os;
     for (const value& x : array({ 1, "two", "three", array({ 4, 4, 4 }) }).as_array())
         os << x;
+}
+
+namespace
+{
+
+using owning_array_view = jsonv::value::owning_array_view;
+
+// The elements of a view, gathered into an array so a failure prints them.
+template <typename TView>
+jsonv::value elements_of(TView& view)
+{
+    jsonv::value out = jsonv::array();
+    for (const jsonv::value& x : view)
+        out.push_back(x);
+    return out;
+}
+
+// A by-value parameter is never a candidate for NRVO, so returning it makes the view move a second time.
+owning_array_view pass_through(owning_array_view view)
+{
+    return view;
+}
+
+}
+
+// A view owns its container, so it cannot be copied; copying would leave the iterators on the source.
+static_assert(!std::is_copy_constructible<owning_array_view>::value, "an owning view must not be copyable");
+static_assert(!std::is_copy_assignable<owning_array_view>::value,    "an owning view must not be copyable");
+static_assert(std::is_nothrow_move_constructible<owning_array_view>::value, "an owning view must be movable");
+static_assert(std::is_nothrow_move_assignable<owning_array_view>::value,    "an owning view must be movable");
+
+TEST(array_owning_view_move_construct)
+{
+    using namespace jsonv;
+
+    const value original = array({ 1, 2, 3 });
+    value copy = original;
+    auto from = std::move(copy).as_array();
+    owning_array_view to(std::move(from));
+
+    ensure_eq(array({ 1, 2, 3 }), elements_of(to));
+
+    // The destination owns its own container, so a write through it reaches nothing else.
+    *to.begin() = 9;
+    ensure_eq(array({ 9, 2, 3 }), elements_of(to));
+    ensure_eq(array({ 1, 2, 3 }), original);
+}
+
+TEST(array_owning_view_move_construct_then_destroy_source)
+{
+    using namespace jsonv;
+
+    auto from = std::make_unique<owning_array_view>(array({ 1, 2, 3 }).as_array());
+    owning_array_view to(std::move(*from));
+    from.reset();
+
+    ensure_eq(array({ 1, 2, 3 }), elements_of(to));
+    *(to.begin() + 1) = 8;
+    ensure_eq(array({ 1, 8, 3 }), elements_of(to));
+}
+
+TEST(array_owning_view_move_assign)
+{
+    using namespace jsonv;
+
+    auto from = std::make_unique<owning_array_view>(array({ 1, 2, 3 }).as_array());
+    auto to = array({ "old" }).as_array();
+    to = std::move(*from);
+    from.reset();
+
+    ensure_eq(array({ 1, 2, 3 }), elements_of(to));
+    *to.begin() = 7;
+    ensure_eq(array({ 7, 2, 3 }), elements_of(to));
+}
+
+TEST(array_owning_view_move_through_function)
+{
+    using namespace jsonv;
+
+    auto view = pass_through(array({ 1, 2, 3 }).as_array());
+    ensure_eq(array({ 1, 2, 3 }), elements_of(view));
+}
+
+TEST(array_owning_view_move_reverse_iteration)
+{
+    using namespace jsonv;
+
+    auto from = std::make_unique<owning_array_view>(array({ 1, 2, 3 }).as_array());
+    owning_array_view to(std::move(*from));
+    from.reset();
+
+    auto riter = to.rbegin();
+    ensure_eq(*riter, 3);
+    ++riter;
+    ensure_eq(*riter, 2);
+    ++riter;
+    ensure_eq(*riter, 1);
+    ++riter;
+    ensure(riter == to.rend());
+}
+
+TEST(array_owning_view_moved_from_is_empty)
+{
+    using namespace jsonv;
+
+    auto from = array({ 1, 2, 3 }).as_array();
+    owning_array_view to(std::move(from));
+
+    ensure(from.begin() == from.end());
+    ensure(from.rbegin() == from.rend());
+    ensure_eq(array(), elements_of(from));
+
+    // Moving from a view which has already been moved from must not try to look inside the empty value.
+    owning_array_view again(std::move(from));
+    ensure(again.begin() == again.end());
+    to = std::move(again);
+    ensure(to.begin() == to.end());
+}
+
+TEST(array_owning_view_self_move_assign)
+{
+    using namespace jsonv;
+
+    auto view = array({ 1, 2, 3 }).as_array();
+    owning_array_view& alias = view;
+    view = std::move(alias);
+
+    ensure_eq(array({ 1, 2, 3 }), elements_of(view));
 }
 
 TEST(parse_empty_array)

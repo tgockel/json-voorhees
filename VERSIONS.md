@@ -290,6 +290,15 @@
        same-key policy, and a type-conflict policy meant to throw was skipped without a word. `merge_explicit` now
        calls `type_conflict` for them, and only for them: a shared object key still calls `same_key`, and an integer
        with a decimal calls neither. `merge` and `merge_recursive` use their own rules and were not affected (#368).
+     - Fixed `value::owning_array_view` and `value::owning_object_view` (what `as_array() &&` and `as_object() &&`
+       return) keeping their iterators on the source when copied or moved. A copy owned a fresh container but iterated
+       the source's, so a write through it changed the source and destroying the source left it dangling. Moving an
+       array view left its iterators on the moved-from `value`, which is null, so it threw `kind_error` and then read
+       freed memory; an object view survived a move only because its iterators are into the map the move carries
+       along. An owning view is now move-only, so copying one is a compile error, and a move rebuilds the iterators
+       from the container the destination owns. A moved-from owning view is an empty range: it can be destroyed,
+       assigned to, moved from again, or iterated zero times. A range-for over `std::move(v).as_array()` is
+       unchanged. The view grew by two function pointers, which changes its layout (#369).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on

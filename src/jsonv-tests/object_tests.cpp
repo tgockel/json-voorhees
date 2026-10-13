@@ -14,8 +14,10 @@
 
 #include <cwchar>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 TEST(object)
@@ -626,6 +628,135 @@ TEST(owning_object_view)
     ensure_eq("b", iter->first);
     ++iter;
     ensure(iter == view.end());
+}
+
+namespace
+{
+
+using owning_object_view = jsonv::value::owning_object_view;
+
+// The members of a view, gathered into an object so a failure prints them.
+template <typename TView>
+jsonv::value members_of(TView& view)
+{
+    jsonv::value out = jsonv::object();
+    for (const auto& member : view)
+        out[member.first] = member.second;
+    return out;
+}
+
+// A by-value parameter is never a candidate for NRVO, so returning it makes the view move a second time.
+owning_object_view pass_through(owning_object_view view)
+{
+    return view;
+}
+
+}
+
+// A view owns its container, so it cannot be copied; copying would leave the iterators on the source.
+static_assert(!std::is_copy_constructible<owning_object_view>::value, "an owning view must not be copyable");
+static_assert(!std::is_copy_assignable<owning_object_view>::value,    "an owning view must not be copyable");
+static_assert(std::is_nothrow_move_constructible<owning_object_view>::value, "an owning view must be movable");
+static_assert(std::is_nothrow_move_assignable<owning_object_view>::value,    "an owning view must be movable");
+
+TEST(object_owning_view_move_construct)
+{
+    using namespace jsonv;
+
+    const value original = object({ { "a", 1 }, { "b", 2 } });
+    value copy = original;
+    auto from = std::move(copy).as_object();
+    owning_object_view to(std::move(from));
+
+    ensure_eq(object({ { "a", 1 }, { "b", 2 } }), members_of(to));
+
+    // The destination owns its own container, so a write through it reaches nothing else.
+    to.begin()->second = 9;
+    ensure_eq(object({ { "a", 9 }, { "b", 2 } }), members_of(to));
+    ensure_eq(object({ { "a", 1 }, { "b", 2 } }), original);
+}
+
+TEST(object_owning_view_move_construct_then_destroy_source)
+{
+    using namespace jsonv;
+
+    auto from = std::make_unique<owning_object_view>(object({ { "a", 1 }, { "b", 2 } }).as_object());
+    owning_object_view to(std::move(*from));
+    from.reset();
+
+    ensure_eq(object({ { "a", 1 }, { "b", 2 } }), members_of(to));
+    (++to.begin())->second = 8;
+    ensure_eq(object({ { "a", 1 }, { "b", 8 } }), members_of(to));
+}
+
+TEST(object_owning_view_move_assign)
+{
+    using namespace jsonv;
+
+    auto from = std::make_unique<owning_object_view>(object({ { "a", 1 }, { "b", 2 } }).as_object());
+    auto to = object({ { "old", 0 } }).as_object();
+    to = std::move(*from);
+    from.reset();
+
+    ensure_eq(object({ { "a", 1 }, { "b", 2 } }), members_of(to));
+    to.begin()->second = 7;
+    ensure_eq(object({ { "a", 7 }, { "b", 2 } }), members_of(to));
+}
+
+TEST(object_owning_view_move_through_function)
+{
+    using namespace jsonv;
+
+    auto view = pass_through(object({ { "a", 1 }, { "b", 2 } }).as_object());
+    ensure_eq(object({ { "a", 1 }, { "b", 2 } }), members_of(view));
+}
+
+TEST(object_owning_view_move_reverse_iteration)
+{
+    using namespace jsonv;
+
+    auto from = std::make_unique<owning_object_view>(object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }).as_object());
+    owning_object_view to(std::move(*from));
+    from.reset();
+
+    auto riter = to.rbegin();
+    ensure_eq(riter->first, "c");
+    ++riter;
+    ensure_eq(riter->first, "b");
+    ++riter;
+    ensure_eq(riter->first, "a");
+    ++riter;
+    ensure(riter == to.rend());
+}
+
+// The moved-from object view must not walk the nodes it handed to the destination.
+TEST(object_owning_view_moved_from_is_empty)
+{
+    using namespace jsonv;
+
+    auto from = object({ { "a", 1 }, { "b", 2 } }).as_object();
+    owning_object_view to(std::move(from));
+
+    ensure(from.begin() == from.end());
+    ensure(from.rbegin() == from.rend());
+    ensure_eq(object(), members_of(from));
+
+    // Moving from a view which has already been moved from must not try to look inside the empty value.
+    owning_object_view again(std::move(from));
+    ensure(again.begin() == again.end());
+    to = std::move(again);
+    ensure(to.begin() == to.end());
+}
+
+TEST(object_owning_view_self_move_assign)
+{
+    using namespace jsonv;
+
+    auto view = object({ { "a", 1 }, { "b", 2 } }).as_object();
+    owning_object_view& alias = view;
+    view = std::move(alias);
+
+    ensure_eq(object({ { "a", 1 }, { "b", 2 } }), members_of(view));
 }
 
 // An object constructed with wide strings should be the same as one constructed with narrow ones

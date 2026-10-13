@@ -91,6 +91,13 @@ protected:
 };
 
 /// A form of basic_view that owns the object it is iterating over.
+///
+/// The iterators can refer to the container's address (an array iterator holds a pointer to its \c value), so they
+/// cannot simply be carried along when the view moves. A moved-to view rebuilds them from the container it now owns,
+/// which is why it keeps the functions it was constructed with. For the same reason, an owning view can be moved but
+/// not copied: a copy would own a fresh container while its iterators still pointed into the source's.
+///
+/// A moved-from view is an empty range. It is safe to destroy, assign to, move from again, or iterate (zero times).
 template <typename TContainer,
           typename TIterator,
           typename TConstIterator = TIterator
@@ -100,13 +107,60 @@ class basic_owning_view :
         public basic_view<TIterator, TConstIterator>
 {
     using basic_owner<TContainer>::_value;
+    using view_type = basic_view<TIterator, TConstIterator>;
 
 public:
-    template <typename FBegin, typename FEnd>
-    basic_owning_view(TContainer&& container, FBegin begin, FEnd end) :
+    /// A function which finds one end of a container. It must not hold state, so an owning view can keep it.
+    using locate_function = TIterator (*)(TContainer&);
+
+    basic_owning_view(TContainer&& container, locate_function locate_begin, locate_function locate_end) :
             basic_owner<TContainer>(std::move(container)),
-            basic_view<TIterator, TConstIterator>(begin(_value), end(_value))
+            view_type(locate_begin(_value), locate_end(_value)),
+            _locate_begin(locate_begin),
+            _locate_end(locate_end)
     { }
+
+    basic_owning_view(const basic_owning_view&)            = delete;
+    basic_owning_view& operator=(const basic_owning_view&) = delete;
+
+    basic_owning_view(basic_owning_view&& src) noexcept :
+            basic_owner<TContainer>(std::move(src._value)),
+            view_type(TIterator(), TIterator()),
+            _locate_begin(nullptr),
+            _locate_end(nullptr)
+    {
+        adopt_view_of(src);
+    }
+
+    basic_owning_view& operator=(basic_owning_view&& src) noexcept
+    {
+        if (this != &src)
+        {
+            _value = std::move(src._value);
+            adopt_view_of(src);
+        }
+
+        return *this;
+    }
+
+private:
+    /// Point this view at the container it now owns, and leave \a src as an empty range. The container has already
+    /// been moved. If \a src was itself moved from, its container is empty and has no ends to find, so this view is
+    /// empty too.
+    void adopt_view_of(basic_owning_view& src) noexcept
+    {
+        _locate_begin = std::exchange(src._locate_begin, nullptr);
+        _locate_end   = std::exchange(src._locate_end,   nullptr);
+
+        view_type::operator=(_locate_begin ? view_type(_locate_begin(_value), _locate_end(_value))
+                                           : view_type(TIterator(), TIterator())
+                            );
+        src.view_type::operator=(view_type(TIterator(), TIterator()));
+    }
+
+private:
+    locate_function _locate_begin;
+    locate_function _locate_end;
 };
 
 }
