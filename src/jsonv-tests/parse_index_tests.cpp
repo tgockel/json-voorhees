@@ -112,6 +112,46 @@ TEST(ast_parse_nothing)
     ensure_eq(to_string(ast), "^$");
 }
 
+/// The index for input holding no value is a valid one, so `validate` passes it, but there is no value to build from
+/// it. Extraction reports the input ending unexpectedly at the end of the source, which is what it used to leave to
+/// `std::invalid_argument("unexpected token $")`.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/371
+TEST(ast_parse_nothing_has_no_tree_to_extract)
+{
+    struct
+    {
+        std::string_view src;
+        bool             comments;
+    }
+    const cases[] =
+    {
+        { "",         false },
+        { "  ",       false },
+        { " \t\r\n",  false },
+        { "/* c */",  true  },
+    };
+
+    for (const auto& c : cases)
+    {
+        auto ast = jsonv::parse_index::parse(c.src, jsonv::parse_options().comments(c.comments));
+        ensure(ast.success());
+        ensure_eq(to_string(ast), "^$");
+        ast.validate();
+
+        try
+        {
+            (void) ast.extract_tree();
+            ensure(!"parse_error was not thrown");
+        }
+        catch (const jsonv::parse_error& ex)
+        {
+            ensure_eq(c.src.size(), ex.character().value());
+            ensure(std::string_view(ex.what()).ends_with(to_string(jsonv::ast_error::unexpected_eof)));
+        }
+    }
+}
+
 TEST(ast_parse_comment)
 {
     parse_single<jsonv::ast_node::literal_null>("null /* <- still null */ ",

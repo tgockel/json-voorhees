@@ -1216,7 +1216,21 @@ value parse_index::extract_tree(const deserialize_options& options) const
     if (first_node.type() != ast_node_type::document_start)
         throw std::invalid_argument("AST index did not start with a `document_start`");
 
+    // The index for input holding no value -- empty, only whitespace, or only comments -- is `^$` and records no error,
+    // so a caller who validated it got here. There is nothing to extract, which is the input ending where a value was
+    // needed: report it as such, at the end of the input, as `[` does when it runs out.
     ++iter;
+    if (iter != last)
+    {
+        auto next_node = *iter;
+        if (next_node.type() == ast_node_type::document_end)
+        {
+            auto at = static_cast<std::size_t>(next_node.token_raw().data() - _impl->src_begin);
+            JSONV_UNLIKELY
+            throw parse_error(to_string(ast_error::unexpected_eof).c_str(), at);
+        }
+    }
+
     auto out = extract_single(*&iter, last, options);
 
     if (iter == last)

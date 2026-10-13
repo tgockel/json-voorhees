@@ -305,6 +305,15 @@
        from the container the destination owns. A moved-from owning view is an empty range: it can be destroyed,
        assigned to, moved from again, or iterated zero times. A range-for over `std::move(v).as_array()` is
        unchanged. The view grew by two function pointers, which changes its layout (#369).
+     - Fixed `parse` of input holding no value -- empty, only whitespace or, with `comments(true)`, only comments --
+       throwing `std::invalid_argument("unexpected token $")` rather than `parse_error`, so a caller who caught
+       `parse_error` missed it. The same went for the `std::istream` and `begin`/`end` overloads and `""_json`. The
+       index for such input is `^$` and records no error, which is deliberate and unchanged -- `validate` still passes
+       it -- but `parse_index::extract_tree` handed its `document_end` to the extractor as though it were a value.
+       `extract_tree` now throws `parse_error` for it, "input ended unexpectedly" at the end of the input, the way `[`
+       reports running out of it. 1.4.0 threw `parse_error("No input")`; that check was lost when parsing moved onto
+       the AST index. `create_strict()` already rejected these with `expected_document`, and `deserialize` from text
+       already reported them as a `deserialization_error` (#371).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on

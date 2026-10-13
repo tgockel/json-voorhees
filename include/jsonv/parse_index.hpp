@@ -179,6 +179,11 @@ public:
 
     /// Build a \c value from the document this index holds. Extraction is controlled by \a options where they are
     /// given, and by \c deserialize_options::create_default() where they are not.
+    ///
+    /// \throws parse_error if the document holds no value, which is the case for source text that is empty, only
+    ///  whitespace or -- with \c parse_options::comments -- only comments. Such an index is a valid one (\c validate
+    ///  does not throw for it), but there is nothing to build a \c value from. The error is the input ending
+    ///  unexpectedly, at the end of the source text.
     JSONV_NODISCARD
     value extract_tree(const deserialize_options& options) const;
     JSONV_NODISCARD

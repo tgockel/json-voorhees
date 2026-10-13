@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <iostream>
 #include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -510,4 +511,86 @@ TEST_PARSE(comment_rejected_by_default)
 TEST_PARSE(invalid_utf8_input)
 {
     ensure_throws(jsonv::parse_error, jsonv::parse("\"\xe4\""));
+}
+
+/// Input which holds no value is invalid, but the index built for it records no error -- `^$` is the right tape for
+/// it, and `parse_index::validate` accepts it -- so the failure has to come from extraction. That threw
+/// `std::invalid_argument("unexpected token $")`, which a caller catching `parse_error` never saw. Every way of handing
+/// text to `parse` reports the input ending unexpectedly, at its end.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/371
+TEST_PARSE(input_holding_no_value_is_parse_error)
+{
+    struct no_value
+    {
+        std::string_view src;
+        bool             comments;
+    };
+
+    for (const auto& [src, comments] : { no_value{ "",                    false },
+                                         no_value{ " ",                   false },
+                                         no_value{ " \t\r\n",             false },
+                                         no_value{ "/* c */",             true  },
+                                         no_value{ " /* a */ /* b */\n",  true  },
+                                       })
+    {
+        const auto opts = parse_options().comments(comments);
+
+        auto ensure_parse_error = [&, src = src](const auto& action)
+        {
+            try
+            {
+                (void) action();
+                ensure(!"parse_error was not thrown");
+            }
+            catch (const parse_error& ex)
+            {
+                ensure_eq(src.size(), ex.character().value());
+                ensure(std::string_view(ex.what()).ends_with(to_string(ast_error::unexpected_eof)));
+            }
+        };
+
+        ensure_parse_error([&] { return parse(src, opts); });
+        ensure_parse_error([&] { return parse(src.data(), src.data() + src.size(), opts); });
+        ensure_parse_error([&] { std::istringstream in{std::string(src)}; return parse(in, opts); });
+
+        if (!comments)
+        {
+            ensure_parse_error([&] { return parse(src); });
+            ensure_parse_error([&] { return parse(src.data(), src.data() + src.size()); });
+            ensure_parse_error([&] { std::istringstream in{std::string(src)}; return parse(in); });
+            ensure_parse_error([&] { return operator""_json(src.data(), src.size()); });
+        }
+    }
+
+    ensure_throws(parse_error, ""_json);
+}
+
+TEST_PARSE(input_holding_no_value_is_expected_document_when_strict)
+{
+    for (std::string_view src : { "", " ", " \t\r\n" })
+    {
+        try
+        {
+            (void) parse(src, parse_options::create_strict());
+            ensure(!"parse_error was not thrown");
+        }
+        catch (const parse_error& ex)
+        {
+            ensure_eq(0U, ex.character().value());
+            ensure(std::string_view(ex.what()).ends_with(to_string(ast_error::expected_document)));
+        }
+    }
+}
+
+TEST_PARSE(root_values_still_parse)
+{
+    ensure_eq(null,           parse("null"));
+    ensure_eq(object(),       parse("{}"));
+    ensure_eq(array(),        parse("[]"));
+    ensure_eq(value(true),    parse("true"));
+    ensure_eq(value(0),       parse("0"));
+    ensure_eq(value("s"),     parse(R"("s")"));
+    ensure_eq(value(1),       parse(" /* leading */ 1 /* trailing */", parse_options().comments(true)));
+    ensure_eq(null,           "null"_json);
 }

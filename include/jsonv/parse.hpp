@@ -176,7 +176,9 @@ private:
 /// \c ast_node::integer::value).
 ///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
-///  or stray literals. Errors of this category are described as an offset into \a input.
+///  or stray literals. Errors of this category are described as an offset into \a input. Input which holds no value
+///  is an error of this category, too: empty input, input of only whitespace and -- with \c parse_options::comments --
+///  input of only comments all report the input ending unexpectedly, at its end.
 /// \throws deserialization_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors
 ///                               like an object with duplicate keys (note that \c replace, the default \c
 ///                               deserialize_options::on_duplicate_key, does not throw for this case).
@@ -210,7 +212,9 @@ JSONV_NODISCARD JSONV_PUBLIC value parse(std::string_view input, const deseriali
 /// \c ast_node::integer::value).
 ///
 /// \throws parse_error if the source text is invalid JSON. This is thrown for errors like unterminated strings, arrays,
-///  or stray literals. Errors of this category are described as an offset into \a input.
+///  or stray literals. Errors of this category are described as an offset into \a input. Input which holds no value
+///  is an error of this category, too: empty input, input of only whitespace and -- with \c parse_options::comments --
+///  input of only comments all report the input ending unexpectedly, at its end.
 /// \throws deserialization_error if the AST can not be transformed into a \c jsonv::value. This is thrown for errors
 ///                               like an object with duplicate keys (note that \c replace, the default \c
 ///                               deserialize_options::on_duplicate_key, does not throw for this case).
