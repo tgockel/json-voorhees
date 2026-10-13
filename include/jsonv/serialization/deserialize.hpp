@@ -28,6 +28,7 @@
 #include <expected>
 #include <functional>
 #include <initializer_list>
+#include <iosfwd>
 #include <memory>
 #include <new>
 #include <optional>
@@ -1574,6 +1575,96 @@ JSONV_NODISCARD
 T deserialize(TSource&& source, const parse_options& parse_opts, deserialization_context& context)
 {
     return detail::deserialize_text<T>(std::forward<TSource>(source), parse_opts, context);
+}
+/// \}
+
+/// \{
+
+/// Deserialize a C++ value from the JSON in what is left of the \a source stream, parsed with \a parse_opts, using
+/// \a fmts (by default \c jsonv::formats::global()) and \a options. For example, to deserialize a file:
+///
+/// \code
+/// std::ifstream file("file.json");
+/// my_type out = jsonv::deserialize<my_type>(file);
+/// \endcode
+///
+/// The stream is read to its end, as \c parse(std::istream&) reads it, into a \c reader(std::istream&) which lives as
+/// long as this call. That text is then read exactly as the text overloads read a \c std::string rvalue: as a whole
+/// document, with views of it refused, since it is freed when this returns. A \c parse_error position counts from
+/// where \a source was when this was called.
+///
+/// \throws deserialization_error if what is left of \a source is not valid JSON, the value could not be deserialized,
+///                               or something follows it.
+/// \throws std::invalid_argument if \a parse_opts asks for a \c parse_options::max_structure_depth beyond the limit,
+///                               as \c jsonv::parse does.
+template <typename T>
+JSONV_NODISCARD
+T deserialize(std::istream&              source,
+              const formats&             fmts    = formats::global(),
+              const deserialize_options& options = deserialize_options()
+             )
+{
+    return deserialize<T>(reader(source, parse_options::create_default()), fmts, options);
+}
+
+/// Deserialize a C++ value from the JSON in the \a source stream using \c jsonv::formats::global() and the provided
+/// \a options.
+template <typename T>
+JSONV_NODISCARD
+T deserialize(std::istream& source, const deserialize_options& options)
+{
+    return deserialize<T>(reader(source, parse_options::create_default()), formats::global(), options);
+}
+
+/// Deserialize a C++ value from the JSON in the \a source stream parsed with \a parse_opts, using \a fmts and
+/// \a options.
+template <typename T>
+JSONV_NODISCARD
+T deserialize(std::istream&              source,
+              const parse_options&       parse_opts,
+              const formats&             fmts    = formats::global(),
+              const deserialize_options& options = deserialize_options()
+             )
+{
+    return deserialize<T>(reader(source, parse_opts), fmts, options);
+}
+
+/// Deserialize a C++ value from the JSON in the \a source stream parsed with \a parse_opts, using
+/// \c jsonv::formats::global() and the provided \a options.
+template <typename T>
+JSONV_NODISCARD
+T deserialize(std::istream& source, const parse_options& parse_opts, const deserialize_options& options)
+{
+    return deserialize<T>(reader(source, parse_opts), formats::global(), options);
+}
+/// \}
+
+/// \{
+
+/// Deserialize a C++ value from the JSON in what is left of the \a source stream, parsed with \a parse_opts where they
+/// are given, through a \a context the caller built.
+///
+/// \a source is read exactly as the overloads above read it, and \a context is used as the \c reader overload taking a
+/// \c deserialization_context uses it: everything it was created with applies, and the problems a failed call throws
+/// are taken off it. Build one for each document, and name the file it is read from as its
+/// \c deserialization_context::source_name to have the problems say which file they are in.
+///
+/// \throws deserialization_error if what is left of \a source is not valid JSON, the value could not be deserialized,
+///                               or something follows it.
+/// \throws std::invalid_argument if \a parse_opts asks for a \c parse_options::max_structure_depth beyond the limit,
+///                               as \c jsonv::parse does.
+template <typename T>
+JSONV_NODISCARD
+T deserialize(std::istream& source, deserialization_context& context)
+{
+    return deserialize<T>(reader(source, parse_options::create_default()), context);
+}
+
+template <typename T>
+JSONV_NODISCARD
+T deserialize(std::istream& source, const parse_options& parse_opts, deserialization_context& context)
+{
+    return deserialize<T>(reader(source, parse_opts), context);
 }
 /// \}
 

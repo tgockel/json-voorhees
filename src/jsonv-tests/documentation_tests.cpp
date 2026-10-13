@@ -687,7 +687,9 @@ TEST(documentation_tutorial_deserializing_constructor)
     // Without the format, there is nothing which knows how to deserialize a `my_type`.
     ensure_throws(jsonv::deserialization_error, jsonv::deserialize<my_type>(R"({ "a": 1, "b": 2, "c": "Hello!" })"));
 
-    // Naming the source, and the message which names it.
+    // Naming the source, and the message which names it. A string stream stands in for the `std::ifstream` the page
+    // opens, holding what the page says the file holds.
+    std::istringstream file(R"({ "a": 1, "b": "two", "c": "Hello!" })");
     jsonv::deserialization_context context(format,
                                            std::nullopt,
                                            jsonv::path(),
@@ -697,7 +699,7 @@ TEST(documentation_tutorial_deserializing_constructor)
                                           );
     try
     {
-        my_type y = jsonv::deserialize<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
+        my_type y = jsonv::deserialize<my_type>(file, context);
         (void) y;
         ensure(!"deserialization_error was not thrown");
     }

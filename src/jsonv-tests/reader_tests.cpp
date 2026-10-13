@@ -81,28 +81,43 @@ enum class walk_source
 {
     text,   //!< `reader(std::string_view)`, reading the example's source text
     value,  //!< `reader::from_value`, reading the example parsed into a `value` first
+    stream, //!< `reader(std::istream&)`, reading the example's source text out of a stream
 };
 
 }
 
 static std::string to_string(walk_source source)
 {
-    return source == walk_source::value ? "value" : "text";
+    switch (source)
+    {
+    case walk_source::value:  return "value";
+    case walk_source::stream: return "stream";
+    default:                  return "text";
+    }
 }
 
 static jsonv::reader make_reader(std::string_view source, walk_source from)
 {
     if (from == walk_source::value)
+    {
         return jsonv::reader::from_value(jsonv::parse(source));
+    }
+    else if (from == walk_source::stream)
+    {
+        std::istringstream in{ std::string(source) };
+        return jsonv::reader(in);
+    }
     else
+    {
         return jsonv::reader(source);
+    }
 }
 
 /// A `value` holds *decoded* string bytes, so a value-sourced reader reports every string and key as canonical no
 /// matter how the source document spelled it. Nothing else about the walk differs, which is the point.
 static jsonv::ast_node_type expected_type(jsonv::ast_node_type type, walk_source from)
 {
-    if (from == walk_source::text)
+    if (from != walk_source::value)
         return type;
 
     switch (type)
@@ -290,7 +305,7 @@ public:
     static std::vector<std::unique_ptr<jsonv_test::unit_test>> make_tests(const example_data_type& data)
     {
         std::vector<std::unique_ptr<jsonv_test::unit_test>> out;
-        for (auto from : { walk_source::text, walk_source::value })
+        for (auto from : { walk_source::text, walk_source::value, walk_source::stream })
             out.emplace_back(std::make_unique<reader_example_walkthrough_no_jump_test>(data, from));
         return out;
     }
@@ -1803,15 +1818,80 @@ TEST(reader_owns_source)
     ensure(!jsonv::reader(jsonv::parse_index::parse(text)).owns_source());
     ensure(!jsonv::reader::from_value(in_mem).owns_source());
 
-    // The reader keeps these alive.
+    // The reader keeps these alive. A stream is read into storage of the reader's own.
+    std::istringstream stream(text);
     ensure(jsonv::reader(std::string(text)).owns_source());
     ensure(jsonv::reader::from_value(jsonv::value(5)).owns_source());
+    ensure(jsonv::reader(stream).owns_source());
 
     // Ownership goes with the implementation when the reader moves.
     jsonv::reader owning{ std::string(text) };
     jsonv::reader moved(std::move(owning));
     ensure(!owning.owns_source());
     ensure(moved.owns_source());
+}
+
+/// The types of the nodes \a rdr walks over from where it is to the end of its document.
+static std::vector<jsonv::ast_node_type> remaining_node_types(jsonv::reader& rdr)
+{
+    std::vector<jsonv::ast_node_type> out;
+    do
+    {
+        out.push_back(rdr.current_type());
+    } while (rdr.next_token());
+    return out;
+}
+
+TEST(reader_from_a_stream_reads_what_is_left_of_it)
+{
+    // What was taken off the stream before is not part of the document, and once the reader exists nothing reads the
+    // stream again -- here, because it is gone.
+    std::optional<jsonv::reader> rdr;
+    {
+        std::istringstream in("skipped [ 1, 2 ]");
+        std::string        skipped;
+        in >> skipped;
+        rdr.emplace(in);
+    }
+
+    rdr->validate();
+    jsonv::reader expected("[ 1, 2 ]");
+    ensure(remaining_node_types(expected) == remaining_node_types(*rdr));
+}
+
+TEST(reader_from_a_stream_honours_parse_options)
+{
+    std::istringstream refused("/* a comment */ 5");
+    ensure_throws(jsonv::parse_error, jsonv::reader(refused).validate());
+
+    std::istringstream allowed("/* a comment */ 5");
+    jsonv::reader      rdr(allowed, jsonv::parse_options().comments(true));
+    rdr.validate();
+}
+
+TEST(reader_from_a_stream_reports_a_parse_failure_from_where_the_stream_was)
+{
+    auto failure_position = [](const jsonv::reader& rdr) -> std::optional<std::size_t>
+                            {
+                                try
+                                {
+                                    rdr.validate();
+                                }
+                                catch (const jsonv::parse_error& ex)
+                                {
+                                    return ex.character();
+                                }
+                                return std::nullopt;
+                            };
+
+    std::istringstream in("12345[ 1, 2");
+    in.ignore(5);
+
+    auto from_stream = failure_position(jsonv::reader(in));
+    auto from_text   = failure_position(jsonv::reader("[ 1, 2"));
+    ensure(from_stream.has_value());
+    ensure(from_text.has_value());
+    ensure_eq(*from_text, *from_stream);
 }
 
 }

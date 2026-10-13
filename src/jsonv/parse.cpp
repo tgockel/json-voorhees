@@ -13,10 +13,9 @@
 #include <jsonv/serialization.hpp>
 
 #include "char_convert.hpp"
+#include "detail.hpp"
 
-#include <istream>
 #include <sstream>
-#include <streambuf>
 
 namespace jsonv
 {
@@ -138,7 +137,7 @@ JSONV_PARSE_IMPL_OVERLOADS((std::string_view input), (input))
 
 value parse(std::istream& input, const parse_options& parse_opts, const deserialize_options& extract_opts)
 {
-    auto text = std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
+    auto text = read_stream(input);
     return parse(text, parse_opts, extract_opts);
 }
 

@@ -33,7 +33,7 @@ namespace jsonv
 ///   - Minimal overhead to store values (a `value` is 16 bytes on a 64-bit platform)
 ///   - No-throw move semantics wherever possible
 /// - Serialization/Deserialization
-///   - Deserialize a C++ type straight from JSON text, or from a `value`, using `deserialize<T>`
+///   - Deserialize a C++ type straight from JSON text or a stream, or from a `value`, using `deserialize<T>`
 ///   - Serialize a C++ type straight to JSON text using `serialize`, or into a `value` using `to_json`
 /// - Safe
 ///   - In the best case, illegal code should fail to compile
@@ -622,11 +622,12 @@ namespace jsonv
 /// the function would have thrown a \c jsonv::deserialization_error complaining about how it did not
 /// know how to deserialize a \c my_type.
 ///
-/// When the JSON came from a file, an error is more use if it says which file. Build the
-/// \c jsonv::deserialization_context yourself, with the name of the source last, and hand it to
-/// \c deserialize in place of the \c format:
+/// JSON often lives in a file, and \c deserialize reads a \c std::istream just as it reads text. An
+/// error is more use if it says which file, so build the \c jsonv::deserialization_context yourself,
+/// with the name of the source last, and hand it to \c deserialize in place of the \c format:
 ///
 /// \code
+///     std::ifstream file("my_type.json");
 ///     jsonv::deserialization_context context(format,
 ///                                       std::nullopt,
 ///                                       jsonv::path(),
@@ -634,10 +635,11 @@ namespace jsonv
 ///                                       jsonv::deserialize_options(),
 ///                                       "my_type.json"
 ///                                      );
-///     my_type y = jsonv::deserialize<my_type>(R"({ "a": 1, "b": "two", "c": "Hello!" })", context);
+///     my_type y = jsonv::deserialize<my_type>(file, context);
 /// \endcode
 ///
-/// The \c "b" is not an \c int, so this throws a \c jsonv::deserialization_error reading
+/// If the file holds <tt>{ "a": 1, "b": "two", "c": "Hello!" }</tt>, the \c "b" is not an \c int, so
+/// this throws a \c jsonv::deserialization_error reading
 /// <tt>Deserialization error at my_type.json#.b: Read node of type string when expecting integer</tt>.
 /// Write out every argument before the name: the \c nullptr is the user data, and a string in its
 /// place would be taken for user data rather than for a name. A context is meant for one

@@ -24,6 +24,12 @@ const char* kind_desc(kind type);
 bool kind_valid(kind k);
 void check_type(kind expected, kind actual);
 void check_type(std::initializer_list<kind> expected, kind actual);
+
+/// Read what is left of \a input into a string -- the single definition of how JSON text is taken from a stream, for
+/// \c parse(std::istream&) and \c reader(std::istream&). It reads through the stream's buffer from wherever that is,
+/// without looking at the stream's state, so an \c std::ifstream which never opened reads as empty.
+std::string read_stream(std::istream& input);
+
 std::ostream& stream_escaped_string(std::ostream& stream, std::string_view str, bool require_ascii);
 
 /// The largest token \c format_decimal or \c format_integer can produce, including room for the `.0` fixup. Both

@@ -13,6 +13,8 @@
 
 #include <algorithm>
 #include <charconv>
+#include <istream>
+#include <iterator>
 #include <sstream>
 #include <system_error>
 
@@ -93,6 +95,15 @@ void check_type(std::initializer_list<kind> expected, kind actual)
         stream << " but found " << kind_desc(actual) << ".";
         throw kind_error(stream.str());
     }
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Reading                                                                                                            //
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string read_stream(std::istream& input)
+{
+    return std::string(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

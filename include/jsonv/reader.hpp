@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <initializer_list>
+#include <iosfwd>
 #include <memory>
 #include <string>
 
@@ -141,6 +142,23 @@ public:
 
     explicit reader(std::string&& source);
     explicit reader(std::string&& source, const parse_options& parse_options);
+    /// \}
+
+    /// \{
+
+    /// Create a reader which reads JSON from what is left of the \a source stream, as \c parse(std::istream&) does.
+    ///
+    /// \code
+    /// std::ifstream file("file.json");
+    /// jsonv::reader from(file);
+    /// \endcode
+    ///
+    /// The stream is read to its end here, and the reader keeps the text, so \c owns_source is \c true and nothing
+    /// reads \a source again once this returns. The text is parsed with \a parse_options where they are given, and
+    /// with the defaults \c parse_index::parse uses where they are not. A \c parse_error position counts from where
+    /// \a source was when this was called.
+    explicit reader(std::istream& source);
+    explicit reader(std::istream& source, const parse_options& parse_options);
     /// \}
 
     // Not copyable.

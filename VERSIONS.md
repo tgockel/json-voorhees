@@ -801,6 +801,14 @@
        first. The text form is not serde's `to_string`: a `jsonv::to_string` template would be found by
        argument-dependent lookup wherever `using std::to_string; to_string(x)` meets an argument from `jsonv`, so a
        `version`, or an enumeration with no `to_string` of its own, would compile and then fail at run time (#327).
+     - Added `deserialize<T>(std::istream&)`, the stream counterpart of `deserialize<T>(text)`, and
+       `reader(std::istream&)`, which it reads through. Reading a type from a file used to mean
+       `deserialize<T>(parse(file))`, which builds the whole tree that deserializing from text avoids, or reading the
+       file into a `std::string` first. The reader reads what is left of the stream as `parse(std::istream&)` does and
+       keeps the text, so `reader::owns_source` is `true`. `deserialize<T>` reads that as one whole document and refuses
+       a `std::string_view` of it, which would dangle once the call returned, as it does for a `std::string` rvalue. The
+       overloads take `parse_options`, `formats` and `deserialize_options`, or a `deserialization_context`, as the text
+       overloads do (#381).
      - Declaring a second `member` with a name already declared for the type is refused at build time with
        `std::invalid_argument`. The members used to be inserted into a `std::map`-backed object, which kept the first
        and silently dropped the second (#324).

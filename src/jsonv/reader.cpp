@@ -72,6 +72,14 @@ reader::reader(std::string&& source, const parse_options& options) :
         reader(std::in_place_type<impl_parse_index_owning>, std::move(source), options)
 { }
 
+reader::reader(std::istream& source) :
+        reader(read_stream(source))
+{ }
+
+reader::reader(std::istream& source, const parse_options& options) :
+        reader(read_stream(source), options)
+{ }
+
 reader::reader(reader&&) noexcept            = default;
 reader& reader::operator=(reader&&) noexcept = default;
 

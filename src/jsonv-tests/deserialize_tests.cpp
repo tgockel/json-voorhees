@@ -25,6 +25,7 @@
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <functional>
 #include <optional>
 #include <sstream>
@@ -3011,6 +3012,25 @@ TEST(deserialize_entry_points_accept_every_source)
     ensure_eq(5, deserialize<std::int32_t>(view, popts, fmts, eopts));
     ensure_eq(5, deserialize<std::int32_t>(std::string("5"), popts, fmts, eopts));
 
+    // A stream, both as a caller holds one -- an `std::ifstream` is as derived from `std::istream` as this is -- and as
+    // the `std::istream&` itself. Every call reads it to its end, so each is handed it refilled.
+    std::istringstream stream;
+    auto refill = [&] () -> std::istringstream&
+                  {
+                      stream.str("5");
+                      stream.clear();
+                      return stream;
+                  };
+    ensure_eq(5, deserialize<std::int32_t>(refill()));
+    ensure_eq(5, deserialize<std::int32_t>(static_cast<std::istream&>(refill())));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), fmts));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), eopts));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), fmts, eopts));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), popts));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), popts, fmts));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), popts, eopts));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), popts, fmts, eopts));
+
     {
         reader rdr("5");
         ensure_eq(5, deserialize<std::int32_t>(rdr));
@@ -3043,6 +3063,8 @@ TEST(deserialize_entry_points_accept_every_source)
     ensure_eq(5, deserialize<std::int32_t>(view, cxt));
     ensure_eq(5, deserialize<std::int32_t>(view, popts, cxt));
     ensure_eq(5, deserialize<std::int32_t>(std::string("5"), popts, cxt));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), cxt));
+    ensure_eq(5, deserialize<std::int32_t>(refill(), popts, cxt));
     {
         reader rdr("5");
         ensure_eq(5, deserialize<std::int32_t>(rdr, cxt));
@@ -3068,6 +3090,18 @@ TEST(deserialize_entry_points_accept_every_source_for_a_dsl_type)
         reader rdr(doc);
         ensure_eq(expected, deserialize<triple>(rdr, fmts));
     }
+
+    std::istringstream stream;
+    auto refill = [&] () -> std::istringstream&
+                  {
+                      stream.str(doc);
+                      stream.clear();
+                      return stream;
+                  };
+    ensure_eq(expected, deserialize<triple>(refill(), fmts));
+    ensure_eq(expected, deserialize<triple>(refill(), parse_options(), fmts));
+    ensure_eq(expected, deserialize<triple>(refill(), fmts, deserialize_options()));
+    ensure_eq(expected, deserialize<triple>(refill(), parse_options(), fmts, deserialize_options()));
     {
         deserialization_context cxt(fmts);
         ensure_eq(expected, deserialize<triple>(doc, cxt));
@@ -3075,6 +3109,8 @@ TEST(deserialize_entry_points_accept_every_source_for_a_dsl_type)
         ensure_eq(expected, deserialize<triple>(doc.c_str(), cxt));
         ensure_eq(expected, deserialize<triple>(doc, parse_options(), cxt));
         ensure_eq(expected, deserialize<triple>(reader(doc), cxt));
+        ensure_eq(expected, deserialize<triple>(refill(), cxt));
+        ensure_eq(expected, deserialize<triple>(refill(), parse_options(), cxt));
 
         reader rdr(doc);
         ensure_eq(expected, deserialize<triple>(rdr, cxt));
@@ -3094,6 +3130,10 @@ TEST(deserialize_entry_points_accept_every_source_for_a_dsl_type)
         reader rdr(doc);
         ensure_eq(expected, deserialize<triple>(rdr, deserialize_options()));
     }
+    ensure_eq(expected, deserialize<triple>(refill()));
+    ensure_eq(expected, deserialize<triple>(refill(), deserialize_options()));
+    ensure_eq(expected, deserialize<triple>(refill(), parse_options()));
+    ensure_eq(expected, deserialize<triple>(refill(), parse_options(), deserialize_options()));
 }
 
 TEST(deserialize_through_a_caller_context_hands_deserializers_what_it_was_built_with)
@@ -3117,6 +3157,11 @@ TEST(deserialize_through_a_caller_context_hands_deserializers_what_it_was_built_
 
     reader rdr("{}");
     check(deserialize<context_probe>(rdr, cxt));
+
+    std::istringstream stream("{}");
+    check(deserialize<context_probe>(stream, cxt));
+    std::istringstream parsed_with_options("{}");
+    check(deserialize<context_probe>(parsed_with_options, parse_options(), cxt));
 }
 
 TEST(deserialize_through_a_caller_context_takes_its_problems_with_the_exception)
@@ -3216,6 +3261,12 @@ TEST(deserialize_malformed_text_reports_the_parse_failure)
         ensure_parse_failure(expected, [&] { (void) deserialize<value>(reader(text)); });
         ensure_parse_failure(expected, [&] { reader rdr(text); (void) deserialize<value>(rdr); });
         ensure_parse_failure(expected, [&] { (void) deserialize<triple>(text, triple_formats()); });
+        ensure_parse_failure(expected,
+                             [&]
+                             {
+                                 std::istringstream in{ std::string(text) };
+                                 (void) deserialize<value>(in);
+                             });
     }
 }
 
@@ -3228,6 +3279,7 @@ TEST(deserialize_reports_a_parse_which_failed_before_the_document_began)
 
     ensure_parse_failure(expected, [&] { (void) deserialize<std::int64_t>("5", options); });
     ensure_parse_failure(expected, [&] { reader rdr("5", options); (void) deserialize<std::int64_t>(rdr); });
+    ensure_parse_failure(expected, [&] { std::istringstream in("5"); (void) deserialize<std::int64_t>(in, options); });
 }
 
 TEST(deserialize_from_a_reader_positioned_on_a_parse_failure_reports_it)
@@ -3321,12 +3373,25 @@ TEST(deserialize_refuses_views_of_a_source_it_was_handed)
                             ensure_eq(long_text, view);
                         });
 
+    // The same from a stream, which is read into storage that dies with the call -- not views of the stream's own
+    // buffer, which the caller would be keeping.
+    ensure_view_refused([&]
+                        {
+                            std::istringstream in(document);
+                            ensure_eq(long_text, deserialize<std::string_view>(in));
+                        });
+
     // The same through a context the caller built, which is not left believing its next source is temporary too.
     deserialization_context cxt;
     ensure_view_refused([&] { ensure_eq(long_text, deserialize<std::string_view>(std::string(document), cxt)); });
     ensure_view_refused([&]
                         {
                             ensure_eq(long_text, deserialize<std::string_view>(reader(std::string(document)), cxt));
+                        });
+    ensure_view_refused([&]
+                        {
+                            std::istringstream in(document);
+                            ensure_eq(long_text, deserialize<std::string_view>(in, cxt));
                         });
     ensure(!cxt.source_is_temporary());
 
@@ -3415,10 +3480,60 @@ TEST(deserialize_value_round_trips_through_every_source)
         reader rdr(text);
         ensure_eq(expected, deserialize<value>(rdr));
     }
+    {
+        std::istringstream in(text);
+        ensure_eq(expected, deserialize<value>(in));
+    }
 
     // The spelling through a parsed `value` and the one straight from text agree for a DSL type as well.
     const std::string doc = R"({ "a": 1, "b": 2, "c": 3 })";
     ensure_eq(deserialize<triple>(parse(doc), triple_formats()), deserialize<triple>(doc, triple_formats()));
+}
+
+TEST(deserialize_from_a_stream_reads_what_is_left_of_it_as_one_document)
+{
+    // What was taken off the stream before is not part of the document.
+    std::istringstream partly_read("skipped [ 1, 2 ]");
+    std::string        skipped;
+    partly_read >> skipped;
+    ensure_eq(parse("[ 1, 2 ]"), deserialize<value>(partly_read));
+
+    // What is left has to be the whole document, as text does, so a second one after it is refused rather than left on
+    // the stream for the next call.
+    std::istringstream two_documents("[ 1, 2 ] [ 3 ]");
+    ensure_parse_failure(parse_error_of("[ 1, 2 ] [ 3 ]"), [&] { (void) deserialize<value>(two_documents); });
+
+    // Comments are refused unless turned on, as they are in text.
+    std::istringstream refused("/* c */ 5");
+    ensure_throws(deserialization_error, deserialize<std::int64_t>(refused));
+    std::istringstream allowed("/* c */ 5");
+    ensure_eq(5, deserialize<std::int64_t>(allowed, parse_options().comments(true)));
+}
+
+TEST(deserialize_from_an_empty_stream_fails_as_empty_text_does)
+{
+    auto failure = [] (const auto& run) -> std::string
+                   {
+                       try
+                       {
+                           run();
+                       }
+                       catch (const deserialization_error& err)
+                       {
+                           return err.what();
+                       }
+                       ensure(!"deserialization_error was not thrown");
+                       return std::string();
+                   };
+
+    const std::string expected = failure([] { (void) deserialize<value>(""); });
+
+    std::istringstream empty;
+    ensure_eq(expected, failure([&] { (void) deserialize<value>(empty); }));
+
+    // An `std::ifstream` which never opened has nothing to read, which is no different.
+    std::ifstream never_opened;
+    ensure_eq(expected, failure([&] { (void) deserialize<value>(never_opened); }));
 }
 
 }
