@@ -2130,9 +2130,9 @@ public:
     /// Check the references of this builder (see \ref check_references) and compose a \ref formats instance if
     /// successful (see \ref formats::compose).
     JSONV_NODISCARD
-    formats compose_checked(formats              other,  const std::string& name = "");
+    formats compose_checked(formats       other,  const std::string& name = "");
     JSONV_NODISCARD
-    formats compose_checked(const formats::list& others, const std::string& name = "");
+    formats compose_checked(formats::list others, const std::string& name = "");
     /// \}
 
     /** Assigns the action to perform when a serializer or deserializer is being registered by this formats_builder and

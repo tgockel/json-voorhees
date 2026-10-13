@@ -10,7 +10,9 @@
 #include <jsonv/serialization_builder.hpp>
 #include <jsonv/demangle.hpp>
 
+#include <algorithm>
 #include <deque>
+#include <iterator>
 #include <sstream>
 #include <tuple>
 
@@ -116,12 +118,12 @@ formats formats_builder::compose_checked(formats other, const std::string& name)
     return searching;
 }
 
-formats formats_builder::compose_checked(const formats::list& others, const std::string& name)
+formats formats_builder::compose_checked(formats::list others, const std::string& name)
 {
     formats::list all;
     all.reserve(others.size() + 1);
     all.emplace_back(*this);
-    std::copy(others.begin(), others.end(), std::back_inserter(all));
+    std::move(others.begin(), others.end(), std::back_inserter(all));
 
     formats searching = formats::compose(all);
     check_references_impl(searching, name);
@@ -182,11 +184,9 @@ formats formats_builder_dsl::compose_checked(formats other, const std::string& n
     return owner->compose_checked(std::move(other), name);
 }
 
-// The builder's overload takes the list by `const&`, so it is copied again (#287).
-// NOLINTNEXTLINE(performance-unnecessary-value-param)
 formats formats_builder_dsl::compose_checked(std::vector<formats> others, const std::string& name)
 {
-    return owner->compose_checked(std::move(others), name); // NOLINT(performance-move-const-arg): see #287
+    return owner->compose_checked(std::move(others), name);
 }
 
 formats_builder& formats_builder_dsl::on_duplicate_type(duplicate_type_action action) noexcept

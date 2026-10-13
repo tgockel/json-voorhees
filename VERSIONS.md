@@ -850,6 +850,9 @@
        node with the builder it was moved to. `parse_options` and `deserialize_options` lose their out-of-line
        destructors, so they are trivially copyable and trivially destructible. Those two destructors were exported
        symbols, which are gone (#286).
+     - `formats_builder::compose_checked` takes its `formats::list` by value and moves the elements into the composed
+       list. It took a `const&` and copied each element, so the list `formats_builder_dsl::compose_checked` took by
+       value and moved on was copied a second time. This changes the exported symbol (#287).
    - Platform
      - JSON Voorhees is now a CMake package. `find_package(jsonv CONFIG)` finds an installed copy through the new
        `jsonv-config.cmake` and `jsonv-config-version.cmake` (`SameMajorVersion`), the exported target is

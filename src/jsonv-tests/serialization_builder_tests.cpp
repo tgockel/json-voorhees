@@ -446,6 +446,31 @@ TEST(serialization_builder_check_references_fails)
     ensure_throws(std::logic_error, builder.check_references(formats(), "test"));
 }
 
+TEST(serialization_builder_compose_checked_list_resolves_from_every_element)
+{
+    formats people = formats_builder()
+                        .type<person>()
+                            .member("firstname", &person::firstname)
+                            .member("lastname",  &person::lastname)
+                            .member("age",       &person::age)
+                        .compose_checked(formats::defaults());
+
+    formats_builder builder;
+    builder.reference_type(std::type_index(typeid(person)));
+    builder.reference_type(std::type_index(typeid(int)));
+
+    formats::list others = { people, formats::defaults() };
+    formats       composed = builder.compose_checked(others);
+    ensure_eq(2U, others.size());
+    ensure(&composed.get_deserializer(typeid(person)) != nullptr);
+    ensure(&composed.get_deserializer(typeid(int)) != nullptr);
+
+    // Moving the list in works the same, and a list missing the referenced type still fails the check.
+    formats moved = builder.compose_checked(std::move(others));
+    ensure(&moved.get_deserializer(typeid(person)) != nullptr);
+    ensure_throws(std::logic_error, builder.compose_checked(formats::list { formats::defaults() }));
+}
+
 namespace
 {
 
