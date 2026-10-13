@@ -729,6 +729,39 @@ TEST(object_owning_view_move_reverse_iteration)
     ensure(riter == to.rend());
 }
 
+// The const members which end a reverse walk built a reverse_iterator from the const_iterator that begin() returns, so
+// none of them compiled for a view whose iterator and const_iterator are different types.
+TEST(object_view_const_reverse_iteration)
+{
+    using namespace jsonv;
+
+    auto check = [](auto riter, auto rlast)
+    {
+        ensure_eq(riter->first, "c");
+        ++riter;
+        ensure_eq(riter->first, "b");
+        ++riter;
+        ensure_eq(riter->first, "a");
+        ++riter;
+        ensure(riter == rlast);
+    };
+
+    value obj = object({ { "a", 1 }, { "b", 2 }, { "c", 3 } });
+    const auto view = obj.as_object();
+    static_assert(std::is_same_v<decltype(view.rend()),  value::object_view::const_reverse_iterator>);
+    static_assert(std::is_same_v<decltype(view.crend()), value::object_view::const_reverse_iterator>);
+    check(view.rbegin(),  view.rend());
+    check(view.crbegin(), view.crend());
+
+    // crend() is const no matter what it is called on, so a view which is not const could not call it either.
+    auto mutable_view = obj.as_object();
+    check(mutable_view.crbegin(), mutable_view.crend());
+
+    const owning_object_view owned = object({ { "a", 1 }, { "b", 2 }, { "c", 3 } }).as_object();
+    check(owned.rbegin(),  owned.rend());
+    check(owned.crbegin(), owned.crend());
+}
+
 // The moved-from object view must not walk the nodes it handed to the destination.
 TEST(object_owning_view_moved_from_is_empty)
 {

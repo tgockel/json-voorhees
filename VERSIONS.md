@@ -314,6 +314,13 @@
        reports running out of it. 1.4.0 threw `parse_error("No input")`; that check was lost when parsing moved onto
        the AST index. `create_strict()` already rejected these with `expected_document`, and `deserialize` from text
        already reported them as a `deserialization_error` (#371).
+     - Fixed `rend() const` and `crend()` failing to compile on `value::array_view`, `value::object_view`,
+       `value::owning_array_view` and `value::owning_object_view`. Each built a `reverse_iterator` from `begin()`, which
+       in a `const` member is a `const_iterator` that does not convert to it, so a `const` view could not call either.
+       `crend()` is a `const` member whatever it is called on, so no view of these types could call it. The
+       `const_array_view` and `const_object_view` have one iterator type for both and were unaffected. Both functions
+       now return a `const_reverse_iterator`, so `rbegin() const`, `rend() const`, `crbegin()` and `crend()` walk a
+       view in reverse (#374).
    - Serialization
      - Deserialization to C++ objects now occurs directly from `parse_index` instead of going through the `value` middle
        man, saving time and memory. The `benchmark/deserialize/` rows in `jsonv-tests` measure it: on

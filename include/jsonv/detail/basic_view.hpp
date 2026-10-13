@@ -64,12 +64,12 @@ public:
     JSONV_NODISCARD
     reverse_iterator       rend()         { return reverse_iterator(begin()); }
     JSONV_NODISCARD
-    const_reverse_iterator rend() const   { return reverse_iterator(begin()); }
+    const_reverse_iterator rend() const   { return const_reverse_iterator(begin()); }
 
     JSONV_NODISCARD
     const_reverse_iterator crbegin() const { return const_reverse_iterator(end()); }
     JSONV_NODISCARD
-    const_reverse_iterator crend() const   { return reverse_iterator(begin()); }
+    const_reverse_iterator crend() const   { return const_reverse_iterator(begin()); }
 
 private:
     iterator _begin;
