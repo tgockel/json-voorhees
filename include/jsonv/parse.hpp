@@ -117,9 +117,9 @@ public:
 
     /// \{
 
-    /// The maximum allowed nesting depth of any structure in the JSON document. The JSON specification technically
-    /// limits the depth to 20, but very few implementations actually conform to this, so it is fairly dangerous to set
-    /// this value. By default, the value is \c nullopt, which means implementations should limit structure depth to
+    /// The maximum allowed nesting depth of any structure in the JSON document. RFC 8259 lets each implementation
+    /// choose its own nesting limit, so a document that is valid JSON can still be rejected by a low value. By default,
+    /// the value is \c nullopt, which means implementations should limit structure depth to
     /// \c k::max_structure_depth. Setting \a depth to a value above \c k::max_structure_depth will cause
     /// \c std::invalid_argument to be thrown from \c parse functions.
     JSONV_NODISCARD
