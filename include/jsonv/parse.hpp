@@ -53,7 +53,7 @@ JSONV_PUBLIC std::ostream& operator<<(std::ostream& os, const parse_error& p);
 /// Get a string representation of a \c parse_error.
 JSONV_NODISCARD JSONV_PUBLIC std::string to_string(const parse_error& p);
 
-/// Configuration for various parsing options. All parse functions should take in a \c parse_options as a paramter and
+/// Configuration for various parsing options. All parse functions should take in a \c parse_options as a parameter and
 /// should respect your settings.
 class JSONV_PUBLIC parse_options
 {
@@ -120,7 +120,7 @@ public:
     /// The maximum allowed nesting depth of any structure in the JSON document. The JSON specification technically
     /// limits the depth to 20, but very few implementations actually conform to this, so it is fairly dangerous to set
     /// this value. By default, the value is \c nullopt, which means implementations should limit structure depth to
-    /// \c k::max_structure_depth. Setting \a depth to a value above \c k::max_structure_depth is will cause
+    /// \c k::max_structure_depth. Setting \a depth to a value above \c k::max_structure_depth will cause
     /// \c std::invalid_argument to be thrown from \c parse functions.
     JSONV_NODISCARD
     std::optional<size_type> max_structure_depth() const { return _max_struct_depth; }

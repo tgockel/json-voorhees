@@ -1,5 +1,5 @@
-/// \file jsonv/serialization.hpp
-/// Conversion between C++ types and JSON values.
+/// \file jsonv/version.hpp
+/// Representation of a version used to select serialization behavior.
 ///
 /// Copyright (c) 2015-2020 by Travis Gockel. All rights reserved.
 ///

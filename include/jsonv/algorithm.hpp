@@ -270,8 +270,8 @@ JSONV_NODISCARD JSONV_PUBLIC diff_result diff(value left, value right);
 /** Run a function over the values in the \a input. The behavior of this function is different, depending on the \c kind
  *  of \a input. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If
  *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
- *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
- *  transformed by \a func.
+ *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with the same keys,
+ *  where each value is transformed by \a func.
  *
  *  \param func The function to apply to the element or elements of \a input.
  *  \param input The value to transform.
@@ -283,8 +283,8 @@ JSONV_NODISCARD JSONV_PUBLIC value map(const std::function<value (const value&)>
 /** Run a function over the values in the \a input. The behavior of this function is different, depending on the \c kind
  *  of \a input. For scalar kinds (\c kind::integer, \c kind::null, etc), \a func is called once with the value. If
  *  \a input is \c kind::array, \c func is called for every value in the array and the output will be an array with each
- *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with each key
- *  transformed by \a func.
+ *  element transformed by \a func. If \a input is \c kind::object, the result will be an object with the same keys,
+ *  where each value is transformed by \a func.
  *
  *  \param func The function to apply to the element or elements of \a input.
  *  \param input The value to transform.

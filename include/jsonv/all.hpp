@@ -243,7 +243,7 @@ namespace jsonv
 ///
 /// Usually, the reason people are using JSON is as a data exchange format, either for communicating
 /// with other services or storing things in a file or a database. To do this, you need to \e encode
-/// your \c json::value into an \c std::string and \e parse it back. JSON Voorhees makes this easy
+/// your \c jsonv::value into an \c std::string and \e parse it back. JSON Voorhees makes this easy
 /// for you.
 ///
 /// \code
