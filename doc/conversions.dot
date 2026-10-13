@@ -1,23 +1,40 @@
 digraph jsonv {
   label="Conversions"
   labelloc="t"
+  rankdir="TB"
+  newrank=true
+  nodesep=0.5
+  splines=polyline
+  ranksep=1.2
 
-  str     [label="std::string\nstd::string_view"]
-  istream [label="std::istream"]
-  ostream [label="std::ostream"]
-  value   [label="value", URL="\ref jsonv::value"]
-  class   [label="C++ class"]
+  node [shape=box]
+  edge [decorate=true, fontsize=10]
+
   dsl     [label="C++ DSL"]
+  istream [label="std::istream"]
+  str     [label="std::string\nstd::string_view"]
+  value   [label="jsonv::value", URL="\ref jsonv::value", style=bold]
+  class   [label="C++ class", style=bold]
+  ostream [label="std::ostream"]
 
-  value   -> str     [label="to_string", URL="\ref jsonv::to_string(jsonv::value)"]
-  value   -> ostream [label="operator<<"]
-  str     -> value   [label="parse", URL="\ref jsonv::parse"]
+  { rank=same; dsl; istream; str }
+  dsl -> str -> istream [style=invis]
+  { rank=same; value; class }
+  value -> class [style=invis]
+  // Hidden edges center the middle row under str, which is the center of the top row.
+  str -> value [style=invis, weight=20]
+  str -> class [style=invis, weight=20]
+  { rank=sink; ostream }
+
+  dsl     -> value   [label="value, object, array"]
   istream -> value   [label="parse", URL="\ref jsonv::parse"]
-  value   -> value   [label="map, merge, diff, ..."]
+  str     -> value   [label="parse", URL="\ref jsonv::parse"]
+  value   -> str     [label="to_string", URL="\ref jsonv::to_string(jsonv::value)"]
+  value   -> ostream [label="operator<<", weight=5]
+  istream -> class   [label="deserialize", URL="\ref jsonv::deserialize"]
   str     -> class   [label="deserialize", URL="\ref jsonv::deserialize"]
   value   -> class   [label="deserialize", URL="\ref jsonv::deserialize"]
   class   -> value   [label="to_json", URL="\ref jsonv::to_json"]
   class   -> str     [label="serialize", URL="\ref jsonv::serialize"]
-  class   -> ostream [label="serialize", URL="\ref jsonv::serialize"]
-  dsl     -> value   [label="value, object, array"]
+  class   -> ostream [label="serialize", URL="\ref jsonv::serialize", weight=5]
 }
