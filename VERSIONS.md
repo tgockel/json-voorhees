@@ -290,6 +290,12 @@
        same-key policy, and a type-conflict policy meant to throw was skipped without a word. `merge_explicit` now
        calls `type_conflict` for them, and only for them: a shared object key still calls `same_key`, and an integer
        with a decimal calls neither. `merge` and `merge_recursive` use their own rules and were not affected (#368).
+     - Fixed `merge_explicit` and `coerce_merge` overflowing `std::int64_t` when adding two integers. The sum was
+       computed unchecked, which is undefined behavior and in practice wrapped: `merge(INT64_MAX, 1)` was `INT64_MIN`,
+       as was the same member in a `merge_recursive` of two parsed objects, and `coerce_merge` did the same with an
+       integer and a string or decimal which coerces to one (`"1"`, `1.0`). A sum which does not fit is now returned
+       as a decimal, the way an integer and a decimal already combine, so `INT64_MAX + 1` is `9223372036854775808.0`.
+       A sum which lands exactly on `INT64_MAX` or `INT64_MIN` is still an integer (#370).
      - Fixed `value::owning_array_view` and `value::owning_object_view` (what `as_array() &&` and `as_object() &&`
        return) keeping their iterators on the source when copied or moved. A copy owned a fresh container but iterated
        the source's, so a write through it changed the source and destroying the source left it dangling. Moving an

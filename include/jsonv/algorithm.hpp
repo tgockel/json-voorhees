@@ -428,7 +428,9 @@ public:
 ///    - \c kind::string - Return a new string with \a b appended to \a a.
 ///    - \c kind::boolean - Return `a.as_boolean() || b.as_boolean()`
 ///    - \c kind::integer - If \a b is \c kind::integer, return `a + b` as an integer; otherwise, return it as a
-///      decimal.
+///      decimal. A sum which does not fit in an `std::int64_t` is returned as a decimal as well, so
+///      `INT64_MAX + 1` is `9223372036854775808.0`. A sum which lands exactly on `INT64_MAX` or `INT64_MIN` is still
+///      an integer.
 ///    - \c kind::decimal - Return `a + b` as a decimal.
 ///
 /// Three or more values are merged two at a time from left to right, a single value is returned as it is, and no values

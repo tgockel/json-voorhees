@@ -52,6 +52,7 @@ set(jsonv_private_headers
     detail/fallthrough.hpp
     detail/fast_float/fast_float.h
     detail/fixed_map.hpp
+    detail/integer_sum.hpp
     detail/is_print.hpp
     detail/match/number.hpp
     detail/match/string.hpp

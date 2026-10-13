@@ -16,7 +16,9 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/value.hpp>
 
+#include <cstdint>
 #include <fstream>
+#include <limits>
 #include <stdexcept>
 
 namespace jsonv_test
@@ -129,6 +131,80 @@ TEST(merge_dynamic_type_conflict_throws)
 
     ensure_throws(std::runtime_error, jsonv::merge_explicit(rules, jsonv::path(), jsonv::value(1), jsonv::value("x")));
     ensure_eq(0, same_key_calls);
+}
+
+namespace
+{
+
+constexpr std::int64_t integer_max = std::numeric_limits<std::int64_t>::max();
+constexpr std::int64_t integer_min = std::numeric_limits<std::int64_t>::min();
+
+}
+
+// An integer and a decimal which hold the same number compare equal, so the kind is what says whether a sum wrapped
+// or was promoted: INT64_MIN + -1 rounds to exactly the decimal -2^63, which is equal to INT64_MIN as an integer.
+TEST(merge_integer_overflow_to_decimal)
+{
+    jsonv::value over = jsonv::merge(jsonv::value(integer_max), jsonv::value(1));
+    ensure_eq(jsonv::kind::decimal, over.kind());
+    ensure_eq(9223372036854775808.0, over.as_decimal());
+
+    jsonv::value over_left = jsonv::merge(jsonv::value(1), jsonv::value(integer_max));
+    ensure_eq(jsonv::kind::decimal, over_left.kind());
+    ensure_eq(9223372036854775808.0, over_left.as_decimal());
+
+    jsonv::value over_both = jsonv::merge(jsonv::value(integer_max), jsonv::value(integer_max));
+    ensure_eq(jsonv::kind::decimal, over_both.kind());
+    ensure_eq(18446744073709551616.0, over_both.as_decimal());
+
+    jsonv::value under = jsonv::merge(jsonv::value(integer_min), jsonv::value(-1));
+    ensure_eq(jsonv::kind::decimal, under.kind());
+    ensure_eq(-9223372036854775808.0, under.as_decimal());
+
+    jsonv::value under_both = jsonv::merge(jsonv::value(integer_min), jsonv::value(integer_min));
+    ensure_eq(jsonv::kind::decimal, under_both.kind());
+    ensure_eq(-18446744073709551616.0, under_both.as_decimal());
+}
+
+TEST(merge_integer_sum_at_limits)
+{
+    // A sum which lands exactly on a limit still fits
+    jsonv::value to_max = jsonv::merge(jsonv::value(integer_max - 1), jsonv::value(1));
+    ensure_eq(jsonv::kind::integer, to_max.kind());
+    ensure_eq(integer_max, to_max.as_integer());
+
+    jsonv::value to_min = jsonv::merge(jsonv::value(integer_min + 1), jsonv::value(-1));
+    ensure_eq(jsonv::kind::integer, to_min.kind());
+    ensure_eq(integer_min, to_min.as_integer());
+
+    jsonv::value max_plus_zero = jsonv::merge(jsonv::value(integer_max), jsonv::value(0));
+    ensure_eq(jsonv::kind::integer, max_plus_zero.kind());
+    ensure_eq(integer_max, max_plus_zero.as_integer());
+
+    jsonv::value min_plus_zero = jsonv::merge(jsonv::value(integer_min), jsonv::value(0));
+    ensure_eq(jsonv::kind::integer, min_plus_zero.kind());
+    ensure_eq(integer_min, min_plus_zero.as_integer());
+
+    // Operands of opposite signs cannot overflow, whatever their size
+    jsonv::value extremes = jsonv::merge(jsonv::value(integer_max), jsonv::value(integer_min));
+    ensure_eq(jsonv::kind::integer, extremes.kind());
+    ensure_eq(std::int64_t(-1), extremes.as_integer());
+
+    jsonv::value extremes_reversed = jsonv::merge(jsonv::value(integer_min), jsonv::value(integer_max));
+    ensure_eq(jsonv::kind::integer, extremes_reversed.kind());
+    ensure_eq(std::int64_t(-1), extremes_reversed.as_integer());
+}
+
+TEST(merge_recursive_integer_overflow_member)
+{
+    jsonv::value result = jsonv::merge_recursive(jsonv::parse(R"({"n":9223372036854775807,"m":1})"),
+                                                 jsonv::parse(R"({"n":1,"m":2})")
+                                                );
+    ensure_eq(jsonv::kind::decimal, result.at("n").kind());
+    ensure_eq(9223372036854775808.0, result.at("n").as_decimal());
+    // A member which fits is untouched by its neighbor's promotion
+    ensure_eq(jsonv::kind::integer, result.at("m").kind());
+    ensure_eq(std::int64_t(3), result.at("m").as_integer());
 }
 
 template <typename TMergeRules>

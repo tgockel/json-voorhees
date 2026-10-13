@@ -21,6 +21,7 @@
 
 #include "detail/fallthrough.hpp"
 #include "detail/fast_float/fast_float.h"
+#include "detail/integer_sum.hpp"
 #include "detail/match/number.hpp"
 
 namespace jsonv
@@ -291,7 +292,13 @@ value coerce_merge(value a, value b)
         return a.as_boolean() || coerce_boolean(b);
     case kind::integer:
         if (can_coerce(b, kind::integer))
-            return a.as_integer() + coerce_integer(b);
+        {
+            const std::int64_t b_integer = coerce_integer(b);
+            if (detail::integer_sum_fits(a.as_integer(), b_integer))
+                return a.as_integer() + b_integer;
+            // A sum which does not fit in an integer is a decimal, as it is in merge_explicit
+            return a.as_decimal() + coerce_decimal(b);
+        }
         JSONV_FALLTHROUGH();
     case kind::decimal:
         if (can_coerce(b, kind::decimal))

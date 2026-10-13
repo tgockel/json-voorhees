@@ -380,4 +380,74 @@ TEST(coerce_nulls)
     ensure_throws(kind_error, coerce_null(false));
 }
 
+// An integer and a decimal which hold the same number compare equal, so the tests below check the kind to tell a sum
+// which wrapped from one which was promoted.
+TEST(coerce_merge_integer_overflow_to_decimal)
+{
+    constexpr auto max = std::numeric_limits<std::int64_t>::max();
+    constexpr auto min = std::numeric_limits<std::int64_t>::min();
+
+    // The right-hand side is an integer, which coerce_merge hands to merge_recursive
+    value integer = coerce_merge(value(max), value(1));
+    ensure_eq(kind::decimal, integer.kind());
+    ensure_eq(9223372036854775808.0, integer.as_decimal());
+
+    // The right-hand side coerces to an integer
+    value string = coerce_merge(value(max), value("1"));
+    ensure_eq(kind::decimal, string.kind());
+    ensure_eq(9223372036854775808.0, string.as_decimal());
+
+    value decimal = coerce_merge(value(max), value(1.0));
+    ensure_eq(kind::decimal, decimal.kind());
+    ensure_eq(9223372036854775808.0, decimal.as_decimal());
+
+    value under_integer = coerce_merge(value(min), value(-1));
+    ensure_eq(kind::decimal, under_integer.kind());
+    ensure_eq(-9223372036854775808.0, under_integer.as_decimal());
+
+    value under_string = coerce_merge(value(min), value("-1"));
+    ensure_eq(kind::decimal, under_string.kind());
+    ensure_eq(-9223372036854775808.0, under_string.as_decimal());
+
+    value under_decimal = coerce_merge(value(min), value(-1.0));
+    ensure_eq(kind::decimal, under_decimal.kind());
+    ensure_eq(-9223372036854775808.0, under_decimal.as_decimal());
+}
+
+TEST(coerce_merge_integer_sum_at_limits)
+{
+    constexpr auto max = std::numeric_limits<std::int64_t>::max();
+    constexpr auto min = std::numeric_limits<std::int64_t>::min();
+
+    // A sum which lands exactly on a limit still fits, whatever kind the right-hand side started as
+    for (const value& one : { value(1), value("1"), value(1.0) })
+    {
+        value to_max = coerce_merge(value(max - 1), one);
+        ensure_eq(kind::integer, to_max.kind());
+        ensure_eq(max, to_max.as_integer());
+    }
+
+    for (const value& minus_one : { value(-1), value("-1"), value(-1.0) })
+    {
+        value to_min = coerce_merge(value(min + 1), minus_one);
+        ensure_eq(kind::integer, to_min.kind());
+        ensure_eq(min, to_min.as_integer());
+    }
+
+    for (const value& zero : { value(0), value("0"), value(0.0) })
+    {
+        value max_plus_zero = coerce_merge(value(max), zero);
+        ensure_eq(kind::integer, max_plus_zero.kind());
+        ensure_eq(max, max_plus_zero.as_integer());
+
+        value min_plus_zero = coerce_merge(value(min), zero);
+        ensure_eq(kind::integer, min_plus_zero.kind());
+        ensure_eq(min, min_plus_zero.as_integer());
+    }
+
+    value extremes = coerce_merge(value(max), value(std::to_string(min)));
+    ensure_eq(kind::integer, extremes.kind());
+    ensure_eq(std::int64_t(-1), extremes.as_integer());
+}
+
 }

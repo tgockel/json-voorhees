@@ -14,6 +14,7 @@
 #include <stdexcept>
 
 #include "detail/fallthrough.hpp"
+#include "detail/integer_sum.hpp"
 
 namespace jsonv
 {
@@ -109,9 +110,9 @@ value merge_explicit(const merge_rules& rules,
         case kind::boolean:
             return a.as_boolean() || b.as_boolean();
         case kind::integer:
-            if (b.kind() == kind::integer)
+            if (b.kind() == kind::integer && detail::integer_sum_fits(a.as_integer(), b.as_integer()))
                 return a.as_integer() + b.as_integer();
-            // fall through to decimal handler if b is a decimal
+            // fall through to decimal handler if b is a decimal or the sum does not fit in an integer
             JSONV_FALLTHROUGH();
         case kind::decimal:
             return a.as_decimal() + b.as_decimal();
