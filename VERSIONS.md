@@ -149,6 +149,9 @@
      - Removed `parse_options::complete_parse`. It let 1.x read one document after another off a `tokenizer`, but the
        2.0 parser never read it: every parse takes the whole of its input as one document, and anything after the
        value fails with `ast_error::expected_eof` (#261).
+     - Removed the `JSONV_ALWAYS_INLINE` macro from `config.hpp`, along with the forward declaration of the 1.x
+       `tokenizer`, which 2.0 removed. Nothing in the public headers used either; the library keeps its own copy of the
+       macro (#385).
      - Parsing options and errors (`parse_options` and `parse_error`) have been split into parse-specific options
        (things like allowing ECMAScript-style block comments `/* ... */`) and deserialization-specific options and
        errors (things like what to do if an object has the same key).

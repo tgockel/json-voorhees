@@ -21,7 +21,6 @@ namespace jsonv
 {
 
 class deserialize_options;
-class tokenizer;
 
 /// An error encountered when parsing.
 ///

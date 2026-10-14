@@ -12,6 +12,7 @@
 #include <jsonv/parse.hpp>
 #include <jsonv/detail/is_print.hpp>
 #include <jsonv/detail/architecture.hpp>
+#include <jsonv/detail/attributes.hpp>
 #include <jsonv/detail/utf8.hpp>
 
 #include <cassert>

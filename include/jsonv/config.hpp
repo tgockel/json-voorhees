@@ -150,16 +150,6 @@
 #   define JSONV_NO_RETURN [[noreturn]]
 #endif
 
-/// \def JSONV_ALWAYS_INLINE
-/// \brief Always inline the function this decorates, no matter what the compiler might think is best.
-#ifndef JSONV_ALWAYS_INLINE
-#   if defined(__GNUC__)
-#       define JSONV_ALWAYS_INLINE __attribute__((always_inline))
-#   else
-#       define JSONV_ALWAYS_INLINE
-#   endif
-#endif
-
 /// \def JSONV_INTEGER_ALTERNATES_LIST
 /// \brief An item list of types to also consider as an integer.
 /// This mostly exists to help resolve the C-induced type ambiguity for the literal \c 0. It most prefers to be an
@@ -170,22 +160,6 @@
         item(unsigned int)                     \
         item(unsigned long)                    \
         item(unsigned long long)
-#endif
-
-/// \def JSONV_LIKELY
-/// Mark that a section of code is likely to be reached.
-///
-/// \see JSONV_UNLIKELY
-#ifndef JSONV_LIKELY
-#   define JSONV_LIKELY [[likely]]
-#endif
-
-/// \def JSONV_UNLIKELY
-/// Mark that a section of code is not likely to be reached.
-///
-/// \see JSONV_LIKELY
-#ifndef JSONV_UNLIKELY
-#   define JSONV_UNLIKELY [[unlikely]]
 #endif
 
 /// \}

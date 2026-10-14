@@ -9,7 +9,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #pragma once
 
-#include <jsonv/config.hpp>
+#include <jsonv/detail/attributes.hpp>
 
 namespace jsonv::detail
 {

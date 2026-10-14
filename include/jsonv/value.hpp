@@ -487,6 +487,7 @@ public:
     #define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR(type_)              \
         value(type_ val);
     JSONV_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR)
+    #undef JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_PROTO_GENERATOR
 
     /** Destruction will never throw. **/
     ~value() noexcept;

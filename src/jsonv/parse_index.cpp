@@ -23,6 +23,7 @@
 
 #include "detail.hpp"
 #include "detail/architecture.hpp"
+#include "detail/attributes.hpp"
 #include "detail/fallthrough.hpp"
 #include "detail/match/number.hpp"
 #include "detail/match/string.hpp"

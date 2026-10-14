@@ -48,6 +48,7 @@ set(jsonv_private_headers
     char_convert.hpp
     detail.hpp
     detail/architecture.hpp
+    detail/attributes.hpp
     detail/cloneable.hpp
     detail/fallthrough.hpp
     detail/fast_float/fast_float.h

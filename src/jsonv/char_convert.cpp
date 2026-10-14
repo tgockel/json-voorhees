@@ -23,6 +23,7 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include "detail/attributes.hpp"
 #include "detail/fixed_map.hpp"
 #include "detail/is_print.hpp"
 #include "detail/utf8.hpp"
