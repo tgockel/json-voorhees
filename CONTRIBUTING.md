@@ -166,6 +166,22 @@ CI runs both targets for 60 seconds per push and ten minutes nightly, keeping th
 discovers between scheduled runs. A crash, leak, timeout, or sanitizer report fails the job and the
 reproducer is uploaded as an artifact.
 
+### Comparing with Other Libraries
+
+`benchmarks/nativejson` builds [nativejson-benchmark](https://github.com/miloyip/nativejson-benchmark)
+against the checkout, and compares it with RapidJSON, nlohmann, simdjson and Boost.JSON. It's a
+project of its own that downloads its dependencies, so nothing in the main build depends on it:
+
+```bash
+$> cmake -S benchmarks/nativejson -B build/nativejson -G Ninja -DCMAKE_BUILD_TYPE=Release
+$> cmake --build build/nativejson --parallel 4
+$> ctest --test-dir build/nativejson --output-on-failure
+$> (cd build/nativejson/run && ../nativejson-benchmark --performance-only)
+```
+
+`benchmarks/nativejson/report.py` prints the results as one table per operation.
+`benchmarks/nativejson/README.md` covers what it builds and where the results go.
+
 ### Packaging
 
 Linux packages are built from the CMake install rules with CPack. The `package` target builds
