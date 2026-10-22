@@ -32,6 +32,25 @@ std::string read_stream(std::istream& input);
 
 std::ostream& stream_escaped_string(std::ostream& stream, std::string_view str, bool require_ascii);
 
+/// \{
+/// Write \a text (or \a c) into \a stream unformatted -- the single way everything which encodes JSON puts
+/// characters into a stream.
+///
+/// Unformatted, through \c std::ostream::write and \c std::ostream::put, is what keeps the stream's flags, width,
+/// fill and locale out of the JSON and leaves them as the caller set them. Inserting a token instead would let a
+/// width meant for something else pad it, such as the `,` after `12`, which then reads back as `120`. See issues
+/// #330 and #345.
+///
+/// Each call constructs a stream sentry, which at the size of a single token costs more than moving the bytes does,
+/// so the callers write in as few calls as they can: a run of unescaped characters goes out whole rather than per
+/// character, and so does a line's worth of indentation. Going around the sentry to the stream's buffer would be
+/// faster still, and would change what the stream does: the sentry is what flushes a \c tie()d stream, what makes a
+/// buffer which throws leave the stream \c bad() rather than propagate, and what honours \c unitbuf. None of that
+/// is this library's to drop.
+void stream_write(std::ostream& stream, std::string_view text);
+void stream_put(std::ostream& stream, char c);
+/// \}
+
 /// The largest token \c format_decimal or \c format_integer can produce, including room for the `.0` fixup. Both
 /// take a \c buffer with at least this much space.
 inline constexpr std::size_t number_token_max = 64U;

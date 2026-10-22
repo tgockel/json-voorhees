@@ -14,6 +14,7 @@
 
 #include "detail.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
@@ -110,14 +111,6 @@ void encoder::walk_tree(const value& source)
 namespace
 {
 
-// Every token goes into the stream unformatted. Inserted, it would let the caller's flags, width, fill and locale
-// decide what the JSON says. With some tokens inserted and others not, a width meant for one pads whichever is inserted
-// next, such as the `,` after `12`, which then reads back as `120`. See issues #330 and #345.
-void write_text(std::ostream& out, std::string_view text)
-{
-    out.write(text.data(), static_cast<std::streamsize>(text.size()));
-}
-
 void write_number(std::ostream& out, std::optional<std::string_view> text)
 {
     // A `to_chars` failure, which `number_token_max` makes impossible. Inserting the number instead would hand it back
@@ -125,7 +118,7 @@ void write_number(std::ostream& out, std::optional<std::string_view> text)
     if (!text)
         throw std::logic_error("Could not format a number as a JSON token");
 
-    write_text(out, *text);
+    stream_write(out, *text);
 }
 
 }
@@ -144,22 +137,22 @@ void ostream_encoder::ensure_ascii(bool value)
 
 void ostream_encoder::write_array_begin()
 {
-    _output.put('[');
+    stream_put(_output, '[');
 }
 
 void ostream_encoder::write_array_end()
 {
-    _output.put(']');
+    stream_put(_output, ']');
 }
 
 void ostream_encoder::write_array_delimiter()
 {
-    _output.put(',');
+    stream_put(_output, ',');
 }
 
 void ostream_encoder::write_boolean(bool value)
 {
-    write_text(_output, value ? "true" : "false");
+    stream_write(_output, value ? "true" : "false");
 }
 
 void ostream_encoder::write_decimal(double value)
@@ -182,28 +175,28 @@ void ostream_encoder::write_integer(std::int64_t value)
 
 void ostream_encoder::write_null()
 {
-    write_text(_output, "null");
+    stream_write(_output, "null");
 }
 
 void ostream_encoder::write_object_begin()
 {
-    _output.put('{');
+    stream_put(_output, '{');
 }
 
 void ostream_encoder::write_object_end()
 {
-    _output.put('}');
+    stream_put(_output, '}');
 }
 
 void ostream_encoder::write_object_delimiter()
 {
-    _output.put(',');
+    stream_put(_output, ',');
 }
 
 void ostream_encoder::write_object_key(std::string_view key)
 {
     write_string(key);
-    _output.put(':');
+    stream_put(_output, ':');
 }
 
 void ostream_encoder::write_string(std::string_view value)
@@ -240,9 +233,25 @@ void ostream_pretty_encoder::write_prefix()
 
 void ostream_pretty_encoder::write_eol()
 {
-    output().put('\n');
-    for (std::size_t x = 0; x < _indent; ++x)
-        output().put(' ');
+    // The newline and the indentation go in together, in as few writes as the run of spaces takes, rather than one
+    // character at a time. Indentation is most of what a pretty-printed document is made of -- a deep one is mostly
+    // spaces -- and a `put` per space costs a stream sentry per space.
+    static constexpr char spaces[] = "\n                                                                ";
+    static constexpr std::size_t spaces_max = sizeof(spaces) - 2U;
+
+    std::size_t remaining = _indent;
+    std::size_t first     = std::min(remaining, spaces_max);
+
+    // The first write carries the newline with it.
+    stream_write(output(), std::string_view(spaces, first + 1U));
+    remaining -= first;
+
+    while (remaining > 0U)
+    {
+        std::size_t chunk = std::min(remaining, spaces_max);
+        stream_write(output(), std::string_view(spaces + 1, chunk));
+        remaining -= chunk;
+    }
 }
 
 void ostream_pretty_encoder::write_array_begin()
@@ -324,7 +333,7 @@ void ostream_pretty_encoder::write_object_key(std::string_view key)
 {
     write_prefix();
     ostream_encoder::write_object_key(key);
-    output().put(' ');
+    stream_put(output(), ' ');
 }
 
 void ostream_pretty_encoder::write_string(std::string_view value)

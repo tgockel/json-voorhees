@@ -9,6 +9,7 @@
  *  \author Travis Gockel (travis@gockelhut.com)
 **/
 #include "char_convert.hpp"
+#include "detail.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -97,12 +98,6 @@ static const char* find_decoding(char char_after_backslash)
     return find(decode_map, char_after_backslash);
 }
 
-static bool needs_unicode_escaping(char c)
-{
-    return bool(c & '\x80')
-        || !is_print(c);
-}
-
 /** The codepoint encoded by the \a length bytes at \a seq, which must be a sequence \c utf8_sequence_length allows. **/
 static char32_t utf8_decode(const char* seq, unsigned length)
 {
@@ -118,13 +113,15 @@ static char32_t utf8_decode(const char* seq, unsigned length)
 
 static const char hex_codes[] = "0123456789abcdef";
 
-static void to_hex(std::ostream& stream, uint16_t code)
+/// Write `\uXXXX` for \a code into \a buffer, which must have room for 6 characters, and return the end.
+static char* write_unicode_escape(char* buffer, uint16_t code)
 {
+    *buffer++ = '\\';
+    *buffer++ = 'u';
     for (int pos = 3; pos >= 0; --pos)
-    {
-        uint16_t local_code = (code >> (4 * pos)) & uint16_t(0x000f);
-        stream.put(hex_codes[local_code]);
-    }
+        *buffer++ = hex_codes[(code >> (4 * pos)) & uint16_t(0x000f)];
+
+    return buffer;
 }
 
 static void utf16_create_surrogates(char32_t codepoint, uint16_t* high, uint16_t* low)
@@ -144,67 +141,102 @@ std::ostream& string_encode(std::ostream& stream, std::string_view source, bool 
 {
     typedef std::string_view::size_type size_type;
 
+    // The characters which go into the stream as themselves: printable ASCII apart from the quote and the backslash,
+    // which is what is left once `find_encoding` has had its say -- of the short escapes, only `"` and `\\` are
+    // printable, and the other five are control characters. A byte with the high bit set is never one of these:
+    // whether it passes through depends on `ensure_ascii` and on the sequence it starts, which the loop below works
+    // out.
+    const auto passthrough =
+        [] (unsigned char byte)
+        {
+            return byte >= 0x20U && byte < 0x80U && byte != 0x7fU && byte != '"' && byte != '\\';
+        };
+
+    // The characters written as themselves go into the stream in runs rather than one at a time: `[run_begin, idx)` is
+    // the run which has not been written yet, and it is flushed when something which is not written as itself comes up
+    // and when the string ends. A well-formed multi-byte sequence passing through under `!ensure_ascii` joins the run
+    // it is in the middle of, since its bytes are copied too.
+    size_type  run_begin = 0;
+    const auto flush_run =
+        [&] (size_type idx)
+        {
+            if (idx > run_begin)
+                stream_write(stream, source.substr(run_begin, idx - run_begin));
+        };
+
     for (size_type idx = 0, source_size = source.size(); idx < source_size; /* incremented inline */)
     {
+        // A reference into `source`, not a copy: `utf8_sequence_length` and `utf8_decode` read the bytes which follow
+        // it, so the address has to be the one in the string.
         const char& current = source[idx];
+        const auto  byte    = static_cast<unsigned char>(current);
+
+        if (passthrough(byte))
+        {
+            ++idx;
+            continue;
+        }
+
         if (const char* replacement = find_encoding(current))
         {
-            stream.put('\\').put(*replacement);
+            flush_run(idx);
+            const char escape[2] = { '\\', *replacement };
+            stream_write(stream, std::string_view(escape, 2));
             ++idx;
+            run_begin = idx;
+            continue;
+        }
+
+        unsigned   length     = utf8_sequence_length(&current, source.data() + source_size);
+        const bool valid_utf8 = length != 0;
+
+        char32_t code;
+        if (valid_utf8)
+        {
+            code = utf8_decode(&current, length);
         }
         else
         {
-            unsigned length = utf8_sequence_length(&current, source.data() + source_size);
-            const bool valid_utf8 = length != 0;
-
-            if (!needs_unicode_escaping(current))
-            {
-                stream.put(current);
-            }
-            else
-            {
-                char32_t code;
-                if (valid_utf8)
-                {
-                    code = utf8_decode(&current, length);
-                }
-                else
-                {
-                    // Invalid UTF-8 encoding -- we're either at the end of the string or the bytes were not a
-                    // well-formed UTF-8 sequence. In either case, we will drop in a numeric encoding (\u00NN) for the
-                    // byte and carry on from the next one.
-                    length = 1;
-                    code = char32_t(current) & 0xff;
-                }
-
-                // Without `ensure_ascii`, a well-formed multi-byte sequence passes through as it is. A single byte only
-                // gets this far if it is an ASCII control or DEL, and those are escaped either way: JSON requires it
-                // of the controls, and `utf8_strict` refuses DEL too.
-                if (valid_utf8 && length > 1 && !ensure_ascii)
-                {
-                    stream.write(&current, length);
-                }
-                // basic multilingual plane points are encoded in hex
-                else if (code < 0x10000)
-                {
-                    stream.write("\\u", 2);
-                    to_hex(stream, uint16_t(code));
-                }
-                // Codepoints not in the basic multilingual plane must be encoded as surrogate pairs
-                else
-                {
-                    uint16_t high, low;
-                    utf16_create_surrogates(code, &high, &low);
-                    stream.write("\\u", 2);
-                    to_hex(stream, high);
-                    stream.write("\\u", 2);
-                    to_hex(stream, low);
-                }
-            }
-
-            idx += length;
+            // Invalid UTF-8 encoding -- we're either at the end of the string or the bytes were not a well-formed
+            // UTF-8 sequence. In either case, we will drop in a numeric encoding (\u00NN) for the byte and carry on
+            // from the next one.
+            length = 1;
+            code = char32_t(current) & 0xff;
         }
+
+        // Without `ensure_ascii`, a well-formed multi-byte sequence passes through as it is, so it stays in the run
+        // being gathered. A single byte only gets this far if it is an ASCII control or DEL, and those are escaped
+        // either way: JSON requires it of the controls, and `utf8_strict` refuses DEL too.
+        if (valid_utf8 && length > 1 && !ensure_ascii)
+        {
+            idx += length;
+            continue;
+        }
+
+        flush_run(idx);
+
+        // A codepoint in the basic multilingual plane is written as one hex escape; one outside it must be written as
+        // a surrogate pair, which is two.
+        char  escaped[12];
+        char* escaped_end;
+        if (code < 0x10000)
+        {
+            escaped_end = write_unicode_escape(escaped, uint16_t(code));
+        }
+        else
+        {
+            uint16_t high, low;
+            utf16_create_surrogates(code, &high, &low);
+            escaped_end = write_unicode_escape(escaped, high);
+            escaped_end = write_unicode_escape(escaped_end, low);
+        }
+        stream_write(stream, std::string_view(escaped, static_cast<std::size_t>(escaped_end - escaped)));
+
+        idx += length;
+        run_begin = idx;
     }
+
+    flush_run(source.size());
 
     return stream;
 }

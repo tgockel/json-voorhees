@@ -23,6 +23,7 @@
 #include <iostream>
 #include <locale>
 #include <sstream>
+#include <streambuf>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -77,6 +78,134 @@ TEST(encode_pretty_does_not_flush)
     jsonv::ostream_pretty_encoder(os).encode(jsonv::parse(k_some_json));
     ensure(buf.str().find('\n') != std::string::npos);
     ensure_eq(0, buf.syncs);
+}
+
+// Batching the writes must not change what a stream which cannot take the whole document does. Every token still goes
+// out through `std::ostream::write` and `put`, so a buffer which refuses a write leaves the stream `bad()`, nothing
+// more is written to it, and `exceptions(badbit)` turns that into a throw.
+TEST(encode_stops_at_a_failing_stream)
+{
+    // Accepts `limit` bytes and refuses everything after that, as a full disk or a closed socket would.
+    struct limited_buf : std::streambuf
+    {
+        std::string       accepted;
+        const std::size_t limit;
+
+        explicit limited_buf(std::size_t limit) : limit(limit) { }
+
+        int_type overflow(int_type c) override
+        {
+            if (accepted.size() >= limit)
+                return traits_type::eof();
+
+            accepted.push_back(char(c));
+            return c;
+        }
+
+        std::streamsize xsputn(const char* s, std::streamsize n) override
+        {
+            std::streamsize written = 0;
+            while (written < n && accepted.size() < limit)
+            {
+                accepted.push_back(s[written]);
+                ++written;
+            }
+            return written;
+        }
+    };
+
+    const jsonv::value doc = jsonv::parse(k_some_json);
+
+    // A limit of 0 fails on the very first token; the others fail part-way through, in the middle of the indentation
+    // of a pretty document and of a string or a number of a compact one.
+    for (std::size_t limit : { std::size_t(0), std::size_t(1), std::size_t(5), std::size_t(40) })
+    {
+        {
+            limited_buf  buf(limit);
+            std::ostream os(&buf);
+            jsonv::ostream_encoder(os).encode(doc);
+            ensure(os.bad());
+            ensure_eq(limit, buf.accepted.size());
+        }
+
+        {
+            limited_buf  buf(limit);
+            std::ostream os(&buf);
+            jsonv::ostream_pretty_encoder(os).encode(doc);
+            ensure(os.bad());
+            ensure_eq(limit, buf.accepted.size());
+        }
+    }
+
+    // `badbit` with exceptions enabled throws, rather than being swallowed.
+    {
+        limited_buf  buf(5);
+        std::ostream os(&buf);
+        os.exceptions(std::ios_base::badbit);
+        ensure_throws(std::ios_base::failure, jsonv::ostream_encoder(os).encode(doc));
+    }
+
+    // A stream which is already not `good()` has nothing written to it: every write's sentry refuses the stream, so
+    // no part of the document reaches the buffer and the stream stays failed. Which *other* state bits a rejected
+    // write sets is the implementation's own business -- MSVC's `put` and `write` add `badbit` where libstdc++ leaves
+    // the state alone -- so only `failbit` is pinned.
+    {
+        std::ostringstream os;
+        os.setstate(std::ios_base::failbit);
+        jsonv::ostream_encoder(os).encode(doc);
+        ensure(os.str().empty());
+        ensure((os.rdstate() & std::ios_base::failbit) == std::ios_base::failbit);
+    }
+}
+
+// A stream the caller set `unitbuf` on flushes after each write, which is how output reaches a file or a socket
+// without waiting for the buffer to fill. That is the sentry's doing, so it holds only while the tokens go out
+// through `std::ostream`; writing to the stream's buffer directly would silently stop honouring it.
+TEST(encode_honours_unitbuf)
+{
+    struct sync_counting_buf : std::stringbuf
+    {
+        int syncs = 0;
+
+        int sync() override
+        {
+            ++syncs;
+            return std::stringbuf::sync();
+        }
+    };
+
+    const jsonv::value doc = jsonv::parse(k_some_json);
+
+    sync_counting_buf buf;
+    std::ostream      os(&buf);
+    os.setf(std::ios_base::unitbuf);
+
+    jsonv::ostream_pretty_encoder(os).encode(doc);
+
+    // Flushed at least once, and the document is all there and still correct.
+    ensure(buf.syncs > 0);
+    ensure_eq(doc, jsonv::parse(buf.str()));
+}
+
+// Indentation is written in chunks of a fixed buffer of spaces, so a document nested deeper than that buffer is wide
+// exercises the loop which repeats it. The depth where that begins is an implementation detail; this spans it.
+TEST(encode_pretty_deep_indentation)
+{
+    for (std::size_t depth : { std::size_t(1), std::size_t(31), std::size_t(32), std::size_t(33), std::size_t(100) })
+    {
+        const jsonv::value doc = jsonv::parse(std::string(depth, '[') + "1" + std::string(depth, ']'));
+
+        for (std::size_t indent_size : { std::size_t(0), std::size_t(1), std::size_t(4), std::size_t(65) })
+        {
+            std::ostringstream os;
+            jsonv::ostream_pretty_encoder(os, indent_size).encode(doc);
+            const std::string text = os.str();
+
+            // What was written is the document, and the deepest line carries exactly the indentation it should.
+            ensure_eq(doc, jsonv::parse(text));
+            ensure(text.find(std::string(depth * indent_size, ' ') + "1") != std::string::npos);
+        }
+    }
 }
 
 TEST(encode_nan)

@@ -188,6 +188,14 @@
        surrogate before the pair was checked. A `std::wstring` is UTF-16 on every platform -- `as_wstring` already
        writes surrogate pairs into a 32-bit `wchar_t` -- so a unit which is negative or above `0xffff` now throws
        `std::range_error` when made into a `value` or used as a key (#271).
+     - Writing JSON text to an `std::ostream` is several times faster, with no change to a single byte of what is
+       written or to the stream state left behind. `ostream_pretty_encoder` wrote a newline and then each space of
+       the indentation with a separate `put`, and the string encoder wrote each character of a string and each hex
+       digit of a `\uXXXX` escape the same way; every one of those cost a stream sentry, and indentation is most of
+       what a pretty-printed document is made of. Runs of indentation and of characters which need no escaping now
+       go into the stream whole, which is the same bytes in a fraction of the calls. On the nativejson-benchmark
+       documents, prettifying is about 3x faster (`canada.json` 68 ms to 23 ms, `citm_catalog.json` 15 ms to 4.7 ms)
+       and compact stringifying up to 2x on the smaller two.
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to

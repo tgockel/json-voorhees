@@ -15,6 +15,7 @@
 #include <charconv>
 #include <istream>
 #include <iterator>
+#include <ostream>
 #include <sstream>
 #include <system_error>
 
@@ -110,11 +111,21 @@ std::string read_stream(std::istream& input)
 // Printing                                                                                                           //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void stream_write(std::ostream& stream, std::string_view text)
+{
+    stream.write(text.data(), static_cast<std::streamsize>(text.size()));
+}
+
+void stream_put(std::ostream& stream, char c)
+{
+    stream.put(c);
+}
+
 std::ostream& stream_escaped_string(std::ostream& stream, std::string_view str, bool ensure_ascii)
 {
-    stream.put('"');
+    stream_put(stream, '"');
     detail::string_encode(stream, str, ensure_ascii);
-    stream.put('"');
+    stream_put(stream, '"');
     return stream;
 }
 
