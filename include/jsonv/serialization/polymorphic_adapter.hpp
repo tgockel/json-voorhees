@@ -18,6 +18,7 @@
 
 #include <expected>
 #include <functional>
+#include <map>
 #include <optional>
 #include <set>
 #include <string>

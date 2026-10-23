@@ -36,7 +36,7 @@ value map(const std::function<value (const value&)>& func,
     case kind::object:
     {
         value out = object();
-        for (const value::object_value_type& sub : input.as_object())
+        for (value::const_object_reference sub : input.as_object())
             out.insert({ sub.first, func(sub.second) });
         return out;
     }
@@ -68,7 +68,7 @@ value map(const std::function<value (value)>& func,
     case kind::object:
     {
         value out = object();
-        for (value::object_value_type& sub : input.as_object())
+        for (value::object_reference sub : input.as_object())
             out.insert({ sub.first, func(std::move(sub.second)) });
         input = null;
         return out;

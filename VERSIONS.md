@@ -204,6 +204,31 @@
        child straight into its parent's container, and inserts every member with one lookup; an escaped string is
        also no longer copied after it is decoded. `canada.json` parses in 14 ms rather than 19.5 ms and
        `citm_catalog.json` in 6.2 ms rather than 7.5 ms (#398).
+     - An object keeps its members in one array sorted by key, like `std::flat_map`, instead of a `std::map`, which
+       spent an allocation and a tree node on every member. Iteration order, `compare`, `std::hash` and the order
+       keys are written in are unchanged. Parsing `citm_catalog.json`, whose objects nearly all have two keys, makes
+       29% fewer allocations and takes 5.4 ms rather than 6.2 ms. This changes the object API which 2.0.0-rc.1 shipped
+       (#400):
+       - Inserting into or erasing from an object invalidates iterators and references to the members after the
+         position, and to every member when the object grows, as with `std::vector`. A `std::map` invalidated
+         nothing on insertion and only the erased member on erasure.
+       - Dereferencing an `object_iterator` gives a `value::object_reference` (a `const_object_reference` for a
+         `const_object_iterator`), a proxy holding a `const std::string& first` and a `value& second`, rather than
+         an `object_value_type&`. `iter->first`, `for (auto&& [key, val] : obj.as_object())` and
+         `for (const auto& member : obj.as_object())` work as before; `for (auto& member : obj.as_object())` and
+         `for (const value::object_value_type& member : obj.as_object())` no longer compile. The proxy converts to
+         `object_value_type` only explicitly, so that second loop fails to compile rather than silently
+         deep-copying every member, and passing `*iter` to `insert` means writing `value::object_value_type(*iter)`.
+       - The object iterators are random-access, with `iterator_concept` `std::random_access_iterator_tag` and
+         `std::random_access_iterator_tag` as their `iterator_category` too, as for `std::vector<bool>::iterator`.
+       - Inserting anywhere but the end shifts the members after the position. The range `insert` hints each element
+         just past the one before it, so an ascending source is appended without searching.
+       - `extract` moves the key and value out into the node handle and erases the member, rather than splicing a
+         tree node.
+       - `value.hpp` no longer includes `<map>`.
+       Objects built by `parse`, by deserializing a `value` from text and by a `value_encoder` insert members in order
+       while they are few, and append and index them past 16, sorting once at the end, so a large object whose keys
+       arrive in descending order does not take quadratic time. `merge` and `diff` walk both objects in key order.
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to

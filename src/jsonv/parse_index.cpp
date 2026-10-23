@@ -1063,6 +1063,7 @@ ast_node parse_index::iterator::operator*() const
 namespace
 {
 
+using detail::object_builder;
 using detail::value_access;
 
 /// Builds the \c value for a document by walking the tape directly. Each slot is decoded once and switched on, and the
@@ -1096,7 +1097,7 @@ public:
         auto [token, ptr] = decode_ast_node_position(_prefix, *_pos);
         switch (token)
         {
-        case ast_node_type::object_begin:     return build_object();
+        case ast_node_type::object_begin:     return build_object(static_cast<std::size_t>(_pos[2]));
         case ast_node_type::array_begin:      return build_array(static_cast<std::size_t>(_pos[2]));
         case ast_node_type::integer:          return integer_node_value(ast_node::integer(ptr, _pos[1]));
         case ast_node_type::decimal:          return ast_node::decimal(ptr, _pos[1]).value();
@@ -1125,10 +1126,11 @@ private:
             _prefix += ast_node_prefix_add;
     }
 
-    value build_object()
+    /// \param member_count How many keys the tape counted in the object, repeats included.
+    value build_object(std::size_t member_count)
     {
-        value out     = object();
-        auto& members = value_access::object_values(out);
+        value          out = object();
+        object_builder members(value_access::object_storage(out), member_count);
 
         step();
         while (_pos != _last)
@@ -1138,6 +1140,7 @@ private:
             std::string key;
             if (token == ast_node_type::object_end)
             {
+                members.finish();
                 return out;
             }
             else if (token == ast_node_type::key_canonical)
@@ -1158,23 +1161,26 @@ private:
             step();
             value val = build_value();
 
-            // `try_emplace` leaves `key` and `val` alone when the key is present, so every policy is one lookup.
-            switch (_on_duplicate_key)
+            // Every policy is one lookup. Members are taken in document order, so `exception` names the first key to
+            // repeat, and `replace` and `ignore` keep the last and the first value of one.
+            auto [pos, present] = members.find(key);
+            if (!present)
+            {
+                members.add(pos, std::move(key), std::move(val));
+            }
+            else switch (_on_duplicate_key)
             {
             case deserialize_options::duplicate_key_action::replace:
-                members.insert_or_assign(std::move(key), std::move(val));
+                pos->second = std::move(val);
                 break;
             case deserialize_options::duplicate_key_action::ignore:
-                members.try_emplace(std::move(key), std::move(val));
                 break;
             case deserialize_options::duplicate_key_action::exception:
-                if (!members.try_emplace(std::move(key), std::move(val)).second)
                 {
                     std::ostringstream os;
                     os << "Duplicate key in object: \"" << key << "\"";
                     throw deserialization_error(path(), std::move(os).str());
                 }
-                break;
             }
             step();
         }

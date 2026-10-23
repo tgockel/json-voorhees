@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "../reader_impl.hpp"
+#include "../value_access.hpp"
 #include "describe.hpp"
 
 namespace jsonv
@@ -836,22 +837,25 @@ static value read_object(reader& from, deserialize_options::duplicate_key_action
     (void) from.next_token();
     try
     {
-        value out = object();
+        value                  out = object();
+        detail::object_builder members(detail::value_access::object_storage(out));
         while (from.good())
         {
             if (from.current_type() == ast_node_type::object_end)
             {
                 // One past the `}` -- the contract every caller of read_value is promised.
                 (void) from.next_token();
+                members.finish();
                 return out;
             }
 
             std::string key = read_key(from);
 
             // Settled while the cursor is still on the key, so a refusal names the key which repeated. The default
-            // keeps whichever value comes last, which the assignment below does without having to look first.
-            const bool repeated = on_duplicate != deserialize_options::duplicate_key_action::replace
-                               && out.count(key) != 0U;
+            // keeps whichever value comes last. Reading the value builds nothing in this object, so the position stays
+            // good until the member is placed.
+            auto [pos, present] = members.find(key);
+            const bool repeated = present && on_duplicate != deserialize_options::duplicate_key_action::replace;
             if (repeated && on_duplicate == deserialize_options::duplicate_key_action::exception)
                 throw_duplicate_key(from, key, depth);
 
@@ -868,11 +872,15 @@ static value read_object(reader& from, deserialize_options::duplicate_key_action
             // read_value_impl leaves the cursor on the next key or on the `}`, so this loop never advances itself.
             value member = read_value_impl(from, on_duplicate, depth + 1U);
 
-            // Assignment rather than `insert`, which keeps the *first* of a duplicated key. `parse_index::extract_tree`
-            // defaults to `duplicate_key_action::replace`, and a reader disagreeing with `parse` about which of
-            // `{"x":1,"x":2}` survives would make deserializing from text and deserializing from the parsed tree select
-            // different data.
-            out[std::move(key)] = std::move(member);
+            // Under `replace`, the last of a duplicated key wins. `parse_index::extract_tree` defaults to
+            // `duplicate_key_action::replace`, and a reader disagreeing with `parse` about which of `{"x":1,"x":2}`
+            // survives would make deserializing from text and deserializing from the parsed tree select different
+            // data. Under the other policies a repeat has already been skipped, so a present key is only seen here
+            // under `replace`.
+            if (present)
+                pos->second = std::move(member);
+            else
+                members.add(pos, std::move(key), std::move(member));
         }
     }
     catch (...)
