@@ -63,36 +63,39 @@ diff_result diff(value left, value right)
         result.same = object();
         result.left = object();
         result.right = object();
-        for (value::object_iterator liter = left.begin_object();
-             liter != left.end_object();
-             liter = left.erase(liter)
-            )
+        // Both objects iterate in key order, so walking them side by side visits every key once, and every insert
+        // into the results lands at the end, where it is hinted.
         {
-            auto riter = right.find(liter->first);
-            if (riter == right.end_object())
+            auto liter = left.begin_object();
+            auto riter = right.begin_object();
+            while (liter != left.end_object() || riter != right.end_object())
             {
-                result.left.insert({ liter->first, std::move(liter->second) });
+                if (riter == right.end_object() || (liter != left.end_object() && liter->first < riter->first))
+                {
+                    result.left.insert(result.left.end_object(), { liter->first, std::move(liter->second) });
+                    ++liter;
+                }
+                else if (liter == left.end_object() || riter->first < liter->first)
+                {
+                    result.right.insert(result.right.end_object(), { riter->first, std::move(riter->second) });
+                    ++riter;
+                }
+                else
+                {
+                    if (liter->second == riter->second)
+                    {
+                        result.same.insert(result.same.end_object(), { liter->first, std::move(liter->second) });
+                    }
+                    else
+                    {
+                        diff_result subresult = diff(std::move(liter->second), std::move(riter->second));
+                        result.left.insert(result.left.end_object(), { liter->first, std::move(subresult.left) });
+                        result.right.insert(result.right.end_object(), { liter->first, std::move(subresult.right) });
+                    }
+                    ++liter;
+                    ++riter;
+                }
             }
-            else if (liter->second == riter->second)
-            {
-                result.same[liter->first] = std::move(liter->second);
-                right.erase(riter);
-            }
-            else
-            {
-                diff_result subresult = diff(std::move(liter->second), std::move(riter->second));
-                result.left[liter->first] = std::move(subresult.left);
-                result.right[liter->first] = std::move(subresult.right);
-                right.erase(riter);
-            }
-        }
-
-        for (value::object_iterator riter = right.begin_object();
-             riter != right.end_object();
-             riter = right.erase(riter)
-            )
-        {
-            result.right.insert({ riter->first, std::move(riter->second) });
         }
         break;
     }
