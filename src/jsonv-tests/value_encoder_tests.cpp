@@ -78,7 +78,7 @@ void write_tokens(jsonv::writer& to, const jsonv::value& source)
         break;
     case jsonv::kind::object:
         to.object_begin();
-        for (const jsonv::value::object_value_type& entry : source.as_object())
+        for (jsonv::value::const_object_reference entry : source.as_object())
         {
             to.key(entry.first);
             write_tokens(to, entry.second);

@@ -151,8 +151,10 @@ namespace jsonv
 /// object and JSON array are different, they have different iterator types in JSON Voorhees. They
 /// are named \c object_iterator and \c array_iterator. The access methods for these iterators are
 /// \c begin_object / \c end_object and \c begin_array / \c end_array, respectively. The object
-/// interface behaves exactly like you would expect a \c std::map<std::string,jsonv::value> to,
-/// while the array interface behaves just like a \c std::deque<jsonv::value> would.
+/// interface behaves like a \c std::flat_map<std::string,jsonv::value>: members are kept sorted by
+/// key, an iterator dereferences to a proxy holding references to the key and the value, and
+/// inserting or erasing invalidates iterators. The array interface behaves just like a
+/// \c std::deque<jsonv::value> would.
 ///
 /// \code
 /// #include <jsonv/value.hpp>

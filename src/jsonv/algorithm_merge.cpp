@@ -76,30 +76,36 @@ value merge_explicit(const merge_rules& rules,
     {
         case kind::object:
         {
+            // Both objects iterate in key order, so walking them side by side visits every key once and produces
+            // `out` in order: each insert is hinted at the end, where it lands.
             value out = object();
-            for (value::object_iterator iter = a.begin_object(); iter != a.end_object(); iter = a.erase(iter))
+            auto  iter_a = a.begin_object();
+            auto  iter_b = b.begin_object();
+            while (iter_a != a.end_object() || iter_b != b.end_object())
             {
-                auto iter_b = b.find(iter->first);
-                if (iter_b == b.end_object())
+                if (iter_b == b.end_object() || (iter_a != a.end_object() && iter_a->first < iter_b->first))
                 {
-                    out.insert({ iter->first, std::move(iter->second) });
+                    out.insert(out.end_object(), { iter_a->first, std::move(iter_a->second) });
+                    ++iter_a;
+                }
+                else if (iter_a == a.end_object() || iter_b->first < iter_a->first)
+                {
+                    out.insert(out.end_object(), { iter_b->first, std::move(iter_b->second) });
+                    ++iter_b;
                 }
                 else
                 {
-                    out.insert({ iter->first,
-                                 rules.resolve_same_key(current_path + iter->first,
-                                                        std::move(iter->second),
+                    out.insert(out.end_object(),
+                               { iter_a->first,
+                                 rules.resolve_same_key(current_path + iter_a->first,
+                                                        std::move(iter_a->second),
                                                         std::move(iter_b->second)
                                                        )
                                }
                               );
-                    b.erase(iter_b);
+                    ++iter_a;
+                    ++iter_b;
                 }
-            }
-
-            for (value::object_iterator iter = b.begin_object(); iter != b.end_object(); ++iter)
-            {
-                out.insert({ iter->first, std::move(iter->second) });
             }
 
             return out;

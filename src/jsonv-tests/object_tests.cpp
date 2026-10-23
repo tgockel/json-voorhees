@@ -8,17 +8,46 @@
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
+#include "allocation_counter.hpp"
 
+#include <jsonv/encode.hpp>
 #include <jsonv/parse.hpp>
+#include <jsonv/reader.hpp>
 #include <jsonv/serialization.hpp>
+#include <jsonv/writer.hpp>
 
+#include <cstdint>
 #include <cwchar>
+#include <iterator>
 #include <map>
 #include <memory>
+#include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
+
+// Dereferencing an object iterator gives a proxy, which the iterators still model the standard concepts with.
+static_assert(std::random_access_iterator<jsonv::value::object_iterator>);
+static_assert(std::random_access_iterator<jsonv::value::const_object_iterator>);
+static_assert(std::ranges::random_access_range<jsonv::value::object_view>);
+static_assert(std::ranges::random_access_range<jsonv::value::const_object_view>);
+
+// The proxy does not bind to a reference to the owning pair, which would copy the member: in the loop
+// `for (const value::object_value_type& m : obj.as_object())`, every iteration.
+static_assert(!std::is_convertible_v<jsonv::value::const_object_reference, const jsonv::value::object_value_type&>);
+static_assert(!std::is_convertible_v<jsonv::value::object_reference, const jsonv::value::object_value_type&>);
+static_assert(std::is_constructible_v<jsonv::value::object_value_type, jsonv::value::const_object_reference>);
+
+// The key can not be written through the proxy, which would break the order members are kept in.
+static_assert(std::is_same_v<decltype((std::declval<jsonv::value::object_reference>().first)), const std::string&>);
+static_assert(std::is_same_v<decltype((std::declval<jsonv::value::object_reference>().second)), jsonv::value&>);
+static_assert(std::is_same_v<decltype((std::declval<jsonv::value::const_object_reference>().second)),
+                             const jsonv::value&
+                            >
+             );
 
 TEST(object)
 {
@@ -577,7 +606,7 @@ TEST(object_view)
     const jsonv::value obj1 = jsonv::object({ { "foo", 5 }, { "bar", "wat" } });
     jsonv::value obj2 = jsonv::object();
     for (const auto& entry : obj1.as_object())
-        obj2.insert(entry);
+        obj2.insert(jsonv::value::object_value_type(entry));
     ensure_eq(obj1, obj2);
 }
 
@@ -857,3 +886,266 @@ TEST(parse_object_duplicate_keys)
                               )
                  );
 }
+
+TEST(object_iteration_structured_bindings)
+{
+    jsonv::value obj = jsonv::object({ { "b", 2 }, { "a", 1 } });
+
+    std::string keys;
+    for (auto&& [key, val] : obj.as_object())
+    {
+        keys += key;
+        val = val.as_integer() * 10;
+    }
+    ensure_eq(std::string("ab"), keys);
+    ensure_eq(jsonv::object({ { "a", 10 }, { "b", 20 } }), obj);
+}
+
+TEST(object_iterator_arrow_and_conversions)
+{
+    jsonv::value obj  = jsonv::object({ { "a", 1 }, { "b", 2 } });
+    auto         iter = obj.find("b");
+    ensure_eq(std::string("b"), iter->first);
+    iter->second = "two";
+
+    jsonv::value::const_object_iterator citer = iter;
+    ensure(citer == iter);
+    ensure_eq(jsonv::value("two"), citer->second);
+
+    // Copying a member out has to be asked for.
+    jsonv::value::object_value_type copy(*citer);
+    ensure_eq(std::string("b"), copy.first);
+    ensure_eq(jsonv::value("two"), copy.second);
+
+    // ...which a std::map's range constructor does.
+    std::map<std::string, jsonv::value> as_map(obj.begin_object(), obj.end_object());
+    ensure_eq(2U, as_map.size());
+    ensure_eq(jsonv::value("two"), as_map.at("b"));
+}
+
+TEST(object_iterator_random_access)
+{
+    jsonv::value obj = jsonv::object({ { "a", 1 }, { "b", 2 }, { "c", 3 }, { "d", 4 } });
+
+    auto first = obj.begin_object();
+    auto last  = obj.end_object();
+    ensure_eq(4, last - first);
+    ensure_eq(std::string("c"), (first + 2)->first);
+    ensure_eq(std::string("c"), (2 + first)->first);
+    ensure_eq(std::string("d"), first[3].first);
+    ensure_eq(std::string("b"), (last - 3)->first);
+    ensure(first < last);
+    ensure(last - 1 >= first + 3);
+
+    // The functions which dispatch on the iterator category step backward and jump.
+    ensure_eq(std::string("d"), std::prev(last)->first);
+    ensure_eq(std::string("b"), std::next(first)->first);
+    auto iter = last;
+    std::advance(iter, -3);
+    ensure_eq(std::string("b"), iter->first);
+    ensure_eq(4, std::distance(first, last));
+}
+
+TEST(object_iterates_in_key_order_whatever_the_insertion_order)
+{
+    jsonv::value obj = jsonv::object();
+    for (const char* key : { "m", "c", "x", "a", "q", "b", "z" })
+        obj[key] = key;
+
+    std::string keys;
+    for (const auto& member : obj.as_object())
+        keys += member.first;
+    ensure_eq(std::string("abcmqxz"), keys);
+
+    // Erasing from the middle keeps the rest in order.
+    auto after = obj.erase(obj.find("m"));
+    ensure_eq(std::string("q"), after->first);
+    ensure_eq(1U, obj.erase("b"));
+    keys.clear();
+    for (const auto& member : obj.as_object())
+        keys += member.first;
+    ensure_eq(std::string("acqxz"), keys);
+}
+
+TEST(object_insert_hint_is_only_a_hint)
+{
+    const jsonv::value expected = jsonv::object({ { "a", 1 }, { "b", 2 }, { "c", 3 }, { "d", 4 } });
+
+    // Where the key goes,
+    jsonv::value right = jsonv::object({ { "a", 1 }, { "c", 3 }, { "d", 4 } });
+    auto         pos   = right.insert(right.find("c"), { "b", 2 });
+    ensure_eq(std::string("b"), pos->first);
+    ensure_eq(expected, right);
+
+    // somewhere else,
+    jsonv::value wrong = jsonv::object({ { "a", 1 }, { "c", 3 }, { "d", 4 } });
+    pos = wrong.insert(wrong.end_object(), { "b", 2 });
+    ensure_eq(std::string("b"), pos->first);
+    ensure_eq(expected, wrong);
+
+    // the end, for a key which belongs there,
+    jsonv::value at_end = jsonv::object({ { "a", 1 }, { "b", 2 }, { "c", 3 } });
+    pos = at_end.insert(at_end.end_object(), { "d", 4 });
+    ensure_eq(std::string("d"), pos->first);
+    ensure_eq(expected, at_end);
+
+    // or just past a key which is already present: nothing is inserted, and the member with the key is returned.
+    jsonv::value present = expected;
+    pos = present.insert(present.find("c"), { "b", 20 });
+    ensure_eq(std::string("b"), pos->first);
+    ensure_eq(expected, present);
+}
+
+namespace
+{
+
+/// The members of a document, in document order: \a count keys in descending order, with every seventh member repeating
+/// the key three before it when \a with_repeats. Each value is the member's position, so which of a repeated key's
+/// values survives is plain.
+std::vector<std::pair<std::string, std::int64_t>> descending_members(std::size_t count, bool with_repeats)
+{
+    std::vector<std::pair<std::string, std::int64_t>> out;
+    for (std::size_t idx = count; idx-- > 0U; )
+    {
+        std::string key = std::to_string(idx);
+        key.insert(0U, 6U - key.size(), '0');
+        out.emplace_back("k" + key, std::int64_t(out.size()));
+        if (with_repeats && out.size() % 7U == 0U)
+            out.emplace_back(out[out.size() - 3U].first, std::int64_t(out.size()));
+    }
+    return out;
+}
+
+std::string to_text(const std::vector<std::pair<std::string, std::int64_t>>& members)
+{
+    std::string out = "{";
+    for (const auto& [key, val] : members)
+        out += (out.size() == 1U ? "\"" : ",\"") + key + "\":" + std::to_string(val);
+    return out + "}";
+}
+
+/// What an object built from \a members holds under \a action, or \c std::nullopt when \a action is
+/// \c exception and a key repeats; \a first_repeat is then the first key to.
+std::optional<jsonv::value> expected_object(const std::vector<std::pair<std::string, std::int64_t>>& members,
+                                            jsonv::deserialize_options::duplicate_key_action      action,
+                                            std::string&                                         first_repeat
+                                           )
+{
+    std::map<std::string, std::int64_t> model;
+    for (const auto& [key, val] : members)
+    {
+        auto [pos, inserted] = model.try_emplace(key, val);
+        if (inserted)
+            continue;
+        if (action == jsonv::deserialize_options::duplicate_key_action::exception)
+        {
+            first_repeat = key;
+            return std::nullopt;
+        }
+        if (action == jsonv::deserialize_options::duplicate_key_action::replace)
+            pos->second = val;
+    }
+
+    jsonv::value out = jsonv::object();
+    for (const auto& [key, val] : model)
+        out.insert(out.end_object(), { key, val });
+    return out;
+}
+
+/// Build an object from \a members under \a action through \a build, and check it against \c expected_object.
+template <typename FBuild>
+void ensure_builds_object(const std::vector<std::pair<std::string, std::int64_t>>& members,
+                          jsonv::deserialize_options::duplicate_key_action      action,
+                          const FBuild&                                         build
+                         )
+{
+    std::string first_repeat;
+    auto        expected = expected_object(members, action, first_repeat);
+    if (expected)
+    {
+        jsonv::value built = build();
+        ensure_eq(*expected, built);
+
+        std::string previous;
+        for (const auto& member : built.as_object())
+        {
+            ensure(previous < member.first);
+            previous = member.first;
+        }
+    }
+    else
+    {
+        try
+        {
+            (void) build();
+            ensure(false);
+        }
+        catch (const jsonv::deserialization_error& err)
+        {
+            const std::string message = R"(Duplicate key in object: ")" + first_repeat + R"(")";
+            ensure(std::string(err.what()).find(message) != std::string::npos);
+        }
+    }
+}
+
+}
+
+// An object whose keys arrive in descending order, with and without repeats, under every duplicate-key policy, by every
+// path which builds a value from text: few enough members to be looked up one by one, and enough to need an index.
+TEST(object_built_from_descending_keys)
+{
+    using action = jsonv::deserialize_options::duplicate_key_action;
+
+    for (std::size_t count : { 3U, 16U, 17U, 40U, 5000U })
+    {
+        for (bool with_repeats : { false, true })
+        {
+            auto        members = descending_members(count, with_repeats);
+            std::string text    = to_text(members);
+
+            for (action on_duplicate : { action::replace, action::ignore, action::exception })
+            {
+                auto options = jsonv::deserialize_options::create_default().on_duplicate_key(on_duplicate);
+
+                ensure_builds_object(members, on_duplicate, [&] { return jsonv::parse(text, options); });
+                ensure_builds_object(members,
+                                     on_duplicate,
+                                     [&] { return jsonv::deserialize<jsonv::value>(jsonv::reader(text), options); }
+                                    );
+            }
+
+            // A value_encoder keeps the last of a repeated key, as parse does by default.
+            ensure_builds_object(members,
+                                 action::replace,
+                                 [&]
+                                 {
+                                     jsonv::value_encoder sink;
+                                     jsonv::writer        to(sink);
+                                     to.object_begin();
+                                     for (const auto& [key, val] : members)
+                                         to.key(key).integer(val);
+                                     to.object_end();
+                                     return std::move(sink).take();
+                                 }
+                                );
+        }
+    }
+}
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+// The members of an object share one allocation, sized from the count on the tape, so a second member costs nothing.
+TEST(object_parse_members_share_an_allocation)
+{
+    auto cost = [] (const std::string& text)
+                {
+                    jsonv_test::allocation_counter allocations;
+                    jsonv::value                   parsed = jsonv::parse(text);
+                    return allocations.count();
+                };
+
+    ensure_eq(cost(R"({"a":1})"), cost(R"({"a":1,"b":2})"));
+    ensure_eq(cost(R"({"a":1})"), cost(R"({"a":1,"b":2,"c":3,"d":4,"e":5,"f":6,"g":7,"h":8})"));
+}
+
+#endif
