@@ -27,7 +27,7 @@
 #include "detail/fallthrough.hpp"
 #include "detail/match/number.hpp"
 #include "detail/match/string.hpp"
-#include "detail/overload.hpp"
+#include "value_access.hpp"
 
 #if JSONV_SSE2
 #   include <emmintrin.h>
@@ -1063,142 +1063,150 @@ ast_node parse_index::iterator::operator*() const
 namespace
 {
 
-value extract_single(parse_index::const_iterator& iter,
-                     parse_index::const_iterator  last,
-                     const deserialize_options&       options
-                    );
+using detail::value_access;
 
-value extract_object(parse_index::const_iterator& iter,
-                     parse_index::const_iterator  last,
-                     const deserialize_options&       options
-                    )
+/// Builds the \c value for a document by walking the tape directly. Each slot is decoded once and switched on, and the
+/// scalars are read through the \c ast_node types made straight from it, so no \c ast_node is built for a node only to
+/// be dispatched on a second time. Children go straight into their parent's container through \c detail::value_access.
+///
+/// A build leaves the cursor on the last slot of the value it built -- the scalar itself, or the closing \c } or
+/// \c ] -- the way the caller found it on the first.
+class tree_builder final
 {
-    auto first_token = *iter;
-    if (first_token.type() != ast_node_type::object_begin)
-        throw std::invalid_argument("`extract_object` called on non-object token");
+public:
+    explicit tree_builder(std::uintptr_t             prefix,
+                          const std::uint64_t*       pos,
+                          const std::uint64_t*       last,
+                          const deserialize_options& options
+                         ) :
+            _prefix(prefix),
+            _pos(pos),
+            _last(last),
+            _on_duplicate_key(options.on_duplicate_key())
+    { }
 
-    value out = object();
+    std::uintptr_t       prefix() const { return _prefix; }
+    const std::uint64_t* pos() const    { return _pos; }
 
-    ++iter;
-    while (iter != last)
+    value build_value()
     {
-        auto key_token = *iter;
-        if (key_token.type() == ast_node_type::object_end)
+        if (_pos == _last)
+            throw std::invalid_argument("Can not extract from empty");
+
+        auto [token, ptr] = decode_ast_node_position(_prefix, *_pos);
+        switch (token)
         {
-            return out;
+        case ast_node_type::object_begin:     return build_object();
+        case ast_node_type::array_begin:      return build_array(static_cast<std::size_t>(_pos[2]));
+        case ast_node_type::integer:          return integer_node_value(ast_node::integer(ptr, _pos[1]));
+        case ast_node_type::decimal:          return ast_node::decimal(ptr, _pos[1]).value();
+        case ast_node_type::string_canonical: return ast_node::string_canonical(ptr, _pos[1]).value();
+        case ast_node_type::string_escaped:
+            return value_access::string(ast_node::string_escaped(ptr, _pos[1]).value());
+        case ast_node_type::literal_false:    return false;
+        case ast_node_type::literal_true:     return true;
+        case ast_node_type::literal_null:     return value();
+        case ast_node_type::error:
+            // Not an extraction error -- someone forgot to call `.validate()`
+            throw parse_error(to_string(static_cast<ast_error>(_pos[1])).c_str());
+        default:
+            // If the AST is valid, this should not be hit
+            throw std::invalid_argument(std::string("unexpected token ") + to_string(token));
         }
+    }
 
-        std::string key = key_token.visit(detail::overload
-            {
-                [](const ast_node::key_canonical& x) { return std::string(x.value()); },
-                [](const ast_node::key_escaped&   x) { return x.value(); },
-                [](const auto&) -> std::string
-                {
-                    // This shouldn't happen if the AST index is valid
-                    JSONV_UNLIKELY
-                    throw std::invalid_argument("Extracting object does not have repeating KEY, VALUE sequence");
-                }
-            });
+private:
+    /// Move to the next slot. This is \c parse_index::iterator::operator++, which explains the \c _prefix carry.
+    void step()
+    {
+        auto prev_ptr = decode_ast_node_position(_prefix, *_pos).second;
+        _pos += code_size(ast_node_type_from_coded(*_pos));
+        if (decode_ast_node_position(_prefix, *_pos).second < prev_ptr)
+            _prefix += ast_node_prefix_add;
+    }
 
-        ++iter;
-        value val = extract_single(*&iter, last, options);
+    value build_object()
+    {
+        value out     = object();
+        auto& members = value_access::object_values(out);
 
-        switch (options.on_duplicate_key())
+        step();
+        while (_pos != _last)
         {
-        case deserialize_options::duplicate_key_action::replace:
-            out[std::move(key)] = std::move(val);
-            break;
-        case deserialize_options::duplicate_key_action::ignore:
-            if (out.find(key) == out.end_object())
-                out[std::move(key)] = std::move(val);
-            break;
-        case deserialize_options::duplicate_key_action::exception:
-            if (out.find(key) == out.end_object())
+            auto [token, ptr] = decode_ast_node_position(_prefix, *_pos);
+
+            std::string key;
+            if (token == ast_node_type::object_end)
             {
-                out[std::move(key)] = std::move(val);
+                return out;
+            }
+            else if (token == ast_node_type::key_canonical)
+            {
+                key = std::string(ast_node::key_canonical(ptr, _pos[1]).value());
+            }
+            else if (token == ast_node_type::key_escaped)
+            {
+                key = ast_node::key_escaped(ptr, _pos[1]).value();
             }
             else
             {
-                std::ostringstream os;
-                os << "Duplicate key in object: \"" << key << "\"";
-                throw deserialization_error(path(), std::move(os).str());
-            }
-            break;
-        }
-        ++iter;
-    }
-
-    throw std::invalid_argument("Did not find end of object");
-}
-
-value extract_array(parse_index::const_iterator& iter,
-                    parse_index::const_iterator  last,
-                    const deserialize_options&       options
-                   )
-{
-    auto first_token = *iter;
-    value out        = first_token.visit(detail::overload
-        {
-            [](const ast_node::array_begin& arr) -> value
-            {
-                auto out = array();
-                out.reserve(arr.element_count());
-                return out;
-            },
-            [](const auto&) -> value
-            {
+                // This shouldn't happen if the AST index is valid
                 JSONV_UNLIKELY
-                throw std::invalid_argument("Extracting array does not start with [");
+                throw std::invalid_argument("Extracting object does not have repeating KEY, VALUE sequence");
             }
-        });
 
-    ++iter;
-    while (iter != last)
-    {
-        auto token = *iter;
-        if (token.type() == ast_node_type::array_end)
-            return out;
+            step();
+            value val = build_value();
 
-        out.push_back(extract_single(*&iter, last, options));
-        ++iter;
+            // `try_emplace` leaves `key` and `val` alone when the key is present, so every policy is one lookup.
+            switch (_on_duplicate_key)
+            {
+            case deserialize_options::duplicate_key_action::replace:
+                members.insert_or_assign(std::move(key), std::move(val));
+                break;
+            case deserialize_options::duplicate_key_action::ignore:
+                members.try_emplace(std::move(key), std::move(val));
+                break;
+            case deserialize_options::duplicate_key_action::exception:
+                if (!members.try_emplace(std::move(key), std::move(val)).second)
+                {
+                    std::ostringstream os;
+                    os << "Duplicate key in object: \"" << key << "\"";
+                    throw deserialization_error(path(), std::move(os).str());
+                }
+                break;
+            }
+            step();
+        }
+
+        throw std::invalid_argument("Did not find end of object");
     }
 
-    throw std::invalid_argument("Did not find end of array");
-}
+    value build_array(std::size_t element_count)
+    {
+        value out      = array();
+        auto& elements = value_access::array_values(out);
+        elements.reserve(element_count);
 
-value extract_single(parse_index::const_iterator& iter,
-                     parse_index::const_iterator  last,
-                     const deserialize_options&       options
-                    )
-{
-    if (iter == last)
-        throw std::invalid_argument("Can not extract from empty");
-
-    auto node = *iter;
-    return node.visit(
-        detail::overload
+        step();
+        while (_pos != _last)
         {
-            [&](const ast_node::object_begin&)       -> value { return extract_object(*&iter, last, options); },
-            [&](const ast_node::array_begin&)        -> value { return extract_array(*&iter, last, options); },
-            [&](const ast_node::integer& x)          -> value { return integer_node_value(x); },
-            [&](const ast_node::decimal& x)          -> value { return x.value(); },
-            [&](const ast_node::string_canonical& x) -> value { return x.value(); },
-            [&](const ast_node::string_escaped& x)   -> value { return x.value(); },
-            [&](const ast_node::literal_false& x)    -> value { return x.value(); },
-            [&](const ast_node::literal_true& x)     -> value { return x.value(); },
-            [&](const ast_node::literal_null& x)     -> value { return x.value(); },
-            [&](const ast_node::error& x)            -> value
-            {
-                // Not an extraction error -- someone forgot to call `.validate()`
-                throw parse_error(to_string(x.error_code()).c_str());
-            },
-            [&](const auto& x) -> value
-            {
-                // If the AST if valid, this should not be hit
-                throw std::invalid_argument(std::string("unexpected token ") + to_string(x.type()));
-            },
-        });
-}
+            if (ast_node_type_from_coded(*_pos) == ast_node_type::array_end)
+                return out;
+
+            elements.push_back(build_value());
+            step();
+        }
+
+        throw std::invalid_argument("Did not find end of array");
+    }
+
+private:
+    std::uintptr_t                            _prefix;
+    const std::uint64_t*                      _pos;
+    const std::uint64_t*                      _last;
+    deserialize_options::duplicate_key_action _on_duplicate_key;
+};
 
 }
 
@@ -1232,7 +1240,9 @@ value parse_index::extract_tree(const deserialize_options& options) const
         }
     }
 
-    auto out = extract_single(*&iter, last, options);
+    tree_builder builder(iter._prefix, iter._iter, last._iter, options);
+    auto out = builder.build_value();
+    iter = iterator(builder.prefix(), builder.pos());
 
     if (iter == last)
         throw std::invalid_argument("Extracting value into a JSON tree ended early");

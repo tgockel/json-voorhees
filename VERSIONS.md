@@ -196,6 +196,14 @@
        go into the stream whole, which is the same bytes in a fraction of the calls. On the nativejson-benchmark
        documents, prettifying is about 3x faster (`canada.json` 68 ms to 23 ms, `citm_catalog.json` 15 ms to 4.7 ms)
        and compact stringifying up to 2x on the smaller two.
+     - `parse` to a `value` is about 20-30% faster, with no change to the `value` it builds, the allocations that
+       takes, or any exception it throws. `parse_index::extract_tree` decoded each node of the index into an
+       `ast_node` and dispatched on it a second time through `std::visit`, handed every child back as a temporary
+       `value` to be moved into its parent, and inserted each object member through `operator[]`, with a second
+       lookup first when `on_duplicate_key` was `ignore` or `exception`. It now walks the index directly, puts each
+       child straight into its parent's container, and inserts every member with one lookup; an escaped string is
+       also no longer copied after it is decoded. `canada.json` parses in 14 ms rather than 19.5 ms and
+       `citm_catalog.json` in 6.2 ms rather than 7.5 ms (#398).
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to

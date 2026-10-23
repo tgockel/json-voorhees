@@ -39,6 +39,7 @@ namespace detail
 class object_impl;
 class array_impl;
 class string_impl;
+struct value_access;
 
 union value_storage
 {
@@ -1177,6 +1178,7 @@ public:
 private:
     friend JSONV_PUBLIC value array();
     friend JSONV_PUBLIC value object();
+    friend struct detail::value_access;
 
 private:
     detail::value_storage _data;

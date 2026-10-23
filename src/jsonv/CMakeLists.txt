@@ -65,6 +65,7 @@ set(jsonv_private_headers
     reader_impl_value.hpp
     serialization/describe.hpp
     string_impl.hpp
+    value_access.hpp
    )
 
 # Installed to ${CMAKE_INSTALL_INCLUDEDIR}/jsonv/... with this structure preserved.
