@@ -649,9 +649,9 @@ size_t hash<jsonv::value>::operator()(const jsonv::value& val) const noexcept
     {
     case jsonv::kind::object:
         return hash_range(val.begin_object(), val.end_object(),
-                          [] (const value::object_value_type& x) { return std::hash<std::string>()(x.first)
-                                                                        ^ std::hash<value>()(x.second);
-                                                                 }
+                          [] (value::const_object_reference x) { return std::hash<std::string>()(x.first)
+                                                                      ^ std::hash<value>()(x.second);
+                                                               }
                          );
     case jsonv::kind::array:
         return hash_range(val.begin_array(), val.end_array(), hash<jsonv::value>());

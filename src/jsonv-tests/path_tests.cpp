@@ -290,8 +290,9 @@ namespace
 
 /// Allocations smaller than this are left alone. MSVC's debug containers allocate a 16-byte iterator proxy inside
 /// `noexcept` constructors and moves, and failing one of those terminates the process (see `allocation_counter.hpp`).
-/// Everything `path` asks for on purpose is bigger: the array and object nodes, a buffer of two elements, a map node.
-constexpr std::size_t above_iterator_proxies = 17U;
+/// Everything `path` asks for on purpose is bigger: the array and object nodes, a buffer of two elements, an
+/// object's members.
+constexpr std::size_t above_iterator_proxies = jsonv_test::iterator_proxy_size + 1U;
 
 /// Calls `path` with \a where on a copy of \a start_text, failing each allocation that takes in turn until an attempt
 /// goes through. An attempt which fails has to leave the value as it was and give back whatever it allocated; the one

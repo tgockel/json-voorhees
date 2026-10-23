@@ -14,13 +14,13 @@
 #include <string_view>
 #include <jsonv/detail/basic_view.hpp>
 
+#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <initializer_list>
 #include <iosfwd>
 #include <iterator>
 #include <functional>
-#include <map>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -103,10 +103,13 @@ public:
 ///    An array behaves like a \c std::vector because it is ultimately backed by one. If you feel the documentation is
 ///    lacking, read this: http://en.cppreference.com/w/cpp/container/vector.
 ///  - \c kind::object
-///    An object behaves lake a \c std::map because it is ultimately backed by one. If you feel the documentation is
-///    lacking, read this: http://en.cppreference.com/w/cpp/container/map. This library follows the recommendation in
-///    RFC 7159 to not allow for duplicate keys because most other libraries can not deal with it. It would also make
-///    the AST significantly more painful.
+///    An object behaves like a \c std::flat_map: its members are kept sorted by key in one contiguous array, so it
+///    iterates in key order, looking a key up is a binary search, and inserting or erasing shifts the members after
+///    the position and invalidates iterators and references to them. Dereferencing an \c object_iterator gives an
+///    \c object_reference, a proxy like \c std::flat_map::reference. If you feel the documentation is lacking, read
+///    this: http://en.cppreference.com/w/cpp/container/flat_map. This library follows the recommendation in RFC 7159
+///    to not allow for duplicate keys because most other libraries can not deal with it. It would also make the AST
+///    significantly more painful.
 ///
 /// \see http://json.org/
 /// \see http://tools.ietf.org/html/rfc7159
@@ -283,135 +286,248 @@ public:
     typedef detail::basic_view<const_array_iterator>                               const_array_view;
     typedef detail::basic_owning_view<value, array_iterator, const_array_iterator> owning_array_view;
 
-    /** The base iterator type for iterating over object types. It is a bidirectional iterator similar to a
-     *  \c std::map<std::string, jsonv::value>.
+    /** The type of value stored when \c kind is \c kind::object, as an owning pair. Iterating an object does not give
+     *  references to this type: members are stored sorted by key in contiguous memory, and an iterator gives an
+     *  \ref object_reference instead. Converting one into this type copies the member, so it has to be asked for.
     **/
-    template <typename T, typename TIterator>
+    typedef std::pair<const std::string, value>                        object_value_type;
+
+    /** What dereferencing an \c object_iterator (\c TValue of \c value) or a \c const_object_iterator
+     *  (\c TValue of `const value`) gives: references to the key and value of one member. Like the \c reference of
+     *  \c std::flat_map, it is a proxy returned by value, so `auto& m : obj.as_object()` does not compile -- write
+     *  `auto&& m`, `const auto& m` or `auto&& [key, val]`. The key is always \c const, since changing it would break
+     *  the order members are kept in.
+     *
+     *  The conversion to \ref object_value_type is \c explicit because it copies the value. A loop written as
+     *  `const value::object_value_type& m : obj.as_object()` -- which before members were stored contiguously bound
+     *  straight to the member -- would otherwise still compile and deep-copy every one of them.
+    **/
+    template <typename TValue>
+    struct basic_object_reference
+    {
+    public:
+        /// The type of \ref first, as in \c std::pair, which this stands in for.
+        using first_type  = const std::string;
+
+        /// The type of \ref second, as in \c std::pair.
+        using second_type = TValue;
+
+    public:
+        /// The key of the member.
+        const std::string& first;
+
+        /// The value of the member.
+        TValue&            second;
+
+    public:
+        /// Refer to \a key and \a val.
+        basic_object_reference(const std::string& key, TValue& val) noexcept :
+                first(key),
+                second(val)
+        { }
+
+        /// Refer to the key and value of \a pair.
+        basic_object_reference(std::conditional_t<std::is_const_v<TValue>, const object_value_type&, object_value_type&>
+                               pair
+                              ) noexcept :
+                first(pair.first),
+                second(pair.second)
+        { }
+
+        /// This allows conversion from an \c object_reference to a \c const_object_reference.
+        template <typename UValue,
+                  typename = std::enable_if_t<   !std::is_same_v<UValue, TValue>
+                                              && std::is_convertible_v<UValue&, TValue&>
+                                             >
+                 >
+        basic_object_reference(const basic_object_reference<UValue>& source) noexcept :
+                first(source.first),
+                second(source.second)
+        { }
+
+        /// Copy the member into an \ref object_value_type.
+        ///
+        /// \tparam TPair Always \ref object_value_type. It is a parameter so that nothing names that pair until the
+        ///  conversion is used: MSVC instantiates a type a template's body names when it reads the body, and here that
+        ///  is before \c value is complete.
+        template <typename TPair, typename = std::enable_if_t<std::is_same_v<TPair, object_value_type>>>
+        JSONV_NODISCARD
+        explicit operator TPair() const
+        {
+            return TPair(first, second);
+        }
+    };
+
+    /** \see basic_object_reference **/
+    typedef basic_object_reference<value>       object_reference;
+
+    /** \see basic_object_reference **/
+    typedef basic_object_reference<const value> const_object_reference;
+
+    /** The base iterator type for iterating over object types. It is a random-access iterator over the members of an
+     *  object, which are kept sorted by key, and dereferences to a \ref basic_object_reference. Like
+     *  \c std::vector<bool>::iterator, it gives \c std::random_access_iterator_tag as its \c iterator_category although
+     *  its \c reference is a proxy: the functions which dispatch on the category, like \c std::prev and
+     *  \c std::advance, need it to step backward or jump.
+     *
+     *  Like the iterators of a \c std::vector, these are invalidated by inserting into or erasing from the object.
+    **/
+    template <typename TValue, typename TMember>
     struct basic_object_iterator
     {
     public:
-        using iterator_category = std::bidirectional_iterator_tag;
-        using value_type = T;
-        using difference_type = std::ptrdiff_t;
-        using pointer = T*;
-        using reference = T&;
+        /// What this models in C++20 terms: a random-access iterator, whose \c reference may be a proxy.
+        using iterator_concept  = std::random_access_iterator_tag;
 
-        basic_object_iterator() :
-                _impl()
-        { }
+        /// What this gives the functions which dispatch on the category. \see basic_object_iterator
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type        = object_value_type;
+        using difference_type   = std::ptrdiff_t;
+        using reference         = basic_object_reference<TValue>;
 
-        basic_object_iterator(const basic_object_iterator& source) :
-                _impl(source._impl)
-        { }
-
-        /** This allows assignment from an \c object_iterator to a \c const_object_iterator. **/
-        template <typename U, typename UIterator>
-        basic_object_iterator(const basic_object_iterator<U, UIterator>& source,
-                              typename std::enable_if<std::is_convertible<U*, T*>::value>::type* = 0
-                             ) :
-                _impl(source._impl)
-        { }
-
-        basic_object_iterator& operator=(const basic_object_iterator& source)
+        /// What \c operator-> returns: it holds the \c reference, so `iter->first` and `iter->second` work.
+        struct pointer
         {
-            _impl = source._impl;
+            /// The member the iterator was at.
+            reference ref;
+
+            /// The member the iterator was at, for the built-in \c -> to reach into.
+            const reference* operator->() const noexcept
+            {
+                return &ref;
+            }
+        };
+
+    public:
+        basic_object_iterator() noexcept :
+                _member(nullptr)
+        { }
+
+        /** This allows conversion from an \c object_iterator to a \c const_object_iterator. **/
+        template <typename UValue,
+                  typename UMember,
+                  typename = std::enable_if_t<   !std::is_same_v<UMember, TMember>
+                                              && std::is_convertible_v<UMember*, TMember*>
+                                             >
+                 >
+        basic_object_iterator(const basic_object_iterator<UValue, UMember>& source) noexcept :
+                _member(source._member)
+        { }
+
+        basic_object_iterator& operator++() noexcept
+        {
+            ++_member;
             return *this;
         }
 
-        template <typename U, typename UIterator>
-        typename std::enable_if<std::is_convertible<U*, T*>::value, basic_object_iterator&>::type
-        operator=(const basic_object_iterator<U, UIterator>& source)
-        {
-            return operator=(basic_object_iterator(source));
-        }
-
-        basic_object_iterator& operator++()
-        {
-            increment();
-            return *this;
-        }
-
-        basic_object_iterator operator++(int)
+        basic_object_iterator operator++(int) noexcept
         {
             basic_object_iterator clone(*this);
-            increment();
+            ++_member;
             return clone;
         }
 
-        basic_object_iterator& operator--()
+        basic_object_iterator& operator--() noexcept
         {
-            decrement();
+            --_member;
             return *this;
         }
 
-        basic_object_iterator operator--(int)
+        basic_object_iterator operator--(int) noexcept
         {
             basic_object_iterator clone(*this);
-            decrement();
+            --_member;
             return clone;
         }
 
-        template <typename U, typename UIterator>
-        JSONV_NODISCARD
-        bool operator ==(const basic_object_iterator<U, UIterator>& other) const
+        basic_object_iterator& operator+=(difference_type n) noexcept
         {
-            return _impl == other._impl;
+            _member += n;
+            return *this;
         }
 
-        template <typename U, typename UIterator>
-        JSONV_NODISCARD
-        bool operator !=(const basic_object_iterator<U, UIterator>& other) const
+        basic_object_iterator& operator-=(difference_type n) noexcept
         {
-            return _impl != other._impl;
-        }
-
-        JSONV_NODISCARD
-        T& operator *() const
-        {
-            return current();
+            _member -= n;
+            return *this;
         }
 
         JSONV_NODISCARD
-        T* operator ->() const
+        basic_object_iterator operator+(difference_type n) const noexcept
         {
-            return &current();
+            return basic_object_iterator(_member + n);
+        }
+
+        JSONV_NODISCARD
+        friend basic_object_iterator operator+(difference_type n, const basic_object_iterator& iter) noexcept
+        {
+            return iter + n;
+        }
+
+        JSONV_NODISCARD
+        basic_object_iterator operator-(difference_type n) const noexcept
+        {
+            return basic_object_iterator(_member - n);
+        }
+
+        template <typename UValue, typename UMember>
+        JSONV_NODISCARD
+        difference_type operator-(const basic_object_iterator<UValue, UMember>& other) const noexcept
+        {
+            return _member - other._member;
+        }
+
+        template <typename UValue, typename UMember>
+        JSONV_NODISCARD
+        bool operator==(const basic_object_iterator<UValue, UMember>& other) const noexcept
+        {
+            return _member == other._member;
+        }
+
+        template <typename UValue, typename UMember>
+        JSONV_NODISCARD
+        auto operator<=>(const basic_object_iterator<UValue, UMember>& other) const noexcept
+        {
+            return _member <=> other._member;
+        }
+
+        JSONV_NODISCARD
+        reference operator*() const noexcept
+        {
+            return reference(_member->first, _member->second);
+        }
+
+        JSONV_NODISCARD
+        pointer operator->() const noexcept
+        {
+            return pointer{ **this };
+        }
+
+        JSONV_NODISCARD
+        reference operator[](difference_type n) const noexcept
+        {
+            return *(*this + n);
         }
 
     private:
+        template <typename UValue, typename UMember>
+        friend struct basic_object_iterator;
+
         friend class value;
 
-        template <typename UIterator>
-        explicit basic_object_iterator(const UIterator& iter) :
-                _impl(iter)
+        explicit basic_object_iterator(TMember* member) noexcept :
+                _member(member)
         { }
 
-        void increment()
-        {
-            ++_impl;
-        }
-
-        void decrement()
-        {
-            --_impl;
-        }
-
-        T& current() const
-        {
-            return *_impl;
-        }
-
     private:
-        TIterator _impl;
+        TMember* _member;
     };
-
-    /** The type of value stored when \c kind is \c kind::object. **/
-    typedef std::pair<const std::string, value>                        object_value_type;
 
     /** The \c object_iterator is applicable when \c kind is \c kind::object. It allows you to use algorithms as if
      *  a \c value was a normal associative container.
     **/
-    typedef basic_object_iterator<object_value_type,       std::map<std::string, value>::iterator>       object_iterator;
-    typedef basic_object_iterator<const object_value_type, std::map<std::string, value>::const_iterator> const_object_iterator;
+    typedef basic_object_iterator<value,       std::pair<std::string, value>>       object_iterator;
+    typedef basic_object_iterator<const value, const std::pair<std::string, value>> const_object_iterator;
 
     /** If \c kind is \c kind::object, an \c object_view allows you to access a value as an associative container.
      *  This is most useful for range-based for loops.
@@ -426,7 +542,7 @@ public:
     /// \see insert
     struct object_insert_return_type final
     {
-        /// The position of the inserted node or node with the duplicate key.
+        /// The position of the inserted member or the member with the duplicate key.
         const_object_iterator position;
 
         /// Did the insert operation perform an insert? A value of \c false indicates there was a key already present
@@ -907,6 +1023,7 @@ public:
     /// \{
 
     /** Get the value associated with the given \a key of this object. If the \a key does not exist, it will be created.
+     *  Creating it invalidates iterators and references as \ref insert does.
      *
      *  \throws kind_error if the kind is not an object.
     **/
@@ -962,6 +1079,9 @@ public:
 
     /// Insert \a pair into this object, unless an element with an equivalent key is already present.
     ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
+    ///
     /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key) and
     ///  whose \c second is \c true if the insertion took place.
     /// \throws kind_error if the kind is not an object.
@@ -971,9 +1091,13 @@ public:
 
     /// \{
 
-    /// Insert \a pair into this object, unless an element with an equivalent key is already present. As with
-    /// \c std::map::insert, the element is inserted as close as possible to the position just prior to \a hint, and a
-    /// good \a hint makes the insertion faster.
+    /// Insert \a pair into this object, unless an element with an equivalent key is already present. If \a hint is
+    /// where the key goes -- every member before it has a lesser key and \a hint itself a greater one -- the key is not
+    /// searched for. A \a hint of \ref end_object for a key greater than every one present appends in amortized
+    /// constant time; any other insertion shifts the members after it. A wrong \a hint costs a binary search.
+    ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
     ///
     /// \returns An iterator to the newly-inserted element (or the element which shares the key).
     /// \throws kind_error if the kind is not an object.
@@ -981,25 +1105,31 @@ public:
     object_iterator insert(const_object_iterator hint, std::pair<std::wstring, value> pair);
     /// \}
 
-    /// Insert range defined by [\a first, \a last) into this object.
+    /// Insert range defined by [\a first, \a last) into this object. Each element is hinted just past the previous one,
+    /// so a source in ascending key order needs no searching, and one whose keys all sort after what this object holds
+    /// is appended in amortized constant time per element. Any element which does not go at the end shifts the
+    /// members after it.
+    ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
     ///
     /// \throws kind_error if the kind is not an object.
     template <typename TForwardIterator>
     void insert(TForwardIterator first, TForwardIterator last)
     {
-        // end_object() is not invalidated by insertion, so the hint can be hoisted out of the loop. It pays off for an
-        // ascending source of unique keys which all sort after what this object already holds -- most importantly when
-        // building a fresh object -- costing amortized constant time per element. Anything else just misses the hint
-        // and falls back to the usual logarithmic lookup: the hint is only taken for a key sorting strictly after the
-        // greatest one present, so a repeated key does not benefit.
+        // Each element is hinted just past the one before it, which is right for any ascending source -- most
+        // importantly one building a fresh object, where that is the end. Reading end_object() also rejects a
+        // non-object when the range is empty.
         const_object_iterator hint = end_object();
-
         for ( ; first != last; ++first)
-            insert(hint, *first);
+            hint = insert(hint, *first) + 1;
     }
 
     /// Insert the contents of \a handle. If \a handle is empty, this does nothing. If the insertion succeeds, \a handle
     /// is moved from and left empty; otherwise it retains ownership of the element.
+    ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
     ///
     /// \returns If \a handle is empty, \c inserted is \c false and \c position is `end_object()`. If the insertion took
     ///  place, \c inserted is \c true and \c position points to the inserted element. If the insertion was attempted
@@ -1011,8 +1141,11 @@ public:
     /// If \a handle is an empty node handle, does nothing and returns \ref end_object. Otherwise, inserts the element
     /// owned by \a handle into the container, if the container doesn't already contain an element with a key equivalent
     /// to `handle.key()` and returns the iterator pointing to the element with key equivalent to `handle.key()`. If the
-    /// insertion succeeds, \a handle is moved from, otherwise it retains ownership of the element. The element is
-    /// inserted as close as possible to the position just prior to \a hint.
+    /// insertion succeeds, \a handle is moved from, otherwise it retains ownership of the element. \a hint works as it
+    /// does for \ref insert of a pair.
+    ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
     ///
     /// \returns An iterator pointing to an element with a key equivalent to `handle.key()` if \a handle was not empty.
     ///  If \a handle was empty, `end_object()`.
@@ -1022,6 +1155,9 @@ public:
     /// \{
 
     /// Insert \a items into this object.
+    ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
     ///
     /// \throws kind_error if the kind is not an object.
     void insert(std::initializer_list<std::pair<std::string, value>>  items);
@@ -1034,8 +1170,11 @@ public:
     /// key is already present, the insertion does not happen and the existing element is not overwritten.
     ///
     /// \note
-    /// As with \c std::map::emplace, the node is constructed before the key is looked up, so a call which does not
-    /// insert has still allocated and destroyed one. Prefer \ref try_emplace when collisions are expected.
+    /// \a key is taken by value, so a call which does not insert has still built and destroyed it. Prefer
+    /// \ref try_emplace when collisions are expected.
+    ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
     ///
     /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key) and
     ///  whose \c second is \c true if the insertion took place.
@@ -1050,11 +1189,14 @@ public:
     /// \{
 
     /// Insert \a val with the given \a key into this object, but only if no element with an equivalent key is already
-    /// present. Unlike \ref emplace, \a key is left alone and no node is allocated when the key is already present.
+    /// present. Unlike \ref emplace, \a key is not copied when the key is already present.
     ///
     /// \note
     /// \a val is taken by value, so a caller who passes `std::move(x)` has moved from \c x by the time this function
-    /// is entered whether or not the insertion happens. It is the key and the node which are spared, not \a val.
+    /// is entered whether or not the insertion happens. It is the key which is spared, not \a val.
+    ///
+    /// Inserting invalidates every iterator and reference to a member at or after the position inserted at, and every
+    /// one of them if the object has to grow.
     ///
     /// \returns A pair whose \c first refers to the newly-inserted element (or the element which shares the key) and
     ///  whose \c second is \c true if the insertion took place.
@@ -1076,6 +1218,8 @@ public:
     ///  does \e not mean the operation failed -- this function always modifies the object.
     /// \throws kind_error if the kind is not an object.
     ///
+    /// An insertion invalidates iterators and references as \ref insert does; an assignment invalidates none.
+    ///
     /// \see insert
     /// \see try_emplace
     std::pair<object_iterator, bool> insert_or_assign(const std::string&  key, value val);
@@ -1086,6 +1230,8 @@ public:
 
     /// Erase the item with the given \a key.
     ///
+    /// Erasing invalidates every iterator and reference to a member at or after the position erased from.
+    ///
     /// \returns 1 if \a key was erased; 0 if it did not.
     /// \throws kind_error if the kind is not an object.
     size_type erase(const std::string&  key);
@@ -1094,23 +1240,33 @@ public:
 
     /// Erase the item at the given \a position.
     ///
+    /// Erasing invalidates every iterator and reference to a member at or after the position erased from.
+    ///
+    /// \returns An iterator to the member which followed the erased one.
     /// \throws kind_error if the kind is not an object.
     object_iterator erase(const_object_iterator position);
 
     /// Erase the range defined by [\a first, \a last).
     ///
+    /// Erasing invalidates every iterator and reference to a member at or after the position erased from.
+    ///
+    /// \returns An iterator to the member which followed the erased range.
     /// \throws kind_error if the kind is not an object.
     object_iterator erase(const_object_iterator first, const_object_iterator last);
 
-    /// Unlinks the node that contains the element pointed to by \a position and returns a node handle that owns it.
+    /// Move the key and value of the member at \a position into a node handle, erase the member, and return the handle.
+    ///
+    /// Erasing invalidates every iterator and reference to a member at or after the position erased from.
     ///
     /// \throws kind_error if the kind is not an object.
     object_node_handle extract(const_object_iterator position);
 
     /// \{
 
-    /// If the container has an element with the given \a key, unlinks the node that contains that element from the
-    /// container and returns a node handle that owns it. Otherwise, returns an empty node handle.
+    /// If the container has an element with the given \a key, moves its key and value into a node handle, erases it,
+    /// and returns the handle. Otherwise, returns an empty node handle.
+    ///
+    /// Erasing invalidates every iterator and reference to a member at or after the position erased from.
     ///
     /// \throws kind_error if the kind is not an object.
     object_node_handle extract(const std::string&  key);
@@ -1312,6 +1468,29 @@ struct JSONV_PUBLIC hash<jsonv::value>
 {
     JSONV_NODISCARD
     std::size_t operator()(const jsonv::value& val) const noexcept;
+};
+
+/// A member reference and an owning member have \c jsonv::value::const_object_reference in common: both convert to it.
+/// This is what makes the object iterators, whose \c reference is a proxy, model \c std::random_access_iterator.
+template <typename TValue, template <typename> class TQual, template <typename> class UQual>
+struct basic_common_reference<jsonv::value::basic_object_reference<TValue>,
+                              jsonv::value::object_value_type,
+                              TQual,
+                              UQual
+                             >
+{
+    using type = jsonv::value::const_object_reference;
+};
+
+/// The same, with the arguments the other way around.
+template <typename TValue, template <typename> class TQual, template <typename> class UQual>
+struct basic_common_reference<jsonv::value::object_value_type,
+                              jsonv::value::basic_object_reference<TValue>,
+                              TQual,
+                              UQual
+                             >
+{
+    using type = jsonv::value::const_object_reference;
 };
 
 }

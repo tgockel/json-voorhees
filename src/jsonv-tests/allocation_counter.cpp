@@ -15,6 +15,9 @@ namespace
 /// Constant-initialized, so it is already zero when the first allocation of process startup runs through here.
 std::size_t allocation_count = 0U;
 
+/// How many of those were for more than `jsonv_test::iterator_proxy_size` bytes.
+std::size_t past_iterator_proxy_count = 0U;
+
 /// How many more allocations of at least `fail_min_size` bytes go through before the one which is to fail, counting
 /// that one, or zero when none is armed.
 std::size_t fail_countdown = 0U;
@@ -29,6 +32,8 @@ std::size_t live_count = 0U;
 void* counted_allocate(std::size_t size) noexcept
 {
     ++allocation_count;
+    if (size > jsonv_test::iterator_proxy_size)
+        ++past_iterator_proxy_count;
     if (fail_countdown != 0U && size >= fail_min_size && --fail_countdown == 0U)
         return nullptr;
 
@@ -62,6 +67,11 @@ namespace jsonv_test
 std::size_t total_allocations() noexcept
 {
     return allocation_count;
+}
+
+std::size_t total_allocations_past_iterator_proxies() noexcept
+{
+    return past_iterator_proxy_count;
 }
 
 std::size_t live_allocations() noexcept

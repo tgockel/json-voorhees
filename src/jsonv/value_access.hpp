@@ -41,10 +41,10 @@ struct JSONV_LOCAL value_access final
         return array._data.array->_values;
     }
 
-    /// The members of \a object, which must be a \c kind::object.
-    static object_impl::map_type& object_values(value& object) noexcept
+    /// The storage of \a object, which must be a \c kind::object -- for an \c object_builder to fill.
+    static object_impl& object_storage(value& object) noexcept
     {
-        return object._data.object->_values;
+        return *object._data.object;
     }
 };
 

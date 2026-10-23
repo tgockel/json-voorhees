@@ -48,6 +48,17 @@ namespace jsonv_test
 **/
 std::size_t total_allocations() noexcept;
 
+/** The most bytes MSVC's debug containers allocate for the iterator proxy they make in every \c std::string and
+ *  container constructed or moved. Nothing the library allocates on purpose is this small.
+**/
+constexpr std::size_t iterator_proxy_size = 16U;
+
+/** The number of times a global \c operator \c new has run for more than \c iterator_proxy_size bytes: the
+ *  allocations \c total_allocations counts, less any debug bookkeeping. Where how many strings are constructed or moved
+ *  differs between two things compared, this compares what they allocate on purpose.
+**/
+std::size_t total_allocations_past_iterator_proxies() noexcept;
+
 /** The number of blocks the counted forms of \c operator \c new have handed out and \c operator \c delete has not yet
  *  taken back. A region of code which leaves it higher than it found it leaked.
  *
@@ -76,23 +87,41 @@ std::size_t live_allocations() noexcept;
 class allocation_counter
 {
 public:
-    allocation_counter() noexcept :
-            _mark(total_allocations())
+    /// Which allocations are counted.
+    enum class counted
+    {
+        /// All of them.
+        all,
+        /// Those \c total_allocations_past_iterator_proxies counts.
+        past_iterator_proxies,
+    };
+
+public:
+    explicit allocation_counter(counted what = counted::all) noexcept :
+            _what(what),
+            _mark(total())
     { }
 
     /// How many allocations have happened since this was created, or since the last \c reset.
     std::size_t count() const noexcept
     {
-        return total_allocations() - _mark;
+        return total() - _mark;
     }
 
     /// Start counting again from here.
     void reset() noexcept
     {
-        _mark = total_allocations();
+        _mark = total();
     }
 
 private:
+    std::size_t total() const noexcept
+    {
+        return _what == counted::all ? total_allocations() : total_allocations_past_iterator_proxies();
+    }
+
+private:
+    counted     _what;
     std::size_t _mark;
 };
 

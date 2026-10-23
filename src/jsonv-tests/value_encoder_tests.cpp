@@ -78,7 +78,7 @@ void write_tokens(jsonv::writer& to, const jsonv::value& source)
         break;
     case jsonv::kind::object:
         to.object_begin();
-        for (const jsonv::value::object_value_type& entry : source.as_object())
+        for (jsonv::value::const_object_reference entry : source.as_object())
         {
             to.key(entry.first);
             write_tokens(to, entry.second);
@@ -329,6 +329,42 @@ TEST(value_encoder_deep_nesting_tokens)
     ensure_nested_arrays(std::move(sink).take(), depth);
 }
 
+/// Each object stays open, with a member still to come, while the next is opened inside it, deep enough that the
+/// encoder makes room for more open structures many times over. Making that room must leave every outer object still
+/// filling the one it began.
+TEST(value_encoder_objects_stay_open_beneath_nested_objects)
+{
+    constexpr std::size_t depth = 100U;
+
+    jsonv::value_encoder sink;
+    jsonv::writer        to(sink);
+    for (std::size_t idx = 0U; idx < depth; ++idx)
+    {
+        to.object_begin();
+        to.key("before");
+        to.integer(std::int64_t(idx));
+        to.key("nested");
+    }
+    to.null();
+    for (std::size_t idx = depth; idx-- > 0U;)
+    {
+        to.key("after");
+        to.integer(std::int64_t(idx));
+        to.object_end();
+    }
+
+    jsonv::value expected;
+    for (std::size_t idx = depth; idx-- > 0U;)
+    {
+        jsonv::value outer = jsonv::object();
+        outer["before"] = std::int64_t(idx);
+        outer["nested"] = std::move(expected);
+        outer["after"]  = std::int64_t(idx);
+        expected = std::move(outer);
+    }
+    ensure(std::move(sink).take() == expected);
+}
+
 /// A tree written whole is copied, and the copy recurses as the walk a text encoder makes of it does; this is the
 /// deepest either is asked to go. `writer_deep_nesting_write` walks the same depth.
 TEST(value_encoder_deep_nesting_write_tree)
@@ -345,8 +381,8 @@ TEST(value_encoder_deep_nesting_write_tree)
 
 /// Writing a string copies its text once, which is what `value(std::string_view)` costs, and the encoder adds nothing
 /// of its own; a member copies its key once as well, into the buffer the encoder keeps it in, from which it is moved
-/// into the map node rather than copied again. Copying text past the small-string buffer is an allocation and
-/// copying text inside it is not, while whatever else is allocated along the way -- the node, the map node, and under
+/// into the object's members rather than copied again. Copying text past the small-string buffer is an allocation and
+/// copying text inside it is not, while whatever else is allocated along the way -- the node, the members, and under
 /// MSVC's debug iterator checks a proxy per `std::string` constructed or moved -- is allocated whatever the length. So
 /// the copies are the difference between writing long text and short text, and an extra copy would show as one more.
 TEST(value_encoder_write_rvalue_takes_the_value)
@@ -425,26 +461,27 @@ TEST(value_encoder_string_costs_one_copy)
         };
     ensure_eq(root_cost(short_text) + 1U, root_cost(long_text));
 
-    // A member: two copies, the key into the encoder's buffer and the text. The keys differ so that each member is a
-    // new node, and the first member grows the writer's own key buffer, which the writer keeps, so the two measured
-    // are the steady state.
+    // A member: two copies, the key into the encoder's buffer and the text. Each is measured in an object of its own
+    // which already holds one member, under a key that sorts after both measured keys and grows the writer's own key
+    // buffer, which the writer keeps. So both go in at the front of an object as full as the other, and move the same
+    // member out of the way: under MSVC's debug iterator checks, each move of a key allocates a proxy.
     const std::string first_key = long_text + "kk";
     const std::string short_key = "k";
     const std::string long_key  = long_text + "k";
     auto member_cost = [&](const std::string& key, const std::string& text)
         {
+            to.object_begin();
+            to.key(first_key).string(long_text);
             allocation_counter allocations;
             to.key(key).string(text);
-            return allocations.count();
+            const std::size_t cost = allocations.count();
+            to.object_end();
+            ensure_eq(jsonv::object({ { first_key, long_text }, { key, text } }), std::move(sink).take());
+            return cost;
         };
-    to.object_begin();
-    to.key(first_key).string(long_text);
     const std::size_t short_member = member_cost(short_key, short_text);
     const std::size_t long_member  = member_cost(long_key, long_text);
-    to.object_end();
     ensure_eq(short_member + 2U, long_member);
-    ensure_eq(jsonv::object({ { first_key, long_text }, { short_key, short_text }, { long_key, long_text } }),
-              std::move(sink).take());
 }
 
 #endif

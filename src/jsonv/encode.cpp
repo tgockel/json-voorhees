@@ -13,11 +13,13 @@
 #include <jsonv/value.hpp>
 
 #include "detail.hpp"
+#include "value_access.hpp"
 
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <deque>
 #include <optional>
 #include <ostream>
 #include <stdexcept>
@@ -85,7 +87,7 @@ void encoder::walk_tree(const value& source)
         write_object_begin();
         {
             bool first = true;
-            for (const value::object_value_type& entry : source.as_object())
+            for (value::const_object_reference entry : source.as_object())
             {
                 if (first)
                     first = false;
@@ -365,13 +367,18 @@ public:
     /// Open \a container -- an empty object or array -- as the innermost structure.
     void begin(value&& container)
     {
-        _open.push_back(frame{ std::move(container), std::string() });
+        _open.push_back(frame{ std::move(container), std::string(), std::nullopt });
+        frame& opened = _open.back();
+        if (opened.container.kind() == kind::object)
+            opened.members.emplace(detail::value_access::object_storage(opened.container));
     }
 
     /// Close the innermost structure, placing it in its parent.
     void end()
     {
         frame& child = _open.back();
+        if (child.members)
+            child.members->finish();
         if (_open.size() == 1U)
             finish(std::move(child.container));
         else
@@ -414,6 +421,9 @@ private:
         value       container;
         /// For an object: the key of the member whose value comes next.
         std::string key;
+        /// For an object: what fills it. It holds onto the object's storage, which moving \c container leaves where
+        /// it is.
+        std::optional<detail::object_builder> members;
     };
 
     /// \a val is a whole document. A document already held is replaced: the encoder holds one at a time, and the last
@@ -424,22 +434,34 @@ private:
         _has_root = true;
     }
 
-    /// Place \a val in \a into: as its next element, or as the value of the key waiting in it. Assignment rather than
-    /// `insert`, which would keep the *first* of a repeated key: `parse_index::extract_tree` and `read_value` both
-    /// keep the last under the default `duplicate_key_action::replace`, and a tree built from tokens disagreeing with
-    /// `parse` about which of `{"x":1,"x":2}` survives would make the two select different data. Both `push_back` and
-    /// `operator[]` allocate before they move, so running out of memory here leaves \a val and \a into as they were.
+    /// Place \a val in \a into: as its next element, or as the value of the key waiting in it. A repeated key keeps the
+    /// *last* value: `parse_index::extract_tree` and `read_value` both do under the default
+    /// `duplicate_key_action::replace`, and a tree built from tokens disagreeing with `parse` about which of
+    /// `{"x":1,"x":2}` survives would make the two select different data. Both `push_back` and
+    /// `object_builder::add` leave their arguments as they were when they throw, so running out of memory here leaves
+    /// \a val and \a into as they were.
     static void store(frame& into, value&& val)
     {
-        if (into.container.kind() == kind::array)
+        if (!into.members)
+        {
             into.container.push_back(std::move(val));
+        }
+        else if (auto [pos, present] = into.members->find(into.key); present)
+        {
+            pos->second = std::move(val);
+        }
         else
-            into.container[std::move(into.key)] = std::move(val);
+        {
+            into.members->add(pos, std::move(into.key), std::move(val));
+        }
     }
 
 private:
-    /// The structures being built, innermost last.
-    std::vector<frame> _open;
+    /// The structures being built, innermost last. A \c std::deque never moves the frames it holds as it grows, so the
+    /// open structures stay put however deep the document goes. A \c std::vector would have to move them, and under
+    /// MSVC an \c object_builder's move allocates and so may throw part way through; an \c object_builder can not be
+    /// copied instead, because the copy would still fill the original object.
+    std::deque<frame> _open;
     value              _root;
     bool               _has_root = false;
 };
