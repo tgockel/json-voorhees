@@ -227,18 +227,23 @@ public:
     {
         bool expect_failure = expected.kind() == jsonv::kind::string && expected.as_string() == "FAILURE";
 
+        // Only the merge is inside the `try`: an assertion failing in it would be caught and taken for the failure the
+        // fixture expects.
+        TMergeRules  rules;
+        jsonv::value result;
         try
         {
-            TMergeRules rules;
-            jsonv::value result = jsonv::merge_explicit(rules, jsonv::path(), a, b);
-            ensure(!expect_failure);
-            ensure_eq(expected, result);
+            result = jsonv::merge_explicit(rules, jsonv::path(), a, b);
         }
         catch (...)
         {
             if (!expect_failure)
                 throw;
+            return;
         }
+
+        ensure(!expect_failure);
+        ensure_eq(expected, result);
     }
 
 private:
