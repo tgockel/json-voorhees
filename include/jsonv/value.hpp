@@ -100,8 +100,11 @@ public:
 ///    the cases where it makes sense (for example: \c empty and \c size), but in general, string manipulation should be
 ///    done after calling \c as_string.
 ///  - \c kind::array
-///    An array behaves like a \c std::vector because it is ultimately backed by one. If you feel the documentation is
-///    lacking, read this: http://en.cppreference.com/w/cpp/container/vector.
+///    An array behaves like a \c std::vector: its elements are contiguous, growing it may move them all, and inserting
+///    or erasing shifts the elements after the position. Element references are invalidated when \c std::vector's
+///    would be. The elements share one allocation with the array's size and capacity, and an empty array may hold no
+///    allocation at all. If you feel the documentation is lacking, read this:
+///    http://en.cppreference.com/w/cpp/container/vector.
 ///  - \c kind::object
 ///    An object behaves like a \c std::flat_map: its members are kept sorted by key in one contiguous array, so it
 ///    iterates in key order, looking a key up is a binary search, and inserting or erasing shifts the members after

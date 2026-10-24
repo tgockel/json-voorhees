@@ -35,10 +35,19 @@ struct JSONV_LOCAL value_access final
         return out;
     }
 
-    /// The elements of \a array, which must be a \c kind::array.
-    static array_impl::array_type& array_values(value& array) noexcept
+    /// Make an empty \c kind::array with room for \a capacity elements.
+    static value array(value::size_type capacity)
     {
-        return array._data.array->_values;
+        value out;
+        out._data.array = array_impl::allocate(capacity);
+        out._kind       = jsonv::kind::array;
+        return out;
+    }
+
+    /// Add \a item to the end of \a array, which must be a \c kind::array.
+    static void array_push_back(value& array, value&& item)
+    {
+        array_impl::push_back(array._data.array, std::move(item));
     }
 
     /// The storage of \a object, which must be a \c kind::object -- for an \c object_builder to fill.

@@ -229,6 +229,12 @@
        Objects built by `parse`, by deserializing a `value` from text and by a `value_encoder` insert members in order
        while they are few, and append and index them past 16, sorting once at the end, so a large object whose keys
        arrive in descending order does not take quadratic time. `merge` and `diff` walk both objects in key order.
+     - An array keeps its elements in one allocation with its size and capacity, instead of a box holding a
+       `std::vector`, so a non-empty array costs one allocation rather than two and `array()` allocates nothing.
+       `parse` sizes each array from the element count on the index. Parsing `canada.json`, whose 55,563 coordinate
+       pairs are each an array, makes half the allocations and takes 11 ms rather than 13 ms; `citm_catalog.json`
+       makes 29% fewer and takes 5.0 ms rather than 5.5 ms. Elements are invalidated as they were, at the points
+       `std::vector`'s are (#402).
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to

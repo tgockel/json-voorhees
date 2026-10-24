@@ -1190,9 +1190,7 @@ private:
 
     value build_array(std::size_t element_count)
     {
-        value out      = array();
-        auto& elements = value_access::array_values(out);
-        elements.reserve(element_count);
+        value out = value_access::array(element_count);
 
         step();
         while (_pos != _last)
@@ -1200,7 +1198,7 @@ private:
             if (ast_node_type_from_coded(*_pos) == ast_node_type::array_end)
                 return out;
 
-            elements.push_back(build_value());
+            value_access::array_push_back(out, build_value());
             step();
         }
 

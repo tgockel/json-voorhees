@@ -8,12 +8,15 @@
 ///
 /// \author Travis Gockel (travis@gockelhut.com)
 #include "test.hpp"
+#include "allocation_counter.hpp"
 
 #include <jsonv/parse.hpp>
 
 #include <algorithm>
 #include <memory>
+#include <new>
 #include <sstream>
+#include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -432,3 +435,110 @@ TEST(parse_empty_array)
     ensure_eq(arr.size(), 0);
     ensure(arr.empty());
 }
+
+// The elements of an array share one block, which grows by moving them to a larger one. The element being added can be
+// one of those being moved.
+TEST(array_grow_from_own_element)
+{
+    using namespace jsonv;
+
+    const value text = "a string long enough to need a buffer of its own";
+
+    value arr = array({ text, 2 });
+    arr.push_back(arr[0]);
+    arr.push_back(arr[0]);
+    arr.push_back(std::move(arr[1]));
+    ensure_eq(array({ text, null, text, text, 2 }), arr);
+
+    arr = array({ text });
+    arr.resize(4U, arr[0]);
+    ensure_eq(array({ text, text, text, text }), arr);
+
+    arr.assign(6U, arr[3]);
+    ensure_eq(array({ text, text, text, text, text, text }), arr);
+
+    arr = array({ text, 1 });
+    arr.insert(arr.begin_array(), arr[1]);
+    arr.insert(arr.end_array(), arr[1]);
+    ensure_eq(array({ 1, text, 1, text }), arr);
+}
+
+// Each copy `resize` adds is of the array as it was before the call, whether or not it has room for them already.
+TEST(array_resize_with_itself_copies_what_it_held)
+{
+    using namespace jsonv;
+
+    value arr = array({ 1 });
+    arr.resize(3U, arr);
+    ensure_eq(array({ 1, array({ 1 }), array({ 1 }) }), arr);
+
+    arr = array({ 1 });
+    arr.reserve(4U);
+    arr.resize(3U, arr);
+    ensure_eq(array({ 1, array({ 1 }), array({ 1 }) }), arr);
+}
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+namespace
+{
+
+std::size_t parse_cost(const std::string& text)
+{
+    using jsonv_test::allocation_counter;
+    allocation_counter allocations(allocation_counter::counted::past_iterator_proxies);
+    jsonv::value       parsed = jsonv::parse(text);
+    return allocations.count();
+}
+
+}
+
+// The elements of an array share one allocation, sized from the count on the tape, and an empty array holds no block.
+TEST(array_parse_elements_share_an_allocation)
+{
+    ensure_eq(parse_cost("[1]"), parse_cost("[1,2]"));
+    ensure_eq(parse_cost("[1]"), parse_cost("[1,2,3,4,5,6,7,8]"));
+    ensure_eq(parse_cost("[1]"), parse_cost("[[]]"));
+    ensure_eq(parse_cost("1"), parse_cost("[]"));
+}
+
+// Growing allocates the larger block before anything is moved, so failing to leaves the array and the item as they were.
+TEST(array_push_back_failed_growth_changes_nothing)
+{
+    const jsonv::value text = "a string long enough to need a buffer of its own";
+
+    jsonv::value arr  = jsonv::array({ 1, 2 });
+    jsonv::value item = text;
+    bool         failed = false;
+    {
+        jsonv_test::failing_allocation fail;
+        try
+        {
+            arr.push_back(std::move(item));
+        }
+        catch (const std::bad_alloc&)
+        {
+            failed = true;
+        }
+    }
+    ensure(failed);
+    ensure_eq(jsonv::array({ 1, 2 }), arr);
+    ensure_eq(text, item);
+}
+
+// Growing one element at a time through `resize` doubles the block, as `push_back` does, rather than reallocating on
+// every call.
+TEST(array_resize_one_at_a_time_grows_geometrically)
+{
+    using jsonv_test::allocation_counter;
+
+    jsonv::value       arr = jsonv::array();
+    allocation_counter allocations(allocation_counter::counted::past_iterator_proxies);
+    for (std::size_t count = 1U; count <= 1000U; ++count)
+        arr.resize(count, jsonv::null);
+
+    ensure_eq(1000U, arr.size());
+    ensure_lt(allocations.count(), 20U);
+}
+
+#endif

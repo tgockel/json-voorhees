@@ -123,7 +123,7 @@ value::value(const value& other) :
         _data.object = other._data.object->clone();
         break;
     case jsonv::kind::array:
-        _data.array = other._data.array->clone();
+        _data.array = detail::array_impl::copy(other._data.array);
         break;
     case jsonv::kind::string:
         _data.string = other._data.string->clone();
@@ -448,7 +448,7 @@ void value::clear()
         delete _data.object;
         break;
     case jsonv::kind::array:
-        delete _data.array;
+        detail::array_impl::destroy(_data.array);
         break;
     case jsonv::kind::string:
         delete _data.string;
@@ -570,7 +570,7 @@ bool value::empty() const noexcept
     case jsonv::kind::object:
         return _data.object->empty();
     case jsonv::kind::array:
-        return _data.array->empty();
+        return detail::array_impl::size(_data.array) == 0U;
     case jsonv::kind::string:
         return _data.string->_string.empty();
     case jsonv::kind::null:
@@ -594,7 +594,7 @@ value::size_type value::size() const
     case jsonv::kind::object:
         return _data.object->size();
     case jsonv::kind::array:
-        return _data.array->size();
+        return detail::array_impl::size(_data.array);
     case jsonv::kind::string:
         return _data.string->_string.size();
     case jsonv::kind::integer:
