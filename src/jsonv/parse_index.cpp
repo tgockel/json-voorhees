@@ -909,10 +909,12 @@ parse_index parse_index::parse(std::string_view                src,
 {
     // Initial capacity in tape slots (8 bytes each). The right ratio depends on input shape:
     // a pure-strings document needs near-zero slots/byte; a boolean-array worst-case needs ~0.6.
-    // Empirical density on canada.json is ~0.4 slots/byte, so `/ 3` covers most realistic inputs
-    // with at most one realloc. Over-allocation cost is mostly RAM commit; under-allocation cost
-    // (since grow_data_buffer now uses realloc) is one move-only realloc per doubling.
-    auto p       = impl::allocate(initial_buffer_capacity.value_or(src.size() / 3));
+    // citm_catalog.json and twitter.json use ~0.1 slots/byte and canada.json, all numbers, ~0.2,
+    // so `/ 8` holds the first two and costs canada one realloc. Whatever is reserved stays
+    // allocated for the life of the index -- `parse` holds it while the tree is built -- and
+    // shrinking it afterwards was tried and is slower: glibc trims the freed tail back to the
+    // OS, and the next parse faults those pages in again.
+    auto p       = impl::allocate(initial_buffer_capacity.value_or(src.size() / 8));
     p->src_begin = src.data();
 
     try

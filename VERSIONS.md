@@ -254,6 +254,10 @@
        arena rather than allocating each one, so parsing it costs the same few allocations however many members it
        has. Parsing `twitter.json`, whose user objects have about 40 keys, makes 43% fewer allocations and takes 6%
        less time (#406).
+     - `parse_index::parse` reserves an eighth of a tape slot per byte of input rather than a third, which
+       `parse` keeps allocated while it builds the `value`. Peak memory parsing the nativejson-benchmark documents
+       drops from 19.2 MiB to 14.0 MiB in total (`citm_catalog.json` 6.4 MiB to 3.7 MiB), and parse time does not
+       change (#404).
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to
