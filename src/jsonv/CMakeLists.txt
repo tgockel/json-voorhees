@@ -18,6 +18,7 @@ set(jsonv_sources
     detail.cpp
     detail/match/number.cpp
     detail/match/string.cpp
+    detail/node_arena.cpp
     encode.cpp
     functional.cpp
     kind.cpp
@@ -58,6 +59,7 @@ set(jsonv_private_headers
     detail/is_print.hpp
     detail/match/number.hpp
     detail/match/string.hpp
+    detail/node_arena.hpp
     detail/overload.hpp
     detail/utf8.hpp
     object_impl.hpp

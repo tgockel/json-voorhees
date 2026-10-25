@@ -491,14 +491,17 @@ void object_builder::add_indexed(member_type* where, std::string&& key, value&& 
     {
         if (_index)
         {
-            _index->insert(index);
+            _index->positions.insert(index);
         }
         else
         {
-            // The members are in key order so far, so each goes at the end of the index.
-            index_type built(key_of_position{ _target });
+            // The members are in key order so far, so each goes at the end of the index. Without a count to go by, the
+            // arena starts with room for as many again as there are now.
+            auto built = std::make_unique<index_storage>(key_of_position{ _target },
+                                                         std::max(_expected_size, 2U * object_impl::size(*_target))
+                                                        );
             for (std::size_t pos = 0U; pos < object_impl::size(*_target); ++pos)
-                built.insert(built.end(), pos);
+                built->positions.insert(built->positions.end(), pos);
             _index = std::move(built);
         }
     }

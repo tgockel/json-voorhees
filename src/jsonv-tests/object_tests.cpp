@@ -1167,6 +1167,29 @@ TEST(object_parse_empty_object_holds_no_allocation)
     ensure_eq(cost(R"({"a":1})"), cost(R"({"a":{}})"));
 }
 
+// Past 16 members an object is filled through an index, whose nodes come from an arena sized from the count on the tape,
+// so they cost a fixed number of allocations rather than one each.
+TEST(object_parse_index_nodes_share_allocations)
+{
+    auto text_of = [] (int count)
+                   {
+                       std::string out = "{";
+                       for (int idx = 0; idx < count; ++idx)
+                           out += (idx == 0 ? "\"k" : ",\"k") + std::to_string(idx) + "\":" + std::to_string(idx);
+                       return out + "}";
+                   };
+    auto cost = [] (const std::string& text)
+                {
+                    using jsonv_test::allocation_counter;
+                    allocation_counter allocations(allocation_counter::counted::past_iterator_proxies);
+                    jsonv::value       parsed = jsonv::parse(text);
+                    return allocations.count();
+                };
+
+    ensure_eq(cost(text_of(17)), cost(text_of(40)));
+    ensure_eq(cost(text_of(17)), cost(text_of(1000)));
+}
+
 /// Parsing makes room for every member the text has, repeats included. An object whose repeats leave most of that room
 /// unused gives it back, so it holds no more than an object parsed from its one member would: adding a member costs
 /// both the same.

@@ -238,6 +238,10 @@
      - An object keeps its members in one allocation with its size and capacity too, instead of a box holding a
        `std::vector`, and `object()` allocates nothing. Parsing `citm_catalog.json`, whose 10,937 objects each cost
        two allocations, makes 42% fewer and takes about 4% less time (#405).
+     - An object filled past 16 members, which is indexed while it is built, takes the index's tree nodes from an
+       arena rather than allocating each one, so parsing it costs the same few allocations however many members it
+       has. Parsing `twitter.json`, whose user objects have about 40 keys, makes 43% fewer allocations and takes 6%
+       less time (#406).
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to

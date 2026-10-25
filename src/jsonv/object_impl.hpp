@@ -15,13 +15,14 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <optional>
+#include <memory>
 #include <set>
 #include <string>
 #include <string_view>
 #include <utility>
 
 #include "detail/counted_block.hpp"
+#include "detail/node_arena.hpp"
 
 namespace jsonv::detail
 {
@@ -120,7 +121,8 @@ public:
 public:
     /// Build into \a target, which must have no members, with room for \a expected_size of them.
     explicit object_builder(object_impl*& target, std::size_t expected_size = 0U) :
-            _target(&target)
+            _target(&target),
+            _expected_size(expected_size)
     {
         object_impl::reserve(target, expected_size);
     }
@@ -140,7 +142,7 @@ public:
     std::pair<member_type*, bool> find(std::string_view key)
     {
         if (_index)
-            return find_indexed(*_index, key);
+            return find_indexed(_index->positions, key);
 
         auto pos = object_impl::lower_bound(*_target, key);
         return { pos, pos != object_impl::end(*_target) && pos->first == key };
@@ -194,7 +196,23 @@ private:
         }
     };
 
-    using index_type = std::set<std::size_t, key_of_position>;
+    using index_type = std::set<std::size_t, key_of_position, arena_allocator<std::size_t>>;
+
+    /// The index, and the arena its nodes come from: it only ever gains nodes until \ref finish drops it whole, so they
+    /// need not be freed one by one. Held by pointer, so the builder stays movable.
+    struct index_storage
+    {
+        index_storage(key_of_position order, std::size_t expected_size) :
+                // A tree node of a std::size_t is the value and three pointers, and a colour the padding absorbs. Two
+                // more make room for what a set allocates besides its members: MSVC's sentinel node, and in Debug its
+                // iterator proxy.
+                arena((expected_size + 2U) * (sizeof(std::size_t) + 4U * sizeof(void*))),
+                positions(order, arena_allocator<std::size_t>(arena))
+        { }
+
+        node_arena arena;
+        index_type positions;
+    };
 
     /// \ref find once there is an \a index.
     std::pair<member_type*, bool> find_indexed(const index_type& index, std::string_view key);
@@ -206,8 +224,9 @@ private:
     void sort_indexed();
 
 private:
-    object_impl**             _target;
-    std::optional<index_type> _index;
+    object_impl**                  _target;
+    std::size_t                    _expected_size;
+    std::unique_ptr<index_storage> _index;
 };
 
 }
