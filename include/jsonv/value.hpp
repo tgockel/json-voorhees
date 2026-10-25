@@ -49,11 +49,45 @@ union value_storage
     int64_t      integer;
     double       decimal;
     bool         boolean;
+};
 
-    constexpr value_storage() :
-            object(nullptr)
+/// The longest string a \c value holds in itself rather than in a block of its own.
+inline constexpr std::size_t value_inline_string_capacity = 14U;
+
+/// The \c string_length of a \c kind::string whose text is in a block of its own.
+inline constexpr unsigned char value_string_out_of_line = 0xffU;
+
+/// How a \c value lays out everything but a string short enough to keep in itself.
+struct value_words
+{
+    jsonv::kind   kind;
+    /// For a \c kind::string, \c value_string_out_of_line; ignored otherwise.
+    unsigned char string_length;
+    value_storage data;
+};
+
+/// How a \c value lays out a string of at most \c value_inline_string_capacity bytes.
+struct value_short_string
+{
+    jsonv::kind   kind;
+    unsigned char string_length;
+    char          text[value_inline_string_capacity];
+};
+
+/// The 16 bytes of a \c value. Both layouts start with the same \c kind and \c string_length, so those can be read
+/// through \c words whichever layout is in use. Both have trivial default constructors, so assigning to either one
+/// makes it the one in use.
+union value_representation
+{
+    value_words        words;
+    value_short_string short_string;
+
+    constexpr value_representation() :
+            words{ jsonv::kind::null, 0U, { .object = nullptr } }
     { }
 };
+
+static_assert(sizeof(value_representation) == 16U, "a value is 16 bytes");
 
 }
 
@@ -96,9 +130,10 @@ public:
 ///    decimal, but you cannot request a decimal as an integer, even when doing so would not require rounding. The
 ///    literal \c 20.0 will always have \c kind::decimal.
 ///  - \c kind::string
-///    A UTF-8 encoded string which is mostly accessed through the \c std::string class. Some random functions work in
-///    the cases where it makes sense (for example: \c empty and \c size), but in general, string manipulation should be
-///    done after calling \c as_string.
+///    A UTF-8 encoded string, read through the \c std::string_view which \c as_string returns. Some random functions
+///    work in the cases where it makes sense (for example: \c empty and \c size), but in general, string manipulation
+///    should be done after calling \c as_string. A string of up to 14 bytes is kept in the \c value itself, and a longer
+///    one in a single allocation of its own.
 ///  - \c kind::array
 ///    An array behaves like a \c std::vector: its elements are contiguous, growing it may move them all, and inserting
 ///    or erasing shifts the elements after the position. Element references are invalidated when \c std::vector's
@@ -556,9 +591,7 @@ public:
 
 public:
     /** Default-construct this to null. **/
-    constexpr value() :
-            _kind(jsonv::kind::null)
-    { }
+    constexpr value() = default;
 
     /// The nullptr overload will fail to compile -- use \c jsonv::null if you want a \c kind::null.
     value(std::nullptr_t) = delete;
@@ -628,26 +661,28 @@ public:
     **/
     value& operator=(value&& source) noexcept;
 
-    /** Get this value as a string.
+    /** Get this value as a string. The view is into this \c value, so it is good until the value changes or goes away:
+     *  `auto text = parse(input).as_string();` leaves \c text referring to a destroyed temporary. Make a
+     *  \c std::string from it to keep the text, or to get a NUL-terminated \c c_str.
      *
      *  \throws kind_error if this value does not represent a string.
     **/
     JSONV_NODISCARD
-    const std::string& as_string() const;
+    std::string_view as_string() const;
 
     /** Tests if this \c kind is \c kind::string. **/
     JSONV_NODISCARD
     bool is_string() const;
 
-    /** Get this value as a \c std::string_view. It is your responsibility to ensure the \c value instance remains valid.
+    /** The same as \c as_string. It is your responsibility to ensure the \c value instance remains valid.
      *
      *  \throws kind_error if this value does not represent a string.
     **/
     JSONV_NODISCARD
     std::string_view as_string_view() const &;
 
-    /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the internal storage is
-     *  the \c char base \c std::string. The result is UTF-16 even where \c wchar_t is 32 bits, so a code point outside
+    /** Get this value as a wide string. Keep in mind that this is slower than \c as_string, as the text is stored as
+     *  UTF-8 and has to be converted. The result is UTF-16 even where \c wchar_t is 32 bits, so a code point outside
      *  the BMP takes a surrogate pair there too.
      *
      *  \throws kind_error if this value does not represent a string.
@@ -709,7 +744,7 @@ public:
     JSONV_NODISCARD
     inline jsonv::kind kind() const
     {
-        return _kind;
+        return _repr.words.kind;
     }
 
     /// \{
@@ -1341,8 +1376,7 @@ private:
     friend struct detail::value_access;
 
 private:
-    detail::value_storage _data;
-    jsonv::kind           _kind;
+    detail::value_representation _repr;
 };
 
 /** An instance with \c kind::null. This is intended to be used for convenience and readability (as opposed to using the

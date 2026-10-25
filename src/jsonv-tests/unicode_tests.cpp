@@ -18,14 +18,14 @@
 
 TEST(parse_unicode_single)
 {
-    std::string s = jsonv::parse("\"\\u0004\"").as_string();
+    std::string s(jsonv::parse("\"\\u0004\"").as_string());
     ensure(s.size() == 1);
     ensure(s[0] == '\x04');
 }
 
 TEST(parse_unicode_inline)
 {
-    std::string s = jsonv::parse("\"é\"").as_string();
+    std::string s(jsonv::parse("\"é\"").as_string());
     ensure_eq(s.size(), 2U);
     ensure(s[0] == '\xc3');
     ensure(s[1] == '\xa9');
@@ -33,7 +33,7 @@ TEST(parse_unicode_inline)
 
 TEST(parse_unicode_multi)
 {
-    std::string s = jsonv::parse("\"\\u00e9\"").as_string();
+    std::string s(jsonv::parse("\"\\u00e9\"").as_string());
     ensure(s.size() == 2);
     ensure(s[0] == '\xc3');
     ensure(s[1] == '\xa9');
@@ -41,7 +41,7 @@ TEST(parse_unicode_multi)
 
 TEST(parse_unicode_insanity)
 {
-    std::string s = jsonv::parse("\"\\uface\"").as_string();
+    std::string s(jsonv::parse("\"\\uface\"").as_string());
     ensure(s.size() == 3);
     // The right answer according to Python: u'\uface'.encode('utf-8')
     const char vals[] = "\xef\xab\x8e";

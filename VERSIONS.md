@@ -229,6 +229,18 @@
        Objects built by `parse`, by deserializing a `value` from text and by a `value_encoder` insert members in order
        while they are few, and append and index them past 16, sorting once at the end, so a large object whose keys
        arrive in descending order does not take quadratic time. `merge` and `diff` walk both objects in key order.
+     - `value::as_string` returns a `std::string_view` rather than a `const std::string&`, so a string no longer needs a
+       `std::string` to live in. One of up to 14 bytes is kept in the `value` itself and costs no allocation, and a
+       longer one takes a single allocation, rather than a box holding a `std::string` and, past 15 bytes, that
+       string's buffer. Parsing `twitter.json` makes 32% fewer allocations and takes about 4% less time. This changes
+       the API and ABI which 2.0.0-rc.1 shipped (#407):
+       - Code which keeps the result as a `const std::string&` or calls `c_str` on it makes a `std::string` instead:
+         `std::string(val.as_string())`. `auto text = val.as_string();` now gives a view, good only while `val` is
+         unchanged and alive.
+       - `compare_traits::compare_strings` takes `std::string_view` arguments, and a traits type passed to `compare`
+         which provides its own must accept them.
+       - `as_string_view` is unchanged and returns the same view as `as_string`.
+       - A `value` is still 16 bytes, but its `kind` is now its first byte.
      - An array keeps its elements in one allocation with its size and capacity, instead of a box holding a
        `std::vector`, so a non-empty array costs one allocation rather than two and `array()` allocates nothing.
        `parse` sizes each array from the element count on the index. Parsing `canada.json`, whose 55,563 coordinate

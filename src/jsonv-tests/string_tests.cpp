@@ -12,21 +12,27 @@
 #include <jsonv/parse.hpp>
 
 #include "test.hpp"
+#include "allocation_counter.hpp"
 
+#include <cstddef>
 #include <cwchar>
+#include <functional>
+#include <string>
+#include <string_view>
+#include <utility>
 #include <stdexcept>
 
 TEST(parse_empty_string)
 {
     jsonv::value val = jsonv::parse("\"\"");
-    const std::string& str = val.as_string();
+    std::string_view str = val.as_string();
     ensure(str == "");
 }
 
 TEST(parse_single_backslash)
 {
     jsonv::value val = jsonv::parse("\"\\\\\""); // "\\"
-    const std::string& str = val.as_string();
+    std::string_view str = val.as_string();
     ensure(str == "\\");
     ensure_eq(1, val.size());
 }
@@ -133,3 +139,86 @@ TEST(string_view_construction)
 
     ensure_eq(cp, sv);
 }
+
+namespace
+{
+
+/// \a length bytes of text, with a NUL in it once it is long enough to hold one somewhere other than the ends.
+std::string text_of_length(std::size_t length)
+{
+    std::string out;
+    for (std::size_t idx = 0U; idx < length; ++idx)
+        out += char('a' + idx % 26U);
+    if (length > 3U)
+        out[2] = '\0';
+    return out;
+}
+
+}
+
+// A string of up to 14 bytes is kept in the value itself, and a longer one in a block of its own. Either way the text
+// reads back the same, however the value is copied, moved or swapped.
+TEST(string_inline_and_out_of_line)
+{
+    for (std::size_t length : { 0U, 1U, 13U, 14U, 15U, 16U, 100U })
+    {
+        const std::string text = text_of_length(length);
+
+        jsonv::value val(std::string_view{ text });
+        ensure(val.as_string() == text);
+        ensure(val.as_string_view() == text);
+        ensure_eq(length, val.size());
+        ensure_eq(length == 0U, val.empty());
+
+        jsonv::value copy = val;
+        ensure(copy.as_string() == text);
+        ensure(copy.as_string().data() != val.as_string().data());
+
+        jsonv::value moved = std::move(copy);
+        ensure(copy.is_null());
+        ensure(moved.as_string() == text);
+
+        jsonv::value other = 5;
+        other.swap(moved);
+        ensure(other.as_string() == text);
+        ensure_eq(5, moved.as_integer());
+
+        moved = other;
+        ensure(moved.as_string() == text);
+        other = 6;
+        ensure(moved.as_string() == text);
+
+        ensure_eq(std::hash<std::string_view>()(text), std::hash<jsonv::value>()(val));
+        ensure_eq(val, jsonv::value(text));
+    }
+}
+
+TEST(string_parse_inline_boundary)
+{
+    for (std::size_t length : { 13U, 14U, 15U })
+    {
+        const std::string text(length, 'q');
+        ensure(jsonv::parse("\"" + text + "\"").as_string() == text);
+        ensure(jsonv::parse("[\"" + text + "\"]")[0].as_string() == text);
+    }
+}
+
+#if JSONV_TEST_COUNTS_ALLOCATIONS
+
+// A string of up to 14 bytes takes no allocation, and a longer one takes one.
+TEST(string_short_allocates_nothing)
+{
+    auto cost = [] (const std::string& text)
+                {
+                    jsonv_test::allocation_counter allocations;
+                    jsonv::value                   val(std::string_view{ text });
+                    return allocations.count();
+                };
+
+    ensure_eq(cost(text_of_length(0U)), cost(text_of_length(14U)));
+    ensure_eq(cost(text_of_length(0U)) + 1U, cost(text_of_length(15U)));
+    ensure_eq(cost(text_of_length(15U)), cost(text_of_length(1000U)));
+}
+
+#endif
+

@@ -11,27 +11,42 @@
 
 #include <jsonv/config.hpp>
 
-#include <string>
-#include <utility>
-
-#include "detail/cloneable.hpp"
+#include <cstddef>
+#include <string_view>
 
 namespace jsonv::detail
 {
 
-class JSONV_LOCAL string_impl final :
-        public cloneable<string_impl>
+/// The text of a string too long for its \c value to hold in itself: the length, then the text and a NUL after it, in
+/// one allocation.
+class JSONV_LOCAL string_impl final
 {
 public:
-    /// Take \a text as the string. Taking it by value means a caller with a string to give away hands it over, and
-    /// one building it from a view or a conversion builds it straight into the node, so the text is copied at most
-    /// once on the way in.
-    explicit string_impl(std::string text) noexcept :
-            _string(std::move(text))
+    string_impl(const string_impl&)            = delete;
+    string_impl& operator=(const string_impl&) = delete;
+
+    /// A block holding a copy of \a text.
+    ///
+    /// \throws std::length_error if no block could hold \a text.
+    static string_impl* make(std::string_view text);
+
+    /// Free \a self.
+    static void destroy(string_impl* self) noexcept;
+
+    std::string_view view() const noexcept
+    {
+        return std::string_view(reinterpret_cast<const char*>(this + 1), _size);
+    }
+
+private:
+    explicit string_impl(std::size_t size) noexcept :
+            _size(size)
     { }
 
-public:
-    std::string _string;
+    ~string_impl() noexcept = default;
+
+private:
+    std::size_t _size;
 };
 
 }

@@ -208,7 +208,7 @@ std::vector<value> coerce_array(const value& from)
 std::string coerce_string(const value& from)
 {
     if (from.kind() == kind::string)
-        return from.as_string();
+        return std::string(from.as_string());
     else
         return to_string(from);
 }
@@ -317,7 +317,7 @@ value coerce_merge(value a, value b)
         a["undefined"] = std::move(b);
         return a;
     case kind::string:
-        return a.as_string() + coerce_string(b);
+        return std::string(a.as_string()).append(coerce_string(b));
     default:
         throw kind_error(to_string(a.kind()));
     }

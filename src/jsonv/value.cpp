@@ -17,6 +17,7 @@
 #include "detail.hpp"
 #include "object_impl.hpp"
 #include "string_impl.hpp"
+#include "value_access.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -45,67 +46,56 @@ kind_error::~kind_error() noexcept
 // value                                                                                                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// A string is copied once on its way into a `value`: the narrow constructors build the node's `std::string` straight
-// from the view, and the wide ones move the converted string in. Building it inside the `new` expression also means a
-// copy or conversion which throws frees the node with it, which assigning the text into a node already allocated did
-// not (#272).
+// A string is copied once on its way into a `value`, into the value itself when it is short enough and otherwise into a
+// block of its own. The wide constructors convert first and copy the result. Anything which can throw happens before the
+// value is changed, so a failure leaves nothing to free (#272).
 
 value::value(const std::string& val) :
         value(std::string_view(val))
 { }
 
-value::value(const std::string_view& val) :
-        _kind(jsonv::kind::null)
+value::value(const std::string_view& val)
 {
-    _data.string = new detail::string_impl(std::string(val));
-    _kind = jsonv::kind::string;
+    detail::value_access::set_string(*this, val);
 }
 
 value::value(const char* val) :
         value(std::string_view(val))
 { }
 
-value::value(const std::wstring& val) :
-        _kind(jsonv::kind::null)
+value::value(const std::wstring& val)
 {
-    _data.string = new detail::string_impl(detail::convert_to_narrow(val));
-    _kind = jsonv::kind::string;
+    detail::value_access::set_string(*this, detail::convert_to_narrow(val));
 }
 
-value::value(const wchar_t* val) :
-        _kind(jsonv::kind::null)
+value::value(const wchar_t* val)
 {
-    _data.string = new detail::string_impl(detail::convert_to_narrow(val));
-    _kind = jsonv::kind::string;
+    detail::value_access::set_string(*this, detail::convert_to_narrow(val));
 }
 
-value::value(int64_t val) :
-        _kind(jsonv::kind::integer)
+value::value(int64_t val)
 {
-    _data.integer = val;
+    _repr.words = { jsonv::kind::integer, 0U, { .integer = val } };
 }
 
-value::value(double val) :
-        _kind(jsonv::kind::decimal)
+value::value(double val)
 {
-    _data.decimal = val;
+    _repr.words = { jsonv::kind::decimal, 0U, { .decimal = val } };
 }
 
 value::value(float val) :
         value(double(val))
 { }
 
-value::value(bool val) :
-        _kind(jsonv::kind::boolean)
+value::value(bool val)
 {
-    _data.boolean = val;
+    _repr.words = { jsonv::kind::boolean, 0U, { .boolean = val } };
 }
 
-#define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR(type_)              \
-    value::value(type_ val) :                                              \
-            _kind(jsonv::kind::integer)                                    \
-    {                                                                      \
-        _data.integer = val;                                               \
+#define JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR(type_)                      \
+    value::value(type_ val)                                                        \
+    {                                                                              \
+        _repr.words = { jsonv::kind::integer, 0U, { .integer = int64_t(val) } };   \
     }
 JSONV_INTEGER_ALTERNATES_LIST(JSONV_VALUE_INTEGER_ALTERNATIVE_CTOR_GENERATOR)
 
@@ -114,30 +104,27 @@ value::~value() noexcept
     clear();
 }
 
-value::value(const value& other) :
-        _kind(other._kind)
+value::value(const value& other)
 {
     switch (other.kind())
     {
     case jsonv::kind::object:
-        _data.object = detail::object_impl::copy(other._data.object);
+        _repr.words = { jsonv::kind::object, 0U, { .object = detail::object_impl::copy(other._repr.words.data.object) } };
         break;
     case jsonv::kind::array:
-        _data.array = detail::array_impl::copy(other._data.array);
+        _repr.words = { jsonv::kind::array, 0U, { .array = detail::array_impl::copy(other._repr.words.data.array) } };
         break;
     case jsonv::kind::string:
-        _data.string = other._data.string->clone();
+        if (other._repr.words.string_length == detail::value_string_out_of_line)
+            detail::value_access::set_string(*this, other._repr.words.data.string->view());
+        else
+            _repr = other._repr;
         break;
     case jsonv::kind::integer:
-        _data.integer = other._data.integer;
-        break;
     case jsonv::kind::decimal:
-        _data.decimal = other._data.decimal;
-        break;
     case jsonv::kind::boolean:
-        _data.boolean = other._data.boolean;
-        break;
     case jsonv::kind::null:
+        _repr = other._repr;
         break;
     }
 }
@@ -150,11 +137,9 @@ value& value::operator=(const value& other)
 }
 
 value::value(value&& other) noexcept :
-        _data(other._data),
-        _kind(other._kind)
+        _repr(other._repr)
 {
-    other._data.object = 0;
-    other._kind = jsonv::kind::null;
+    other._repr = detail::value_representation();
 }
 
 value& value::operator=(value&& source) noexcept
@@ -163,10 +148,8 @@ value& value::operator=(value&& source) noexcept
     {
         clear();
 
-        _data = source._data;
-        _kind = source._kind;
-        source._data.object = 0;
-        source._kind = jsonv::kind::null;
+        _repr        = source._repr;
+        source._repr = detail::value_representation();
     }
 
     return *this;
@@ -435,23 +418,23 @@ void value::swap(value& other) noexcept
 {
     using std::swap;
 
-    // All types of this union a trivially swappable
-    swap(_data, other._data);
-    swap(_kind, other._kind);
+    // Both layouts are trivially copyable, so swapping the bytes swaps the values.
+    swap(_repr, other._repr);
 }
 
 void value::clear()
 {
-    switch (_kind)
+    switch (_repr.words.kind)
     {
     case jsonv::kind::object:
-        detail::object_impl::destroy(_data.object);
+        detail::object_impl::destroy(_repr.words.data.object);
         break;
     case jsonv::kind::array:
-        detail::array_impl::destroy(_data.array);
+        detail::array_impl::destroy(_repr.words.data.array);
         break;
     case jsonv::kind::string:
-        delete _data.string;
+        if (_repr.words.string_length == detail::value_string_out_of_line)
+            detail::string_impl::destroy(_repr.words.data.string);
         break;
     case jsonv::kind::integer:
     case jsonv::kind::decimal:
@@ -461,20 +444,18 @@ void value::clear()
         break;
     }
 
-    _kind = jsonv::kind::null;
-    _data.object = 0;
+    _repr = detail::value_representation();
 }
 
-const std::string& value::as_string() const
+std::string_view value::as_string() const
 {
-    check_type(jsonv::kind::string, _kind);
-    return _data.string->_string;
+    check_type(jsonv::kind::string, _repr.words.kind);
+    return detail::value_access::string_view(*this);
 }
 
 std::string_view value::as_string_view() const &
 {
-    check_type(jsonv::kind::string, _kind);
-    return std::string_view(_data.string->_string);
+    return as_string();
 }
 
 std::wstring value::as_wstring() const
@@ -484,22 +465,22 @@ std::wstring value::as_wstring() const
 
 int64_t value::as_integer() const
 {
-    check_type(jsonv::kind::integer, _kind);
-    return _data.integer;
+    check_type(jsonv::kind::integer, _repr.words.kind);
+    return _repr.words.data.integer;
 }
 
 double value::as_decimal() const
 {
-    if (_kind == jsonv::kind::integer)
+    if (_repr.words.kind == jsonv::kind::integer)
         return double(as_integer());
-    check_type(jsonv::kind::decimal, _kind);
-    return _data.decimal;
+    check_type(jsonv::kind::decimal, _repr.words.kind);
+    return _repr.words.data.decimal;
 }
 
 bool value::as_boolean() const
 {
-    check_type(jsonv::kind::boolean, _kind);
-    return _data.boolean;
+    check_type(jsonv::kind::boolean, _repr.words.kind);
+    return _repr.words.data.boolean;
 }
 
 bool value::operator==(const value& other) const
@@ -568,11 +549,11 @@ bool value::empty() const noexcept
     switch (kind())
     {
     case jsonv::kind::object:
-        return detail::object_impl::size(_data.object) == 0U;
+        return detail::object_impl::size(_repr.words.data.object) == 0U;
     case jsonv::kind::array:
-        return detail::array_impl::size(_data.array) == 0U;
+        return detail::array_impl::size(_repr.words.data.array) == 0U;
     case jsonv::kind::string:
-        return _data.string->_string.empty();
+        return detail::value_access::string_view(*this).empty();
     case jsonv::kind::null:
         return true; // by definition a null value is empty
     case jsonv::kind::integer:
@@ -592,11 +573,11 @@ value::size_type value::size() const
     switch (kind())
     {
     case jsonv::kind::object:
-        return detail::object_impl::size(_data.object);
+        return detail::object_impl::size(_repr.words.data.object);
     case jsonv::kind::array:
-        return detail::array_impl::size(_data.array);
+        return detail::array_impl::size(_repr.words.data.array);
     case jsonv::kind::string:
-        return _data.string->_string.size();
+        return detail::value_access::string_view(*this).size();
     case jsonv::kind::integer:
     case jsonv::kind::decimal:
     case jsonv::kind::boolean:
@@ -656,7 +637,7 @@ size_t hash<jsonv::value>::operator()(const jsonv::value& val) const noexcept
     case jsonv::kind::array:
         return hash_range(val.begin_array(), val.end_array(), hash<jsonv::value>());
     case jsonv::kind::string:
-        return std::hash<std::string>()(val.as_string());
+        return std::hash<std::string_view>()(val.as_string());
     case jsonv::kind::integer:
     case jsonv::kind::decimal:
         {

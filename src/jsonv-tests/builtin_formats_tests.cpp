@@ -591,15 +591,19 @@ namespace
 {
 
 /// The allocations one deserialization of a \c T out of the JSON \a source text performs, with everything the
-/// deserialization does not pay for -- parsing the text, building the context -- set up beforehand.
+/// deserialization does not pay for -- parsing the text, building the context -- set up beforehand. \a what says
+/// which of them to count.
 template <typename T>
-std::size_t deserialization_cost(std::string_view source, const formats& fmts)
+std::size_t deserialization_cost(std::string_view            source,
+                                 const formats&              fmts,
+                                 allocation_counter::counted what = allocation_counter::counted::all
+                                )
 {
     deserialization_context cxt(fmts);
     reader             rdr(source);
     (void) rdr.next_token();
 
-    allocation_counter allocations;
+    allocation_counter allocations(what);
     auto               out  = cxt.deserialize<T>(rdr);
     const std::size_t  cost = allocations.count();
 
@@ -637,7 +641,7 @@ class bridged_string_adapter final :
 protected:
     bridged_string create(deserialization_context&, const value& from) const override
     {
-        return bridged_string{ from.as_string() };
+        return bridged_string{ std::string(from.as_string()) };
     }
 
     value to_json(const serialization_context&, const bridged_string& from) const override
@@ -676,17 +680,19 @@ TEST(builtin_deserialization_from_text_does_not_materialise_a_value)
     ensure_eq(0U, deserialization_cost<value>("1234", fmts));
 
     // Strings past every small-string buffer, so nothing hides inside one. The claim is relative rather than an exact
-    // count: a debug standard library charges bookkeeping of its own per `std::string`, which both arms here pay and
-    // which no absolute budget would survive. What the bridge pays on top of it is the `value` this no longer builds.
+    // count, and leaves out the iterator proxies a debug standard library allocates per `std::string`: the `value` the
+    // bridge builds holds its text without a `std::string`, so the bridge pays fewer of them than the direct path does.
+    // What the bridge pays on top of that is the `value` this no longer builds.
+    constexpr auto past_proxies = allocation_counter::counted::past_iterator_proxies;
     const std::string_view canonical = R"("a string which is far too long for any small-string buffer")";
     const std::string_view escaped   = R"("a string\t far too long for any small-string buffer")";
 
     ensure_eq(0U, deserialization_cost<std::string_view>(canonical, fmts));
-    ensure_lt(deserialization_cost<std::string>(canonical, fmts),
-              deserialization_cost<bridged_string>(canonical, bridged_string_formats())
+    ensure_lt(deserialization_cost<std::string>(canonical, fmts, past_proxies),
+              deserialization_cost<bridged_string>(canonical, bridged_string_formats(), past_proxies)
              );
-    ensure_lt(deserialization_cost<std::string>(escaped, fmts),
-              deserialization_cost<bridged_string>(escaped, bridged_string_formats())
+    ensure_lt(deserialization_cost<std::string>(escaped, fmts, past_proxies),
+              deserialization_cost<bridged_string>(escaped, bridged_string_formats(), past_proxies)
              );
 }
 

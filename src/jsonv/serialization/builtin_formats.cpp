@@ -90,7 +90,7 @@ std::expected<std::string, ast_node_type> read_string(deserialization_context& c
     // A lent `value` holds the decoded string already. The token a value-backed reader would synthesise for it is a
     // quoted copy in its arena, which this would only copy again.
     if (auto lent = from.current_value())
-        return lent->as_string();
+        return std::string(lent->as_string());
 
     try
     {

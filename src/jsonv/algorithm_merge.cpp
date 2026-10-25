@@ -125,7 +125,7 @@ value merge_explicit(const merge_rules& rules,
         case kind::null:
             return a;
         case kind::string:
-            return a.as_string() + b.as_string();
+            return std::string(a.as_string()).append(b.as_string());
         default:
             throw kind_error(std::string("Invalid kind ") + to_string(a.kind()));
     }

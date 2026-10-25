@@ -115,7 +115,7 @@ struct JSONV_PUBLIC compare_traits
 
     /** Compare two string values. **/
     JSONV_NODISCARD
-    static int compare_strings(const std::string& a, const std::string& b)
+    static int compare_strings(std::string_view a, std::string_view b)
     {
         return a.compare(b);
     }

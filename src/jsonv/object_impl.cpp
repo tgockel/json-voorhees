@@ -78,8 +78,8 @@ object_node_handle::mapped_type& object_node_handle::mapped() const
 value object()
 {
     value x;
-    x._data.object = nullptr;
-    x._kind = jsonv::kind::object;
+    x._repr.words.data.object = nullptr;
+    x._repr.words.kind = jsonv::kind::object;
     return x;
 }
 
@@ -122,25 +122,25 @@ std::pair<member_type*, bool> place(object_impl*& impl, member_type* pos, TKey&&
 value::object_iterator value::begin_object()
 {
     check_type(jsonv::kind::object, kind());
-    return object_iterator(object_impl::data(_data.object));
+    return object_iterator(object_impl::data(_repr.words.data.object));
 }
 
 value::const_object_iterator value::begin_object() const
 {
     check_type(jsonv::kind::object, kind());
-    return const_object_iterator(object_impl::data(_data.object));
+    return const_object_iterator(object_impl::data(_repr.words.data.object));
 }
 
 value::object_iterator value::end_object()
 {
     check_type(jsonv::kind::object, kind());
-    return object_iterator(object_impl::end(_data.object));
+    return object_iterator(object_impl::end(_repr.words.data.object));
 }
 
 value::const_object_iterator value::end_object() const
 {
     check_type(jsonv::kind::object, kind());
-    return const_object_iterator(object_impl::end(std::as_const(_data.object)));
+    return const_object_iterator(object_impl::end(std::as_const(_repr.words.data.object)));
 }
 
 value::object_view value::as_object() &
@@ -165,14 +165,14 @@ value::owning_object_view value::as_object() &&
 value& value::operator[](const std::string& key)
 {
     check_type(jsonv::kind::object, kind());
-    return place(_data.object, object_impl::lower_bound(_data.object, key), key, value()).first->second;
+    return place(_repr.words.data.object, object_impl::lower_bound(_repr.words.data.object, key), key, value()).first->second;
 }
 
 value& value::operator[](std::string&& key)
 {
     check_type(jsonv::kind::object, kind());
-    auto pos = object_impl::lower_bound(_data.object, key);
-    return place(_data.object, pos, std::move(key), value()).first->second;
+    auto pos = object_impl::lower_bound(_repr.words.data.object, key);
+    return place(_repr.words.data.object, pos, std::move(key), value()).first->second;
 }
 
 value& value::operator[](const std::wstring& key)
@@ -184,8 +184,8 @@ value& value::operator[](const std::wstring& key)
 value& value::at(const std::string& key)
 {
     check_type(jsonv::kind::object, kind());
-    auto pos = object_impl::find(_data.object, key);
-    if (pos == object_impl::end(_data.object))
+    auto pos = object_impl::find(_repr.words.data.object, key);
+    if (pos == object_impl::end(_repr.words.data.object))
         throw std::out_of_range("object has no key \"" + key + "\"");
     return pos->second;
 }
@@ -193,7 +193,7 @@ value& value::at(const std::string& key)
 const value& value::at(const std::string& key) const
 {
     check_type(jsonv::kind::object, kind());
-    const object_impl* impl = _data.object;
+    const object_impl* impl = _repr.words.data.object;
     auto               pos  = object_impl::find(impl, key);
     if (pos == object_impl::end(impl))
         throw std::out_of_range("object has no key \"" + key + "\"");
@@ -215,7 +215,7 @@ const value& value::at(const std::wstring& key) const
 value::size_type value::count(const std::string& key) const
 {
     check_type(jsonv::kind::object, kind());
-    const object_impl* impl = _data.object;
+    const object_impl* impl = _repr.words.data.object;
     return object_impl::find(impl, key) == object_impl::end(impl) ? 0U : 1U;
 }
 
@@ -228,7 +228,7 @@ value::size_type value::count(const std::wstring& key) const
 value::object_iterator value::find(const std::string& key)
 {
     check_type(jsonv::kind::object, kind());
-    return object_iterator(object_impl::find(_data.object, key));
+    return object_iterator(object_impl::find(_repr.words.data.object, key));
 }
 
 value::object_iterator value::find(const std::wstring& key)
@@ -240,7 +240,7 @@ value::object_iterator value::find(const std::wstring& key)
 value::const_object_iterator value::find(const std::string& key) const
 {
     check_type(jsonv::kind::object, kind());
-    return const_object_iterator(object_impl::find(std::as_const(_data.object), key));
+    return const_object_iterator(object_impl::find(std::as_const(_repr.words.data.object), key));
 }
 
 value::const_object_iterator value::find(const std::wstring& key) const
@@ -252,8 +252,8 @@ value::const_object_iterator value::find(const std::wstring& key) const
 value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::string, value> pair)
 {
     check_type(jsonv::kind::object, kind());
-    auto pos = object_impl::position_for(_data.object, hint._member, pair.first);
-    return object_iterator(place(_data.object, pos, std::move(pair.first), std::move(pair.second)).first);
+    auto pos = object_impl::position_for(_repr.words.data.object, hint._member, pair.first);
+    return object_iterator(place(_repr.words.data.object, pos, std::move(pair.first), std::move(pair.second)).first);
 }
 
 value::object_iterator value::insert(value::const_object_iterator hint, std::pair<std::wstring, value> pair)
@@ -265,8 +265,8 @@ value::object_iterator value::insert(value::const_object_iterator hint, std::pai
 std::pair<value::object_iterator, bool> value::insert(std::pair<std::string, value> pair)
 {
     check_type(jsonv::kind::object, kind());
-    auto pos = object_impl::lower_bound(_data.object, pair.first);
-    auto ret = place(_data.object, pos, std::move(pair.first), std::move(pair.second));
+    auto pos = object_impl::lower_bound(_repr.words.data.object, pair.first);
+    auto ret = place(_repr.words.data.object, pos, std::move(pair.first), std::move(pair.second));
     return { object_iterator(ret.first), ret.second };
 }
 
@@ -282,9 +282,9 @@ void value::insert(std::initializer_list<std::pair<std::string, value>> items)
     for (const auto& pair : items)
     {
         // Looked up before anything is copied, so a key which is already present costs no copy of the value.
-        auto pos = object_impl::lower_bound(_data.object, pair.first);
-        if (pos == object_impl::end(_data.object) || pos->first != pair.first)
-            object_impl::emplace(_data.object, object_impl::index_of(_data.object, pos), pair.first, pair.second);
+        auto pos = object_impl::lower_bound(_repr.words.data.object, pair.first);
+        if (pos == object_impl::end(_repr.words.data.object) || pos->first != pair.first)
+            object_impl::emplace(_repr.words.data.object, object_impl::index_of(_repr.words.data.object, pos), pair.first, pair.second);
     }
 }
 
@@ -303,8 +303,8 @@ value::object_insert_return_type value::insert(object_node_handle&& handle)
 
     // The handle gives its element up only when the insertion happens, so on a collision it keeps ownership and the
     // returned position's key is comparable to handle.key().
-    auto pos = object_impl::lower_bound(_data.object, handle.key());
-    auto ret = place(_data.object, pos, std::move(handle.key()), std::move(handle.mapped()));
+    auto pos = object_impl::lower_bound(_repr.words.data.object, handle.key());
+    auto ret = place(_repr.words.data.object, pos, std::move(handle.key()), std::move(handle.mapped()));
     if (ret.second)
         handle._has_value = false;
 
@@ -319,8 +319,8 @@ value::object_iterator value::insert(const_object_iterator hint, object_node_han
 
     // As with the overload without a hint, the handle keeps ownership of its element when the insertion does not
     // happen.
-    auto pos = object_impl::position_for(_data.object, hint._member, handle.key());
-    auto ret = place(_data.object, pos, std::move(handle.key()), std::move(handle.mapped()));
+    auto pos = object_impl::position_for(_repr.words.data.object, hint._member, handle.key());
+    auto ret = place(_repr.words.data.object, pos, std::move(handle.key()), std::move(handle.mapped()));
     if (ret.second)
         handle._has_value = false;
 
@@ -330,8 +330,8 @@ value::object_iterator value::insert(const_object_iterator hint, object_node_han
 std::pair<value::object_iterator, bool> value::emplace(std::string key, value val)
 {
     check_type(jsonv::kind::object, kind());
-    auto pos = object_impl::lower_bound(_data.object, key);
-    auto ret = place(_data.object, pos, std::move(key), std::move(val));
+    auto pos = object_impl::lower_bound(_repr.words.data.object, key);
+    auto ret = place(_repr.words.data.object, pos, std::move(key), std::move(val));
     return { object_iterator(ret.first), ret.second };
 }
 
@@ -346,7 +346,7 @@ std::pair<value::object_iterator, bool> value::emplace(const std::wstring& key, 
 std::pair<value::object_iterator, bool> value::try_emplace(const std::string& key, value val)
 {
     check_type(jsonv::kind::object, kind());
-    auto ret = place(_data.object, object_impl::lower_bound(_data.object, key), key, std::move(val));
+    auto ret = place(_repr.words.data.object, object_impl::lower_bound(_repr.words.data.object, key), key, std::move(val));
     return { object_iterator(ret.first), ret.second };
 }
 
@@ -359,15 +359,15 @@ std::pair<value::object_iterator, bool> value::try_emplace(const std::wstring& k
 std::pair<value::object_iterator, bool> value::insert_or_assign(const std::string& key, value val)
 {
     check_type(jsonv::kind::object, kind());
-    auto pos = object_impl::lower_bound(_data.object, key);
-    if (pos != object_impl::end(_data.object) && pos->first == key)
+    auto pos = object_impl::lower_bound(_repr.words.data.object, key);
+    if (pos != object_impl::end(_repr.words.data.object) && pos->first == key)
     {
         pos->second = std::move(val);
         return { object_iterator(pos), false };
     }
     else
     {
-        pos = object_impl::emplace(_data.object, object_impl::index_of(_data.object, pos), key, std::move(val));
+        pos = object_impl::emplace(_repr.words.data.object, object_impl::index_of(_repr.words.data.object, pos), key, std::move(val));
         return { object_iterator(pos), true };
     }
 }
@@ -381,12 +381,12 @@ std::pair<value::object_iterator, bool> value::insert_or_assign(const std::wstri
 value::size_type value::erase(const std::string& key)
 {
     check_type(jsonv::kind::object, kind());
-    auto pos = object_impl::find(_data.object, key);
-    if (pos == object_impl::end(_data.object))
+    auto pos = object_impl::find(_repr.words.data.object, key);
+    if (pos == object_impl::end(_repr.words.data.object))
         return 0U;
 
-    auto index = object_impl::index_of(_data.object, pos);
-    object_impl::erase(_data.object, index, index + 1U);
+    auto index = object_impl::index_of(_repr.words.data.object, pos);
+    object_impl::erase(_repr.words.data.object, index, index + 1U);
     return 1U;
 }
 
@@ -399,17 +399,17 @@ value::size_type value::erase(const std::wstring& key)
 value::object_iterator value::erase(const_object_iterator position)
 {
     check_type(jsonv::kind::object, kind());
-    auto index = object_impl::index_of(_data.object, position._member);
-    object_impl::erase(_data.object, index, index + 1U);
-    return object_iterator(object_impl::data(_data.object) + index);
+    auto index = object_impl::index_of(_repr.words.data.object, position._member);
+    object_impl::erase(_repr.words.data.object, index, index + 1U);
+    return object_iterator(object_impl::data(_repr.words.data.object) + index);
 }
 
 value::object_iterator value::erase(const_object_iterator first, const_object_iterator last)
 {
     check_type(jsonv::kind::object, kind());
-    auto first_index = object_impl::index_of(_data.object, first._member);
-    object_impl::erase(_data.object, first_index, object_impl::index_of(_data.object, last._member));
-    return object_iterator(object_impl::data(_data.object) + first_index);
+    auto first_index = object_impl::index_of(_repr.words.data.object, first._member);
+    object_impl::erase(_repr.words.data.object, first_index, object_impl::index_of(_repr.words.data.object, last._member));
+    return object_iterator(object_impl::data(_repr.words.data.object) + first_index);
 }
 
 object_node_handle value::extract(const_object_iterator position)
@@ -418,13 +418,13 @@ object_node_handle value::extract(const_object_iterator position)
 
     // Being able to rewrite the key of an extracted element is the whole point of a node handle, so the key moves out
     // of the object rather than being copied.
-    auto         index  = object_impl::index_of(_data.object, position._member);
-    member_type& member = object_impl::data(_data.object)[index];
+    auto         index  = object_impl::index_of(_repr.words.data.object, position._member);
+    member_type& member = object_impl::data(_repr.words.data.object)[index];
     object_node_handle out(object_node_handle::purposeful_construction(),
                            std::move(member.first),
                            std::move(member.second)
                           );
-    object_impl::erase(_data.object, index, index + 1U);
+    object_impl::erase(_repr.words.data.object, index, index + 1U);
     return out;
 }
 

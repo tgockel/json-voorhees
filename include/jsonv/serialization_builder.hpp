@@ -646,7 +646,7 @@ namespace jsonv
 ///  .member("display_name", &my_type::display_name)
 ///      .default_value([] (deserialization_context& context)
 ///                     {
-///                         return context.source_value().value().at("name").as_string();
+///                         return std::string(context.source_value().value().at("name").as_string());
 ///                     }
 ///                    )
 /// \endcode
