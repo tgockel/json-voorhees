@@ -421,8 +421,8 @@ private:
         value       container;
         /// For an object: the key of the member whose value comes next.
         std::string key;
-        /// For an object: what fills it. It holds onto the object's storage, which moving \c container leaves where
-        /// it is.
+        /// For an object: what fills it. It holds onto \c container, which has to stay where it is until the object
+        /// is finished.
         std::optional<detail::object_builder> members;
     };
 
@@ -458,9 +458,8 @@ private:
 
 private:
     /// The structures being built, innermost last. A \c std::deque never moves the frames it holds as it grows, so the
-    /// open structures stay put however deep the document goes. A \c std::vector would have to move them, and under
-    /// MSVC an \c object_builder's move allocates and so may throw part way through; an \c object_builder can not be
-    /// copied instead, because the copy would still fill the original object.
+    /// open structures stay put however deep the document goes, which each \c object_builder relies on. A
+    /// \c std::vector would have to move them, and moving a frame leaves its builder filling the moved-from object.
     std::deque<frame> _open;
     value              _root;
     bool               _has_root = false;

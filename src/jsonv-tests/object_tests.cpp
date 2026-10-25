@@ -1151,6 +1151,22 @@ TEST(object_parse_members_share_an_allocation)
     ensure_eq(cost(R"({"a":1})"), cost(R"({"a":1,"b":2,"c":3,"d":4,"e":5,"f":6,"g":7,"h":8})"));
 }
 
+// The members share their allocation with the object's size and capacity, and an empty object holds no allocation, so
+// an object holding an empty object costs what one holding a number does.
+TEST(object_parse_empty_object_holds_no_allocation)
+{
+    auto cost = [] (const std::string& text)
+                {
+                    using jsonv_test::allocation_counter;
+                    allocation_counter allocations(allocation_counter::counted::past_iterator_proxies);
+                    jsonv::value       parsed = jsonv::parse(text);
+                    return allocations.count();
+                };
+
+    ensure_eq(cost("1"), cost("{}"));
+    ensure_eq(cost(R"({"a":1})"), cost(R"({"a":{}})"));
+}
+
 /// Parsing makes room for every member the text has, repeats included. An object whose repeats leave most of that room
 /// unused gives it back, so it holds no more than an object parsed from its one member would: adding a member costs
 /// both the same.

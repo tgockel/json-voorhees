@@ -20,23 +20,20 @@
 #include <string>
 #include <string_view>
 #include <utility>
-#include <vector>
 
-#include "detail/cloneable.hpp"
+#include "detail/counted_block.hpp"
 
 namespace jsonv::detail
 {
 
-/// The members of an object, kept sorted by key in one contiguous array. Every member is one element of \c _members, so
-/// an object costs a single allocation for all of them, rather than one per member.
-class JSONV_LOCAL object_impl :
-        public cloneable<object_impl>
+/// The members of an object, kept sorted by key in one contiguous array: what \c value_storage::object points at, or
+/// null for an empty object with no room. The members share one allocation with the object's size and capacity, so an
+/// object costs a single allocation rather than one per member.
+class JSONV_LOCAL object_impl final :
+        public counted_block<std::pair<std::string, jsonv::value>, object_impl>
 {
 public:
-    using member_type    = std::pair<std::string, jsonv::value>;
-    using members_type   = std::vector<member_type>;
-    using iterator       = members_type::iterator;
-    using const_iterator = members_type::const_iterator;
+    using member_type = std::pair<std::string, jsonv::value>;
 
     /// Orders a member against a key, for \c std::lower_bound.
     struct key_less
@@ -48,52 +45,56 @@ public:
     };
 
 public:
-    bool empty() const;
-
-    value::size_type size() const;
-
-    /// The first member whose key is not less than \a key.
-    iterator lower_bound(std::string_view key)
+    static member_type* end(object_impl* self) noexcept
     {
-        return std::lower_bound(_members.begin(), _members.end(), key, key_less());
+        return data(self) + size(self);
     }
 
-    const_iterator lower_bound(std::string_view key) const
+    static const member_type* end(const object_impl* self) noexcept
     {
-        return std::lower_bound(_members.begin(), _members.end(), key, key_less());
+        return data(self) + size(self);
+    }
+
+    /// The first member whose key is not less than \a key.
+    static member_type* lower_bound(object_impl* self, std::string_view key)
+    {
+        return std::lower_bound(data(self), end(self), key, key_less());
+    }
+
+    static const member_type* lower_bound(const object_impl* self, std::string_view key)
+    {
+        return std::lower_bound(data(self), end(self), key, key_less());
     }
 
     /// The member with \a key, or the end if there is none.
-    iterator find(std::string_view key)
+    static member_type* find(object_impl* self, std::string_view key)
     {
-        auto pos = lower_bound(key);
-        return pos != _members.end() && pos->first == key ? pos : _members.end();
+        auto pos = lower_bound(self, key);
+        return pos != end(self) && pos->first == key ? pos : end(self);
     }
 
-    const_iterator find(std::string_view key) const
+    static const member_type* find(const object_impl* self, std::string_view key)
     {
-        auto pos = lower_bound(key);
-        return pos != _members.end() && pos->first == key ? pos : _members.end();
+        auto pos = lower_bound(self, key);
+        return pos != end(self) && pos->first == key ? pos : end(self);
     }
 
     /// Where a member with \a key belongs: \a hint if it is the right place, since then the key needs no search, and
     /// otherwise \ref lower_bound. The member there may already have \a key.
-    iterator position_for(const_iterator hint, std::string_view key);
+    static member_type* position_for(object_impl* self, const member_type* hint, std::string_view key);
 
-    /// The address of the member at \a pos, which is what a \c value::object_iterator holds. \a pos may be the end.
-    member_type* address_of(const_iterator pos) noexcept
+    /// The index of the member at \a pos, which may be the end.
+    static size_type index_of(const object_impl* self, const member_type* pos) noexcept
     {
-        return _members.data() + (pos - _members.cbegin());
+        return static_cast<size_type>(pos - data(self));
     }
 
-    /// The position of the member at \a address, which came from \ref address_of.
-    iterator position_of(const member_type* address) noexcept
-    {
-        return _members.begin() + (address - _members.data());
-    }
+private:
+    explicit object_impl(size_type capacity) noexcept :
+            counted_block(capacity)
+    { }
 
-public:
-    members_type _members;
+    friend class counted_block<member_type, object_impl>;
 };
 
 /// Fills an empty object with members which arrive in no particular order. Inserting into a sorted array one member at
@@ -108,16 +109,20 @@ public:
 /// them. A tree bounds each lookup at \c O(log n) whatever the keys, as the \c std::map objects were once stored in
 /// did.
 ///
-/// A builder refers to its object's storage, not to the \c value holding it, so moving that \c value leaves the
-/// builder valid. It can not be copied: the copy would still fill the original object.
+/// A builder refers to the pointer to its object's members in the \c value holding the object, since adding a member
+/// can move the members to a larger block. That \c value must stay where it is until \ref finish. A builder can not be
+/// copied: the copy would still fill the original object.
 class JSONV_LOCAL object_builder final
 {
 public:
+    using member_type = object_impl::member_type;
+
+public:
     /// Build into \a target, which must have no members, with room for \a expected_size of them.
-    explicit object_builder(object_impl& target, std::size_t expected_size = 0U) :
-            _members(&target._members)
+    explicit object_builder(object_impl*& target, std::size_t expected_size = 0U) :
+            _target(&target)
     {
-        _members->reserve(expected_size);
+        object_impl::reserve(target, expected_size);
     }
 
     object_builder(const object_builder&)            = delete;
@@ -132,23 +137,23 @@ public:
     ///
     /// \returns The member with \a key and \c true, or where \ref add puts it and \c false. The position is good until
     ///  the next call to \ref add.
-    std::pair<object_impl::iterator, bool> find(std::string_view key)
+    std::pair<member_type*, bool> find(std::string_view key)
     {
         if (_index)
             return find_indexed(*_index, key);
 
-        auto pos = std::lower_bound(_members->begin(), _members->end(), key, object_impl::key_less());
-        return { pos, pos != _members->end() && pos->first == key };
+        auto pos = object_impl::lower_bound(*_target, key);
+        return { pos, pos != object_impl::end(*_target) && pos->first == key };
     }
 
     /// Add a member with \a key and \a val at \a where, which \ref find returned for \a key. If this throws, \a key
     /// and \a val are as they were and the object is unchanged.
-    void add(object_impl::iterator where, std::string&& key, value&& val)
+    void add(member_type* where, std::string&& key, value&& val)
     {
         // `emplace` can not fail once it has moved from its arguments: the only thing which can throw is allocating a
-        // larger array, which comes first.
-        if (!_index && _members->size() < sorted_insert_limit)
-            _members->emplace(where, std::move(key), std::move(val));
+        // larger block, which comes first.
+        if (!_index && object_impl::size(*_target) < sorted_insert_limit)
+            object_impl::emplace(*_target, object_impl::index_of(*_target, where), std::move(key), std::move(val));
         else
             add_indexed(where, std::move(key), std::move(val));
     }
@@ -162,23 +167,24 @@ public:
     {
         if (_index)
             sort_indexed();
-        if (_members->capacity() / 2U > _members->size())
-            _members->shrink_to_fit();
+        if (object_impl::capacity(*_target) / 2U > object_impl::size(*_target))
+            object_impl::shrink_to_fit(*_target);
     }
 
 private:
     /// How many members are inserted in key order before the rest are appended and indexed.
     static constexpr std::size_t sorted_insert_limit = 16U;
 
-    /// Orders positions in \c _members by the key of the member there, and keys directly, so the index can be
-    /// searched with a \c std::string_view.
+    /// Orders positions in the object by the key of the member there, and keys directly, so the index can be searched
+    /// with a \c std::string_view. It looks the members up through the \c value's pointer each time, since adding a
+    /// member can move them.
     struct key_of_position
     {
         using is_transparent = void;
 
-        const object_impl::members_type* members;
+        object_impl* const* target;
 
-        std::string_view key(std::size_t pos) const noexcept { return (*members)[pos].first; }
+        std::string_view key(std::size_t pos) const noexcept { return object_impl::data(*target)[pos].first; }
         std::string_view key(std::string_view key) const noexcept { return key; }
 
         template <typename T, typename U>
@@ -191,17 +197,17 @@ private:
     using index_type = std::set<std::size_t, key_of_position>;
 
     /// \ref find once there is an \a index.
-    std::pair<object_impl::iterator, bool> find_indexed(const index_type& index, std::string_view key);
+    std::pair<member_type*, bool> find_indexed(const index_type& index, std::string_view key);
 
     /// \ref add once there is an index, or when this member is the one which needs it built.
-    void add_indexed(object_impl::iterator where, std::string&& key, value&& val);
+    void add_indexed(member_type* where, std::string&& key, value&& val);
 
     /// \ref finish once there is an index.
     void sort_indexed();
 
 private:
-    object_impl::members_type* _members;
-    std::optional<index_type>  _index;
+    object_impl**             _target;
+    std::optional<index_type> _index;
 };
 
 }

@@ -50,6 +50,7 @@ set(jsonv_private_headers
     detail/architecture.hpp
     detail/attributes.hpp
     detail/cloneable.hpp
+    detail/counted_block.hpp
     detail/fallthrough.hpp
     detail/fast_float/fast_float.h
     detail/fixed_map.hpp

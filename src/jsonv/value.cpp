@@ -120,7 +120,7 @@ value::value(const value& other) :
     switch (other.kind())
     {
     case jsonv::kind::object:
-        _data.object = other._data.object->clone();
+        _data.object = detail::object_impl::copy(other._data.object);
         break;
     case jsonv::kind::array:
         _data.array = detail::array_impl::copy(other._data.array);
@@ -445,7 +445,7 @@ void value::clear()
     switch (_kind)
     {
     case jsonv::kind::object:
-        delete _data.object;
+        detail::object_impl::destroy(_data.object);
         break;
     case jsonv::kind::array:
         detail::array_impl::destroy(_data.array);
@@ -568,7 +568,7 @@ bool value::empty() const noexcept
     switch (kind())
     {
     case jsonv::kind::object:
-        return _data.object->empty();
+        return detail::object_impl::size(_data.object) == 0U;
     case jsonv::kind::array:
         return detail::array_impl::size(_data.array) == 0U;
     case jsonv::kind::string:
@@ -592,7 +592,7 @@ value::size_type value::size() const
     switch (kind())
     {
     case jsonv::kind::object:
-        return _data.object->size();
+        return detail::object_impl::size(_data.object);
     case jsonv::kind::array:
         return detail::array_impl::size(_data.array);
     case jsonv::kind::string:

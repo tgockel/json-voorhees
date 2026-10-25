@@ -109,8 +109,9 @@ public:
 ///    An object behaves like a \c std::flat_map: its members are kept sorted by key in one contiguous array, so it
 ///    iterates in key order, looking a key up is a binary search, and inserting or erasing shifts the members after
 ///    the position and invalidates iterators and references to them. Dereferencing an \c object_iterator gives an
-///    \c object_reference, a proxy like \c std::flat_map::reference. If you feel the documentation is lacking, read
-///    this: http://en.cppreference.com/w/cpp/container/flat_map. This library follows the recommendation in RFC 7159
+///    \c object_reference, a proxy like \c std::flat_map::reference. The members share one allocation with the
+///    object's size and capacity, and an empty object may hold no allocation at all. If you feel the documentation is
+///    lacking, read this: http://en.cppreference.com/w/cpp/container/flat_map. This library follows the recommendation in RFC 7159
 ///    to not allow for duplicate keys because most other libraries can not deal with it. It would also make the AST
 ///    significantly more painful.
 ///

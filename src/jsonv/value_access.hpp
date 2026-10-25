@@ -47,13 +47,13 @@ struct JSONV_LOCAL value_access final
     /// Add \a item to the end of \a array, which must be a \c kind::array.
     static void array_push_back(value& array, value&& item)
     {
-        array_impl::push_back(array._data.array, std::move(item));
+        array_impl::emplace_back(array._data.array, std::move(item));
     }
 
-    /// The storage of \a object, which must be a \c kind::object -- for an \c object_builder to fill.
-    static object_impl& object_storage(value& object) noexcept
+    /// The pointer to the members of \a object, which must be a \c kind::object -- for an \c object_builder to fill.
+    static object_impl*& object_storage(value& object) noexcept
     {
-        return *object._data.object;
+        return object._data.object;
     }
 };
 

@@ -19,6 +19,18 @@
 #   endif
 #endif
 
+/// \def JSONV_NOINLINE
+/// \brief Never inline the function this decorates. For a rarely taken path, so it does not bloat its hot callers.
+#ifndef JSONV_NOINLINE
+#   if defined(__GNUC__)
+#       define JSONV_NOINLINE __attribute__((noinline))
+#   elif defined(_MSC_VER)
+#       define JSONV_NOINLINE __declspec(noinline)
+#   else
+#       define JSONV_NOINLINE
+#   endif
+#endif
+
 /// \def JSONV_LIKELY
 /// Mark that a section of code is likely to be reached.
 ///
