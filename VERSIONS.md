@@ -737,6 +737,12 @@
        disagreed under anything but the default. The same goes for an adapter on the `value` bridge, which is handed the
        tree this builds, and for `read_value(deserialization_context&, reader&)` generally; `read_value(reader&)` has no
        options and still keeps the last (#263).
+     - A malformed subtree read from JSON text is placed where the deserialization says, as a repeated key is. Under
+       `deserialize<value>`, the coercing string deserializer or an adapter on the `value` bridge, a truncated object or
+       array was reported at the reader's own path, so a base path or a `path_scope` was dropped -- `.a[2]` for what
+       belongs at `.payload.a[2]` -- and one read from a reader which had run out was reported at no path at all. It is
+       now placed under the deserialization's own location where it has one, followed by what lies below where the read
+       began (#296).
      - `polymorphic_adapter` reads the reader directly instead of a `value` materialised for it. Choosing a subtype
        means looking at the value before deserializing it, which a forward cursor cannot do by itself, so the
        discriminators are shown the value through a second cursor on the same source -- the reader itself never moves

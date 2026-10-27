@@ -1354,6 +1354,228 @@ TEST(deserialize_value_repeated_key_is_placed_where_the_context_says)
     ensure_eq(path::create(".x[1].a"),          placed(nested, jsonv::path(),            std::nullopt));
 }
 
+namespace
+{
+
+/// The one problem recorded by deserializing a `value` from \a rdr, which has to fail, under a context with the given
+/// base path and -- if there is one -- a scope naming where the deserializer is.
+deserialization_error::problem failed_read(reader& rdr, jsonv::path base, std::optional<std::string_view> scope)
+{
+    deserialization_context                            cxt(formats::defaults(), std::nullopt, std::move(base));
+    std::optional<deserialization_context::path_scope> named;
+    if (scope)
+        named.emplace(cxt, *scope);
+
+    ensure(!cxt.deserialize<value>(rdr).has_value());
+    ensure_eq(1U, cxt.problems().size());
+    return cxt.problems().at(0);
+}
+
+}
+
+TEST(deserialize_value_malformed_subtree_is_placed_where_the_context_says)
+{
+    // Each of these fails part-way through the subtree, and `read_value` says where from the reader's position. A
+    // context with a location of its own is authoritative over that, as it is for any other problem, and the part
+    // below where the read began is still the reader's to say. The reader is handed over already on the value, so
+    // nothing validates the document first and it is the read which finds the fault.
+    const struct
+    {
+        std::string_view fragment;
+        std::string_view message;
+        std::string_view relative;
+    } cases[] = {
+        { R"({ "a": [ 1, 2 )",    "Unexpected token of type", ".a[2]"  },
+        { R"({ "a": { "b": 1, )", "Read node of type",        ".a.b"   },
+        { R"({ "a": { )",         "Read node of type",        ".a"     },
+        { R"([ 0, [ 1, )",        "Unexpected token of type", "[1][1]" },
+    };
+
+    for (const auto& scenario : cases)
+    {
+        auto placed = [&scenario] (jsonv::path base, std::optional<std::string_view> scope)
+                      {
+                          auto rdr = open(scenario.fragment);
+                          return failed_read(rdr, std::move(base), scope);
+                      };
+
+        const auto relative = [&scenario] (std::string_view prefix)
+                              {
+                                  return path::create(std::string(prefix) + std::string(scenario.relative));
+                              };
+
+        ensure(placed(jsonv::path(), std::nullopt).message().starts_with(scenario.message));
+
+        ensure_eq(relative(""),          placed(jsonv::path(),            std::nullopt).path());
+        ensure_eq(relative(".payload"),  placed(path::create(".payload"), std::nullopt).path());
+        ensure_eq(relative(".renamed"),  placed(jsonv::path(),            "renamed").path());
+    }
+}
+
+TEST(deserialize_value_malformed_subtree_places_only_what_lies_below_where_the_read_began)
+{
+    // A read which begins part-way into a document has a path of its own up to the value it is on. That prefix is the
+    // context's to supply, so only what lies below the value is the reader's -- and counting one element too many
+    // would carry the last of the prefix along with it.
+    auto onto_x = [] (std::string_view text)
+                  {
+                      auto rdr = open(text);
+                      (void) rdr.next_token();   // onto the key "x"
+                      (void) rdr.next_token();   // onto x's value
+                      return rdr;
+                  };
+
+    // Each is read from a reader of its own, since a failed read leaves the one it read from past the failure.
+    auto placed = [&onto_x] (std::string_view text, jsonv::path base, std::optional<std::string_view> scope)
+                  {
+                      auto rdr = onto_x(text);
+                      return failed_read(rdr, std::move(base), scope).path();
+                  };
+
+    const std::string_view object_text = R"({ "x": { "a": { )";
+    const std::string_view array_text  = R"({ "x": [ 1, )";
+
+    ensure_eq(path::create(".x"), onto_x(object_text).current_path());
+
+    ensure_eq(path::create(".x.a"),        placed(object_text, jsonv::path(),            std::nullopt));
+    ensure_eq(path::create(".payload.a"),  placed(object_text, path::create(".payload"), std::nullopt));
+    ensure_eq(path::create(".renamed.a"),  placed(object_text, jsonv::path(),            "renamed"));
+
+    ensure_eq(path::create(".x[1]"),       placed(array_text,  jsonv::path(),            std::nullopt));
+    ensure_eq(path::create(".payload[1]"), placed(array_text,  path::create(".payload"), std::nullopt));
+    ensure_eq(path::create(".renamed[1]"), placed(array_text,  jsonv::path(),            "renamed"));
+}
+
+TEST(deserialize_value_mismatched_close_is_placed_where_the_context_says)
+{
+    // A token which closes the wrong structure has already taken that structure's element off the reader's path. On the
+    // `}` of `{ "x": [ 1 }` the path is `.x`, which is where a read from the `[` began, so none of it lies below the
+    // read -- and counting the structure's element anyway would carry the reader's own `x` into a location where it
+    // does not belong.
+    const struct
+    {
+        std::string_view fragment;
+        std::size_t      steps;
+        std::string_view message;
+        std::string_view onto;
+        std::string_view relative;
+    } cases[] = {
+        // An array closed by `}`, and an object closed by `]`.
+        { R"({ "x": [ 1 })",                 2U, "Unexpected token of type", ".x", ""      },
+        { R"({ "x": [ })",                   2U, "Unexpected token of type", ".x", ""      },
+        { R"({ "x": { "a": 1 ])",            2U, "Read node of type",        ".x", ""      },
+        // With structures between the failure and where the read began, those are still the reader's to say.
+        { R"({ "x": [ [ 1 })",               2U, "Unexpected token of type", ".x", "[0]"   },
+        { R"({ "x": [ { "a": [ 1 } ] })",    2U, "Unexpected token of type", ".x", "[0].a" },
+        // Where the read began is not always a member of an object.
+        { R"([ { "a": 1 ])",                 1U, "Read node of type",        "[0]", ""     },
+        { R"([ [ 1 })",                      1U, "Unexpected token of type", "[0]", ""     },
+    };
+
+    for (const auto& scenario : cases)
+    {
+        // Each is read from a reader of its own, since a failed read leaves the one it read from past the failure.
+        auto positioned = [&scenario]
+                          {
+                              auto rdr = open(scenario.fragment);
+                              for (std::size_t step = 0U; step < scenario.steps; ++step)
+                                  (void) rdr.next_token();
+                              return rdr;
+                          };
+
+        auto placed = [&positioned] (jsonv::path base, std::optional<std::string_view> scope)
+                      {
+                          auto rdr = positioned();
+                          return failed_read(rdr, std::move(base), scope);
+                      };
+
+        const auto relative = [&scenario] (std::string_view prefix)
+                              {
+                                  return path::create(std::string(prefix) + std::string(scenario.relative));
+                              };
+
+        ensure_eq(path::create(std::string(scenario.onto)), positioned().current_path());
+        ensure(placed(jsonv::path(), std::nullopt).message().starts_with(scenario.message));
+
+        // With no location of its own, the reader's path is the whole answer.
+        ensure_eq(relative(scenario.onto),  placed(jsonv::path(),            std::nullopt).path());
+        ensure_eq(relative(".payload"),     placed(path::create(".payload"), std::nullopt).path());
+        ensure_eq(relative(".renamed"),     placed(jsonv::path(),            "renamed").path());
+    }
+}
+
+TEST(deserialize_value_at_the_end_of_the_input_is_placed_where_the_context_says)
+{
+    // A reader which has run out has no path to name, so the read has nowhere to point but where it began.
+    auto placed = [] (jsonv::path base, std::optional<std::string_view> scope)
+                  {
+                      auto rdr = open("[ 1 ]");
+                      while (rdr.next_token())
+                      { }
+                      ensure(!rdr.good());
+                      return failed_read(rdr, std::move(base), scope);
+                  };
+
+    auto bare = placed(jsonv::path(), std::nullopt);
+    ensure(bare.message().starts_with("Unexpected end of input"));
+    ensure_eq(jsonv::path(), bare.path());
+
+    ensure_eq(path::create(".payload"), placed(path::create(".payload"), std::nullopt).path());
+    ensure_eq(path::create(".renamed"), placed(jsonv::path(),            "renamed").path());
+}
+
+TEST(deserialize_peek_malformed_subtree_is_placed_where_the_context_says)
+{
+    // A peek reads a subtree as `read_value` does, and places what it refuses the same way.
+    const std::string_view text = R"({ "k": [ 1, 2 )";
+    reader                 rdr(text);
+    (void) rdr.next_token();   // onto the `{`
+
+    auto thrown_at = [] (jsonv::path base, auto peek) -> jsonv::path
+                     {
+                         deserialization_context cxt(formats::defaults(), std::nullopt, std::move(base));
+                         try
+                         {
+                             (void) peek(cxt);
+                         }
+                         catch (const deserialization_error& ex)
+                         {
+                             return ex.path();
+                         }
+                         ensure(false);
+                         return jsonv::path();
+                     };
+
+    auto members = [&rdr] (const deserialization_context& cxt) { return detail::peek_members(cxt, rdr, { "k" }); };
+    auto whole   = [&rdr] (const deserialization_context& cxt) { return detail::peek_value(cxt, rdr); };
+
+    ensure_eq(path::create(".payload.k[2]"), thrown_at(path::create(".payload"), members));
+    ensure_eq(path::create(".payload.k[2]"), thrown_at(path::create(".payload"), whole));
+    ensure_eq(path::create(".k[2]"),         thrown_at(jsonv::path(),            members));
+    ensure_eq(path::create(".k[2]"),         thrown_at(jsonv::path(),            whole));
+}
+
+TEST(deserialize_bridge_from_text_places_a_malformed_subtree_where_the_context_says)
+{
+    // An adapter on the `value` bridge and the coercing string deserializer both read through `read_value`, so what
+    // they refuse is placed under the context's location as well.
+    const std::string_view text = R"({ "a": [ 1, )";
+
+    deserialization_context bridged(bridged_formats(), std::nullopt, path::create(".payload"));
+    auto                    bridged_rdr = open(text);
+
+    ensure(!bridged.deserialize<bridged_triple>(bridged_rdr).has_value());
+    ensure_eq(1U, bridged.problems().size());
+    ensure_eq(path::create(".payload.a[1]"), bridged.problems().at(0).path());
+
+    deserialization_context coercing(formats::coerce(), std::nullopt, path::create(".payload"));
+    auto                    coercing_rdr = open(text);
+
+    ensure(!coercing.deserialize<std::string>(coercing_rdr).has_value());
+    ensure_eq(1U, coercing.problems().size());
+    ensure_eq(path::create(".payload.a[1]"), coercing.problems().at(0).path());
+}
+
 TEST(deserialize_bridge_from_text_settles_a_repeated_key_by_the_options)
 {
     // An adapter on the `value` bridge is handed the tree the bridge built, so whichever value of a repeated key that

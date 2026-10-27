@@ -731,7 +731,69 @@ void detail::deserialize_entry(deserialization_context&   context,
 /// \param depth How many structures enclose this value below where the read began.
 static value read_value_impl(reader& from, deserialize_options::duplicate_key_action on_duplicate, std::size_t depth);
 
-static std::string read_key(const reader& from)
+namespace
+{
+
+/// A failure part-way through reading a \c value. Its path is the reader's, which is the whole answer only for a
+/// deserialization with no location of its own; so it also says how much of that path lies below where the read began,
+/// which is the part the reader is still right about. See \c relocate.
+class read_value_error final :
+        public deserialization_error
+{
+public:
+    explicit read_value_error(jsonv::path where, std::string message, std::size_t below) noexcept :
+            deserialization_error(std::move(where), std::move(message)),
+            _below(below)
+    { }
+
+    /// How many trailing elements of \c path lie below where the read began: one for each structure between the
+    /// failure and the value the read started on, and one for the failure's own key if it has one.
+    JSONV_NODISCARD
+    std::size_t below() const noexcept { return _below; }
+
+private:
+    std::size_t _below;
+};
+
+}
+
+/// Is \a from on a token which closes a structure? Not knowing is not being on one.
+static bool on_closing_token(const reader& from) noexcept
+{
+    try
+    {
+        if (from.good())
+        {
+            auto type = from.current_type();
+            return type == ast_node_type::object_end || type == ast_node_type::array_end;
+        }
+    }
+    catch (...) // NOLINT(bugprone-empty-catch): this is asked while describing some other failure
+    { }
+
+    return false;
+}
+
+/// Fail the read \a from is part-way through with \a message, naming where \a from is. \a below is how many trailing
+/// elements of that path lie below where the read began, for a reader on a token inside the structure it is reading.
+///
+/// A token which closes a structure is not inside it: the reader's path has already left the structure, which takes
+/// that structure's element with it. Reading `{ "x": [ 1 }` from the `[` is one -- the path on the `}` is `.x`, which
+/// is where the read began, so none of it is the reader's to add. That is one element less than \a below counts.
+///
+/// A reader which has run out has no path to name, so for one \a below has nothing to count and the failure is placed
+/// where the read began.
+[[noreturn]] static void throw_read_error(const reader& from, std::string message, std::size_t below)
+{
+    if (below > 0U && on_closing_token(from))
+        --below;
+
+    throw read_value_error(safe_current_path(from), std::move(message), below);
+}
+
+/// \param depth How many structures enclose the object being read, below where the read began.
+/// \param keyed Whether a key of that object has been read already.
+static std::string read_key(const reader& from, std::size_t depth, bool keyed)
 {
     const auto& node = from.current();
     switch (node.type())
@@ -744,35 +806,12 @@ static std::string read_key(const reader& from)
     {
         std::ostringstream os;
         os << "Read node of type " << describe(node.type()) << " when expecting an object key";
-        throw deserialization_error(safe_current_path(from), std::move(os).str());
+
+        // Where a key belonged, the reader's path ends with the last key read in this object -- or with the object
+        // itself, if none was -- so only a key which was read is one more element below where the read began.
+        throw_read_error(from, std::move(os).str(), depth + (keyed ? 1U : 0U));
     }
     }
-}
-
-namespace
-{
-
-/// A key refused for repeating, part-way through reading a \c value. Its path is the reader's, which is the whole
-/// answer only for a deserialization with no location of its own; so it also says how much of that path lies below
-/// where the read began, which is the part the reader is still right about. See \c relocate.
-class duplicate_key_error final :
-        public deserialization_error
-{
-public:
-    explicit duplicate_key_error(jsonv::path where, std::string message, std::size_t below) noexcept :
-            deserialization_error(std::move(where), std::move(message)),
-            _below(below)
-    { }
-
-    /// How many trailing elements of \c path lie below where the read began: the repeated key, and one for each
-    /// structure between it and the value the read started on.
-    JSONV_NODISCARD
-    std::size_t below() const noexcept { return _below; }
-
-private:
-    std::size_t _below;
-};
-
 }
 
 /// Refuse the object \a from is part-way through for repeating \a key, which \a from is on, \a depth structures below
@@ -783,13 +822,13 @@ private:
     std::string message("Duplicate key in object: \"");
     message.append(key);
     message.append("\"");
-    throw duplicate_key_error(safe_current_path(from), std::move(message), depth + 1U);
+    throw_read_error(from, std::move(message), depth + 1U);
 }
 
 /// Translate \a ex for \a context. Where the context has a location of its own -- a base path, or a scope saying where
 /// the deserializer is -- that location is authoritative over the reader's, as \c deserialization_context::problem_path
 /// has it, and only the part below where the read began is the reader's to add. With none, the reader's path stands.
-static deserialization_error relocate(const deserialization_context& context, const duplicate_key_error& ex)
+static deserialization_error relocate(const deserialization_context& context, const read_value_error& ex)
 {
     jsonv::path located = context.path();
     if (located.empty())
@@ -839,6 +878,7 @@ static value read_object(reader& from, deserialize_options::duplicate_key_action
     {
         value                  out = object();
         detail::object_builder members(detail::value_access::object_storage(out));
+        bool                   keyed = false;
         while (from.good())
         {
             if (from.current_type() == ast_node_type::object_end)
@@ -849,7 +889,8 @@ static value read_object(reader& from, deserialize_options::duplicate_key_action
                 return out;
             }
 
-            std::string key = read_key(from);
+            std::string key = read_key(from, depth, keyed);
+            keyed           = true;
 
             // Settled while the cursor is still on the key, so a refusal names the key which repeated. The default
             // keeps whichever value comes last. Reading the value builds nothing in this object, so the position stays
@@ -889,7 +930,7 @@ static value read_object(reader& from, deserialize_options::duplicate_key_action
         throw;
     }
 
-    throw deserialization_error(jsonv::path(), "Unterminated object");
+    throw_read_error(from, "Unterminated object", 0U);
 }
 
 static value read_array(reader& from, deserialize_options::duplicate_key_action on_duplicate, std::size_t depth)
@@ -918,7 +959,7 @@ static value read_array(reader& from, deserialize_options::duplicate_key_action 
         throw;
     }
 
-    throw deserialization_error(jsonv::path(), "Unterminated array");
+    throw_read_error(from, "Unterminated array", 0U);
 }
 
 static value read_scalar(const ast_node& node)
@@ -975,7 +1016,10 @@ static value read_value_impl(reader& from, deserialize_options::duplicate_key_ac
 
     std::ostringstream os;
     os << "Unexpected token of type " << describe(node.type()) << " while reading a value";
-    throw deserialization_error(safe_current_path(from), std::move(os).str());
+
+    // Where a value belonged, the reader's path is the key or index of each structure down to it, which is the
+    // structures this value is enclosed by.
+    throw_read_error(from, std::move(os).str(), depth);
 }
 
 /// Is a node the whole of a value, rather than the opening of a structure which has to be walked to be read?
@@ -1097,7 +1141,7 @@ static value read_value_settling(reader& from, deserialize_options::duplicate_ke
         (void) from.next_token();
 
     if (!from.good())
-        throw deserialization_error(jsonv::path(), "Unexpected end of input while reading a value");
+        throw_read_error(from, "Unexpected end of input while reading a value", 0U);
 
     return read_value_impl(from, on_duplicate, 0U);
 }
@@ -1122,10 +1166,10 @@ value read_value(deserialization_context& context, reader& from)
     {
         return read_value_settling(from, context.options().on_duplicate_key());
     }
-    catch (const duplicate_key_error& ex)
+    catch (const read_value_error& ex)
     {
-        // Only an object refuses a repeated key, and it is walked to its end before the refusal gets out.
-        context.note_value_consumed(from);
+        if (structure)
+            context.note_value_consumed(from);
         throw relocate(context, ex);
     }
     catch (...)
@@ -1150,7 +1194,7 @@ value detail::peek_value(const deserialization_context& context, const reader& f
     {
         return read_value_settling(probe, context.options().on_duplicate_key());
     }
-    catch (const duplicate_key_error& ex)
+    catch (const read_value_error& ex)
     {
         throw relocate(context, ex);
     }
@@ -1168,7 +1212,7 @@ value detail::peek_value_at(const deserialization_context& context, const reader
     {
         return read_value_settling(probe, context.options().on_duplicate_key());
     }
-    catch (const duplicate_key_error& ex)
+    catch (const read_value_error& ex)
     {
         throw relocate(context, ex);
     }
@@ -1241,7 +1285,7 @@ value detail::peek_members(const deserialization_context&                 contex
             out[*std::move(wanted)] = read_value_impl(probe, on_duplicate, 1U);
         }
     }
-    catch (const duplicate_key_error& ex)
+    catch (const read_value_error& ex)
     {
         throw relocate(context, ex);
     }

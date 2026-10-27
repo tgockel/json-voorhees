@@ -894,6 +894,10 @@ JSONV_NODISCARD JSONV_PUBLIC value read_value(reader& from);
 /// A repeated key is settled by \a context's \c deserialize_options::on_duplicate_key, as \c parse settles it for the
 /// same options: \c replace keeps the last value, \c ignore the first, and \c exception refuses the object.
 ///
+/// A failure is placed where \a context says, as any other problem is: under its base path or a live
+/// \c deserialization_context::path_scope when it has one, followed by whatever lies below where the read began. With
+/// neither, the reader's own path stands -- and a reader which has run out has none to give.
+///
 /// \throws deserialization_error for a repeated key under \c deserialize_options::duplicate_key_action::exception, as
 ///                               well as for everything \ref read_value throws it for.
 JSONV_NODISCARD JSONV_PUBLIC value read_value(deserialization_context& context, reader& from);
@@ -908,7 +912,7 @@ namespace detail
 /// \param context The deserialization this is peeking for. What is peeked at is going to be read again for real, and
 ///                the two have to agree about which value a repeated key has, so one is settled by \a context's
 /// \c deserialize_options::on_duplicate_key exactly as \ref read_value settles it for \a context -- and a
-/// refusal is placed where \a context says, as \ref read_value places one.
+/// failure is placed where \a context says, as \ref read_value places one.
 ///
 /// \throws Whatever \ref read_value throws for the same subtree, including for a repeated key under
 ///  \c deserialize_options::duplicate_key_action::exception.
