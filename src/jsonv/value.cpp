@@ -292,6 +292,26 @@ value* existing_child(value& current, const path_element& elem)
     }
 }
 
+/// \overload
+const value* existing_child(const value& current, const path_element& elem)
+{
+    switch (elem.kind())
+    {
+    case path_element_kind::array_index:
+        check_type({ jsonv::kind::array, jsonv::kind::null }, current.kind());
+        if (current.kind() != jsonv::kind::array || elem.index() >= current.size())
+            return nullptr;
+        return &current.at(elem.index());
+    case path_element_kind::object_key:
+        check_type({ jsonv::kind::object, jsonv::kind::null }, current.kind());
+        if (current.kind() != jsonv::kind::object || !current.count(elem.key()))
+            return nullptr;
+        return &current.at(elem.key());
+    default:
+        throw std::runtime_error(to_string(elem));
+    }
+}
+
 /// Gives \a node the element \a elem names, as a \c null, and returns it. A \c null \a node becomes the container
 /// \a elem indexes. \a elem must not name an element \a node already has, and an array index must be one an array can
 /// hold: for the largest \c std::size_t, `index + 1` wraps to 0 and the \c resize would empty the array.
@@ -387,21 +407,24 @@ value& value::path(size_type path_idx)
 
 value::size_type value::count_path(const jsonv::path& p) const
 {
-    // TODO(#148): Performance of this function sucks!
-    try
+    // Walk the path the same way `value::path` follows what already exists: `existing_child` answers whether each
+    // step is there instead of throwing when it is not, so a missing or wrong-kind element just stops the walk.
+    const value* current = this;
+    for (const path_element& elem : p)
     {
-        // Called for the throw -- presence is the answer, not the value found.
-        (void) at_path(p);
-        return 1;
+        try
+        {
+            current = existing_child(*current, elem);
+        }
+        catch (const kind_error&)
+        {
+            return 0;
+        }
+
+        if (!current)
+            return 0;
     }
-    catch (const std::out_of_range&)
-    {
-        return 0;
-    }
-    catch (const kind_error&)
-    {
-        return 0;
-    }
+    return 1;
 }
 
 value::size_type value::count_path(std::string_view p) const
