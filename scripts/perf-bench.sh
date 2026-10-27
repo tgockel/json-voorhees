@@ -9,6 +9,7 @@
 #   scripts/perf-bench.sh -f deserialize           # every deserialization row
 #   scripts/perf-bench.sh -f deserialize/citm      # deserialization rows over citm_catalog.json
 #   scripts/perf-bench.sh -f serialize             # every serialization row
+#   scripts/perf-bench.sh -f as_wstring            # every value::as_wstring row
 #
 # -f is read from just after "benchmark/", so it names the group of rows before the
 # input: "-f canada" matches nothing, and a filter which matches nothing is an error.
@@ -32,6 +33,9 @@
 #     to_string() of that, "to_text" is serialize() to text through a writer without a
 #     value, and "to_value" is to_json() alone, which writes through a writer into a
 #     value_encoder. They run 10 iterations too.
+#   - The "as_wstring/<case>" rows time value::as_wstring, UTF-8 to UTF-16, over about a
+#     megabyte of one kind of text each -- ascii, latin, cyrillic, japanese, emoji -- and
+#     over the 20000 short strings of the "deserialize/strings_*" rows.
 #   - An existing build/ must be configured Release (or with no build type, which
 #     CMakeLists.txt turns into Release) and without JSONV_SANITIZE. Anything else is
 #     refused rather than reconfigured. With no build/, the script configures one.

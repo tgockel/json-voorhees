@@ -764,6 +764,157 @@ private:
     std::deque<std::unique_ptr<unit_test>> _tests;
 } serialize_benchmark_initializer_instance;
 
+// The `as_wstring/` rows time converting the UTF-8 a `value` holds into a `std::wstring`, which is UTF-16 everywhere.
+// What that costs depends on which lengths of UTF-8 sequence the text is made of and how often it moves between them,
+// so each long case is about a megabyte of one kind of text. `short` converts each of the strings the `strings_*` rows
+// above decode, which is closer to what a document is made of: about 50 bytes apiece, mostly ASCII.
+
+void append_utf8(std::string& out, char32_t code)
+{
+    if (code < 0x80U)
+    {
+        out += char(code);
+    }
+    else if (code < 0x800U)
+    {
+        out += char(0xc0U | (code >> 6));
+        out += char(0x80U | (code & 0x3fU));
+    }
+    else if (code < 0x10000U)
+    {
+        out += char(0xe0U | (code >> 12));
+        out += char(0x80U | ((code >> 6) & 0x3fU));
+        out += char(0x80U | (code & 0x3fU));
+    }
+    else
+    {
+        out += char(0xf0U | (code >> 18));
+        out += char(0x80U | ((code >> 12) & 0x3fU));
+        out += char(0x80U | ((code >> 6) & 0x3fU));
+        out += char(0x80U | (code & 0x3fU));
+    }
+}
+
+/// About a megabyte of text, appended a piece at a time by \a append_piece from a `std::minstd_rand`, whose output the
+/// standard fixes, so that every platform builds the same text.
+template <typename FAppend>
+std::vector<std::string> synthesize_text(FAppend append_piece)
+{
+    std::minstd_rand pick;
+    std::string      out;
+    while (out.size() < 1000000U)
+        append_piece(pick, out);
+    return { std::move(out) };
+}
+
+/// Printable ASCII.
+std::vector<std::string> synthesize_ascii()
+{
+    return synthesize_text([] (std::minstd_rand& pick, std::string& out) { out += char(0x20U + pick() % 95U); });
+}
+
+/// Lowercase ASCII and spaces, with one character in ten an é, è, à or ç -- 2 bytes each -- as in French.
+std::vector<std::string> synthesize_latin()
+{
+    return synthesize_text([] (std::minstd_rand& pick, std::string& out)
+                           {
+                               static const char32_t accented[] = { 0xe9U, 0xe8U, 0xe0U, 0xe7U };
+
+                               switch (pick() % 10U)
+                               {
+                               case 0:  append_utf8(out, accented[pick() % 4U]); break;
+                               case 1:  out += ' ';                              break;
+                               default: out += char('a' + pick() % 26U);         break;
+                               }
+                           });
+}
+
+/// Words of 3 to 9 Cyrillic letters, 2 bytes each, with a space after every word.
+std::vector<std::string> synthesize_cyrillic()
+{
+    return synthesize_text([] (std::minstd_rand& pick, std::string& out)
+                           {
+                               for (auto letters = 3U + pick() % 7U; letters > 0U; --letters)
+                                   append_utf8(out, 0x430U + pick() % 32U);
+                               out += ' ';
+                           });
+}
+
+/// Hiragana, katakana and CJK ideographs, 3 bytes each, with a number in ASCII digits one piece in twenty.
+std::vector<std::string> synthesize_japanese()
+{
+    return synthesize_text([] (std::minstd_rand& pick, std::string& out)
+                           {
+                               auto kind = pick() % 20U;
+                               if (kind == 0U)
+                                   out += std::to_string(pick() % 10000U);
+                               else if (kind <= 8U)
+                                   append_utf8(out, 0x3041U + pick() % 83U);    // hiragana
+                               else if (kind <= 12U)
+                                   append_utf8(out, 0x30a1U + pick() % 83U);    // katakana
+                               else
+                                   append_utf8(out, 0x4e00U + pick() % 0x5200U);
+                           });
+}
+
+/// Emoji, 4 bytes and a surrogate pair each, with a space one character in four.
+std::vector<std::string> synthesize_emoji()
+{
+    return synthesize_text([] (std::minstd_rand& pick, std::string& out)
+                           {
+                               if (pick() % 4U == 0U)
+                                   out += ' ';
+                               else
+                                   append_utf8(out, 0x1f600U + pick() % 0x50U);
+                           });
+}
+
+class as_wstring_benchmark_test :
+        public unit_test
+{
+public:
+    using loader = std::vector<std::string> (*)();
+
+public:
+    as_wstring_benchmark_test(const std::string& name, loader load) :
+            unit_test("benchmark/as_wstring/" + name),
+            load(load)
+    { }
+
+    virtual void run_impl() override
+    {
+        const std::vector<std::string> texts = load();
+        const std::vector<value>       from(texts.begin(), texts.end());
+
+        std::size_t expected_units = 0U;
+        for (const value& text : from)
+            expected_units += text.as_wstring().size();
+
+        stopwatch timer;
+        for (unsigned cnt = 0; cnt < iterations; ++cnt)
+        {
+            std::size_t units = 0U;
+            {
+                JSONV_TEST_TIME(timer);
+                for (const value& text : from)
+                    units += text.as_wstring().size();
+            }
+            ensure_eq(expected_units, units);
+        }
+        std::cout << timer.get();
+    }
+
+private:
+    loader load;
+};
+
+as_wstring_benchmark_test as_wstring_benchmark_ascii_instance("ascii", synthesize_ascii);
+as_wstring_benchmark_test as_wstring_benchmark_latin_instance("latin", synthesize_latin);
+as_wstring_benchmark_test as_wstring_benchmark_cyrillic_instance("cyrillic", synthesize_cyrillic);
+as_wstring_benchmark_test as_wstring_benchmark_japanese_instance("japanese", synthesize_japanese);
+as_wstring_benchmark_test as_wstring_benchmark_emoji_instance("emoji", synthesize_emoji);
+as_wstring_benchmark_test as_wstring_benchmark_short_instance("short", [] { return benchmark_strings(); });
+
 }
 
 }
