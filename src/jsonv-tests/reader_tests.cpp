@@ -1793,6 +1793,23 @@ TEST(reader_validate_throws_for_text_which_did_not_parse)
     }
 }
 
+/// A document `require_document` refused used to end in an `error` node whose text was 2^56 bytes past the source, so
+/// walking onto it and copying that text read unmapped memory.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/414
+TEST(reader_walks_onto_a_require_document_refusal)
+{
+    std::string_view source = "  1";
+    jsonv::reader    rdr(source, jsonv::parse_options().require_document(true));
+
+    while (rdr.good() && rdr.current_type() != jsonv::ast_node_type::error)
+        (void) rdr.next_token();
+
+    ensure(rdr.good());
+    ensure_eq(std::string("1"), std::string(rdr.current().token_raw()));
+    ensure(rdr.current().token_raw().data() == source.data() + 2);
+}
+
 TEST(reader_validate_never_throws_for_a_value)
 {
     jsonv::reader::from_value(jsonv::parse("[ 1, 2 ]")).validate();

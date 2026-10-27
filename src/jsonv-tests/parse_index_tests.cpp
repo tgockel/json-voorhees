@@ -447,6 +447,56 @@ TEST(ast_parse_nul_outside_a_string_is_refused)
     }
 }
 
+/// `require_document` was checked after the document was closed and reported at the start of the input, which put the
+/// `error` node behind the `document_end` before it. `iterator::operator++` takes a position which goes backward to be
+/// the low 56 bits of a pointer wrapping, so it decoded the error to a pointer 2^56 bytes past the source. The refusal
+/// now comes before the document is closed, at the value which is not an object or array.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/414
+TEST(ast_parse_require_document_refusal_stays_in_the_source)
+{
+    struct
+    {
+        std::string_view src;
+        std::string_view tape;
+        std::size_t      at;
+    }
+    const cases[] =
+    {
+        { "1",            "^i!", 0U },
+        { "  1",          "^i!", 2U },
+        { " \"s\" ",      "^s!", 1U },
+        { "/* c */ true", "^t!", 8U },
+        // With no value, it is where the document starts.
+        { "",             "^!",  0U },
+        { "   ",          "^!",  0U },
+    };
+
+    auto options = jsonv::parse_options().require_document(true).comments(true);
+    for (const auto& c : cases)
+    {
+        auto ast = jsonv::parse_index::parse(c.src, options);
+        ensure_eq(c.tape, to_string(ast));
+
+        for (const auto& node : ast)
+        {
+            auto at = node.token_raw().data();
+            ensure(c.src.data() <= at && at <= c.src.data() + c.src.size());
+        }
+
+        try
+        {
+            ast.validate();
+            ensure(!"parse_error was not thrown");
+        }
+        catch (const jsonv::parse_error& ex)
+        {
+            ensure_eq(c.at, ex.character().value());
+            ensure(std::string_view(ex.what()).ends_with(to_string(jsonv::ast_error::expected_document)));
+        }
+    }
+}
+
 /// An opener reserves slots for its matching close token and its element count, but neither is known until that close
 /// token arrives. A failed parse must still leave them determinate, because `iterator::operator*` reads the element
 /// count unconditionally when it builds an `object_begin` or `array_begin`.

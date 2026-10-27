@@ -214,12 +214,18 @@ TEST(documents_parse_options_apply_to_each)
         ensure(!parse_failure_of(*iter));
         ++iter;
 
-        // A document which is not an object or array is reported where it starts, which is where the one before it
-        // ended.
+        // A document which is not an object or array is reported at its value, in the whole input. The error node is
+        // there as well, rather than behind the document's end (#414).
         auto failure = parse_failure_of(*iter);
         ensure(failure);
-        ensure_eq(source.find(" 3"), failure->character().value());
+        ensure_eq(source.find('3'), failure->character().value());
         ensure(std::string_view(failure->what()).ends_with(to_string(jsonv::ast_error::expected_document)));
+
+        jsonv::reader& doc = *iter;
+        while (doc.good() && doc.current_type() != jsonv::ast_node_type::error)
+            (void) doc.next_token();
+        ensure(doc.good());
+        ensure(doc.current().token_raw().data() == source.data() + source.find('3'));
         ++iter;
         ensure(iter == docs.end());
     }

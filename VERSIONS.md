@@ -144,6 +144,14 @@
        the heap before parsing began. A capacity whose size cannot be represented now throws `std::length_error`, as
        `std::vector::reserve` does past `max_size()`. One which can be represented but not allocated still throws
        `std::bad_alloc` (#221).
+     - Fixed a document refused by `parse_options::require_document` leaving an `error` node which decoded to a pointer
+       2^56 bytes past the source on 64-bit builds. The refusal was checked after the document was closed and placed
+       at the start of the input, behind the `document_end` before it, and the index's iterator took the step back to
+       be a pointer wrapping. A `reader` walked onto that node handed out its text from unmapped memory. The refusal
+       now comes before the document is closed and sits at the value which is not an object or array, so
+       `parse_error::character()` for `  1` is `2` rather than `0`. Input holding no value is still reported at its
+       start. As for every other failed parse, the tape stops at the `error` node rather than carrying a
+       `document_end` (#414).
      - Major refactoring of the parsing from the pull-based `tokenizer` into the flat-structured `parse_index`
      - Removed support for more lax parser settings -- a parsed `parse_index` has been validated
      - Removed `parse_options::complete_parse`. It let 1.x read one document after another off a `tokenizer`, but the

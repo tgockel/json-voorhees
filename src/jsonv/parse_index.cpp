@@ -752,26 +752,36 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
         throw push_error(self, ast_error::unexpected_eof, begin, iter);
     }
 
-    push_back_out(ast_node_type::document_end, ast_node_type::document_start, iter);
-
+    // Checked before the document is closed, so that a refusal goes on the tape after the value it is about rather than
+    // behind the `document_end`. `iterator::operator++` takes a position behind the one before it to be the low 56 bits
+    // of a pointer wrapping, and would decode the error to a pointer far outside the source (#414).
     if (options.require_document())
     {
-        auto first_token = ast_node_type_from_coded(self->data(code_size(ast_node_type::document_start)));
+        // Only the `document_start` is on the tape when the input held no value. After the last of several documents
+        // that is whitespace and comments, which is no document at all rather than one which is not an object or array.
+        const std::size_t value_slot = code_size(ast_node_type::document_start);
+        const bool        has_value  = self->data_size > value_slot;
 
-        // What follows the last of several documents is whitespace and comments, which is no document at all rather
-        // than one that is not an object or array.
-        if constexpr (Extent == parse_extent::first_value)
+        if (has_value || Extent == parse_extent::whole_input)
         {
-            if (first_token == ast_node_type::document_end)
-                return iter;
-        }
+            const auto value_type = has_value ? ast_node_type_from_coded(self->data(value_slot))
+                                              : ast_node_type::document_end;
 
-        if (first_token != ast_node_type::object_begin && first_token != ast_node_type::array_begin)
-        {
-            JSONV_UNLIKELY
-            throw push_error(*&self, ast_error::expected_document, begin, begin + from);
+            if (value_type != ast_node_type::object_begin && value_type != ast_node_type::array_begin)
+            {
+                JSONV_UNLIKELY;
+
+                // At the value which is not an object or array, or where the document starts if it holds none.
+                const char* location = begin + from;
+                if (has_value)
+                    fastforward_space(location);
+
+                throw push_error(self, ast_error::expected_document, begin, location);
+            }
         }
     }
+
+    push_back_out(ast_node_type::document_end, ast_node_type::document_start, iter);
 
     return iter;
 }
