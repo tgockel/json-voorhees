@@ -24,10 +24,15 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include "detail/architecture.hpp"
 #include "detail/attributes.hpp"
 #include "detail/fixed_map.hpp"
 #include "detail/is_print.hpp"
 #include "detail/utf8.hpp"
+
+#if JSONV_SSE2
+#   include <emmintrin.h>
+#endif
 
 namespace jsonv
 {
@@ -490,12 +495,47 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding)
 }
 
 /// The number of UTF-16 code units the UTF-8 \a source decodes into. This does not validate \a source -- the
-/// conversion loop below remains the only validator, and it rejects everything this over-counts.
-static std::size_t utf16_length_of_utf8(std::string_view source) noexcept
+/// conversion below remains the only validator, and it rejects everything this over-counts.
+///
+/// The count is 64 bits wide, since a byte of 0xf0 or above counts 2: where \c std::size_t is 32 bits, a \a source of
+/// about 2 GiB can count past what it holds.
+template <bool use_sse2>
+static std::uint64_t utf16_length_of_utf8(std::string_view source) noexcept
 {
-    std::size_t units = 0;
+    std::uint64_t units = 0;
+    std::size_t   idx   = 0;
 
-    for (std::size_t idx = 0; idx < source.size(); ++idx)
+#if JSONV_SSE2
+    if constexpr (use_sse2)
+    {
+        // The same count as the loop below, 16 bytes at a time: every byte counts 1, a continuation byte 1 less and a
+        // byte of 0xf0 or above 1 more. `_mm_sad_epu8` adds up each 8 of those counts into a 64-bit half of `sums`.
+        const __m128i zero = _mm_setzero_si128();
+        const __m128i one  = _mm_set1_epi8(1);
+        __m128i       sums = zero;
+        for (; source.size() - idx >= 16; idx += 16)
+        {
+            const __m128i chunk = _mm_loadu_si128(reinterpret_cast<const __m128i*>(source.data() + idx));
+
+            // The comparison is signed, so the continuation bytes 0x80 through 0xbf are the ones below -64.
+            const __m128i continuation = _mm_cmplt_epi8(chunk, _mm_set1_epi8(-64));
+            const __m128i four_byte    = _mm_cmpeq_epi8(_mm_max_epu8(chunk, _mm_set1_epi8(static_cast<char>(0xf0))),
+                                                        chunk
+                                                       );
+
+            // Each comparison is -1 where it holds, so this is 1 - continuation + four_byte.
+            const __m128i counts = _mm_sub_epi8(_mm_add_epi8(one, continuation), four_byte);
+            sums = _mm_add_epi64(sums, _mm_sad_epu8(counts, zero));
+        }
+
+        // Through memory rather than `_mm_cvtsi128_si64`, which 32-bit x86 does not have.
+        std::uint64_t halves[2];
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(halves), sums);
+        units = halves[0] + halves[1];
+    }
+#endif
+
+    for (; idx < source.size(); ++idx)
     {
         // NOTE(tgockel): `char` is signed here, so these comparisons must be made on an `unsigned char`. See issue
         // #108 for what signed `char` bit tests have cost us before.
@@ -514,94 +554,343 @@ static std::size_t utf16_length_of_utf8(std::string_view source) noexcept
     return units;
 }
 
-std::wstring convert_to_wide(std::string_view source)
+/// Why \c transcode_one could not transcode the sequence in front of it.
+enum class utf8_error : unsigned char
 {
-    auto expected_size = utf16_length_of_utf8(source);
+    none,
+    invalid_lead,
+    truncated,
+    invalid_continuation,
+    overlong,
+    surrogate,
+    too_large,
+};
 
-    std::wstring out;
-    out.reserve(expected_size);
-
-    for (std::size_t source_idx = 0; source_idx < source.size(); /* inline */)
+/// The message \c convert_to_wide throws \a error with.
+static const char* utf8_error_message(utf8_error error) noexcept
+{
+    switch (error)
     {
-        // The loop condition covers the first read and the `source_idx + steps` check below covers the rest, so an
-        // unchecked subscript is always in range here.
-        auto next_source = [&] () -> char32_t
-                           {
-                               assert(source_idx < source.size());
-                               return static_cast<unsigned char>(source[source_idx++]);
-                           };
+    case utf8_error::invalid_lead:
+        return "Invalid UTF-8: Invalid character";
+    case utf8_error::truncated:
+        return "Invalid UTF-8: encoding sequence extends past end of source";
+    case utf8_error::invalid_continuation:
+        return "Invalid UTF-8: invalid character";
+    case utf8_error::overlong:
+        return "Invalid UTF-8: overlong encoding";
+    case utf8_error::surrogate:
+        return "Invalid UTF-8: surrogate code point is not a Unicode character";
+    case utf8_error::too_large:
+        return "Invalid UTF-8: code point is too large";
+    case utf8_error::none:
+        break;
+    }
 
-        char32_t    codepoint;
-        std::size_t steps;
+    assert(false);
+    return "Invalid UTF-8";
+}
 
-        auto c = next_source();
-        if (c <= 0x7f)
+/// Transcode the UTF-8 sequence at \a in, which must be before \a end, into one or two UTF-16 code units at \a out, and
+/// move both past it. If the sequence is not well-formed, nothing is written, neither moves, and the result says why.
+///
+/// This returns its errors rather than throwing them, since \c convert_to_wide calls it from inside
+/// \c std::wstring::resize_and_overwrite, which must not be left by an exception.
+static utf8_error transcode_one(const char*& in, const char* end, wchar_t*& out) noexcept
+{
+    const char* iter        = in;
+    auto        next_source = [&] () -> char32_t { return static_cast<unsigned char>(*iter++); };
+
+    char32_t    codepoint;
+    std::size_t steps;
+
+    auto c = next_source();
+    if (c <= 0x7f)
+    {
+        codepoint = c;
+        steps     = 0;
+    }
+    else if (c <= 0xbf)
+    {
+        return utf8_error::invalid_lead;
+    }
+    else if (c <= 0xdf)
+    {
+        codepoint = c & 0x1f;
+        steps     = 1;
+    }
+    else if (c <= 0xef)
+    {
+        codepoint = c & 0x0f;
+        steps     = 2;
+    }
+    else if (c <= 0xf7)
+    {
+        codepoint = c & 0x07;
+        steps     = 3;
+    }
+    else
+    {
+        return utf8_error::invalid_lead;
+    }
+
+    // This covers every read below; the one above was covered by the caller.
+    if (static_cast<std::size_t>(end - iter) < steps)
+        return utf8_error::truncated;
+
+    for (std::size_t step = 0; step < steps; ++step)
+    {
+        auto in_c = next_source();
+        if (in_c < 0x80 || in_c > 0xbf)
+            return utf8_error::invalid_continuation;
+
+        codepoint = (codepoint << 6) | (in_c & 0x3fU);
+    }
+
+    // The smallest code point each sequence length may encode -- anything below has a shorter encoding.
+    static constexpr char32_t shortest_form_minimum[] = { 0x0U, 0x80U, 0x800U, 0x10000U };
+    if (codepoint < shortest_form_minimum[steps])
+        return utf8_error::overlong;
+
+    if (codepoint >= 0xd800U && codepoint <= 0xdfffU)
+        return utf8_error::surrogate;
+
+    if (codepoint > 0x10ffffU)
+        return utf8_error::too_large;
+
+    if (codepoint <= 0xffffU)
+    {
+        *out++ = wchar_t(codepoint);
+    }
+    else
+    {
+        uint16_t high, low;
+        utf16_create_surrogates(codepoint, &high, &low);
+        *out++ = wchar_t(high);
+        *out++ = wchar_t(low);
+    }
+
+    in = iter;
+    return utf8_error::none;
+}
+
+// The SSE2 kernel writes each UTF-16 code unit as a 32-bit `wchar_t`. Where `wchar_t` is 16 bits, as on Windows, the
+// scalar loop does all of the transcoding.
+#if JSONV_SSE2 && WCHAR_MAX > 0xffff
+#   define JSONV_WIDE_SSE2 1
+#else
+#   define JSONV_WIDE_SSE2 0
+#endif
+
+#if JSONV_WIDE_SSE2
+
+/// How many sequences of \a length bytes to keep from the front of a step, given \a accepted, the \c _mm_movemask_epi8
+/// of the lanes which hold well-formed ones. The first which is not well-formed ends the count.
+static std::size_t leading_accepted(unsigned accepted, std::size_t length) noexcept
+{
+    // The mask has 16 bits, so its complement is never 0, which `__builtin_ctz` has no answer for.
+    return static_cast<std::size_t>(__builtin_ctz(~accepted)) / length;
+}
+
+/// Write the 4 UTF-16 code units in the 32-bit lanes of \a units at \a out.
+static void store_units(wchar_t* out, __m128i units) noexcept
+{
+    _mm_storeu_si128(reinterpret_cast<__m128i*>(out), units);
+}
+
+/// Write the 8 UTF-16 code units in the 16-bit lanes of \a units at \a out, widening each to 32 bits.
+static void store_short_units(wchar_t* out, __m128i units) noexcept
+{
+    const __m128i zero = _mm_setzero_si128();
+    store_units(out,     _mm_unpacklo_epi16(units, zero));
+    store_units(out + 4, _mm_unpackhi_epi16(units, zero));
+}
+
+/// Transcode what \c transcode_one would from \a in, 16 bytes at a time, and move \a in and \a out past it. This stops
+/// at the first sequence it does not handle -- one of 4 bytes, or one which is not well-formed -- and when fewer than
+/// 16 bytes are left before \a end, leaving them for \c transcode_one.
+///
+/// The lead byte at \a in decides how the 16 bytes are read: as 16 ASCII characters, 8 sequences of 2 bytes, or 4 of 3,
+/// these being the shapes simdutf's transcoder also takes in one step. Only a run of well-formed sequences at the front
+/// is kept, so text which moves between lengths takes a step at each change. Every lane is checked as it is decoded,
+/// against what \c transcode_one checks for a sequence of its length, and the first which fails ends the run there --
+/// nothing is accepted here which \c transcode_one would refuse.
+///
+/// A step which keeps every lane moves on by a constant, in a branch the processor predicts, rather than by a count it
+/// works out from the chunk. That lets the next chunk be loaded before this one is finished with, which is most of the
+/// speed over a long run: counted, each step waits on the whole of the one before it.
+///
+/// Each step writes all of the code units it decoded at \a out, kept or not, and \a out only moves past the kept ones.
+/// The others are written over by the steps after, so \a out needs room for 16 units past the last one kept.
+static void transcode_sse2(const char*& in, const char* end, wchar_t*& out) noexcept
+{
+    const __m128i zero = _mm_setzero_si128();
+
+    while (end - in >= 16)
+    {
+        const auto lead = static_cast<unsigned char>(*in);
+        if (lead >= 0xf0U)
+            return;
+
+        const __m128i chunk = _mm_loadu_si128(reinterpret_cast<const __m128i*>(in));
+        if (lead < 0x80U)
         {
-            codepoint = c;
-            steps     = 0;
+            // Every ASCII byte is a code unit already, and the first byte which is not ASCII ends the run.
+            store_short_units(out,     _mm_unpacklo_epi8(chunk, zero));
+            store_short_units(out + 8, _mm_unpackhi_epi8(chunk, zero));
+
+            const auto non_ascii = static_cast<unsigned>(_mm_movemask_epi8(chunk));
+            if (non_ascii == 0U)
+            {
+                in  += 16;
+                out += 16;
+                continue;
+            }
+
+            const auto count = static_cast<unsigned>(__builtin_ctz(non_ascii));
+            in  += count;
+            out += count;
         }
-        else if (c <= 0xbf)
+        else if (lead < 0xe0U)
         {
-            throw std::range_error("Invalid UTF-8: Invalid character");
-        }
-        else if (c <= 0xdf)
-        {
-            codepoint = c & 0x1f;
-            steps     = 1;
-        }
-        else if (c <= 0xef)
-        {
-            codepoint = c & 0x0f;
-            steps     = 2;
-        }
-        else if (c <= 0xf7)
-        {
-            codepoint = c & 0x07;
-            steps     = 3;
+            // Each 16-bit lane is a 2-byte sequence: `110xxxxx` in the low byte and `10yyyyyy` in the high.
+            const __m128i code = _mm_or_si128(_mm_slli_epi16(_mm_and_si128(chunk, _mm_set1_epi16(0x1f)), 6),
+                                              _mm_and_si128(_mm_srli_epi16(chunk, 8), _mm_set1_epi16(0x3f))
+                                             );
+            const __m128i well_formed =
+                _mm_cmpeq_epi16(_mm_and_si128(chunk, _mm_set1_epi16(static_cast<short>(0xc0e0))),
+                                _mm_set1_epi16(static_cast<short>(0x80c0))
+                               );
+            const __m128i not_overlong = _mm_cmpgt_epi16(code, _mm_set1_epi16(0x7f));
+            store_short_units(out, code);
+
+            const auto accepted = static_cast<unsigned>(_mm_movemask_epi8(_mm_and_si128(well_formed, not_overlong)));
+            if (accepted == 0xffffU)
+            {
+                in  += 16;
+                out += 8;
+                continue;
+            }
+
+            const auto count = leading_accepted(accepted, 2);
+            if (count == 0)
+                return;
+
+            in  += 2 * count;
+            out += count;
         }
         else
         {
-            throw std::range_error("Invalid UTF-8: Invalid character");
-        }
+            // 3-byte sequence `j` is bytes `3j` through `3j + 2`, each one byte further along than the 32-bit lane `j`
+            // starts, so moving the chunk up `j` bytes puts it at the bottom of that lane. The top byte of each lane
+            // is the next sequence's lead, which nothing below looks at.
+            const __m128i sequences =
+                _mm_or_si128(_mm_or_si128(_mm_and_si128(chunk,                    _mm_set_epi32(0,  0,  0,  -1)),
+                                          _mm_and_si128(_mm_slli_si128(chunk, 1), _mm_set_epi32(0,  0,  -1, 0))
+                                         ),
+                             _mm_or_si128(_mm_and_si128(_mm_slli_si128(chunk, 2), _mm_set_epi32(0,  -1, 0,  0)),
+                                          _mm_and_si128(_mm_slli_si128(chunk, 3), _mm_set_epi32(-1, 0,  0,  0))
+                                         )
+                            );
 
-        if (source_idx + steps > source.size())
-            throw std::range_error("Invalid UTF-8: encoding sequence extends past end of source");
+            // `1110xxxx 10yyyyyy 10zzzzzz` in increasing address order, so increasing significance.
+            const __m128i code =
+                _mm_or_si128(_mm_or_si128(_mm_slli_epi32(_mm_and_si128(sequences, _mm_set1_epi32(0x0f)), 12),
+                                          _mm_srli_epi32(_mm_and_si128(sequences, _mm_set1_epi32(0x3f00)), 2)
+                                         ),
+                             _mm_and_si128(_mm_srli_epi32(sequences, 16), _mm_set1_epi32(0x3f))
+                            );
+            const __m128i well_formed  = _mm_cmpeq_epi32(_mm_and_si128(sequences, _mm_set1_epi32(0x00c0c0f0)),
+                                                         _mm_set1_epi32(0x008080e0)
+                                                        );
+            const __m128i not_overlong = _mm_cmpgt_epi32(code, _mm_set1_epi32(0x7ff));
+            const __m128i surrogate    = _mm_cmpeq_epi32(_mm_and_si128(code, _mm_set1_epi32(0xf800)),
+                                                         _mm_set1_epi32(0xd800)
+                                                        );
+            store_units(out, code);
 
-        for (std::size_t step = 0; step < steps; ++step)
-        {
-            auto in_c = next_source();
-            if (in_c < 0x80 || in_c > 0xbf)
-                throw std::range_error("Invalid UTF-8: invalid character");
+            const auto accepted = static_cast<unsigned>(
+                _mm_movemask_epi8(_mm_andnot_si128(surrogate, _mm_and_si128(well_formed, not_overlong)))
+            );
+            if (accepted == 0xffffU)
+            {
+                in  += 12;
+                out += 4;
+                continue;
+            }
 
-            codepoint = (codepoint << 6) | (in_c & 0x3fU);
-        }
+            const auto count = leading_accepted(accepted, 4);
+            if (count == 0)
+                return;
 
-        // The smallest code point each sequence length may encode -- anything below has a shorter encoding.
-        static constexpr char32_t shortest_form_minimum[] = { 0x0U, 0x80U, 0x800U, 0x10000U };
-        if (codepoint < shortest_form_minimum[steps])
-            throw std::range_error("Invalid UTF-8: overlong encoding");
-
-        if (codepoint >= 0xd800U && codepoint <= 0xdfffU)
-            throw std::range_error("Invalid UTF-8: surrogate code point is not a Unicode character");
-
-        if (codepoint > 0x10ffffU)
-            throw std::range_error("Invalid UTF-8: code point is too large");
-
-        if (codepoint <= 0xffffU)
-        {
-            out += wchar_t(codepoint);
-        }
-        else
-        {
-            uint16_t high, low;
-            utf16_create_surrogates(codepoint, &high, &low);
-            out += wchar_t(high);
-            out += wchar_t(low);
+            in  += 3 * count;
+            out += count;
         }
     }
+}
+
+#endif
+
+template <bool use_sse2>
+static std::wstring convert_to_wide_impl(std::string_view source)
+{
+    auto expected_size = utf16_length_of_utf8<use_sse2>(source);
+
+    // `transcode_sse2` writes as many as 16 code units past the last one it keeps, and never runs on fewer than 16
+    // bytes. The units kept are always those of a well-formed prefix of `source`, which `expected_size` counts the same
+    // as the rest of it, so it cannot run past this even when `source` is not well-formed.
+    std::size_t slack = 0;
+    if constexpr (use_sse2 && JSONV_WIDE_SSE2)
+        slack = source.size() >= 16 ? 16 : 0;
+
+    // The room made here is all the conversion gets, so the count and the slack must reach it without wrapping: where
+    // `std::size_t` is 32 bits, a sum past 4 Gi would wrap into a buffer too small for what goes into it. A result too
+    // long for a `std::wstring` is refused, as reserving room for it always was.
+    utf8_error   error = utf8_error::none;
+    std::wstring out;
+    if (expected_size + slack > out.max_size())
+        throw std::length_error("convert_to_wide: the result is too long for a std::wstring");
+
+    out.resize_and_overwrite(static_cast<std::size_t>(expected_size + slack),
+                             [&] (wchar_t* buffer, std::size_t) noexcept
+                             {
+                                 const char* in   = source.data();
+                                 const char* end  = in + source.size();
+                                 wchar_t*    iter = buffer;
+                                 while (in != end)
+                                 {
+#if JSONV_WIDE_SSE2
+                                     if constexpr (use_sse2)
+                                     {
+                                         transcode_sse2(in, end, iter);
+                                         if (in == end)
+                                             break;
+                                     }
+#endif
+
+                                     error = transcode_one(in, end, iter);
+                                     if (error != utf8_error::none)
+                                         return std::size_t(0);
+                                 }
+                                 return static_cast<std::size_t>(iter - buffer);
+                             }
+                            );
+
+    if (error != utf8_error::none)
+        throw std::range_error(utf8_error_message(error));
 
     assert(out.size() == expected_size);
     return out;
+}
+
+std::wstring convert_to_wide(std::string_view source)
+{
+    return convert_to_wide_impl<true>(source);
+}
+
+std::wstring convert_to_wide_scalar(std::string_view source)
+{
+    return convert_to_wide_impl<false>(source);
 }
 
 /// The code unit \a unit holds, read at the full width of \c wchar_t. That is 32 bits on some platforms, and signed on

@@ -258,6 +258,12 @@
        `parse` keeps allocated while it builds the `value`. Peak memory parsing the nativejson-benchmark documents
        drops from 19.2 MiB to 14.0 MiB in total (`citm_catalog.json` 6.4 MiB to 3.7 MiB), and parse time does not
        change (#404).
+     - `value::as_wstring` converts with SSE2 where `wchar_t` is 32 bits, as on Linux and macOS on x86-64: 16 bytes at
+       a time over runs of ASCII and of 2- and 3-byte sequences, checking each sequence as it decodes it, and one
+       sequence at a time for the rest. The result, and every `std::range_error` down to its message, is the same as
+       before. A megabyte of ASCII converts in 0.16 ms rather than 2.5 ms, of Japanese in 0.53 ms rather than 1.9 ms,
+       and of Cyrillic or French in 1.0 ms rather than 2.2 to 2.8 ms; 20000 strings of about 50 bytes take 1.0 ms
+       rather than 3.2 ms (#297).
      - Fixed `ostream_encoder::ensure_ascii` being declared but never defined, so calling it failed to link and the
        UTF-8 passthrough it controls was out of reach. With it off, well-formed UTF-8 is now written out as it is,
        and `ostream_pretty_encoder` follows it too. Control characters are still escaped: the passthrough used to

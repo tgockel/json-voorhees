@@ -16,8 +16,11 @@
 #include <cwchar>
 #include <iomanip>
 #include <memory>
+#include <random>
 #include <sstream>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <utility>
 
 using jsonv::detail::decode_error;
@@ -478,4 +481,168 @@ TEST(convert_large_input_does_not_exhaust_the_stack)
     auto wide = jsonv::detail::convert_to_wide(large);
     ensure_eq(large.size(), wide.size());
     ensure_eq(large, jsonv::detail::convert_to_narrow(wide));
+}
+
+/// The bytes of \a source in hex, so that a failure can say which input it was about.
+static std::string bytes_to_hex(std::string_view source)
+{
+    std::ostringstream os;
+    os << std::hex << std::setfill('0');
+    for (std::size_t idx = 0; idx < source.size(); ++idx)
+        os << (idx ? " " : "") << std::setw(2) << static_cast<unsigned>(static_cast<unsigned char>(source[idx]));
+    return os.str();
+}
+
+/// What \a convert makes of \a source -- the code units it comes to, or the message it refuses it with -- after the hex
+/// of \a source itself. It reads from a heap block of exactly the size of \a source, so that AddressSanitizer reports a
+/// read past its end.
+static std::string wide_outcome(std::wstring (*convert)(std::string_view), std::string_view source)
+{
+    std::unique_ptr<char[]> buffer(new char[source.size()]);
+    std::copy(source.begin(), source.end(), buffer.get());
+
+    std::string out = bytes_to_hex(source) + " -> ";
+    try
+    {
+        out += wide_to_hex(convert(std::string_view(buffer.get(), source.size())));
+    }
+    catch (const std::range_error& ex)
+    {
+        out += std::string("std::range_error: ") + ex.what();
+    }
+    return out;
+}
+
+/// \c convert_to_wide takes SSE2 steps where it can, and \c convert_to_wide_scalar never does. They have to come to the
+/// same code units, or throw the same message, for every \a source_.
+#define ensure_wide_matches_scalar(source_)                                     \
+    ensure_eq(wide_outcome(jsonv::detail::convert_to_wide_scalar, source_),     \
+              wide_outcome(jsonv::detail::convert_to_wide,        source_)      \
+             )
+
+TEST(convert_to_wide_sse2_matches_scalar_around_each_sequence)
+{
+    // An SSE2 step reads 16 bytes as ASCII, 2-byte or 3-byte sequences, whichever the first byte begins, and keeps the
+    // well-formed ones at the front. So each of these goes at every offset of the first 32 bytes of a run of each
+    // length, which puts it in every lane of a step and across the edge between two, and both before more of the run
+    // and at the very end. Wherever it is, the result -- or the error -- has to be the scalar one.
+    static const std::string_view runs[] = { "x", "\xc3\xa9", "\xe6\x97\xa5" };    // 'x', U+00E9 and U+65E5
+
+    static const std::string_view well_formed[] =
+        {
+            std::string_view("\0", 1),
+            "\x7f",
+            "\xc2\x80",                 // U+0080, the first 2-byte code point...
+            "\xdf\xbf",                 // ...and U+07FF, the last
+            "\xe0\xa0\x80",             // U+0800
+            "\xed\x9f\xbf",             // U+D7FF and U+E000, either side of the surrogates
+            "\xee\x80\x80",
+            "\xef\xbf\xbf",             // U+FFFF
+            "\xf0\x90\x80\x80",         // U+10000
+            "\xf4\x8f\xbf\xbf",         // U+10FFFF
+        };
+
+    static const std::string_view ill_formed[] =
+        {
+            "\x80",                     // continuation bytes with no lead
+            "\xbf",
+            "\xc0\x80",                 // overlong encodings of U+0000, U+007F, U+07FF and U+FFFF
+            "\xc1\xbf",
+            "\xe0\x9f\xbf",
+            "\xf0\x8f\xbf\xbf",
+            "\xed\xa0\x80",             // surrogates encoded directly
+            "\xed\xbf\xbf",
+            "\xf4\x90\x80\x80",         // past U+10FFFF
+            "\xf5\x80\x80\x80",
+            "\xf8\x88\x80\x80\x80",     // a 5-byte sequence
+            "\xff",
+            "\xe2\x28\xa1",             // a sequence which is not continued
+            "\xc3",                     // sequences cut short
+            "\xe2\x98",
+            "\xf0\x9f\x98",
+            "\xc3\xa9\xa9",             // a continuation byte too many
+        };
+
+    for (auto run : runs)
+    {
+        for (std::size_t offset = 0; offset < 32; ++offset)
+        {
+            // Whole sequences of the run, after as much ASCII as puts the probe at `offset`.
+            std::string before(offset % run.size(), 'x');
+            for (std::size_t count = 0; count < offset / run.size(); ++count)
+                before += run;
+
+            std::string after;
+            while (after.size() < 32)
+                after += run;
+
+            for (auto probe : well_formed)
+            {
+                for (const std::string& source : { before + std::string(probe) + after, before + std::string(probe) })
+                {
+                    ensure_wide_matches_scalar(source);
+                    ensure_eq(source, jsonv::detail::convert_to_narrow(jsonv::detail::convert_to_wide(source)));
+                }
+            }
+
+            for (auto probe : ill_formed)
+            {
+                for (const std::string& source : { before + std::string(probe) + after, before + std::string(probe) })
+                {
+                    ensure_wide_matches_scalar(source);
+                    ensure_throws(std::range_error, jsonv::detail::convert_to_wide(source));
+                }
+            }
+        }
+    }
+}
+
+TEST(convert_to_wide_sse2_matches_scalar_on_random_text)
+{
+    // Text which moves between runs of code points from each of these at random, and so lines up with the 16-byte steps
+    // every way it can, and then the same text with one byte replaced -- which mostly leaves it ill-formed, in each of
+    // the ways it can be. `std::minstd_rand` gives every platform the same text.
+    static const char32_t blocks[][2] =
+        {
+            { 0x0000U,  0x007fU   },
+            { 0x0080U,  0x07ffU   },
+            { 0x0800U,  0xd7ffU   },
+            { 0xe000U,  0xffffU   },
+            { 0x10000U, 0x10ffffU },
+        };
+
+    std::minstd_rand pick;
+    for (std::size_t count = 0; count < 2000; ++count)
+    {
+        // The code units the text is made from, which are what it has to convert back to.
+        std::wstring expected;
+        for (std::size_t length = pick() % 200U; expected.size() < length; /* inline */)
+        {
+            const auto& block = blocks[pick() % 5U];
+            for (auto run = 1U + pick() % 20U; run > 0U; --run)
+            {
+                auto code = static_cast<char32_t>(block[0] + pick() % (block[1] - block[0] + 1U));
+                if (code < 0x10000U)
+                {
+                    expected += wchar_t(code);
+                }
+                else
+                {
+                    expected += wchar_t(0xd800U | ((code - 0x10000U) >> 10));
+                    expected += wchar_t(0xdc00U | ((code - 0x10000U) & 0x3ffU));
+                }
+            }
+        }
+
+        const std::string text = jsonv::detail::convert_to_narrow(expected);
+        ensure_wide_eq(expected, jsonv::detail::convert_to_wide(text));
+        ensure_wide_matches_scalar(text);
+
+        if (!text.empty())
+        {
+            std::string mutated = text;
+            mutated[pick() % mutated.size()] = static_cast<char>(pick() % 256U);
+            ensure_wide_matches_scalar(mutated);
+        }
+    }
 }

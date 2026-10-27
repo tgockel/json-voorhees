@@ -50,8 +50,15 @@ string_decode_fn get_string_decoder(parse_options::encoding encoding);
 
 /** Convert the UTF-8 encoded \a source into a UTF-16 encoded \c std::wstring. The result is UTF-16 even where
  *  \c wchar_t is 32 bits, so a code point outside the BMP takes a surrogate pair there too.
+ *
+ *  \throws std::range_error if \a source is not valid UTF-8, such as when it holds an overlong encoding, the encoding
+ *   of a surrogate or a sequence cut short. The message names the first problem in \a source.
 **/
 std::wstring convert_to_wide(std::string_view source);
+
+/// \c convert_to_wide without its SSE2 code, which is what it is on a platform without SSE2 or where \c wchar_t is 16
+/// bits. The two give the same result and throw the same message for every \a source, which the tests hold them to.
+std::wstring convert_to_wide_scalar(std::string_view source);
 
 /// \{
 /// Convert the UTF-16 encoded \a source into a UTF-8 encoded \c std::string. As with \c convert_to_wide, \a source is
