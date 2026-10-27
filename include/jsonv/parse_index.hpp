@@ -19,6 +19,7 @@ namespace jsonv
 {
 
 class deserialize_options;
+class documents;
 class parse_options;
 
 /// \addtogroup Value
@@ -224,6 +225,21 @@ private:
     struct impl;
 
     explicit parse_index(impl*) noexcept;
+
+    /// Reads one document after another out of the same input onto a single tape.
+    friend class documents;
+
+    /// Replace what this index holds with the first document in \a src at or after \a from, parsed with \a options.
+    /// The tape is reused rather than freed, and grows only when a document needs more of it than any before.
+    ///
+    /// The document ends with its value, so what follows the value is left for the next call rather than refused.
+    /// Positions count from the start of \a src, so an error in a document says where it is in the whole input.
+    ///
+    /// \returns Where the next document may begin: one past the value; or the end of \a src if the document failed to
+    ///  parse, since nothing says where it would have ended. Nothing if \a src holds only whitespace (and comments,
+    ///  where \a options allow them) from \a from on, which leaves this index holding an empty document.
+    /// \throws Whatever \c parse throws, leaving this index empty.
+    std::optional<std::size_t> parse_next(std::string_view src, std::size_t from, const parse_options& options);
 
 private:
     impl* _impl = nullptr;

@@ -149,6 +149,17 @@
      - Removed `parse_options::complete_parse`. It let 1.x read one document after another off a `tokenizer`, but the
        2.0 parser never read it: every parse takes the whole of its input as one document, and anything after the
        value fails with `ast_error::expected_eof` (#261).
+     - Added `documents`, which reads the JSON documents in one input one after another: JSON Lines, concatenated JSON
+       as `jq` reads and writes it (`{"a":1}{"a":2}`), or a run of pretty-printed documents. This is what replaces
+       1.x's `complete_parse(false)` and `tokenizer` for reading several documents. `for (jsonv::reader& doc :
+       jsonv::documents(text))` hands out a `reader` on each document's `document_start`, so `deserialize<T>` reads
+       each one as a whole document. It also takes a `std::string` rvalue or a `std::istream`, which it keeps.
+       Documents may be separated by whitespace, by comments where `parse_options::comments` allows them, or by
+       nothing where the first ends with a character the second could not continue (`[1][2]`). Each document is
+       parsed only when the iterator reaches it, onto the tape the one before it used. Many small documents therefore
+       cost one tape the size of the largest, and a document's reader is valid until the iterator moves on. A document
+       which fails to parse is still handed out: its reader's `validate` throws `parse_error`, with a position counted
+       from the start of the whole input, and the sequence ends with it (#312).
      - Removed the `JSONV_ALWAYS_INLINE` macro from `config.hpp`, along with the forward declaration of the 1.x
        `tokenizer`, which 2.0 removed. Nothing in the public headers used either; the library keeps its own copy of the
        macro (#385).

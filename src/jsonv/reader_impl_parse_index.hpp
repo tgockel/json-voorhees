@@ -47,6 +47,9 @@ public:
     virtual std::unique_ptr<impl> lookahead_at(parse_index::const_iterator at) const override;
 
 private:
+    /// Reads each of several documents through a cursor over the one tape it parses them all onto.
+    friend class jsonv::documents;
+
     /// A cursor over someone else's \a index, starting on \a current. See \c lookahead.
     explicit impl_parse_index(const parse_index& index, parse_index::const_iterator current) noexcept;
 

@@ -19,6 +19,7 @@ set(jsonv_tests_sources
     demangle_tests.cpp
     deserialize_tests.cpp
     documentation_tests.cpp
+    documents_tests.cpp
     encode_tests.cpp
     enum_adapter_tests.cpp
     filesystem_util.cpp

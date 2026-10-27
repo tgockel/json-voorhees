@@ -12,6 +12,7 @@ Features include (but are not necessarily limited to):
   - A `value` should not feel terribly different from a C++ Standard Library container
   - Write valid JSON with `operator<<`
   - Simple JSON parsing with `parse`
+  - Read JSON Lines and other runs of concatenated documents with `documents`
   - Reasonable error messages when parsing fails
   - Full support for Unicode-filled JSON (encoded in UTF-8 in C++)
 - Efficient

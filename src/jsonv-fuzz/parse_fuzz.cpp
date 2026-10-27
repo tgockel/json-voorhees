@@ -2,9 +2,9 @@
 /// libFuzzer target exercising the parser for crashes, hangs, and sanitizer findings.
 ///
 /// The bug bar here is crashes, hangs, UB, and leaks -- *not* rejection of invalid input. `jsonv::parse_error` and the
-/// other documented exceptions are normal outcomes for malformed JSON and are swallowed. The one thing checked of a
-/// parse which succeeded is that every structure holds as many elements as it says it does, since nothing would crash
-/// over a wrong count (#261).
+/// other documented exceptions are normal outcomes for malformed JSON and are swallowed. Two things are checked of a
+/// parse which succeeded, since nothing would crash over either: that every structure holds as many elements as it
+/// says it does (#261), and that `jsonv::documents` reads the input as the same single document (#312).
 ///
 /// Copyright (c) 2026 by Travis Gockel. All rights reserved.
 ///
@@ -15,6 +15,7 @@
 /// \author Travis Gockel (travis@gockelhut.com)
 #include <jsonv/parse.hpp>
 #include <jsonv/parse_index.hpp>
+#include <jsonv/reader.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -69,6 +70,49 @@ static void check_element_counts(const jsonv::parse_index& index)
     }
 }
 
+/// Abort unless \c jsonv::documents reads \a text, which \a whole parsed as one document under \a options, as that one
+/// document and nothing else. A document there ends with its value rather than with the input, which makes it a second
+/// way of parsing the same text, and the two must not disagree about any input they both accept.
+static void check_documents_agree(std::string_view           text,
+                                  const jsonv::parse_options& options,
+                                  const jsonv::parse_index&   whole
+                                 )
+{
+    using jsonv::ast_node_type;
+
+    jsonv::documents docs(text, options);
+    auto             iter = docs.begin();
+
+    // Input with only whitespace and comments in it is an empty document to `parse_index`, and no document at all here.
+    auto first = whole.begin();
+    ++first;
+    if ((*first).type() == ast_node_type::document_end)
+    {
+        if (iter != docs.end())
+            std::abort();
+        return;
+    }
+
+    if (iter == docs.end())
+        std::abort();
+
+    jsonv::reader& doc = *iter;
+    doc.validate();
+    for (const auto& node : whole)
+    {
+        if (!doc.good() || doc.current_type() != node.type())
+            std::abort();
+        (void) doc.next_token();
+    }
+
+    if (doc.good())
+        std::abort();
+
+    ++iter;
+    if (iter != docs.end())
+        std::abort();
+}
+
 extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size)
 {
     // libFuzzer copies each input into an allocation of exactly `size` bytes before calling us, so an
@@ -105,9 +149,24 @@ extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size
         {
             auto index = jsonv::parse_index::parse(text, opts);
             if (index.success())
+            {
                 check_element_counts(index);
+                check_documents_agree(text, opts, index);
+            }
 
             (void) index.extract_tree();
+        }
+        catch (const std::exception&)
+        { }
+
+        // Every document of input which is not a single one: several of them, or a failure part-way through.
+        try
+        {
+            for (jsonv::reader& doc : jsonv::documents(text, opts))
+            {
+                while (doc.next_token())
+                { }
+            }
         }
         catch (const std::exception&)
         { }

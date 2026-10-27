@@ -16,9 +16,11 @@
 #include <expected>
 #include <string_view>
 
+#include <cstddef>
 #include <cstdint>
 #include <initializer_list>
 #include <iosfwd>
+#include <iterator>
 #include <memory>
 #include <string>
 
@@ -462,8 +464,169 @@ private:
     /// which streams, to supporting it.
     friend class detail::reader_lookahead;
 
+    /// Hands out a reader for each of several documents, on a tape it reuses from one to the next.
+    friend class documents;
+
 private:
     std::unique_ptr<impl> _impl;
+};
+
+/// The JSON documents in one input, read one after another, each through a \c reader of its own.
+///
+/// Every other way of reading JSON text takes all of it as one document, and refuses anything after its value. This
+/// takes it as a sequence of documents instead: JSON Lines, with one to a line; concatenated JSON as \c jq reads and
+/// writes it, as in <tt>{"a":1}{"a":2}</tt>; or a run of pretty-printed documents. Any whitespace may separate two
+/// documents, as may comments where \c parse_options::comments allows them, or nothing at all where the first ends
+/// with a character the second could not have continued: <tt>[1][2]</tt> and <tt>"a""b"</tt> are two documents each,
+/// while <tt>12</tt> is one.
+///
+/// \code
+/// std::ifstream file("records.jsonl");
+/// for (jsonv::reader& doc : jsonv::documents(file))
+///     records.push_back(jsonv::deserialize<record>(doc));
+/// \endcode
+///
+/// Each document is handed out as a \c reader on its \c ast_node_type::document_start, as a freshly-created one is, so
+/// \c jsonv::deserialize reads it as a whole document and anything else which takes a reader takes it. It is parsed
+/// with the \c parse_options this was created with as though it were the only document: \c
+/// parse_options::require_document and \c parse_options::max_structure_depth apply to each one. Nothing is parsed
+/// until the iterator reaches it, and then onto the tape the document before it was read from, so many small documents
+/// cost one tape the size of the largest rather than one each. That is also why the reader for a document is valid
+/// only until the iterator moves on, wherever it has been moved to: by then its tape holds the next document.
+///
+/// Whitespace and comments after the last document end the sequence, so input with no value in it holds no documents.
+///
+/// Parsing text never throws, here as elsewhere. A document which is not valid JSON is still handed out, as a reader
+/// whose \c reader::validate throws \c parse_error and from which \c jsonv::deserialize throws a
+/// \c deserialization_error saying so, and the sequence ends with it: the parse stopped at the error, and nothing says
+/// where that document would have ended and the next begun. The position in a \c parse_error counts from the start of
+/// the whole input, not of the document it is in.
+///
+/// A \c std::string_view deserialized from a document views the source. A source given as a \c std::string rvalue or a
+/// \c std::istream is kept by this instance, so such a view is valid for as long as it is; any other is the caller's,
+/// and valid for as long as the caller keeps it.
+class JSONV_PUBLIC documents final
+{
+public:
+    class iterator;
+
+public:
+    /// \{
+
+    /// Read the documents in JSON \a source.
+    ///
+    /// The \a source must stay in memory for as long as this instance and the readers it hands out are used, unless it
+    /// is an rvalue reference to a \c std::string, which is moved into this instance to keep it alive. It is parsed
+    /// with \a parse_options where they are given, and with the defaults \c parse_index::parse uses where they are not.
+    explicit documents(std::string_view source);
+    explicit documents(std::string_view source, const parse_options& parse_options);
+    explicit documents(const char* source);
+    explicit documents(const char* source, const parse_options& parse_options);
+
+    explicit documents(std::string&& source);
+    explicit documents(std::string&& source, const parse_options& parse_options);
+    /// \}
+
+    /// \{
+
+    /// Read the documents in what is left of the \a source stream, as \c reader(std::istream&) reads one.
+    ///
+    /// The stream is read to its end here, and this instance keeps the text, so nothing reads \a source again once
+    /// this returns. A \c parse_error position counts from where \a source was when this was called.
+    explicit documents(std::istream& source);
+    explicit documents(std::istream& source, const parse_options& parse_options);
+    /// \}
+
+    // Not copyable.
+    documents(const documents&)            = delete;
+    documents& operator=(const documents&) = delete;
+
+    /// \{
+
+    /// Moving transfers the source and the position in it. Iterators and readers already handed out are unaffected,
+    /// and go on belonging to the instance moved to. The moved-from instance has no documents to give: \c begin throws
+    /// \c std::invalid_argument, as using a moved-from \c reader does.
+    documents(documents&&) noexcept;
+    documents& operator=(documents&&) noexcept;
+    /// \}
+
+    ~documents() noexcept;
+
+    /// Get an iterator on the first document which has not been passed yet. The first call parses the first document;
+    /// any later call returns an iterator wherever the earlier ones have got to, since this is an input range and can
+    /// only be walked once.
+    ///
+    /// \throws std::invalid_argument if this instance has been moved-from, or if the \c parse_options ask for a \c
+    ///  parse_options::max_structure_depth beyond the limit, as \c parse_index::parse does.
+    JSONV_NODISCARD
+    iterator begin();
+
+    /// The end of the documents, which an \c iterator compares equal to once it has passed the last one.
+    JSONV_NODISCARD
+    std::default_sentinel_t end() const noexcept
+    {
+        return std::default_sentinel;
+    }
+
+private:
+    class impl;
+
+private:
+    std::unique_ptr<impl> _impl;
+};
+
+/// An input iterator over \c documents. Dereferencing it gives the \c reader for the document it is on, and
+/// incrementing it parses the next one. Once it has passed the last, it compares equal to \c std::default_sentinel.
+class JSONV_PUBLIC documents::iterator final
+{
+public:
+    /// What this models in C++20 terms: an input iterator, since each document is parsed onto the tape of the last.
+    using iterator_concept = std::input_iterator_tag;
+
+    /// What dereferencing gives a reference to.
+    using value_type = reader;
+
+    /// What every iterator has to name, although stepping through documents never measures a distance.
+    using difference_type = std::ptrdiff_t;
+
+public:
+    /// Create an iterator which is already at the end.
+    iterator() noexcept = default;
+
+    /// Get the reader for the document this is on. It reads the tape every document of the \c documents is parsed
+    /// onto, so it is valid until this iterator, or any other from the same \c documents, is incremented.
+    ///
+    /// \throws std::logic_error if this iterator is at the end.
+    JSONV_NODISCARD
+    reader& operator*() const;
+
+    /// \{
+
+    /// Parse the next document and move onto it, or onto the end if there is no other.
+    ///
+    /// \throws std::bad_alloc if the tape cannot grow to hold the next document, which ends the sequence there.
+    iterator& operator++();
+    void      operator++(int) { ++*this; }
+    /// \}
+
+    /// Is \a self at the end of its \c documents?
+    JSONV_NODISCARD
+    friend bool operator==(const iterator& self, std::default_sentinel_t) noexcept
+    {
+        return self.at_end();
+    }
+
+private:
+    friend class documents;
+
+    explicit iterator(impl* owner) noexcept :
+            _owner(owner)
+    { }
+
+    bool at_end() const noexcept;
+
+private:
+    impl* _owner = nullptr;
 };
 
 /// \}

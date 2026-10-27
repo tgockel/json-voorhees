@@ -19,6 +19,7 @@ set(jsonv_sources
     detail/match/number.cpp
     detail/match/string.cpp
     detail/node_arena.cpp
+    documents.cpp
     encode.cpp
     functional.cpp
     kind.cpp

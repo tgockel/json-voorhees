@@ -141,6 +141,17 @@ struct JSONV_LOCAL ast_exception
 // parse_index                                                                                                        //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/// How much of its input a parse takes as its document.
+enum class parse_extent
+{
+    /// All of it: the document's value has to be followed by nothing but whitespace (and comments, where they are
+    /// allowed). This is every public parse.
+    whole_input,
+    /// As far as the end of the first value. Whatever follows it is the next document's, so \c documents can read one
+    /// document after another out of the same input.
+    first_value,
+};
+
 struct JSONV_LOCAL parse_index::impl final
 {
     const char*   src_begin;         //!< The source string this AST was built from
@@ -287,7 +298,24 @@ struct JSONV_LOCAL parse_index::impl final
         return ast_exception(error_code, self->first_error_index);
     }
 
-    static void parse(impl*& self, std::string_view src, const parse_options& options);
+    /// Parse the document which starts at \a from in \a src onto the end of \a self.
+    ///
+    /// Positions on the tape and in errors count from the start of \a src, wherever \a from is, which is what lets an
+    /// error in one of several documents say where it is in the input they were all read from.
+    ///
+    /// \returns Where the parse stopped: the end of \a src for \c parse_extent::whole_input, and one past the value
+    ///  for \c parse_extent::first_value -- or the end of \a src, if there was no value before it.
+    template <parse_extent Extent>
+    static const char* parse(impl*& self, std::string_view src, std::size_t from, const parse_options& options);
+
+    /// Run \ref parse onto \a self, which holds no nodes yet, and finish the tape whichever way it ends. A parse which
+    /// finds the source malformed is not an exception here, since the tape it leaves describes the failure; anything
+    /// else thrown, such as \c std::bad_alloc, leaves \a self for the caller to free or empty.
+    ///
+    /// \returns What \ref parse returned; or the end of \a src if the source was malformed, since a parse which failed
+    ///  stopped at the error and nothing says where its document would have ended.
+    template <parse_extent Extent>
+    static const char* parse_tape(impl*& self, std::string_view src, std::size_t from, const parse_options& options);
 
     template <std::size_t N>
     static void parse_literal(impl*&        self,
@@ -406,8 +434,11 @@ void parse_index::impl::parse_literal(impl*&        self,
     }
 }
 
-void parse_index::impl::parse(impl*& self, std::string_view src, const parse_options& options)
+template <parse_extent Extent>
+const char* parse_index::impl::parse(impl*& self, std::string_view src, std::size_t from, const parse_options& options)
 {
+    assert(from <= src.size());
+
     const std::size_t max_depth = options.max_structure_depth().value_or(parse_options::k::max_structure_depth);
     if (max_depth > parse_options::k::max_structure_depth)
         throw std::invalid_argument("parse_options::max_structure_depth too large");
@@ -438,7 +469,7 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
     container_state state     = container_state::none;
 
     const char* const begin = src.data();
-    const char* iter        = begin;
+    const char* iter        = begin + from;
     const char* const end   = begin + src.size();
 
 
@@ -502,12 +533,18 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
 
                 container = structure[depth - 1].open_token;
 
-                if (depth == 1U)
+                // A document is a single value, so a top-level structure has to be followed by the end of the input.
+                // A parse of the first of several documents ends with that structure instead, at the bottom of the
+                // main loop, and leaves whatever follows to the next document.
+                if constexpr (Extent == parse_extent::whole_input)
                 {
-                    ++src_location;
-                    fastforward_space(src_location);
-                    if (src_location != end)
-                        throw push_error(self, ast_error::expected_eof, begin, src_location);
+                    if (depth == 1U)
+                    {
+                        ++src_location;
+                        fastforward_space(src_location);
+                        if (src_location != end)
+                            throw push_error(self, ast_error::expected_eof, begin, src_location);
+                    }
                 }
             }
             else
@@ -695,6 +732,15 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
             throw push_error(self, ast_error::unexpected_token, begin, iter);
             break;
         }
+
+        // The first of several documents is over as soon as its value is: a value finishes directly inside the
+        // document only as a top-level scalar or as the close of a top-level structure. Stopping here, before reading
+        // anything after it, is what keeps the `expected_eof` checks above from seeing the next document.
+        if constexpr (Extent == parse_extent::first_value)
+        {
+            if (depth == 1U && state == container_state::item_finished)
+                break;
+        }
     }
 
     // Running out of input with an array or object still open is the input ending early. Closing the document here
@@ -712,12 +758,51 @@ void parse_index::impl::parse(impl*& self, std::string_view src, const parse_opt
     {
         auto first_token = ast_node_type_from_coded(self->data(code_size(ast_node_type::document_start)));
 
+        // What follows the last of several documents is whitespace and comments, which is no document at all rather
+        // than one that is not an object or array.
+        if constexpr (Extent == parse_extent::first_value)
+        {
+            if (first_token == ast_node_type::document_end)
+                return iter;
+        }
+
         if (first_token != ast_node_type::object_begin && first_token != ast_node_type::array_begin)
         {
             JSONV_UNLIKELY
-            throw push_error(*&self, ast_error::expected_document, begin, begin);
+            throw push_error(*&self, ast_error::expected_document, begin, begin + from);
         }
     }
+
+    return iter;
+}
+
+template <parse_extent Extent>
+const char* parse_index::impl::parse_tape(impl*&               self,
+                                          std::string_view     src,
+                                          std::size_t          from,
+                                          const parse_options& options
+                                         )
+{
+    self->src_begin = src.data();
+
+    // Not `nullptr` for a failure: that is also where a parse of a `std::string_view` with no storage behind it stops.
+    const char* stop = src.data() + src.size();
+    try
+    {
+        stop = parse<Extent>(self, src, from, options);
+    }
+    catch (const ast_exception&)
+    {
+        // Still a usable index -- it ends with an `error` node describing the failure.
+        self->close_unclosed_structures();
+    }
+
+    // Initialize the sentinel. `iterator::operator++` decodes the entry it lands on unconditionally,
+    // so the slot at `end()` has to hold a determinate value; which value does not matter, because
+    // `_prefix` is dead once the iterator gets there and `operator*` is never called on `end()`.
+    self->data(self->data_size) = 0U;
+
+    return stop;
 }
 
 parse_index::parse_index(impl* ptr) noexcept :
@@ -914,28 +999,17 @@ parse_index parse_index::parse(std::string_view                src,
     // allocated for the life of the index -- `parse` holds it while the tree is built -- and
     // shrinking it afterwards was tried and is slower: glibc trims the freed tail back to the
     // OS, and the next parse faults those pages in again.
-    auto p       = impl::allocate(initial_buffer_capacity.value_or(src.size() / 8));
-    p->src_begin = src.data();
+    auto p = impl::allocate(initial_buffer_capacity.value_or(src.size() / 8));
 
     try
     {
-        impl::parse(p, src, options);
-    }
-    catch (const ast_exception&)
-    {
-        // Still a usable index -- it ends with an `error` node describing the failure.
-        p->close_unclosed_structures();
+        (void) impl::parse_tape<parse_extent::whole_input>(p, src, 0U, options);
     }
     catch (...)
     {
         impl::destroy(p);
         throw;
     }
-
-    // Initialize the sentinel. `iterator::operator++` decodes the entry it lands on unconditionally,
-    // so the slot at `end()` has to hold a determinate value; which value does not matter, because
-    // `_prefix` is dead once the iterator gets there and `operator*` is never called on `end()`.
-    p->data(p->data_size) = 0U;
 
     return parse_index(p);
 }
@@ -953,6 +1027,48 @@ parse_index parse_index::parse(std::string_view src, const parse_options& option
 parse_index parse_index::parse(std::string_view src)
 {
     return parse(src, parse_options::create_default(), std::nullopt);
+}
+
+std::optional<std::size_t> parse_index::parse_next(std::string_view     src,
+                                                   std::size_t          from,
+                                                   const parse_options& options
+                                                  )
+{
+    // Nothing is known about how large the documents are -- `src` may hold one or a million -- so the tape starts as
+    // small as it can and grows to fit the largest of them, which it then stays at for the rest.
+    if (_impl)
+    {
+        _impl->data_size         = 0U;
+        _impl->first_error_code  = ast_error::none;
+        _impl->first_error_index = 0U;
+    }
+    else
+    {
+        _impl = impl::allocate(0U);
+    }
+
+    const char* stop = nullptr;
+    try
+    {
+        stop = impl::parse_tape<parse_extent::first_value>(_impl, src, from, options);
+    }
+    catch (...)
+    {
+        // Half a tape is no use to anyone, and `_impl` is still the allocation to free: growing the tape updates it
+        // only once the larger one has been had.
+        reset();
+        throw;
+    }
+
+    // A tape of `^$` which parsed is from input which held only whitespace and comments: there was no document left.
+    if (success()
+        && _impl->data_size == code_size(ast_node_type::document_start) + code_size(ast_node_type::document_end)
+       )
+    {
+        return std::nullopt;
+    }
+
+    return static_cast<std::size_t>(stop - src.data());
 }
 
 std::ostream& operator<<(std::ostream& os, const parse_index& self)
