@@ -15,6 +15,7 @@
 #include "array_impl.hpp"
 #include "char_convert.hpp"
 #include "detail.hpp"
+#include "detail/attributes.hpp"
 #include "object_impl.hpp"
 #include "string_impl.hpp"
 #include "value_access.hpp"
@@ -24,9 +25,12 @@
 #include <cstring>
 #include <iterator>
 #include <limits>
+#include <memory>
+#include <new>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <vector>
 
 namespace jsonv
 {
@@ -146,10 +150,15 @@ value& value::operator=(value&& source) noexcept
 {
     if (this != &source)
     {
+        // Taken before the destination is cleared, not after. `source` may be a descendant of this value -- as in
+        // `doc = std::move(doc["data"])` -- and clearing frees the block it lives in, so reading it afterwards reads
+        // freed storage and leaves this value owning whatever that read handed back.
+        const detail::value_representation taken = source._repr;
+        source._repr                             = detail::value_representation();
+
         clear();
 
-        _repr        = source._repr;
-        source._repr = detail::value_representation();
+        _repr = taken;
     }
 
     return *this;
@@ -445,15 +454,198 @@ void value::swap(value& other) noexcept
     swap(_repr, other._repr);
 }
 
+namespace
+{
+
+/// Frees an array or object and everything beneath it without the depth of the tree deciding how much of the call
+/// stack it takes. \c ~value is \c noexcept, so a caller cannot guard a teardown which runs out of stack, and nothing
+/// bounds the depth of a tree built through the mutators -- `value::path` over a long path description builds one
+/// level per element and returns normally (#416).
+///
+/// The walk frees each level's elements itself instead of through \c ~value, so nothing recurses on its own. It does
+/// recurse while it has budget, which keeps the usual shallow tree costing what it always did; past that depth the
+/// containers still to free are kept on a stack of its own, and the walk starts again from there. Nothing is
+/// allocated for a tree within \ref recursion_limit, which is every tree a parse can produce.
+class tree_destroyer final
+{
+public:
+    tree_destroyer() noexcept = default;
+
+    tree_destroyer(const tree_destroyer&)            = delete;
+    tree_destroyer& operator=(const tree_destroyer&) = delete;
+
+    ~tree_destroyer() noexcept
+    {
+        ::operator delete(static_cast<void*>(_pending), std::nothrow);
+    }
+
+    /// Free the array or object \a repr holds, which must be one or the other and must be owned by nothing else.
+    void operator()(detail::value_representation repr) noexcept
+    {
+        while (true)
+        {
+            destroy_container(repr, recursion_limit);
+
+            if (_size == 0U)
+                return;
+
+            repr = _pending[--_size];
+        }
+    }
+
+private:
+    /// How many levels the walk takes on the call stack before it moves the rest to the heap. The parser's
+    /// `parse_options::k::max_structure_depth`, so tearing down what a parse produced never allocates.
+    static constexpr std::size_t recursion_limit = 128U;
+
+    /// Free the array or object \a repr holds, recursing no more than \a budget levels into it.
+    ///
+    /// The elements are freed here rather than by the block's own \c destroy, which would run \c ~value on each and
+    /// recurse back into this; the block is \c deallocate d once they are gone.
+    void destroy_container(const detail::value_representation& repr, std::size_t budget) noexcept
+    {
+        if (repr.words.kind == jsonv::kind::array)
+        {
+            detail::array_impl* block    = repr.words.data.array;
+            value*              elements = detail::array_impl::data(block);
+            for (std::size_t idx = 0U, count = detail::array_impl::size(block); idx < count; ++idx)
+                destroy_element(elements[idx], budget);
+
+            detail::array_impl::deallocate(block);
+        }
+        else
+        {
+            detail::object_impl*              block   = repr.words.data.object;
+            detail::object_impl::member_type* members = detail::object_impl::data(block);
+            // The key and the value are destroyed rather than the member they sit in. Ending the lifetime of each
+            // is what the pair's own destructor would do, and the pair itself holds nothing else to clean up; its
+            // lifetime ends with the storage the block gives back.
+            for (std::size_t idx = 0U, count = detail::object_impl::size(block); idx < count; ++idx)
+            {
+                std::destroy_at(&members[idx].first);
+                destroy_element(members[idx].second, budget);
+            }
+
+            detail::object_impl::deallocate(block);
+        }
+    }
+
+    /// Free whatever \a child owns: its own block if it is a container, the text of a string kept out of line, and
+    /// nothing at all for anything else. A container is freed by recursing while there is \a budget for it, and
+    /// from \ref _pending once there is not.
+    ///
+    /// \a child itself is not destroyed -- its storage goes away with the block it lives in -- so what it holds is
+    /// read straight out of its representation rather than taken out of it first.
+    void destroy_element(value& child, std::size_t budget) noexcept
+    {
+        const detail::value_representation& repr = detail::value_access::representation(child);
+        switch (repr.words.kind)
+        {
+        case jsonv::kind::object:
+        case jsonv::kind::array:
+            if (budget > 0U)
+                destroy_container(repr, budget - 1U);
+            else
+                postpone(child);
+            break;
+        case jsonv::kind::string:
+            if (repr.words.string_length == detail::value_string_out_of_line)
+                detail::string_impl::destroy(repr.words.data.string);
+            break;
+        case jsonv::kind::integer:
+        case jsonv::kind::decimal:
+        case jsonv::kind::boolean:
+        case jsonv::kind::null:
+            // nothing of their own to free
+            break;
+        }
+    }
+
+    /// Put the container \a child holds on \ref _pending, to be freed once this level is gone. If there is no room
+    /// and none can be had, it is freed here instead, by recursing.
+    JSONV_NOINLINE
+    void postpone(value& child) noexcept
+    {
+        if (_size == _capacity && !grow())
+        {
+            // Out of memory part of the way through a teardown, with no way to report it: \c ~value is \c noexcept.
+            // The subtree is freed by recursing instead, as this library always did, so running out of memory here is
+            // never worse than not having come this way at all.
+            destroy_container(detail::value_access::representation(child), recursion_limit);
+            return;
+        }
+
+        _pending[_size++] = detail::value_access::representation(child);
+    }
+
+    /// Make room for more of \ref _pending, keeping what is already there. False if the memory could not be had,
+    /// which leaves what is there untouched.
+    ///
+    /// The allocation is the \c nothrow form and nothing here is a container, so there is no path through this which
+    /// throws out of a teardown or terminates in a \c noexcept frame when memory runs out -- which is the whole point
+    /// of doing the bookkeeping by hand. An \c std::vector would do this better in every other way, but constructing
+    /// one allocates under MSVC's debug iterator checks, inside a \c noexcept constructor where a failure cannot be
+    /// caught, and that would make destroying even an empty array able to terminate the process.
+    bool grow() noexcept
+    {
+        // Enough that a tree deep enough to get here does not come back for more every few levels, and small enough
+        // not to matter: 8 KiB where a pointer is 8 bytes.
+        constexpr std::size_t initial_capacity = 512U;
+        constexpr std::size_t max_capacity     = std::numeric_limits<std::size_t>::max()
+                                               / sizeof(detail::value_representation);
+
+        if (_capacity >= max_capacity / 2U)
+            return false;
+
+        const std::size_t capacity = _capacity == 0U ? initial_capacity : _capacity * 2U;
+
+        void* const memory = ::operator new(capacity * sizeof(detail::value_representation), std::nothrow);
+        if (!memory)
+            return false;
+
+        // A `value_representation` is trivially copyable and has a trivial copy constructor, so `operator new`
+        // implicitly creates objects of it in the storage it returns and the ones already stacked up move with a copy
+        // of their bytes.
+        auto* const moved = static_cast<detail::value_representation*>(memory);
+        if (_size != 0U)
+        {
+            std::memcpy(static_cast<void*>(moved),
+                        static_cast<const void*>(_pending),
+                        _size * sizeof(detail::value_representation));
+        }
+
+        ::operator delete(static_cast<void*>(_pending), std::nothrow);
+        _pending  = moved;
+        _capacity = capacity;
+        return true;
+    }
+
+private:
+    /// The containers past the recursion budget which are not yet freed, \ref _size of them in room for
+    /// \ref _capacity. Each is owned by nothing else: the element which held it is gone, freed without it.
+    ///
+    /// Held by hand rather than in an \c std::vector for the reason \ref grow describes.
+    detail::value_representation* _pending  = nullptr;
+    std::size_t                   _size     = 0U;
+    std::size_t                   _capacity = 0U;
+};
+
+/// Free the array or object \a repr holds, and everything beneath it, without recursing once per level (#416).
+void destroy_tree(const detail::value_representation& repr) noexcept
+{
+    tree_destroyer()(repr);
+}
+
+}
+
 void value::clear()
 {
     switch (_repr.words.kind)
     {
     case jsonv::kind::object:
-        detail::object_impl::destroy(_repr.words.data.object);
-        break;
     case jsonv::kind::array:
-        detail::array_impl::destroy(_repr.words.data.array);
+        // Iteratively, so that the depth of the tree is not the depth of this call (#416).
+        destroy_tree(_repr);
         break;
     case jsonv::kind::string:
         if (_repr.words.string_length == detail::value_string_out_of_line)

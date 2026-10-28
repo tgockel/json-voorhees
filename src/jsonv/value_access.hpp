@@ -55,6 +55,13 @@ struct JSONV_LOCAL value_access final
         return out;
     }
 
+    /// The 16 bytes of \a val, for library code which works on the representation itself rather than through the
+    /// \c value interface.
+    static const value_representation& representation(const value& val) noexcept
+    {
+        return val._repr;
+    }
+
     /// The text of \a str, which must be a \c kind::string.
     static std::string_view string_view(const value& str) noexcept
     {

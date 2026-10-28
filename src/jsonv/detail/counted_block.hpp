@@ -99,6 +99,16 @@ public:
             return;
 
         std::destroy_n(self->elements(), self->_size);
+        deallocate(self);
+    }
+
+    /// Free \a self, which may be null, leaving the elements in it alone: for a caller which has already destroyed
+    /// them itself. Destroying them some other way is the only reason to call this rather than \ref destroy.
+    static void deallocate(TSelf* self) noexcept
+    {
+        if (!self)
+            return;
+
         self->~TSelf();
         ::operator delete(static_cast<void*>(self));
     }

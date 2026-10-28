@@ -44,6 +44,19 @@
        and keeps the usual logarithmic lookup, including a repeated key: the hint is only taken for a key which sorts
        strictly after the greatest one present, and a repeat does not. As a side effect, it now throws `kind_error`
        on a non-object even when the range is empty, matching `value::insert(std::initializer_list)`.
+     - Fixed destroying a `value` recursing once per level of nesting, so freeing a deeply nested tree overflowed the
+       stack and killed the process. `~value` is `noexcept`, so there was nothing a caller could do about it. The
+       nesting a parse can produce is bounded by `parse_options::k::max_structure_depth`, but a tree built through
+       the mutators is not: `v.path(jsonv::path::create(deep))` builds one level per path element and returns
+       normally, and the process then died at the end of the scope. Destruction -- `~value`, `clear`, and move
+       assignment over a container -- now takes a tree apart iteratively, with the levels past a tree a parse could
+       have produced held on the heap rather than on the call stack. Nothing is allocated for a tree within that
+       depth, so the usual case costs what it did (#416).
+     - Fixed `value`'s move assignment reading the source after freeing it, when the source is a descendant of the
+       destination. `doc = std::move(doc["data"])` cleared the destination first, which freed the block the source
+       sits in, and the read which followed took the source's 16 bytes out of freed storage: the destination was left
+       owning whatever came back, and freeing it again. The source is now taken and detached before the destination
+       is cleared.
      - Added `value::emplace`, `value::try_emplace`, and `value::insert_or_assign` for `kind::object`.
      - Changed the backing data type of `kind::array`s to an `std::vector<value>`
      - Fixed `reader::next_structure` aborting the process when called on an exhausted reader. It inspected the

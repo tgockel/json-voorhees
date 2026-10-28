@@ -150,6 +150,15 @@ public:
 ///    to not allow for duplicate keys because most other libraries can not deal with it. It would also make the AST
 ///    significantly more painful.
 ///
+/// \par Nesting depth
+/// Destroying a \c value, clearing it, or move-assigning over one takes any depth of nesting: the tree is taken
+/// apart iteratively, not once per level on the call stack. The operations which walk a whole tree -- copying it,
+/// comparing two, encoding one to text, \c std::hash, and the \c algorithm.hpp walks such as \c traverse,
+/// \c diff, \c map and \c merge -- do recurse, so they cost stack in proportion to the depth of the tree and are
+/// safe to perform on a tree nested tens of thousands deep on a thread with the usual stack, and less than that on
+/// a small one. Parsing cannot build a tree deeper than \c parse_options::k::max_structure_depth, so this is only
+/// reachable for a tree built in code, through the mutators, \c path, or a \c value_encoder.
+///
 /// \see http://json.org/
 /// \see http://tools.ietf.org/html/rfc7159
 class JSONV_PUBLIC value

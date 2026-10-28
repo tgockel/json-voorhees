@@ -305,7 +305,270 @@ TEST(value_integer_decimal_unordered_map)
     }
 }
 
+namespace
+{
+
+/// \a depth arrays nested one inside the next, the innermost empty. Built by moving each level into the next rather
+/// than with `jsonv::array({ ... })`, whose `initializer_list` elements are `const` and so would copy.
+jsonv::value deeply_nested_arrays(std::size_t depth)
+{
+    jsonv::value nested = jsonv::array();
+    for (std::size_t level = 1U; level < depth; ++level)
+    {
+        jsonv::value outer = jsonv::array();
+        outer.push_back(std::move(nested));
+        nested = std::move(outer);
+    }
+    return nested;
+}
+
+/// \a depth objects nested one inside the next under \a key, each also holding a scalar and a string long enough to
+/// be stored out of line, so the teardown has elements beside the nesting to free at every level.
+jsonv::value deeply_nested_objects(std::size_t depth, const std::string& key)
+{
+    jsonv::value nested = jsonv::object();
+    for (std::size_t level = 1U; level < depth; ++level)
+    {
+        jsonv::value outer = jsonv::object();
+        outer["number"]    = std::int64_t(level);
+        outer["text"]      = std::string(64U, 'x');
+        outer[key]         = std::move(nested);
+        nested             = std::move(outer);
+    }
+    return nested;
+}
+
+/// A chain of \a depth arrays, each also holding \a width arrays of its own, each of those holding a string kept out
+/// of line.
+///
+/// A plain chain only ever leaves one container waiting to be freed, however deep it is: the teardown recurses to its
+/// budget, sets the single child past it aside, and comes straight back for it. Fanning out at every level means that
+/// whichever level is the one to run out of budget has \a width containers to set aside at once, so the room for them
+/// has to grow -- and grow again -- without the test needing to know where that level falls.
+jsonv::value deep_and_wide(std::size_t depth, std::size_t width)
+{
+    jsonv::value nested = jsonv::array();
+    for (std::size_t level = 1U; level < depth; ++level)
+    {
+        jsonv::value outer = jsonv::array();
+        for (std::size_t idx = 0U; idx < width; ++idx)
+            outer.push_back(jsonv::array({ std::string(64U, 'x') }));
+        outer.push_back(std::move(nested));
+        nested = std::move(outer);
+    }
+    return nested;
+}
+
+/// How deep the trees the destruction tests build are. Destroying one used to recurse once per level, so this has to
+/// be past what a thread's stack can hold those frames for -- it was a few tens of thousands of levels on the usual
+/// 8MB stack, and the sanitizer builds use far more stack per frame than that. It also has to stay cheap enough to
+/// build a few times over, since each level is an allocation.
+constexpr std::size_t destruction_depth = 1000U * 1000U;
+
+}
+
+/// Destroying a deeply nested tree must not recurse once per level: the stack it would take is unbounded, and `~value`
+/// is `noexcept`, so overflowing it kills the process where no caller can do anything about it. Nothing bounds how
+/// deep a tree built through the mutators is -- a parse is bounded by `parse_options::k::max_structure_depth`, but
+/// `push_back` and `path` are not (#416).
+TEST(value_destroy_deeply_nested_arrays)
+{
+    (void) deeply_nested_arrays(destruction_depth);
+}
+
+/// The same for objects, whose members are freed through a different block type, and with something other than the
+/// nesting at each level to be sure the rest of a level is still freed.
+TEST(value_destroy_deeply_nested_objects)
+{
+    (void) deeply_nested_objects(destruction_depth, "nested");
+}
+
+/// A key long enough to be stored out of line is freed by the same walk, so what it allocated has to come back too.
+/// The sanitizer builds' leak check is what sees this.
+TEST(value_destroy_deeply_nested_objects_with_long_keys)
+{
+    (void) deeply_nested_objects(destruction_depth, std::string(64U, 'k'));
+}
+
+/// `clear` is the same teardown as the destructor, and leaves a null which is good for anything afterwards.
+TEST(value_clear_deeply_nested)
+{
+    jsonv::value deep = deeply_nested_arrays(destruction_depth);
+    deep.clear();
+
+    ensure(deep.is_null());
+    ensure_eq(jsonv::kind::null, deep.kind());
+
+    deep = jsonv::array({ 1, 2, 3 });
+    ensure_eq(std::size_t(3), deep.size());
+}
+
+/// Assigning over a deeply nested tree destroys it, by either form of assignment.
+TEST(value_assign_over_deeply_nested)
+{
+    jsonv::value deep = deeply_nested_arrays(destruction_depth);
+    deep              = jsonv::value(5);
+    ensure_eq(std::int64_t(5), deep.as_integer());
+
+    const jsonv::value small = jsonv::array({ 1 });
+
+    deep = deeply_nested_arrays(destruction_depth);
+    deep = small;
+    ensure_eq(small, deep);
+}
+
+/// Moving a descendant over the value holding it has to work: the source lives inside the block the destination owns,
+/// so clearing the destination first frees the source out from under the read which follows. It used to clear first,
+/// which read freed storage and left the destination owning whatever came back.
+TEST(value_move_assign_descendant_over_its_parent)
+{
+    const jsonv::value expected = jsonv::object({ { "inner", std::string(64U, 'x') } });
+
+    jsonv::value doc = jsonv::object({ { "data", expected } });
+    doc              = std::move(doc["data"]);
+    ensure_eq(expected, doc);
+
+    // An element of an array, and a scalar rather than a container.
+    jsonv::value arr = jsonv::array({ jsonv::array({ 1, 2, 3 }) });
+    arr              = std::move(arr.at(0));
+    ensure_eq(jsonv::array({ 1, 2, 3 }), arr);
+
+    jsonv::value holder = jsonv::object({ { "n", 5 } });
+    holder              = std::move(holder["n"]);
+    ensure_eq(jsonv::value(5), holder);
+
+    // A string kept out of line: the destination would otherwise own text which has already been freed.
+    jsonv::value text = jsonv::object({ { "s", std::string(64U, 'y') } });
+    text              = std::move(text["s"]);
+    ensure_eq(jsonv::value(std::string(64U, 'y')), text);
+
+    // A descendant further down than a direct child.
+    jsonv::value deep = jsonv::object({ { "a", jsonv::object({ { "b", expected } }) } });
+    deep              = std::move(deep["a"]["b"]);
+    ensure_eq(expected, deep);
+}
+
+/// The same for copy assignment, which goes through a copy of the source before the destination is touched.
+TEST(value_copy_assign_descendant_over_its_parent)
+{
+    const jsonv::value expected = jsonv::object({ { "inner", std::string(64U, 'x') } });
+
+    jsonv::value doc = jsonv::object({ { "data", expected } });
+    doc              = doc["data"];
+    ensure_eq(expected, doc);
+}
+
+/// What a deeply nested tree holds beside the nesting must still be freed: a level whose elements were dropped instead
+/// of destroyed would leak everything hanging off them, which the sanitizer builds' leak check sees. Each level here
+/// also holds text too long for the small-string buffer, so each is an allocation of its own.
+TEST(value_destroy_deeply_nested_frees_the_elements_beside_the_nesting)
+{
+    constexpr std::size_t depth = 1000U;
+
+    jsonv::value nested = jsonv::array();
+    for (std::size_t level = 1U; level < depth; ++level)
+    {
+        jsonv::value outer = jsonv::array();
+        outer.push_back(std::string(64U, 'x'));
+        outer.push_back(jsonv::object({ { "key-longer-than-the-small-string-buffer", std::string(64U, 'y') } }));
+        outer.push_back(std::move(nested));
+        nested = std::move(outer);
+    }
+}
+
 #if JSONV_TEST_COUNTS_ALLOCATIONS
+
+/// A tree within the depth a parse could have produced is torn down from the call stack, so nothing is allocated to
+/// destroy it. The iterative teardown keeps the levels past that on the heap, and the point of the budget is that the
+/// shallow trees which are the usual case never pay for one.
+TEST(value_destroy_shallow_tree_allocates_nothing)
+{
+    // `max_structure_depth` is 128; this stays well inside it while still nesting.
+    jsonv::value shallow = deeply_nested_arrays(100U);
+
+    // Every allocation is counted, down to the 16-byte iterator proxy MSVC's debug containers make: the teardown
+    // holds no container of its own, so a shallow one must ask for nothing whatsoever.
+    jsonv_test::allocation_counter allocations;
+    shallow.clear();
+    const std::size_t cost = allocations.count();
+    ensure_eq(std::size_t(0), cost);
+}
+
+/// Destroying a shallow value must not even be able to fail. The teardown holds no container of its own, so there is
+/// no allocation on this path to go wrong -- with the first allocation of any size armed to fail, clearing an empty
+/// array, an empty object and a shallow tree still goes through and still gives everything back. A `std::vector` in
+/// the teardown would allocate its iterator proxy here under MSVC's debug checks, inside a `noexcept` constructor,
+/// and a refusal there aborts the process rather than being catchable.
+TEST(value_destroy_shallow_tree_cannot_fail_when_allocation_does)
+{
+    jsonv::value values[] = { jsonv::array(),
+                              jsonv::object(),
+                              jsonv::array({ 1, std::string(64U, 'x') }),
+                              deeply_nested_arrays(100U),
+                            };
+
+    for (jsonv::value& shallow : values)
+    {
+        const std::size_t before = jsonv_test::live_allocations();
+        {
+            jsonv_test::failing_allocation fail;
+            shallow.clear();
+        }
+        const std::size_t after = jsonv_test::live_allocations();
+
+        ensure(shallow.is_null());
+        ensure_le(after, before);
+    }
+}
+
+/// The teardown keeps the levels past its recursion budget on the heap, and there is nowhere to report a failure to
+/// grow that list from: `~value` is `noexcept`. It falls back to recursing for the subtree it could not remember, so
+/// a teardown which cannot allocate still frees everything -- which is what `live_allocations` checks here, along
+/// with the sanitizer builds' leak check.
+///
+/// Getting that room may not throw or terminate either, which is why the teardown does the bookkeeping by hand: a
+/// `std::vector` allocates inside a `noexcept` constructor under MSVC's debug iterator checks, so merely having one
+/// would make destroying even an empty array able to abort the process when memory is short.
+TEST(value_destroy_deeply_nested_when_the_teardown_cannot_allocate)
+{
+    // Past the recursion budget, and then wide enough that the room for the levels set aside has to be grown several
+    // times over, so failing the second and the third request fails a regrowth rather than one which never happens.
+    constexpr std::size_t depth = 200U;
+    constexpr std::size_t width = 1200U;
+
+    // The teardown asks for room for the levels past its recursion budget, and asks again when that fills up. Each
+    // `nth` fails a different one of those requests -- the first, which is the only one a shallow tree reaches, and
+    // the regrowths after it -- so the fallback is exercised both before anything is stacked up and part of the way
+    // through. Nothing else in here allocates, so the count is the teardown's own.
+    for (std::size_t nth = 1U; nth <= 3U; ++nth)
+    {
+        const std::size_t before = jsonv_test::live_allocations();
+        {
+            jsonv::value deep = deep_and_wide(depth, width);
+
+            jsonv_test::failing_allocation fail(nth);
+            deep.clear();
+
+            ensure(deep.is_null());
+        }
+        const std::size_t after = jsonv_test::live_allocations();
+        ensure_eq(before, after);
+    }
+}
+
+/// Every block a deeply nested tree holds comes back, however the teardown went about freeing it.
+TEST(value_destroy_deeply_nested_frees_everything)
+{
+    constexpr std::size_t depth = 1000U;
+
+    const std::size_t before = jsonv_test::live_allocations();
+    {
+        jsonv::value deep  = deeply_nested_objects(depth, std::string(64U, 'k'));
+        deep["also"]       = deeply_nested_arrays(depth);
+    }
+    const std::size_t after = jsonv_test::live_allocations();
+    ensure_eq(before, after);
+}
 
 namespace
 {
