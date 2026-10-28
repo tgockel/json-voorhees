@@ -98,6 +98,13 @@ static constexpr ast_node_type matching_open_token(ast_node_type close_token)
     }
 }
 
+/// The second slot of an `error` node carries the error code and, above it, the length of the token the error is
+/// about: `1` for an error at a character which is really there, `0` for one at the end of the input, which has no
+/// character to point at. Reporting `1` unconditionally made `ast_node::error::token_raw()` a view of the byte just
+/// past the source, which a caller reading it would fault on (#415).
+static constexpr std::uint64_t error_code_mask        = 0xffffffffU;
+static constexpr std::uint64_t error_token_size_shift = 32U;
+
 static inline std::size_t code_size(ast_node_type src /* UNSAFE */)
 {
     static const std::size_t jumps[] =
@@ -288,10 +295,18 @@ struct JSONV_LOCAL parse_index::impl final
         return put_idx;
     }
 
-    static ast_exception push_error(impl*& self, ast_error error_code, const char* begin, const char* src_location)
+    static ast_exception push_error(impl*&      self,
+                                    ast_error   error_code,
+                                    const char* begin,
+                                    const char* src_location,
+                                    const char* end
+                                   )
     {
+        const std::uint64_t token_size = src_location < end ? 1U : 0U;
+
         push_back_with_extra<2>(self, ast_node_type::error, src_location,
-                                static_cast<std::uint64_t>(error_code));
+                                static_cast<std::uint64_t>(error_code)
+                                    | (token_size << error_token_size_shift));
 
         self->first_error_code  = error_code;
         self->first_error_index = src_location - begin;
@@ -421,7 +436,7 @@ void parse_index::impl::parse_literal(impl*&        self,
         if (!ok)
         {
             JSONV_UNLIKELY
-            throw push_error(*&self, ast_error::invalid_literal, begin, iter);
+            throw push_error(*&self, ast_error::invalid_literal, begin, iter, end);
         }
 
         push_back<1>(self, success_value, iter);
@@ -430,7 +445,7 @@ void parse_index::impl::parse_literal(impl*&        self,
     else
     {
         JSONV_UNLIKELY
-        throw push_error(*&self, ast_error::unexpected_eof, begin, iter);
+        throw push_error(*&self, ast_error::unexpected_eof, begin, iter, end);
     }
 }
 
@@ -479,7 +494,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             if (depth + 1 > max_depth)
             {
                 JSONV_UNLIKELY
-                throw push_error(self, ast_error::depth_exceeded, begin, src_location);
+                throw push_error(self, ast_error::depth_exceeded, begin, src_location, end);
             }
 
             structure[depth] = structure_state::create(push_back<3>(self, token, src_location), token);
@@ -497,7 +512,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
                 if (!fastforward_comment(*&location, end))
                 {
                     JSONV_UNLIKELY
-                    throw push_error(self, ast_error::invalid_comment, begin, location);
+                    throw push_error(self, ast_error::invalid_comment, begin, location, end);
                 }
                 fastforward_whitespace(*&location, end);
             }
@@ -509,7 +524,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             if (depth <= 0)
             {
                 JSONV_UNLIKELY
-                throw push_error(self, ast_error::extra_close, begin, src_location);
+                throw push_error(self, ast_error::extra_close, begin, src_location, end);
             }
 
             auto this_idx = push_back<1>(self, token, src_location);
@@ -524,7 +539,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             if (open_token != expected_open_token)
             {
                 JSONV_UNLIKELY
-                throw push_error(self, ast_error::mismatched_close, begin, src_location);
+                throw push_error(self, ast_error::mismatched_close, begin, src_location, end);
             }
 
             if (depth > 0)
@@ -543,7 +558,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
                         ++src_location;
                         fastforward_space(src_location);
                         if (src_location != end)
-                            throw push_error(self, ast_error::expected_eof, begin, src_location);
+                            throw push_error(self, ast_error::expected_eof, begin, src_location, end);
                     }
                 }
             }
@@ -566,18 +581,18 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             if (state == container_state::item_finished)
             {
                 JSONV_UNLIKELY
-                throw push_error(self, depth == 1U ? ast_error::expected_eof : ast_error::expected_comma, begin, iter);
+                throw push_error(self, depth == 1U ? ast_error::expected_eof : ast_error::expected_comma, begin, iter, end);
             }
         };
 
     auto get_string = [&](ast_node_type token_ascii, ast_node_type token_escaped) JSONV_ALWAYS_INLINE
         {
             if (*iter != '\"')
-                throw push_error(self, ast_error::expected_string, begin, iter);
+                throw push_error(self, ast_error::expected_string, begin, iter, end);
 
             auto result = detail::match_string(iter, end, options);
             if (!result)
-                throw push_error(self, ast_error::invalid_string, begin, iter + result.length);
+                throw push_error(self, ast_error::invalid_string, begin, iter + result.length, end);
 
             push_back_with_extra<2>(self,
                                     result.needs_conversion ? token_escaped : token_ascii,
@@ -591,7 +606,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
         {
             fastforward_space(iter);
             if (iter >= end)
-                throw push_error(self, ast_error::unexpected_eof, begin, iter);
+                throw push_error(self, ast_error::unexpected_eof, begin, iter, end);
             else if (*iter == '}')
                 return false;
 
@@ -599,10 +614,10 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
 
             fastforward_space(iter);
             if (iter >= end)
-                throw push_error(self, ast_error::unexpected_eof, begin, iter);
+                throw push_error(self, ast_error::unexpected_eof, begin, iter, end);
 
             if (*iter != ':')
-                throw push_error(self, ast_error::expected_key_delimiter, begin, iter);
+                throw push_error(self, ast_error::expected_key_delimiter, begin, iter, end);
             ++iter;
             return true;
         };
@@ -642,7 +657,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             break;
         case ']':
             if (state == container_state::needs_item)
-                throw push_error(self, ast_error::close_after_comma, begin, iter);
+                throw push_error(self, ast_error::close_after_comma, begin, iter, end);
 
             push_back_out(ast_node_type::array_end, ast_node_type::array_begin, iter);
             state = container_state::item_finished;
@@ -660,7 +675,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             break;
         case '}':
             if (state == container_state::needs_item)
-                throw push_error(self, ast_error::close_after_comma, begin, iter);
+                throw push_error(self, ast_error::close_after_comma, begin, iter, end);
 
             push_back_out(ast_node_type::object_end, ast_node_type::object_begin, iter);
             state = container_state::item_finished;
@@ -668,13 +683,13 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             break;
         case ',':
             if (state != container_state::item_finished)
-                throw push_error(self, ast_error::unexpected_comma, begin, iter);
+                throw push_error(self, ast_error::unexpected_comma, begin, iter, end);
 
             // The document holds a single value, so a `,` after it is as much trailing input as a second value is.
             if (depth == 1U)
             {
                 JSONV_UNLIKELY
-                throw push_error(self, ast_error::expected_eof, begin, iter);
+                throw push_error(self, ast_error::expected_eof, begin, iter, end);
             }
 
             ++iter;
@@ -712,7 +727,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
             }
             else
             {
-                throw push_error(self, ast_error::invalid_number, begin, iter);
+                throw push_error(self, ast_error::invalid_number, begin, iter, end);
             }
             break;
         case '/':
@@ -724,12 +739,12 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
                 }
                 else
                 {
-                    throw push_error(self, ast_error::invalid_comment, begin, iter);
+                    throw push_error(self, ast_error::invalid_comment, begin, iter, end);
                 }
             }
             JSONV_FALLTHROUGH();
         default:
-            throw push_error(self, ast_error::unexpected_token, begin, iter);
+            throw push_error(self, ast_error::unexpected_token, begin, iter, end);
             break;
         }
 
@@ -749,7 +764,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
     if (depth > 1U)
     {
         JSONV_UNLIKELY
-        throw push_error(self, ast_error::unexpected_eof, begin, iter);
+        throw push_error(self, ast_error::unexpected_eof, begin, iter, end);
     }
 
     // Checked before the document is closed, so that a refusal goes on the tape after the value it is about rather than
@@ -776,7 +791,7 @@ const char* parse_index::impl::parse(impl*& self, std::string_view src, std::siz
                 if (has_value)
                     fastforward_space(location);
 
-                throw push_error(self, ast_error::expected_document, begin, location);
+                throw push_error(self, ast_error::expected_document, begin, location, end);
             }
         }
     }
@@ -1179,7 +1194,13 @@ ast_node parse_index::iterator::operator*() const
     case ast_node_type::literal_null:     return ast_node::literal_null(ptr);
     case ast_node_type::integer:          return ast_node::integer(ptr, _iter[1]);
     case ast_node_type::decimal:          return ast_node::decimal(ptr, _iter[1]);
-    case ast_node_type::error:            return ast_node::error(ptr, 1U, static_cast<ast_error>(_iter[1]));
+    case ast_node_type::error:
+        // The size travels with the code: an error at the end of the input has no character to show, and reporting
+        // `1` there made this a view one byte past the source (#415).
+        return ast_node::error(ptr,
+                               static_cast<std::size_t>(_iter[1] >> error_token_size_shift),
+                               static_cast<ast_error>(_iter[1] & error_code_mask)
+                              );
     default:                              throw std::invalid_argument(std::string("Unknown token: ") + to_string(token));
     }
 }
@@ -1237,7 +1258,7 @@ public:
         case ast_node_type::literal_null:     return value();
         case ast_node_type::error:
             // Not an extraction error -- someone forgot to call `.validate()`
-            throw parse_error(to_string(static_cast<ast_error>(_pos[1])).c_str());
+            throw parse_error(to_string(static_cast<ast_error>(_pos[1] & error_code_mask)).c_str());
         default:
             // If the AST is valid, this should not be hit
             throw std::invalid_argument(std::string("unexpected token ") + to_string(token));

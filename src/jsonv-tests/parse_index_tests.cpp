@@ -15,9 +15,11 @@
 #include <jsonv/parse_index.hpp>
 
 #include <cstddef>
+#include <cstring>
 #include <fstream>
 #include <initializer_list>
 #include <limits>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string_view>
@@ -829,4 +831,65 @@ TEST(ast_parse_string_blns_94)
         R"("\u001f")"
     );
     ast.validate();
+}
+
+/// An `error` node's token was always reported as one byte long, but the position of an error such as `unexpected_eof`
+/// is the end of the source -- so `token_raw()` was a view of the byte after the caller's buffer, and reading it is an
+/// out-of-bounds access. The buffer here is allocated to the exact size of the document so that a sanitizer sees it,
+/// and so that the view's end can be compared against the real end of the source.
+///
+/// An error which is about a character that is really there still shows that character (see
+/// `ast_parse_require_document_refusal_stays_in_the_source`), so the two sizes are both checked here.
+///
+/// \see https://github.com/tgockel/json-voorhees/issues/415
+TEST(ast_parse_error_token_stays_inside_the_source)
+{
+    struct
+    {
+        std::string_view src;
+        std::string_view error_token;
+    }
+    const cases[] =
+    {
+        // Errors at the end of the input: there is no character to point at.
+        { "[",         ""  },
+        { "[1,",       ""  },
+        { "[1,2",      ""  },
+        { "{",         ""  },
+        { R"({"a":)",  ""  },
+        { R"("abc)",   ""  },
+        // Errors at a character which is really there: it is shown. An incomplete literal is reported where the
+        // literal starts, not where the input ran out.
+        { "tru",       "t" },
+        { "[1 2]",     "2" },
+        { "[1}",       "}" },
+        { "[,",        ","  },
+        { "{]",        "]" },
+    };
+
+    for (const auto& c : cases)
+    {
+        // Exactly as long as the document, so that a read past the end is a read past the allocation.
+        auto buffer = std::make_unique<char[]>(c.src.size());
+        std::memcpy(buffer.get(), c.src.data(), c.src.size());
+        auto src = std::string_view(buffer.get(), c.src.size());
+
+        auto ast = jsonv::parse_index::parse(src);
+        ensure(!ast.success());
+
+        bool saw_error = false;
+        for (const auto& node : ast)
+        {
+            auto token = node.token_raw();
+            ensure(src.data() <= token.data());
+            ensure(token.data() + token.size() <= src.data() + src.size());
+
+            if (node.type() == jsonv::ast_node_type::error)
+            {
+                saw_error = true;
+                ensure_eq(c.error_token, token);
+            }
+        }
+        ensure(saw_error);
+    }
 }
