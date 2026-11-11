@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+#
+# Installs apt packages on a CI runner, riding out a slow or unreachable Ubuntu mirror.
+#
+#   config/ci-apt-install [--skip-on-outage] PACKAGE...
+#
+# The runner's mirror has stalled for tens of minutes at a time and, once, failed to resolve for longer than eleven. apt's
+# own retries and timeouts (the runner image sets them) do not bound that, so a stalled step used to run into the job's
+# timeout. This tries up to three times. Only the download is under `timeout`: it is the one phase that touches the
+# network, and the one that is safe to kill, since interrupting dpkg mid-unpack is not. The install itself then runs from
+# the downloaded archives and needs no network.
+#
+# When every attempt ends with the mirror unreachable, nothing in the project has failed, and the step says so. Whether that
+# is still a failure is the caller's decision: without `--skip-on-outage` it exits non-zero with an error naming the mirror,
+# and with it, it exits zero after writing `unavailable=true` to $GITHUB_OUTPUT, for the steps which need the packages to
+# be conditioned on. Anything which is not a mirror outage -- a package that does not exist, a source which is not signed,
+# a broken dpkg -- always fails; `apt-get` exits 100 for every one of them, so the output is what tells the two apart. An
+# outage is only taken as one when it is all that went wrong: an unreachable mirror beside an independent error is that
+# error.
+
+set -uo pipefail
+
+attempts=3
+pause=20
+download_timeout=180
+
+skip_on_outage=false
+if [ "${1:-}" = --skip-on-outage ]; then
+    skip_on_outage=true
+    shift
+fi
+
+if [ "$#" -eq 0 ]; then
+    echo "usage: $0 [--skip-on-outage] PACKAGE..." >&2
+    exit 2
+fi
+
+log=$(mktemp)
+trap 'rm -f "${log}"' EXIT
+
+# Runs one phase of an attempt under `timeout`, returns its status, and leaves its output in ${log}, replacing the output
+# of the phase before. `mirror_unreachable` therefore reads only the phase which failed. That matters because
+# `apt-get update` exits zero when a mirror cannot be reached: its warning about some source the install does not need
+# must not be taken for a failure of the install, such as a package which does not exist, that follows it.
+phase() {
+    sudo timeout --kill-after=10 "${download_timeout}" apt-get "$@" 2>&1 | tee "${log}"
+    return "${PIPESTATUS[0]}"
+}
+
+download() {
+    phase update && phase install --yes --download-only "$@"
+}
+
+network_failure='Temporary failure resolving|Could not resolve|Could not connect|Connection (timed out|failed|refused)|Service Unavailable|Bad Gateway|Gateway Time-?out'
+
+# Whether the phase which just failed, with status $1, failed only because the mirror could not be reached.
+#
+# apt prints `E:` for everything fatal, and a phase can print more than one: `apt-get update` reports a source which is not
+# signed and, in the same run, one which cannot be reached. A mirror outage says it only through fetches which failed for a
+# network reason, and the line apt closes with to say that some of them did, so any other `E:` line is a second,
+# independent fault, and takes precedence over a network failure which is in the output alongside it. The closing line
+# differs by phase, and `--download-only` is not the wording of a normal install.
+mirror_unreachable() {
+    local other
+    other=$(grep -E '^E: ' "${log}" | grep -Ev "^E: (Failed to fetch .*(${network_failure})|Some (index )?files failed to download)")
+    [ -z "${other}" ] || return 1
+
+    # 124 is `timeout` ending a stalled command; 137 is the kill it follows up with.
+    [ "$1" -eq 124 ] || [ "$1" -eq 137 ] || grep -Eq "${network_failure}" "${log}"
+}
+
+status=1
+for attempt in $(seq "${attempts}"); do
+    echo "== apt attempt ${attempt} of ${attempts}: $*"
+    download "$@"
+    status=$?
+
+    if [ "${status}" -eq 0 ]; then
+        sudo apt-get install --yes "$@"
+        exit $?
+    fi
+
+    # A package which does not exist will not appear on a second try; only a mirror problem is worth waiting out.
+    if ! mirror_unreachable "${status}"; then
+        break
+    fi
+
+    if [ "${attempt}" -lt "${attempts}" ]; then
+        echo "apt attempt ${attempt} failed (status ${status}); trying again in ${pause}s" >&2
+        sleep "${pause}"
+    fi
+done
+
+if ! mirror_unreachable "${status}"; then
+    echo "::error title=apt install failed::Could not install $* (status ${status})."
+    exit 1
+fi
+
+message="The Ubuntu package mirror was unreachable on all ${attempts} attempts, so $* could not be installed. This is infrastructure, not a failure of the project."
+
+if "${skip_on_outage}"; then
+    echo "::warning title=apt mirror unreachable::${message} The steps which need those packages were skipped."
+    {
+        echo "### Skipped: apt mirror unreachable"
+        echo
+        echo "${message}"
+    } >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+    echo "unavailable=true" >> "${GITHUB_OUTPUT:-/dev/null}"
+    exit 0
+fi
+
+echo "::error title=apt mirror unreachable::${message}"
+exit 1

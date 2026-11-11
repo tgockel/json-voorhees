@@ -33,12 +33,20 @@ jobs:
       #
       # libFuzzer and the sanitizer runtimes live in libclang-rt-*-dev, which the clang package does
       # not depend on, so it is named explicitly and must match the pinned compiler version.
+      #
+      # config/ci-apt-install retries a stalled or unreachable mirror. If the mirror is still unreachable after that,
+      # the nightly run skips the steps which need the toolchain instead of failing: nothing in the project failed,
+      # and a missed night costs nothing, because the corpus is only cached by a run which finished. A push or pull
+      # request still fails, since that is a check somebody is waiting on.
       - name: Install Clang and sanitizer runtimes
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes clang-19 libclang-rt-19-dev
+        id: install
+        run: >
+          config/ci-apt-install
+          ${{ github.event_name == 'schedule' && '--skip-on-outage' || '' }}
+          clang-19 libclang-rt-19-dev
 
       - name: Report Clang version
+        if: steps.install.outputs.unavailable != 'true'
         run: clang++-19 --version
 
       # The committed seeds are generated output. Nothing else would notice them drifting from the generator.
@@ -55,6 +63,7 @@ jobs:
           fi
 
       - name: Configure
+        if: steps.install.outputs.unavailable != 'true'
         run: >
           cmake -S . -B build
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
@@ -63,12 +72,14 @@ jobs:
           -DCMAKE_CXX_COMPILER=clang++-19
 
       - name: Build
+        if: steps.install.outputs.unavailable != 'true'
         run: >
           cmake --build build
           --target jsonv-fuzz-${{ matrix.target }}
           --parallel
 
       - name: Restore accumulated corpus
+        if: steps.install.outputs.unavailable != 'true'
         uses: actions/cache/restore@v4
         with:
           path: build/fuzz-corpus-accumulated
@@ -77,6 +88,7 @@ jobs:
             fuzz-corpus-${{ matrix.target }}-
 
       - name: Fuzz
+        if: steps.install.outputs.unavailable != 'true'
         env:
           # A short smoke run on every push; the nightly schedule gets ten minutes per target.
           MAX_TOTAL_TIME: ${{ github.event_name == 'schedule' && '600' || '60' }}
@@ -100,7 +112,7 @@ jobs:
       - name: Save accumulated corpus
         # Only the scheduled run writes the cache, so a short per-push run cannot displace the
         # corpus built up overnight.
-        if: github.event_name == 'schedule' && success()
+        if: github.event_name == 'schedule' && success() && steps.install.outputs.unavailable != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/fuzz-corpus-accumulated
