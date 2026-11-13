@@ -667,6 +667,10 @@ public:
     /** Move-assigns \c source to this, leaving \a source as a null value.
      *
      *  Unlike a copy, this will never throw.
+     *
+     *  \a source may be a descendant of this value (`doc = std::move(doc["data"])`), but this value must not be a
+     *  descendant of \a source (`doc.at(0) = std::move(doc)`): the block would end up owning itself and leak. Debug
+     *  builds assert that, looking only at the first few hundred values of \a source.
     **/
     value& operator=(value&& source) noexcept;
 

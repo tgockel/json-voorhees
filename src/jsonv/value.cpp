@@ -21,6 +21,7 @@
 #include "value_access.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstring>
 #include <iterator>
@@ -146,10 +147,65 @@ value::value(value&& other) noexcept :
     other._repr = detail::value_representation();
 }
 
+namespace
+{
+
+#ifndef NDEBUG
+/// How many values beneath the source the precondition check of move assignment looks at before giving up. Move
+/// assignment is `noexcept` and sits under every mutator, so the check can neither allocate nor cost a walk of the
+/// whole source each time (building a deep tree one level at a time would go quadratic); it recurses, but the budget
+/// also bounds the depth. A destination further in than this is not caught.
+constexpr std::size_t descendant_check_budget = 256U;
+
+/// True if \a candidate is beneath \a root, looking at no more than \a budget values.
+bool is_descendant_of(const value& root, const value* candidate, std::size_t& budget) noexcept
+{
+    const detail::value_representation& repr = detail::value_access::representation(root);
+    if (repr.words.kind == jsonv::kind::array)
+    {
+        const value* elements = detail::array_impl::data(repr.words.data.array);
+        for (std::size_t idx = 0U, count = detail::array_impl::size(repr.words.data.array); idx < count; ++idx)
+        {
+            if (budget == 0U)
+                return false;
+            --budget;
+            if (&elements[idx] == candidate || is_descendant_of(elements[idx], candidate, budget))
+                return true;
+        }
+    }
+    else if (repr.words.kind == jsonv::kind::object)
+    {
+        const auto* members = detail::object_impl::data(repr.words.data.object);
+        for (std::size_t idx = 0U, count = detail::object_impl::size(repr.words.data.object); idx < count; ++idx)
+        {
+            if (budget == 0U)
+                return false;
+            --budget;
+            if (&members[idx].second == candidate || is_descendant_of(members[idx].second, candidate, budget))
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool is_descendant_of(const value& root, const value* candidate) noexcept
+{
+    std::size_t budget = descendant_check_budget;
+    return is_descendant_of(root, candidate, budget);
+}
+#endif
+
+}
+
 value& value::operator=(value&& source) noexcept
 {
     if (this != &source)
     {
+        // Moving a value into one of its own descendants would install its block into that block's own element, which
+        // then owns itself and is never freed (#419).
+        assert(!is_descendant_of(source, this));
+
         // Taken before the destination is cleared, not after. `source` may be a descendant of this value -- as in
         // `doc = std::move(doc["data"])` -- and clearing frees the block it lives in, so reading it afterwards reads
         // freed storage and leaves this value owning whatever that read handed back.

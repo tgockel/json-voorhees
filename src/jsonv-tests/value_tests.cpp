@@ -308,7 +308,7 @@ TEST(value_integer_decimal_unordered_map)
 namespace
 {
 
-/// \a depth arrays nested one inside the next, the innermost empty. Built by moving each level into the next rather
+/// \a depth arrays nested one inside the next, the innermost empty. Built by moving each level into the next (swapping, which unlike move assignment checks nothing) rather
 /// than with `jsonv::array({ ... })`, whose `initializer_list` elements are `const` and so would copy.
 jsonv::value deeply_nested_arrays(std::size_t depth)
 {
@@ -317,7 +317,7 @@ jsonv::value deeply_nested_arrays(std::size_t depth)
     {
         jsonv::value outer = jsonv::array();
         outer.push_back(std::move(nested));
-        nested = std::move(outer);
+        nested.swap(outer);
     }
     return nested;
 }
@@ -332,8 +332,8 @@ jsonv::value deeply_nested_objects(std::size_t depth, const std::string& key)
         jsonv::value outer = jsonv::object();
         outer["number"]    = std::int64_t(level);
         outer["text"]      = std::string(64U, 'x');
-        outer[key]         = std::move(nested);
-        nested             = std::move(outer);
+        outer[key].swap(nested);
+        nested.swap(outer);
     }
     return nested;
 }
@@ -354,7 +354,7 @@ jsonv::value deep_and_wide(std::size_t depth, std::size_t width)
         for (std::size_t idx = 0U; idx < width; ++idx)
             outer.push_back(jsonv::array({ std::string(64U, 'x') }));
         outer.push_back(std::move(nested));
-        nested = std::move(outer);
+        nested.swap(outer);
     }
     return nested;
 }
@@ -472,7 +472,7 @@ TEST(value_destroy_deeply_nested_frees_the_elements_beside_the_nesting)
         outer.push_back(std::string(64U, 'x'));
         outer.push_back(jsonv::object({ { "key-longer-than-the-small-string-buffer", std::string(64U, 'y') } }));
         outer.push_back(std::move(nested));
-        nested = std::move(outer);
+        nested.swap(outer);
     }
 }
 
